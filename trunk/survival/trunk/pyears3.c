@@ -1,4 +1,4 @@
-/* SCCS $Id: pyears3.c,v 4.5 1994-04-21 16:48:12 therneau Exp $  */
+/* SCCS $Id: pyears3.c,v 4.6 1994-06-22 08:07:05 therneau Exp $  */
 /*
 **  Person-years calculations, leading to expected survival for a cohort.
 **    The output table depends only on factors, not on continuous.
@@ -151,7 +151,10 @@ printf("time=%5.1f, rate1=%6e, rate2=%6e, wt=%3.1f\n", et2, expect[indx], expect
 	}
 
     for (i=0; i<ntime*ngrp; i++) {
-	if (death==0) esurv[i] /= wvec[i];
-	else          esurv[i] = exp(-esurv[i]/wvec[i]);
+	if (wvec[i]>0) {
+	    if (death==0) esurv[i] /= wvec[i];
+	    else          esurv[i] = exp(-esurv[i]/wvec[i]);
+	    }
+	else if (death!=0) esurv[i] = exp(-esurv[i]);
 	}
     }
