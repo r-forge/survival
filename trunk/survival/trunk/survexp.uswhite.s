@@ -1,4 +1,4 @@
-#SCCS $Date: 1993-12-02 21:52:45 $ $Id: survexp.uswhite.s,v 4.3 1993-12-02 21:52:45 therneau Exp $
+#SCCS $Date: 1993-12-02 21:56:08 $ $Id: survexp.uswhite.s,v 4.4 1993-12-02 21:56:08 therneau Exp $
 "survexp.uswhite"<-
 structure(.Data = c(8.5341e-05, 5.79655e-06, 3.79562e-06, 2.89274e-06, 
 	2.46983e-06, 2.21618e-06, 2.04731e-06, 1.84955e-06, 1.73688e-06, 
@@ -192,7 +192,7 @@ structure(.Data = c(8.5341e-05, 5.79655e-06, 3.79562e-06, 2.89274e-06,
 #   "plot(1:40, rbind(round((1:40)*.25)))" to see why.  One would expect
 #    4 points per horizontal step, but that's not what I get (Sun 4).
 
-attrbutes(survexp.uswhite) <- list(dim=c(110, 2, 4),
+attributes(survexp.uswhite) <- list(dim=c(110, 2, 4),
 	     dimnames=list(0:109, c("Male", "Female"), 10*195:198),
 	     dimid=c("age", "sex", "year"),
 	     factor=c(0,1,10),
