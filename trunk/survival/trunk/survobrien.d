@@ -15,7 +15,8 @@ a data frame.
 .RT
 a new data frame.  The original time and status variables are removed,
 and have been replaced with `start', `stop', and `event'.
-If a predictor variable is a factor, it is retained as is.
+If a predictor variable is a factor or is protected with I(),
+it is retained as is.
 Other predictor variables have been replaced with time-dependent logit
 scores.
 .pp
@@ -38,7 +39,7 @@ Biometrics 34: 243-250, 1978.
 survdiff
 .KW survival
 .EX
-xx <- survobrien(Surv(time, status) ~ age + factor(rx) + ecog.ps,
+xx <- survobrien(Surv(time, status) ~ age + factor(rx) + I(ecog.ps),
 			       data=fleming)
 coxph(Surv(start, stop, event) ~ age, data=xx)
 coxph(Surv(start, stop, event) ~ age + rx + ecog.ps, data=xx)

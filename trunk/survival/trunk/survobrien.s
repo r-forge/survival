@@ -1,4 +1,4 @@
-# SCCS  $Id: survobrien.s,v 4.4 1997-03-27 16:16:41 therneau Exp $
+# SCCS  $Id: survobrien.s,v 4.5 1998-01-13 09:20:10 therneau Exp $
 #
 # The test for survival proposed by Peter O'Brien
 #
@@ -12,12 +12,21 @@ survobrien <- function(formula, data= sys.parent()) {
     if (attr(y, 'type') != 'right') stop("Can only handle right censored data")
 
     # Figure out which are the continuous predictor variables
-    keepers <- unlist(lapply(m, is.factor))
+    factors <- unlist(lapply(m, is.factor))
+    protected <- unlist(lapply(m, function(x) inherits(x, "AsIs")))
+    keepers <- factors | protected
     cont <- ((seq(keepers))[!keepers]) [-1]
     if (length(cont)==0) stop ("No continuous variables to modify")
+    else {
+	temp <- (names(m))[-1]      #ignore the response variable
+	protected <- protected[-1] 
+	if (any(protected)) 
+	    temp[protected] <- (attr(terms.inner(Terms), 'term.labels'))[protected]
+	kname <- temp[keepers[-1]]
+	}
 
     ord <- order(y[,1])
-    x <- as.matrix(m[ord, cont])
+    x <- as.matrix(m[ord, cont, drop=F])
     time <- y[ord,1]
     status <- y[ord,2]
     nvar <- length(cont)
@@ -30,6 +39,7 @@ survobrien <- function(formula, data= sys.parent()) {
     ltime <- 0
     j<- 1
     keep.index <- NULL
+
     for (i in unique(time[status==1])) {
 	who <- (time >=i)
 	nrisk <- sum(who)
@@ -51,8 +61,8 @@ survobrien <- function(formula, data= sys.parent()) {
 
     if (any(keepers)){
 	temp <- m[keep.index, keepers, drop=F]
-	names(temp) <- (names(m))[keepers]
-	data.frame(temp, start, stop, event, xx)
+	names(temp) <- kname
+	data.frame(start, stop, event, temp, xx)
         }
     else  data.frame(start, stop, event, xx)
     }
