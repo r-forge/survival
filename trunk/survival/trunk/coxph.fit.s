@@ -1,4 +1,4 @@
-# SCCS  $Id: coxph.fit.s,v 5.7 1999-06-18 15:50:07 therneau Exp $
+# SCCS  $Id: coxph.fit.s,v 5.8 1999-06-24 15:21:57 therneau Exp $
 coxph.fit <- function(x, y, strata, offset, init, control,
 			weights, method, rownames)
     {
@@ -35,16 +35,17 @@ coxph.fit <- function(x, y, strata, offset, init, control,
 	nullmodel <- T
 	nvar <- 1
 	init <- 0
-	iter.max <- 0
+	maxiter <- 0
 	}
     else {
 	nullmodel <- F
+	maxiter <- control$iter.max
 	if (!missing(init) && !is.null(init)) {
 	    if (length(init) != nvar) stop("Wrong length for inital values")
 	    }
 	else init <- rep(0,nvar)
 	}
-    coxfit <- .C("coxfit2", iter=as.integer(control$iter.max),
+    coxfit <- .C("coxfit2", iter=as.integer(maxiter),
 		   as.integer(n),
 		   as.integer(nvar), stime,
 		   sstat,
@@ -88,7 +89,7 @@ coxph.fit <- function(x, y, strata, offset, init, control,
 	else which.sing <- rep(F,nvar)
 
 	infs <- abs(coxfit$u %*% var)
-	if (iter.max >1) {
+	if (maxiter >1) {
 	    if (coxfit$flag == 1000)
 		   warning("Ran out of iterations and did not converge")
 	    else {

@@ -1,6 +1,6 @@
-#SCCS $Id: agexact.fit.s,v 4.19 1999-06-18 15:50:05 therneau Exp $
-agexact.fit <- function(x, y, strata, offset, control,
-			  weights, init, method, rownames)
+#SCCS $Id: agexact.fit.s,v 4.20 1999-06-24 15:21:56 therneau Exp $
+agexact.fit <- function(x, y, strata, offset, init, control,
+			  weights, method, rownames)
     {
     if (!is.matrix(x)) stop("Invalid formula for cox fitting function")
     if (!is.null(weights) && any(weights!=1))
@@ -68,7 +68,7 @@ agexact.fit <- function(x, y, strata, offset, control,
     else which.sing <- rep(F,nvar)
 
     infs <- abs(agfit$u %*% var)
-    if (iter.max >1) {
+    if (control$iter.max >1) {
 	if (agfit$flag == 1000)
 	       warning("Ran out of iterations and did not converge")
 	    else {
