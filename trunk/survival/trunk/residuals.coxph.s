@@ -1,4 +1,4 @@
-#SCCS $Id: residuals.coxph.s,v 4.12 1993-01-13 01:07:26 therneau Exp $
+#SCCS $Id: residuals.coxph.s,v 4.13 1993-01-19 14:23:55 therneau Exp $
 residuals.coxph <-
   function(object, type=c("martingale", "deviance", "score", "schoenfeld",
 			  "dbeta", "dfbetas", "scaledsch"),
@@ -75,7 +75,7 @@ residuals.coxph <-
 			    double(2*nvar))
 
 	deaths <- y[,3]==1
-	rr <- temp$resid[deaths,]
+	rr <- matrix(temp$resid[deaths,], ncol=nvar) #pick rows, and kill attr
 	if (length(strats)) attr(rr, "strata")  <- strat[deaths]
 	time <- c(y[deaths,2])  # 'c' kills all of the attributes
 	if (is.matrix(rr)) dimnames(rr)<- list(time, names(object$coef))
