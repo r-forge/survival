@@ -10,7 +10,7 @@ of Anderson and Gill.
 .CS
 coxph(formula=formula(data), data=sys.parent(), subset, 
        na.action, eps=0.0001, init,
-       iter.max=10, method=c("breslow","efron","exact"),
+       iter.max=10, method=c("efron","breslow","exact"),
        model=F, x=F, y=T)
 .RA
 .AG formula
@@ -38,9 +38,11 @@ maximum number of iterations to perform.  Default is 10.
 .AG method
 method for tie handling.  If there are no tied death times all the methods
 are equivalent.
-Breslow is the default for historical
-reasons (it is the easiest to program, and appears in most implimentations).
-The efron approxomation is more accurate, and is as fast computationally.
+Nearly all Cox regression programs use the Breslow method by default, but
+not this one.
+The Efron approximation is used as the default here, as it is much more
+accurate when dealing with tied death times, and is as efficient
+computaionally.
 The exact method computes the exact partial likelihood, which is equivalent
 to a conditional logistic model.  If there are a large number of ties the
 computational time will be excessive.
