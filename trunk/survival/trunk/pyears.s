@@ -1,4 +1,4 @@
-#SCCS  $Id: pyears.s,v 5.6 2001-06-12 14:23:42 therneau Exp $
+#SCCS  $Id: pyears.s,v 5.7 2001-06-15 15:42:05 therneau Exp $
 pyears <- function(formula=formula(data), data=sys.parent(),
 	weights, subset, na.action,
 	ratetable=survexp.us, scale=365.25,  expect=c('event', 'pyears'),
@@ -30,6 +30,7 @@ pyears <- function(formula=formula(data), data=sys.parent(),
     if (is.null(n) || n==0) stop("Data set has 0 observations")
 
     weights <- model.extract(m, 'weights')
+    if (is.null(weights)) weights <- rep(1.0, n)
 
     rate <- attr(Terms, "specials")$ratetable
     if (length(rate) >1 )
