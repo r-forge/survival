@@ -56,7 +56,7 @@ print.summary.survreg <- function(x, digits = 3, quote = T, prefix = "")
         "on", n - int, "degrees of freedom\n")
     cat("Residual Deviance:", format(round(x$deviance, digits)), "on",
         round(rdf, digits), "degrees of freedom\n")
-    cat("Number of Newton-Rhaphson Iterations:", format(trunc(x$iter)),
+    cat("Number of Newton-Raphson Iterations:", format(trunc(x$iter)),
         "\n")
     if(!is.null(correl)) {
         p <- dim(correl)[2]
