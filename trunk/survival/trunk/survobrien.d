@@ -30,7 +30,7 @@ multivariate extension of the original paper.
 .pp
 In O'Brien's method, the x variables are re-ranked at each death time.  A
 simpler method, proposed by Prentice, ranks the data only once at the
-start.
+start. The results are usually similar.
 .SH REFERENCES
 O'Brien, Peter, "A Nonparametric Test for Association with Censored Data",
 Biometrics 34: 243-250, 1978.
@@ -40,7 +40,6 @@ survdiff
 .EX
 xx <- survobrien(Surv(time, status) ~ age + factor(rx) + ecog.ps,
 			       data=fleming)
-attach(xx)
-coxph(Surv(start, stop, event) ~ age)
-coxph(Surv(start, stop, event) ~ age + rx + ecog.ps)
+coxph(Surv(start, stop, event) ~ age, data=xx)
+coxph(Surv(start, stop, event) ~ age + rx + ecog.ps, data=xx)
 .WR
