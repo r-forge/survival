@@ -1,9 +1,10 @@
-#SCCS $Date: 1995-05-23 14:49:54 $ $Id: survfit.s,v 4.7 1995-05-23 14:49:54 therneau Exp $
+#SCCS $Date: 1997-02-08 14:53:50 $ $Id: survfit.s,v 4.8 1997-02-08 14:53:50 therneau Exp $
 survfit <- function (formula, data, weights, subset, na.action, ...) {
     call <- match.call()
     # Real tricky -- find out if the first arg is "Surv(...)" without
     #  evaluating it.  If this is so, or it is a survival object, turn it
     #  into a formula
+    # (This allows people to leave off the "~1" from a formula)
     if ((mode(call[[2]]) == 'call' &&  call[[2]][[1]] == as.name('Surv'))
 		|| inherits(formula, 'Surv'))  {
 	# The dummy function stops an annoying warning message "Looking for
@@ -12,8 +13,11 @@ survfit <- function (formula, data, weights, subset, na.action, ...) {
 	formula <- xx(paste(deparse(call[[2]]), 1, sep="~"))
 	}
 
+    # if the first object is a Cox model, call survfit.coxph
     if (!inherits(formula, 'formula')) temp <- UseMethod("survfit")
     else {
+	# Ok, I have a formula
+        # grab the data and process it
 	m <- match.call(expand=F)
 	m$... <- NULL
 
@@ -27,6 +31,8 @@ survfit <- function (formula, data, weights, subset, na.action, ...) {
 
 	n <- nrow(m)
 	Y <- model.extract(m, response)
+	if (!is.Surv(Y)) stop("Response must be a survival object")
+
 	casewt <- model.extract(m, "weights")
 	# The second line below works around a bug in Splus 3.0.1, which later
 	#    went away, i.e., casewt is returned as an unevaluated arg.
@@ -36,17 +42,8 @@ survfit <- function (formula, data, weights, subset, na.action, ...) {
 	if (!is.null(attr(Terms, 'offset'))) warning("Offset term ignored")
 
 	ll <- attr(Terms, 'term.labels')
-	if (length(ll) == 0) X <- factor(rep(1,n))
-	else {
-	    temp <-  rep(1, length(ll))
-	    strat <- untangle.specials(Terms, 'strata',1)$terms
-	    if (length(strat)) temp[strat] <- 0
-	    lname <- ifelse(temp==1, paste(ll,'=', sep=''), "")
-	    temp <- paste("'",lname, "', ","as.character(m[['", ll, "']])", sep='')
-	    temp <- paste(temp, collapse=", ', ',")
-	    temp <- paste("paste(", temp, ",sep='')")
-	    X <- factor(eval(parse(text=temp)))
-	    }
+	if (length(ll) == 0) X <- factor(rep(1,n))  # ~1 on the right
+	else X <- strata(m[ll)])
 
 	temp <- survfit.km(X, Y, casewt, ...)
 	attr(temp, "class") <- "survfit"
