@@ -1,125 +1,143 @@
-# SCCS $Id: survreg.distributions.s,v 4.4 1998-11-04 02:04:55 therneau Exp $
+# SCCS $Id: survreg.distributions.s,v 4.5 1998-11-30 08:34:09 therneau Exp $
 #
 # Create the survreg.distributions object
 #
 survreg.distributions <- list(
 'extreme' = list(
     name = "Extreme value",
-    parms = list(scale=1),
-    logconcave = T,
-    init  = function(x,fixed, init) {
-			if (!is.null(fixed$scale))
-				temp<- c(log(fixed$scale), 1)
-			else if(!is.null(init$scale))
-				temp<- c(log(init$scale), 0)
-			else    temp<- c(log(mean(x^2)/1.3)/2 ,0)
-			matrix(temp, nrow=1, dimnames=list("Log(scale)", NULL))
-			},
-    deviance= function(y, parms, loglik) {
-			status <- y[,ncol(y)]
-			scale <- exp(parms[1])
-			if (any(status==3)) {
-			    temp <- ifelse(status==3,(y[,2] - y[,1])/scale,1)
-			    temp2 <- temp/(exp(temp)-1)
-			    temp3 <- log(exp(-temp2) - exp(-temp2*exp(temp)))
-			    best <- ifelse(status==1, -(1+log(scale)),
+    variance = function(parm) pi^2/6,
+    init  = function(x, weights, ...) {
+	mean <- sum(x*weights)/ sum(weights)
+	var  <- sum(weights*(x-mean)^2)/ sum(weights)
+	c(mean + .572, var/1.64)
+	},
+    deviance= function(y, scale, parms) {
+	status <- y[,ncol(y)]
+	width <- ifelse(status==3,(y[,2] - y[,1])/scale, 1)
+	temp <- width/(exp(width)-1)
+	center <- ifelse(status==3, y[,1] - log(temp), y[,1])
+	temp3 <- (-temp) + log(1- exp(-exp(width)))
+	best <- ifelse(status==1, -(1+log(scale)),
 				    ifelse(status==3, temp3, 0))
-			    }
-			else best <- ifelse(status==1, -(1+log(scale)), 0)
-			2*(best-loglik)
-			},
-    print = function(parms, fixed)
-		if (fixed)
-		     paste("Dispersion (scale) fixed at", format(exp(parms)))
-		else paste("Dispersion (scale) =",
-					       format(exp(parms)))
+	list(center=center, loglik=best) 
+	},
+    density = function(x) {
+	w <- exp(x)
+	ww <- exp(-w)
+	cbind(1-ww, ww, w*ww, (1-w), w*(w-3) +1)
+	},
+    quantile = function(p, ...) log(-log(1-p))
     ),
 
 logistic = list(
     name  = "Logistic",
-    parms = list(scale=1),
-    logconcave = T,
-    init  = function(x,fixed, init) {
-			if (!is.null(fixed$scale))
-				temp<- c(log(fixed$scale), 1)
-			else if(!is.null(init$scale))
-				temp<- c(log(init$scale), 0)
-			else    temp<- c(log(mean(x^2)/2)/2 ,0)
-			matrix(temp, nrow=1, dimnames=list("Log(scale)", NULL))
-			},
-    deviance= function(y, parms, loglik) {
-			status <- y[,ncol(y)]
-			scale <- exp(parms[1])
-			if (any(status==3)) {
-			    temp <- ifelse(status==3,(y[,2] - y[,1])/scale,1)
-			    temp2 <- exp(temp/2)
-			    temp3 <- log((temp2-1)/(temp2+1))
-			    best <- ifelse(status==1, -log(4*scale),
+    variance = function(parm) pi^2/3,
+    init  = function(x, weights, ...) {
+	mean <- sum(x*weights)/ sum(weights)
+	var  <- sum(weights*(x-mean)^2)/ sum(weights)
+	c(mean, var/3.2)
+	},
+    deviance= function(y, scale, parms) {
+	status <- y[,ncol(y)]
+	width <- ifelse(status==3,(y[,2] - y[,1])/scale, 0)
+	center <- y[,1] - width/2
+	temp2 <- ifelse(status==3, exp(width/2), 2) #avoid a log(0) message
+	temp3 <- log((temp2-1)/(temp2+1))
+	best <- ifelse(status==1, -log(4*scale),
 				    ifelse(status==3, temp3, 0))
-			    }
-			else best <- ifelse(status==1, -log(4*scale), 0)
-			2*(best-loglik)
-			},
-    print = function(parms, fixed)
-		if (fixed)
-		     paste("Dispersion (scale) fixed at", format(exp(parms)))
-		else paste("Dispersion (scale) est =",
-					       format(exp(parms)))
+	list(center=center, loglik=best) 
+	},
+    density = function(x, ...) {
+	w <- exp(x)
+	cbind(w/(1+w), 1/(1+w), w/(1+w)^2, (1-w)/(1+w), (w*(w-4) +1)/(1+w)^2)
+	},
+    quantile = function(p, ...) log(p/(1-p))
     ),
 
 gaussian = list(
     name  = "Gaussian",
-    parms = list(scale=1),
-    logconcave = T,
-    init  = function(x,fixed, init) {
-			if (!is.null(fixed$scale))
-				temp<- c(log(fixed$scale), 1)
-			else if(!is.null(init$scale))
-				temp<- c(log(init$scale), 0)
-			else    temp<- c(log(mean(x^2))/2 ,0)
-			matrix(temp, nrow=1, dimnames=list("Log(scale)", NULL))
-			},
-    deviance= function(y, parms, loglik) {
-			status <- y[,ncol(y)]
-			scale <- exp(parms[1])
-			temp <-  ifelse(status==3, (y[,2] - y[,1])/scale, 1)
-			temp2 <- 2*(pnorm(temp/2) -.5)
-			best <- ifelse(status==1, -log(sqrt(2*pi)*scale),
+    variance = function(parm) 1,
+    init  = function(x, weights, ...) {
+	mean <- sum(x*weights)/ sum(weights)
+	var  <- sum(weights*(x-mean)^2)/ sum(weights)
+	c(mean, var)
+	},
+    deviance= function(y, scale, parms) {
+	status <- y[,ncol(y)]
+	width <- ifelse(status==3,(y[,2] - y[,1])/scale, 0)
+	center <- y[,1] - width/2
+	temp2 <- log(1 - 2*pnorm(width/2))
+	best <- ifelse(status==1, -log(sqrt(2*pi)*scale),
 				ifelse(status==3, temp2, 0))
-			2*(best-loglik)
-			},
-    print = function(parms, fixed)
-		if (fixed)
-		     paste("Dispersion (scale) fixed at", format(exp(parms)))
-		else paste("Dispersion (scale) =",
-					       format(exp(parms)))
+	list(center=center, loglik=best) 
+	},
+    density = function(x, ...) {
+	cbind(pnorm(x, df), pnorm(-x, df), dnorm(x,df), -x, x^2-1)	
+	},
+    quantile = function(p, ...) qnorm(p)
+    ),
+
+weibull = list(
+    name  = "Weibull",
+    dist  = 'extreme',
+    trans = function(y) log(y),
+    dtrans= function(y) 1/y ,
+    itrans= function(x) exp(x)
+    ),
+
+exponential = list(
+    name  = "Exponential",
+    dist  = 'extreme',
+    trans = function(y) log(y),
+    dtrans= function(y) 1/y,
+    scale =1,
+    itrans= function(x) exp(x)
+    ),
+
+rayleigh = list(
+    name  = "Rayleigh",
+    dist  = 'extreme',
+    trans = function(y) log(y),
+    dtrans= function(y) 1/y,
+    itrans= function(x) exp(x),
+    scale =0.5
+    ),
+
+loggaussian = list(
+    name  = "Log Normal",
+    dist  = 'gaussian',
+    trans = function(y) log(y),
+    itrans= function(x) exp(x),
+    dtrans= function(y) 1/y
+    ),
+
+lognormal = list(
+    name  = "Log Normal",
+    dist  = 'gaussian',
+    trans = function(y) log(y),
+    itrans= function(x) exp(x),
+    dtrans= function(y) 1/y
+    ),
+
+loglogistic = list(
+    name = "Log logistic",
+    dist = 'logistic',
+    trans = function(y) log(y),
+    dtrans= function(y) 1/y ,
+    itrans= function(x) exp(x)
     ),
 
 t = list(
     name  = "Student-t",
-    parms = list(scale=1, df=2),
-    logconcave = F,
-    init  = function(x,fixed, init) {
-			if (!is.null(fixed$scale))
-				temp<- c(log(fixed$scale), 1)
-			else if(!is.null(init$scale))
-				temp<- c(log(init$scale), 0)
-			else    temp<- c(log(mean(x^2))/2 ,0)
-
-			if (!is.null(fixed$df))
-				temp<- c(temp, fixed$df, 1)
-			else if(!is.null(init$df))
-				temp<- c(temp, init$df, 0)
-			else    {
-			    k <- mean(x^4)/ (3*temp[1])
-			    df<- (3*k + sqrt(8*k + k^2))/(16*k*(k-1))
-			    temp<- c(temp, df, 0)
-			    }
-
-			matrix(temp, nrow=2, byrow=T,
-			    dimnames=list(c("Log(scale)", "df"),  NULL))
-			},
-    deviance= function(y, parms, loglik) {
+    variance <- function(df) df/(df-2),
+    parms = list(df=4),
+    init  = function(x, weights, df) {
+	if (df <=2) stop ("Invalid degrees of freedom for the t-distribution")
+	mean <- sum(x*weights)/ sum(weights)
+	var  <- sum(weights*(x-mean)^2)/ sum(weights)
+	c(mean, var*(df-2)/df)
+	},
+    deviance= function(y, df, loglik) {
 			status <- y[,ncol(y)]
 			scale <- exp(parms[1])
 			df <- parms[2]
@@ -131,13 +149,17 @@ t = list(
 				ifelse(status==3, temp2, 0))
 			2*(best-loglik)
 			},
-    print = function(parms, fixed) {
-	    tt <- if (fixed[1])
-		     paste("Dispersion (scale) fixed at", format(exp(parms[1])))
-		else paste("Dispersion (scale) =",
-					       format(exp(parms[1])))
-	    if (fixed[2]) paste(tt, ", df fixed at", format(parms[2]))
-	    else tt
-	    }
-    )
- )
+    density = function(x, df) {
+	cbind(pt(x, df), pt(-x, df), dt(x,df),
+	      -(df+1)*x/(2+x^2), (df+1)*(x^2 * (df+3)/(2+x^2)^2 - 1/(2+x^2)))
+	},
+    quantile = function(p, df) qt(p, df)
+  )
+)
+
+
+
+
+
+
+

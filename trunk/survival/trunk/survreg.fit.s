@@ -1,122 +1,188 @@
-# SCCS $Id: survreg.fit.s,v 5.3 1998-11-04 02:04:28 therneau Exp $
+# 
+#  SCCS $Id: survreg.fit.s,v 5.4 1998-11-30 08:34:08 therneau Exp $
 #
-# This handles the one parameter distributions-- extreme, logistic,
-#       gaussian, and cauchy.
-# The parent routine survreg can't allow Cauchy.  It gives negative weights
-#   when we try to fit it into the IRLS model, as Cauchy is not log-covex.
-#
-survreg.fit<- function(x, y, offset, init, controlvals, dist, fixed,
-				nullmodel=T) {
+survreg.fit<- function(x, y, weights, offset, init, controlvals, dist, 
+		       scale=0, nstrat=1, strata) {
 
-    iter.max <- controlvals$maxiter
+    iter.max <- controlvals$iter.max
     eps <- controlvals$rel.tol
     toler.chol <- controlvals$toler.chol
+    debug <- controlvals$debug
 
     if (!is.matrix(x)) stop("Invalid X matrix ")
     n <- nrow(x)
     nvar <- ncol(x)
     ny <- ncol(y)
     if (is.null(offset)) offset <- rep(0,n)
+    if (missing(weights)|| is.null(weights)) weights<- rep(1.0,n)
+    else if (any(weights<=0)) stop("Invalid weights, must be >0")
 
-    sd <- survreg.distributions[[dist]]
-    if (is.null(sd)) stop ("Unrecognized distribution")
-    dnum <- match(dist, c("extreme", "logistic", "gaussian", "cauchy"))
-    if (is.na(dnum)) stop ("Unknown distribution given")
+    if (scale <0) stop("Invalid scale")
+    if (scale >0 && nstrat >1) 
+	    stop("Cannot have both a fixed scale and strata")
+    if (nstrat>1 && (missing(strata) || length(strata)!= n))
+	    stop("Invalid strata variable")
+    if (nstrat==1) strata <- rep(1,n)
+    if (scale >0) nstrat2 <- 0; else nstrat2 <- nstrat
 
-    ncol.deriv <- if (any(y[,ny]==3)) 6  else 3
-    nvar2 <- nvar + length(sd$parms) - length(fixed)
-    yy <- ifelse(y[,ny]!=3, y[,1], (y[,1]+y[,2])/2 )
+    if (is.character(dist)) {
+	sd <- survreg.distributions[[dist]]
+	if (is.null(sd)) stop ("Unrecognized distribution")
+	}
+    else sd <- dist
+    dnum <- match(sd$name, c("Extreme value", "Logistic", "Gaussian"))
+    if (is.na(dnum)) {
+	# Not one of the "built-in distributions
+	dnum <- 4
+	if (!is.function(sd$density)) 
+		stop("Missing density function in user defined distribution")
+	stop ('function not yet finished')
+	}
+    #
+    # Fit the model with just a mean and scale
+    #    assume initial values don't apply here
+    # Unless, of course, someone is fitting a mean only model!
+    #
+    meanonly <- (nvar==1 && all(x==1))
+    if (!meanonly) {
+	yy <- ifelse(y[,ny]!=3, y[,1], (y[,1]+y[,2])/2 )
+	coef <- sd$init(yy, weights)
+	if (scale >0) coef[2] <- scale
+	variance <- log(coef[2])/2   # init returns \sigma^2, I need log(sigma)
+	coef <- c(coef[1], rep(variance, nstrat))
+	# get a better initial value for the mean using the "glim" trick
+	deriv <- .C("survreg3",
+		    as.integer(n),
+		    as.double(y),
+		    as.integer(ny),
+		    as.double(yy),
+		    nstrat = as.integer(nstrat2),
+		    strata = as.integer(strata),
+		    vars= as.double(coef[-1]),
+		    deriv = matrix(double(n * 3),nrow=n),
+		    as.integer(3),
+		    as.integer(dnum))$deriv
+	coef[1] <- coef[1] - sum(weights*deriv[,2])/sum(weights*deriv[,3])
 
+	# Now the fit proper (intercept only)
+	nvar2 <- 1 +nstrat2
+	fit0 <- .C("survreg2",
+		       iter = as.integer(iter.max),
+		       as.integer(n),
+		       as.integer(1),
+		       as.double(y),
+		       as.integer(ny),
+		       rep(1.0, n),
+		       as.double(weights),
+		       as.double(offset),
+		       coef= as.double(coef),
+		       as.integer(nstrat2),
+		       as.integer(strata),
+		       u = double(3*(nvar2) + nvar2^2),
+		       var = matrix(0.0, nvar2, nvar2),
+		       loglik=double(1),
+		       flag=integer(1),
+		       as.double(eps),
+		       as.double(toler.chol), 
+		       as.integer(dnum),
+		       debug = as.integer(floor(debug/2)))
+	}
+
+    #
+    # Fit the model with all covariates
+    #
+    nvar2 <- nvar + nstrat2
     if (is.numeric(init)) {
 	if (length(init) != nvar2) stop("Wrong length for initial parameters")
-	eta <- x %*% init[1:nvar]
-	tfix <- sd$init(yy - eta, fixed, init)
 	}
-    else {
-	if (is.null(eta <- init$eta))  eta <- mean(yy)
-	else if (length(eta) != n) stop ("Wrong length for init$eta")
+    else  {
+	# Do the 'glim' method of finding an initial value of coef
+	if (meanonly) {
+	    yy <- ifelse(y[,ny]!=3, y[,1], (y[,1]+y[,2])/2 )
+	    coef <- sd$init(yy, weights)
+	    if (scale >0) coef[2] <- scale
+	    vars  <- rep(log(coef[2])/2, nstrat)  
+	    }
+	else vars <- fit0$coef[-1]
+	eta <- yy - offset     #what would be true for a 'perfect' model
 
-	# Do the 'glim' method of finding an initial value of coef,
-	tfix <- sd$init(yy - (eta+offset), init, fixed)
-	deriv <- .C("survreg_g",
+	deriv <- .C("survreg3",
 		       as.integer(n),
-		       y,
+		       as.double(y),
 		       as.integer(ny),
-		       as.double(eta + offset),
-		       parm= as.double(tfix),
+		       as.double(yy),
+		       nstrat = as.integer(nstrat2),
+		       strata = as.integer(strata),
+		       vars= as.double(vars),
 		       deriv = matrix(double(n * 3),nrow=n),
 		       as.integer(3),
 		       as.integer(dnum))$deriv
-	wt <-  -1*deriv[,3]
-	coef <- solve(t(x)%*% (wt*x), c((wt*eta + deriv[,2])%*% x))
-	eta <- x %*% coef  + offset
-	tfix <- sd$init(yy-eta, fixed, init)
-	init <- c(coef, tfix[tfix[,2]==0,1])
+
+	wt <-  -1*deriv[,3]*weights
+	coef <- solve(t(x)%*% (wt*x), c((wt*eta + weights*deriv[,2])%*% x))
+	init <- c(coef, vars)
 	}
 
-    fit <- .C("survreg",
+    # Now for the fit in earnest
+    fit <- .C("survreg2",
 		   iter = as.integer(iter.max),
 		   as.integer(n),
 		   as.integer(nvar),
-		   y,
+		   as.double(y),
 		   as.integer(ny),
-		   x,
+		   as.double(x),
+	           as.double(weights),
 		   as.double(offset),
 		   coef= as.double(init),
-		   as.integer(nrow(tfix)),
-		   tfix,
-		   double(3*(nvar2) + 2*n),
-		   imat= matrix(0.0, nvar2, nvar2),
-		   loglik=double(2),
+	           as.integer(nstrat2),
+	           as.integer(strata),
+		   u = double(3*(nvar2) + nvar2^2),
+		   var = matrix(0.0, nvar2, nvar2),
+		   loglik=double(1),
 		   flag=integer(1),
 		   as.double(eps),
 	           as.double(toler.chol), 
-		   deriv = matrix(double(ncol.deriv*n),nrow=n),
-		   as.integer(dnum))
+		   as.integer(dnum),
+	           debug = as.integer(debug))
 
-    if (iter.max >1 && fit$flag== -1) {
+    if (debug>0) browser()
+    if (iter.max >1 && fit$flag <nvar) {
 	if (controlvals$failure==1)
 	       warning("Ran out of iterations and did not converge")
 	else if (controlvals$failure==2)
 	       return("Ran out of iterations and did not converge")
 	}
 
-    temp <- dimnames(x)[[2]]
-    if (is.null(temp)) temp <- paste("x", 1:ncol(x))
-    temp <- c(temp, (dimnames(tfix)[[1]])[tfix[,2]==0])
-    dimnames(fit$imat) <- list(temp, temp)
-    names(fit$coef) <- temp
-    parms <- tfix[,1]
-    parms[tfix[,2]==0] <- fit$coef[-(1:nvar)]
+    cname <- dimnames(x)[[2]]
+    if (is.null(cname)) cname <- paste("x", 1:ncol(x))
+    if (scale==0) cname <- c(cname, rep("Log(scale)", nstrat))
+    dimnames(fit$var) <- list(cname, cname)
+    if (scale>0) fit$coef <- fit$coef[1:nvar2]
+    names(fit$coef) <- cname
 
-    if (!nullmodel)
-	c(fit[c("iter", "coef", "imat", "loglik", "flag", "deriv")],
-		list(parms=parms, fixed=tfix[,2]==1))
-    else {
-	init <- c(mean(x%*% fit$coef[1:nvar]), fit$coef[-(1:nvar)])
-	temp <- cbind(parms, 1)     # "nail down" extras
-	nfit <- .C("survreg",
-		   iter = as.integer(iter.max),
-		   as.integer(n),
-		   nvar= as.integer(1),
-		   y,
-		   as.integer(ny),
-		   x= rep(1.0,n),
-		   as.double(offset),
-		   coef= as.double(init),
-		   as.integer(nrow(tfix)),
-		   as.double(temp),
-		   double(3*(nvar) + 2*n),
-		   imat= matrix(0.0, nvar, nvar),
-		   loglik=double(2),
-		   flag=integer(1),
-		   as.double(eps),
-		   as.double(toler.chol),
-		   deriv = matrix(double(ncol.deriv*n),nrow=n),
-		   as.integer(dnum))
-
-	c(fit[c("iter", "coef", "imat", "loglik", "flag", "deriv")],
-	       list(ndev=nfit$loglik, ncoef=nfit$coef, parms=parms,
-		    fixed=tfix[,2]==1))
+    if (meanonly) {
+	coef0 <- fit$coef
+	loglik <- rep(fit$loglik,2)
 	}
+    else {
+	coef0 <- fit0$coef
+	names(coef0) <- c("Intercept", rep("Log(scale)", nstrat))
+	loglik <- c(fit0$loglik, fit$loglik)
+	}
+    temp <- list(coefficients   = fit$coef,
+		 icoef  = coef0, 
+		 var    = fit$var,
+		 loglik = loglik, 
+		 iter   = fit$iter,
+		 linear.predictors = c(x %*% fit$coef[1:nvar]),	
+		 df     = length(fit$coef)
+		 )
+    if (debug>0) {
+	temp$u <- fit$u[1:nvar2]
+	JJ     <- matrix(fit$u[-seq(1, 3*nvar2)], nvar2, nvar2)
+	temp$JJ <- JJ
+	temp$var2 <- fit$var %*% JJ %*% fit$var
+	}
+
+    temp
     }
