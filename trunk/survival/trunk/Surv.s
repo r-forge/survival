@@ -1,4 +1,4 @@
-#SCCS $Date: 1998-07-20 13:33:38 $ $Id: Surv.s,v 4.20 1998-07-20 13:33:38 therneau Exp $
+#SCCS $Date: 1998-08-30 15:04:14 $ $Id: Surv.s,v 5.1 1998-08-30 15:04:14 therneau Exp $
 # Package up surivival type data as a structure
 #
 Surv <- function(time, time2, event,
@@ -81,8 +81,8 @@ Surv <- function(time, time2, event,
 			    status)
 	}
 
-    attr(ss, "class") <- c("Surv")
     attr(ss, "type")  <- type
+    oldClass(ss) <- 'Surv'
     ss
     }
 
@@ -90,7 +90,7 @@ print.Surv <- function(xx, quote=F, ...)
     invisible(print(as.character.Surv(xx), quote=quote, ...))
 
 as.character.Surv <- function(xx) {
-    class(xx) <- NULL
+    oldClass(xx) <- NULL
     type <- attr(xx, 'type')
     if (type=='right') {
 	temp <- xx[,2]
@@ -119,13 +119,12 @@ as.character.Surv <- function(xx) {
     }
 
 "[.Surv" <- function(x,i,j, drop=F) {
-    temp <- class(x)
+    temp <- oldClass(x)
     type <- attr(x, "type")
-    class(x) <- NULL
-    attr(x, 'type') <- NULL
+    oldClass(x) <- NULL
     if (missing(j)) {
 	x <- x[i,,drop=drop]
-	class(x) <- temp
+	oldClass(x) <- temp
 	attr(x, "type") <- type
 	x
 	}
@@ -133,8 +132,7 @@ as.character.Surv <- function(xx) {
     }
 
 is.na.Surv <- function(x) {
-    class(x) <- NULL
-    as.vector( (1* is.na(x))%*% rep(1, ncol(x)) >0)
+    as.vector( (1* is.na(unclass(x)))%*% rep(1, ncol(x)) >0)
     }
 
 Math.Surv <- function(...)  stop("Invalid operation on a survival time")
