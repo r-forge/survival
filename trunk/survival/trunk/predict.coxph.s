@@ -1,4 +1,4 @@
-#SCCS $Date: 1998-08-30 15:25:06 $ $Id: predict.coxph.s,v 4.10 1998-08-30 15:25:06 therneau Exp $
+#SCCS $Date: 1999-02-15 14:00:51 $ $Id: predict.coxph.s,v 4.11 1999-02-15 14:00:51 therneau Exp $
 #What do I need to do predictions --
 #
 #linear predictor:  exists
@@ -25,11 +25,18 @@ function(object, newdata, type=c("lp", "risk", "expected", "terms"),
     n <- object$n
     Terms <- object$terms
     strata <- attr(Terms, 'specials')$strata
+    dropx <- NULL
     if (length(strata)) {
 	   temp <- untangle.specials(Terms, 'strata', 1)
-	   Terms2 <- Terms[-temp$terms]
+	   dropx <- temp$terms
 	   }
+    if (length(attr(Terms, 'specials')$cluster)) {
+	temp <- untangle.specials(Terms, 'cluster', 1)
+	dropx <- c(dropx, temp$terms)
+	}
+    if (length(dropx)) Terms2 <- Terms[-dropx]
     else  Terms2 <- Terms
+
     offset <- attr(Terms, "offset")
     resp <- attr(Terms, "variables")[attr(Terms, "response")]
 
