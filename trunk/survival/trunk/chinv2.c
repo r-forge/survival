@@ -1,4 +1,4 @@
-/* SCCS $Id: chinv2.c,v 2.4 1993-06-10 10:12:20 therneau Exp $  */
+/* SCCS $Id: chinv2.c,v 2.5 1994-12-28 16:26:40 therneau Exp $  */
 /*
 ** matrix inversion, given the cholesky decomposition
 **
@@ -39,11 +39,17 @@ double **matrix;
      **   of original matrix
      */
      for (i=0; i<n; i++) {
-	  for (j=i; j<n; j++) {
-	       temp = matrix[j][i]*matrix[j][j];
-	       if (j!=i) matrix[i][j] = temp;
-	       for (k=i; k<j; k++)
-		    matrix[i][k] += temp*matrix[j][k];
-	       }
+	  if (matrix[i][i]==0) {  /* singular row */
+		for (j=0; j<i; j++) matrix[j][i]=0;
+		for (j=i; j<n; j++) matrix[i][j]=0;
+		}
+	  else {
+	      for (j=(i+1); j<n; j++) {
+		   temp = matrix[j][i]*matrix[j][j];
+		   if (j!=i) matrix[i][j] = temp;
+		   for (k=i; k<j; k++)
+			matrix[i][k] += temp*matrix[j][k];
+		   }
+	      }
 	  }
      }
