@@ -1,4 +1,4 @@
-# SCCS $Id: survexp.usr.s,v 5.2 1998-10-29 19:07:55 therneau Exp $
+# SCCS $Id: survexp.usr.s,v 5.3 1998-10-29 20:47:09 therneau Exp $
 #
 # Create the US total hazards table, by race
 #   The raw numbers below are q* 10^5.  Note that there are 24 leap years/100
@@ -325,5 +325,5 @@ attributes(temp2) <- list (
 			   "\n")
 		     },
 	class='ratetable')
-usrnew <-  temp2
+survexp.usr <-  temp2
 rm(temp, temp2)
