@@ -1,7 +1,7 @@
-# SCCS $Id: strata.s,v 5.2 1998-08-30 15:43:24 therneau Exp $
+# SCCS $Id: strata.s,v 5.3 2003-08-22 08:21:13 therneau Exp $
 # Create a strata variable, possibly from many objects
 #
-strata <- function(..., na.group=F, shortlabel=F) {
+strata <- function(..., na.group=F, shortlabel=F, sep=', ') {
     words <- as.character((match.call())[-1])
     if (!missing(na.group)) words <- words[-1]
     allf <- list(...)
@@ -34,7 +34,7 @@ strata <- function(..., na.group=F, shortlabel=F) {
 	if (!shortlabel) wlab <- format(paste(words[i], wlab, sep='='))
 	levs <- wlev + levs*(length(wlab))
 	labs <- paste(rep(labs, rep(length(wlab), length(labs))),
-		      rep(wlab, length(labs)), sep=', ')
+		      rep(wlab, length(labs)), sep=sep)
 	}
     levs <- levs + 1
     ulevs <- sort(unique(levs[!is.na(levs)]))
