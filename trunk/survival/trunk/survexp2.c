@@ -1,4 +1,4 @@
-/*SCCS $Id: survexp2.c,v 4.1 1992-03-09 00:14:07 therneau Exp $
+/*SCCS $Id: survexp2.c,v 4.2 1992-03-30 13:06:11 therneau Exp $
 ** Calcultate expected survival for a single column of p's
 **
 ** Input
