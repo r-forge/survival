@@ -1,4 +1,4 @@
-/* SCCS $Id: cholesky3.c,v 1.2 1998-11-22 18:00:10 therneau Exp $ */
+/* SCCS $Id: cholesky3.c,v 1.3 1999-01-14 08:48:49 therneau Exp $ */
 /*
 ** subroutine to do Cholesky decompostion on a matrix: C = FDF'
 **   where F is lower triangular with 1's on the diagonal, and D is diagonal
@@ -50,7 +50,7 @@ int cholesky3(double **matrix, int n, int m, double *diag, double toler)
     for (i=0; i<m; i++) {
 	pivot = diag[i];
         if (pivot < eps) {
-            matrix[i][i] =0;
+            for (j=0; j<n2; j++) matrix[j][i] =0;
             if (pivot < -8*eps) nonneg= -1;
             }
 	else {
@@ -68,7 +68,7 @@ int cholesky3(double **matrix, int n, int m, double *diag, double toler)
     for (i=0; i<n2; i++) {
 	pivot = matrix[i][i+m];
 	if (pivot < eps) {
-	    matrix[i][i+m] =0;
+	    for (j=i; j<n2; j++) matrix[j][i+m] =0;  /* zero the column */
             if (pivot < -8*eps) nonneg= -1;
 	    }
 	else  {
