@@ -1,4 +1,4 @@
-#SCCS $Date: 1992-03-04 16:48:24 $ $Id: print.survreg.s,v 4.1 1992-03-04 16:48:24 therneau Exp $
+# SCCS $Id: print.survreg.s,v 4.2 1992-03-30 02:49:19 therneau Exp $
 print.surv.reg <-
  function(cox, digits=3, ...)
     {
@@ -26,13 +26,12 @@ print.surv.reg <-
 
     logtest <- -2 * (cox$loglik[1] - cox$loglik[2])
     df <- length(coef)
-    omit <- attr(cox$n, 'omit')
     cat("\n")
     cat("Likelihood ratio test=", format(round(logtest, 2)), "  on ",
 	df, " df,", " p=", format(1 - pchisq(logtest, df)),  sep="")
+    omit <- cox$na.action
     if (length(omit))
-	cat("\nn=", cox$n, " (", length(omit), " deleted due to missing)\n",
-				sep="")
-    else cat("    n=", cox$n, "\n")
+	cat("  n=", cox$n, " (", naprint(omit), ")\n", sep="")
+    else cat("  n=", cox$n, "\n")
     invisible()
     }
