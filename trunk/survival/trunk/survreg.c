@@ -1,4 +1,4 @@
-/* $Id: survreg.c,v 4.5 1992-11-19 17:40:44 therneau Exp $  */
+/* $Id: survreg.c,v 4.6 1993-03-29 14:24:41 therneau Exp $  */
 /*
 ** Fit one of several censored data distributions
 **
@@ -49,6 +49,12 @@
 **
 **  For the calculations involving sigma and an interval censored datum, I
 **    can't calculate the sigma derivatives simply from the eta derivs.
+**
+**  To add a new distribution:
+**              add a new "static void" declaration
+**              add it to the "switch(*dist)" list, (2 places)
+**              add the new subroutine to the bottom of the code, see
+**                      logist_d as an example
 */
 #include <math.h>
 #include <stdio.h>
@@ -239,7 +245,6 @@ double  beta[],
     double eta,
 	   sz,
 	   sigma;
-    double temp;
 
     for (i=0; i<nvar2; i++) {
 	u[i]=0;
@@ -276,8 +281,8 @@ double  beta[],
 		}
 	    else {
 		temp = sz*dg[person];
-		if (status[person]==1) temp -=1;
-		u[nvar] +=  temp;
+		if (status[person]==1) u[nvar] += sz*dg[person] -1;
+		else                   u[nvar] += sz*dg[person];
 		for (i=0; i<nvar; i++) {
 		    imat[i][nvar] -= (sz*ddg[person] - dg[person]) *
 						covar[i][person];
@@ -288,14 +293,14 @@ double  beta[],
 	}
     }
 
-void survreg_g(nx, y, ny, eta, beta, deriv, ncol, dist)
+void survreg_g(nx, y, ny, eta, parms, deriv, ncol, dist)
 long    *nx,
 	*ny,
 	*ncol,
 	*dist;
 double  eta[],
 	*deriv;
-double  beta[],
+double  parms[],
 	*y;
     {
     register int n;
@@ -334,7 +339,7 @@ double  beta[],
     /*
     ** calculate the first and second derivative wrt eta
     */
-    sigma = exp(beta[0]);
+    sigma = exp(parms[0]);
     sig2 = 1/(sigma*sigma);
     for (person=0; person<n; person++) {
 	z = (time[person] - eta[person]) /sigma;
@@ -344,9 +349,14 @@ double  beta[],
 	    case 1:                             /* exact */
 		(*sreg_gg)(z, funs,1);
 		g[person] = log(funs[1])  - log(sigma);
-		temp = funs[2]/sigma;
-		dg[person] = -temp;
+		temp = -funs[2]/sigma;
+		dg[person] = temp;
 		ddg[person]= funs[3]*sig2 - temp*temp;
+		if (*ncol==6) {
+		    dsig[person] = temp*sigma*z -1;
+		    dsg[person] =  simga*z*ddg[person] + temp;
+		    ddsig[person]= sigma*z* dsg[person];
+		    }
 		break;
 	    case 0:                             /* right censored */
 		(*sreg_gg)(z, funs,2);
@@ -354,6 +364,11 @@ double  beta[],
 		temp = funs[2]/(funs[1]*sigma);
 		dg[person] = temp;
 		ddg[person]= -funs[3]*sig2/funs[1] - temp*temp;
+		if (*ncol==6) {
+		    dsig[person] = temp*sigma*z;
+		    dsg[person] =  simga*z*ddg[person] + temp;
+		    ddsig[person]= sigma*z* dsg[person];
+		    }
 		break;
 	    case 2:                             /* left censored */
 		(*sreg_gg)(z, funs,2);
@@ -361,6 +376,11 @@ double  beta[],
 		temp = funs[2]/(funs[0]*sigma);
 		dg[person]= -temp;
 		ddg[person]= funs[3]*sig2/funs[0] - temp*temp;
+		if (*ncol==6) {
+		    dsig[person] = temp*sigma*z;
+		    dsg[person] =  simga*z*ddg[person] + temp;
+		    ddsig[person]= sigma*z* dsg[person];
+		    }
 		break;
 	    case 3:                             /* interval censored */
 		zu = (time2[person] - eta[person])/sigma;  /*upper endpoint */
@@ -372,7 +392,7 @@ double  beta[],
 		dg[person]  = -(ufun[2] - funs[2])/(temp*sigma);
 		ddg[person] = (ufun[3] - funs[3])*sig2/temp -
 						     dg[person]*dg[person];
-		if (*ncol==5) {
+		if (*ncol==6) {
 		    dsig[person] = (z*funs[2] - zu*ufun[2])/temp;
 		    ddsig[person]= ((zu*zu*ufun[3] - z*z*funs[3])
 				      +(zu*ufun[2] - z*funs[2])) /temp -

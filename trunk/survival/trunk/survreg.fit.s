@@ -1,4 +1,4 @@
-#SCCS $Id: survreg.fit.s,v 4.8 1992-12-29 15:14:57 therneau Exp $
+#SCCS @(#)survreg.fit.s	4.8 12/29/92
 #
 # This handles the one parameter distributions-- extreme, logistic,
 #       gaussian, and cauchy.
