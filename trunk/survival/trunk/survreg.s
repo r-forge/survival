@@ -1,5 +1,5 @@
 #
-# SCCS $Id: survreg.s,v 5.6 1999-05-25 10:20:51 therneau Exp $
+# SCCS $Id: survreg.s,v 5.7 2000-06-13 10:03:10 therneau Exp $
 #  The newest version of survreg, that accepts penalties and strata
 #
 setOldClass(c('survreg.penal', 'survreg'))
@@ -110,8 +110,7 @@ survreg <- function(formula=formula(data), data=sys.parent(),
 	}
     if (!is.null(dlist$dist)) dlist <- survreg.distributions[[dlist$dist]]
 
-    if (missing(control)) controlvals <- survreg.control(...)
-    else  controlvals <- survreg.control(c(unlist(control), ...))
+    if (missing(control)) control <- survreg.control(...)
 
     if (scale < 0) stop("Invalid scale value")
     if (scale >0 && nstrata >1) 
@@ -134,13 +133,13 @@ survreg <- function(formula=formula(data), data=sys.parent(),
 	pcols <- (attr(X, 'assign')[-1])[pterms]  
   
         fit <- survpenal.fit(X, Y, weights, offset, init=init,
-				controlvals = controlvals,
+				controlvals = control,
 			        dist= dlist, scale=scale,
 			        strata=strata, nstrat=nstrata,
 				pcols, pattr, parms=parms)
 	}
     else fit <- survreg.fit(X, Y, weights, offset, 
-			    init=init, controlvals=controlvals,
+			    init=init, controlvals=control,
 			    dist= dlist, scale=scale, nstrat=nstrata, 
 			    strata, parms=parms)
 
