@@ -2,7 +2,7 @@
 .FN survfit.object
 .TL
 Survival Curve Object
-.PP
+.DN
 This class of objects is returned by the `survfit' class of functions
 to represent a fitted survival curve.
 
@@ -23,6 +23,9 @@ This may be a vector or a matrix.
 if there are multiple curves, this component gives the number of elements of
 of the `time' etc. vectors corresponding to the first curve, the second curve,
 and so on.  The names of the elements are labels for the curves.
+.AG call
+an image of the call that produced the object.
+.OA
 .AG std.err
 the standard error of the cumulative hazard or -log(survival).
 .AG uppper
@@ -37,8 +40,14 @@ the level of the confident limits, e.g. 90 or 95%.
 the returned value from the na.action function, if any.  It will be used
 in the printout of the curve, e.g., the number of observations deleted due
 to missing values.
-.AG call
-an image of the call that produced the object.
+.SH SUBSCRIPTS
+Survfit objects that contain multiple survival curves can be subscripted.
+This is most often used to plot a subset of the curves.
+Usually a single subscript will be used.  In one particular case ---
+survival curves for multiple covariate values, from a Cox model that includes
+a `strata' statement --- there is a matrix of curves and 2 subscripts may
+be used.
+(In this case `summary.survfit' will also print the data as a matrix).
 .SA
 `survfit', `plot.survfit', `summary.survfit'.
 .KW survival

@@ -144,8 +144,11 @@ model for survival data. Annals of Statistics 9, 93-108.
 print, plot, lines, coxph, Surv, strata.
 .EX
 #fit a Kaplan-Meier and plot it
-fit <- coxph( Surv(admlfuhr, dead) ~ gcs.12, rochadm)
+fit <- survfit(Surv(time, status) ~ x, data=aml)
 plot(fit)
+
+# plot only 1 of the 2 curves from above
+plot(fit[2])
 
 #fit a cox proportional hazards model and plot the 
 #predicted survival curve
