@@ -1,8 +1,8 @@
-# SCCS $Id: coxph.s,v 5.1 1998-09-01 11:08:32 therneau Exp $
+# SCCS $Id: coxph.s,v 5.2 1998-09-01 12:09:51 therneau Exp $
 setOldClass(c("coxph.null", "coxph"))
 coxph <- function(formula=formula(data), data=sys.parent(),
 	weights, subset, na.action,
-	eps=.0001, init, iter.max=10,
+	eps=1e-07, init, iter.max=10,
 	method= c("efron", "breslow", "exact"),
 	singular.ok =T, robust=F,
 	model=F, x=F, y=T) {
