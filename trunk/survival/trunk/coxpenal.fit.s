@@ -1,4 +1,4 @@
-# SCCS $Id: coxpenal.fit.s,v 1.1 1998-10-28 08:51:54 therneau Exp $
+# SCCS $Id: coxpenal.fit.s,v 1.2 1998-10-31 21:46:41 therneau Exp $
 #
 # General penalized likelihood
 #
@@ -285,6 +285,7 @@ coxpenal.fit <- function(x, y, strata, offset, init, iter.max,
     #  Now for the actual fit
     #
     iter <- iter2 <- 0
+    iterfail <- NULL
     thetasave <- unlist(thetalist)
     repeat {
         coxfit <- .C(routines[2], 
@@ -306,6 +307,7 @@ coxpenal.fit <- function(x, y, strata, offset, init, iter.max,
 
         iter <- iter+1
 	iter2 <- iter2 + coxfit$iter
+	if (coxfit$iter >=iter.max) iterfail <- c(iterfail, iter)
 
 	# If any penalties were infinite, the C code has made fdiag=1 out
 	#  of self-preservation (0 divides).  But such coefs are guarranteed
@@ -399,21 +401,14 @@ coxpenal.fit <- function(x, y, strata, offset, init, iter.max,
 	var2  <- dftemp$var2
         }
 
-#    if (coxfit$flag < nvar) which.sing <- diag(var)==0
-#    else which.sing <- rep(F,nvar)
-
-#    infs <- abs(solve(imat,u))
-#    if (iter.max >1) {
-#	if (iter > iter.max)
-#	       warning("Ran out of iterations and did not converge")
-#	else if (any((infs > eps) & (infs > sqrt(eps)*abs(coef))))
-#	    warning(paste("Loglik converged before variable ",
-#		      paste((1:nvar)[(infs>eps)],collapse=","),
-#		      "; beta may be infinite. "))
-#	}
+    if (iter.max >1 && length(iterfail)>0)
+	    warning(paste("Inner loop failed to coverge for iterations", 
+			  paste(iterfail, collapse=' ')))
+    which.sing <- (fdiag[nfrail + 1:nvar] ==0)
+    
     coef <- coxfit$coef
     names(coef) <- varnames
-#    coef[which.sing] <- NA
+    coef[which.sing] <- NA
     resid <- double(n)
     resid[sorted] <-sstat - expect
     names(resid) <- rownames
