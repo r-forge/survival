@@ -1,4 +1,4 @@
-/* SCCS @(#)coxfit2.c	4.7 6/17/93  */
+/* SCCS  $Date: 1996-06-24 13:48:58 $ $Id: coxfit2.c,v 4.9 1996-06-24 13:48:58 therneau Exp $                         /*
 /*
 ** here is a cox regression program, written in c
 **     uses Efron's approximation for ties
@@ -169,10 +169,10 @@ double  *eps;
 		}
 	    }
 
-	zbeta = 0;      /* form the term beta*z   (vector mult) */
+	zbeta = offset[person];    /* form the term beta*z   (vector mult) */
 	for (i=0; i<nvar; i++)
 	    zbeta += beta[i]*covar[i][person];
-	risk = exp(zbeta +offset[person]) * weights[person];
+	risk = exp(zbeta) * weights[person];
 
 	denom += risk;
 	efron_wt += status[person] * risk;  /*sum(denom) for tied deaths*/
@@ -274,10 +274,10 @@ double  *eps;
 		    }
 		}
 
-	    zbeta = 0;
+	    zbeta = offset[person];
 	    for (i=0; i<nvar; i++)
 		zbeta += newbeta[i]*covar[i][person];
-	    risk = exp(zbeta +offset[person]) * weights[person];
+	    risk = exp(zbeta ) * weights[person];
 
 	    denom += risk;
 	    efron_wt += status[person] * risk;  /* sum(denom) for tied deaths*/
