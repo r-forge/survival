@@ -2,97 +2,111 @@
 <!entity % S-OLD "INCLUDE">
 ]
 >
+<!-- SCCS $Id: summary.aareg.sgml,v 1.2 2002-04-29 14:29:27 therneau Exp $ -->
 <s-function-doc>
 <s-topics>
 <s-topic> summary.aareg </s-topic>
 </s-topics>
 <s-title>
-<!--function to do???-->
+Summarize an aareg fit
 </s-title>
 <s-description>
-<!--brief description-->
+Creates the overall test statistics for an Aalen additive regression model
 </s-description>
 <s-usage>
 <s-old-style-usage>
-summary.aareg(x, maxtime, weight=c("var", "nrisk"))
+summary.aareg(x, maxtime, test=c("aalen", "nrisk"))
 </s-old-style-usage>
 </s-usage>
 <s-args-required>
+
+<s-arg name=" x ">
+the result of a call to the <s-expression>aareg</s-expression> function
+</s-arg>
 </s-args-required>
 <s-args-optional>
-<!--move the above two lines to just above the first optional argument-->
-<s-arg name=" x ">
-<!--Describe x here-->
-</s-arg>
+
 <s-arg name=" maxtime ">
-<!--Describe maxtime here-->
+truncate the input to the model at time "maxtime"
 </s-arg>
-<s-arg name=" weight ">
-<!--Describe weight here-->
+
+<s-arg name=" test ">
+the relative time weights that will be used to compute the test
 </s-arg>
 </s-args-optional>
+
 <s-value>
-<!--Describe the value returned-->
+a list is returned with the following components
+<s-return-component name=" table ">
+a matrix with rows for the intercept and each covariate, and columns
+giving a slope estimate, the test statistic, it's standard error,
+the z-score and a p-value
+</s-return-component>
+
+<s-return-component name=" test ">
+the time weighting used for computing the test statistics
+</s-return-component>
+
+<s-return-component name=" test.statistic ">
+the vector of test statistics
+</s-return-component>
+
+<s-return-component name=" test.var ">
+the model based variance matrix for the test statistic
+</s-return-component>
+
+<s-return-component name=" test.var2 ">
+optionally, a robust variance matrix for the test statistic
+</s-return-component>
+
+<s-return-component name=" chisq ">
+the overall test (ignoring the intercept term) for significance of
+any variable
+</s-return-component>
+
+<s-return-component name=" n ">
+a vector containing the number of observations, the number of unique death
+times used in the computation, and the total number of unique death times
+</s-return-component>
 </s-value>
-<s-side-effects>
-<!--describe any side effects if they exist-->
-</s-side-effects>
+
 <s-details>
-<!--explain details here-->
+It is not uncommon for the very right-hand tail of the plot to have
+large outlying values, particularly for the standard error.  
+The <s-expression>maxtime</s-expression> parameter can then be used to
+truncate the range so as to avoid these.
+This gives an updated value for the test statistics, without refitting the
+model.
 </s-details>
-<s-section name = "REFERENCES">
-<!--put references here, make other sections like NOTE and WARNING with s-section-->
-</s-section>
 <s-see>
-<!--put functions to SEE ALSO here-->
+aareg, plot.aareg
 </s-see>
 <s-examples>
 <s-example>
-<!--Put 1 or more s-example tags here-->
-# The function is currently defined as
-function(x, maxtime, weight = c("var", "nrisk"))
-{
-	if(!inherits(x, "aareg"))
-		stop("Must be an aareg object")
-	weight <- match.arg(weight)
-	if(!missing(maxtime))
-		ntime <- sum(x$time < maxtime)
-	else ntime <- x$ntime[1]
-	# Compute the test statistic
-	if(weight == "var") twt <- (as.matrix(x$tweight))[1:ntime,  ] else twt <-
-			1/x$nrisk[1:ntime]
-	tx <- as.matrix(twt * x$increment[1:ntime,  ])
-	test <- c(rep(1, ntime) %*% tx)
-	#sum of weighted increments
-	var <- t(tx) %*% tx
-	#std Poisson, ind increments variance
-	# Compute a fit (to get a "slope") 
-	#  Since this is a single variable model, no intercept, I
-	#  don't need to call lm.wfit!
-	time <- x$time[1:ntime]
-	nvar <- ncol(tx)
-	ctx <- apply(tx, 2, cumsum)
-	if(is.matrix(twt) && ncol(twt) > 1)
-		tempwt <- apply(twt * time^2, 2, sum)
-	else tempwt <- sum(twt * time^2)
-	if(ncol(ctx) > 1)
-		slope <- apply(ctx * time, 2, sum)/tempwt
-	else slope <- sum(ctx * time)/temp2
-	se <- sqrt(diag(var))
-	mat <- cbind(slope, test, se, test/se, 2 * pnorm( - abs(test/se)))
-	dimnames(mat) <- list((dimnames(x$inc)[[2]]), c("slope", "test", 
-		"se(test)", "z", "p"))
-	chi <- test %*% solve(var, test)
-	temp <- list(table = mat, test = test, var = var, chisq = chi, ntime = 
-		c(ntime, x$ntime[2]))
-	oldClass(temp) <- "summary.aareg"
-	temp
-}
+> afit <- aareg(Surv(time, status) ~ age + sex + ph.ecog, data=lung,
+     dfbeta=T)
+> summary(afit)
+              slope   test se(test) robust se     z        p 
+Intercept  5.05e-03    1.9     1.54      1.55  1.23 0.219000
+      age  4.01e-05  108.0   109.00    106.00  1.02 0.307000
+      sex -3.16e-03  -19.5     5.90      5.95 -3.28 0.001030
+  ph.ecog  3.01e-03   33.2     9.18      9.17  3.62 0.000299
+
+Chisq=22.84 on 3 df, p=4.4e-05; test weights=aalen
+
+> summary(afit, maxtime=600)
+              slope   test se(test) robust se      z        p 
+Intercept  4.16e-03   2.13     1.48      1.47  1.450 0.146000
+      age  2.82e-05  85.80   106.00    100.00  0.857 0.392000
+      sex -2.54e-03 -20.60     5.61      5.63 -3.660 0.000256
+  ph.ecog  2.47e-03  31.60     8.91      8.67  3.640 0.000271
+
+Chisq=27.08 on 3 df, p=5.7e-06; test weights=aalen
 </s-example>
 </s-examples>
 <s-keywords>
 <s-keyword>
-<!--Put one or more s-keyword tags here-->
+survival
 </s-keyword>
 </s-keywords>
 <s-docclass>
