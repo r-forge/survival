@@ -7,7 +7,7 @@ Returns either the expected survival of a cohort of subjects, or the
 individual expected survival for each subject.
 .CS
 survexp(formula, data, weights, subset, na.action,
- times, cohort=T, conditional=T,
+ times, cohort=T, conditional=F,
  ratetable=survexp.us, scale=1, se.fit, model=F, x=F, y=F)
 .RA
 .AG formula
