@@ -1,4 +1,4 @@
-#SCCS $Id: residuals.coxph.s,v 4.13 1993-01-19 14:23:55 therneau Exp $
+#SCCS $Id: residuals.coxph.s,v 4.14 1993-01-30 19:46:12 therneau Exp $
 residuals.coxph <-
   function(object, type=c("martingale", "deviance", "score", "schoenfeld",
 			  "dbeta", "dfbetas", "scaledsch"),
@@ -72,10 +72,12 @@ residuals.coxph <-
 			    score,
 			    as.integer(newstrat),
 			    as.integer(method=='efron'),
-			    double(2*nvar))
+			    double(3*nvar))
 
 	deaths <- y[,3]==1
-	rr <- matrix(temp$resid[deaths,], ncol=nvar) #pick rows, and kill attr
+
+	if (nvar==1) rr <- temp$resid[deaths]
+	else rr <- matrix(temp$resid[deaths,], ncol=nvar) #pick rows, and kill attr
 	if (length(strats)) attr(rr, "strata")  <- strat[deaths]
 	time <- c(y[deaths,2])  # 'c' kills all of the attributes
 	if (is.matrix(rr)) dimnames(rr)<- list(time, names(object$coef))
@@ -91,18 +93,19 @@ residuals.coxph <-
 
     if (type=='score') {
 	if (ny==2) {
-	    temp <- .C("coxres12", as.integer(n),
+	    resid <- .C("coxscore", as.integer(n),
 				as.integer(nvar),
 				as.double(y),
 				x=x,
 				as.integer(newstrat),
 				score,
 				as.integer(method=='efron'),
-				double(2*nvar))
-	    resid <- (rep(rr[ord],nvar) * x) - temp$x
+				resid= double(n*nvar),
+				double(2*nvar))$resid
 	    }
 	else {
-	    temp <- .C("agres12", as.integer(n),
+	    resid<- .C("agscore",
+				as.integer(n),
 				as.integer(nvar),
 				as.double(y),
 				x,
@@ -110,8 +113,7 @@ residuals.coxph <-
 				score,
 				as.integer(method=='efron'),
 				resid=double(n*nvar),
-				double(nvar*2))
-	    resid <- temp$resid
+				double(nvar*6))$resid
 	    }
 	if (nvar >1) {
 	    rr <- matrix(0, n, nvar)
