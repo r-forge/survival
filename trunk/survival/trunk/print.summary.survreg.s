@@ -1,4 +1,4 @@
-# SCCS $Id: print.summary.survreg.s,v 4.8 1996-09-27 10:37:42 boos Exp $
+# SCCS $Id: print.summary.survreg.s,v 4.9 1998-09-25 23:04:52 therneau Exp $
 print.summary.survreg <- function(x, digits = max(options()$digits - 4, 3), quote = T, prefix = "")
 {
     nas <- x$nas
@@ -7,7 +7,7 @@ print.summary.survreg <- function(x, digits = max(options()$digits - 4, 3), quot
     if(any(nas)) {
         nc <- length(nas)
         cnames <- names(nas)
-        coef1 <- array(NA, c(nc, 3), list(cnames, dimnames(coef)[[2]]))
+        coef1 <- array(NA, c(nc, 4), list(cnames, dimnames(coef)[[2]]))
             
         coef1[!nas,  ] <- coef
         coef <- coef1
@@ -20,7 +20,10 @@ print.summary.survreg <- function(x, digits = max(options()$digits - 4, 3), quot
         }
     if(is.null(digits))
         digits <- options()$digits
-    else options(digits = digits)
+    else {
+	savedig <- options(digits = digits)
+	on.exit(options(savedig))
+	}
     cat("\nCall:\n")
     dput(x$call)
     dresid <- x$deviance.resid
@@ -51,11 +54,8 @@ print.summary.survreg <- function(x, digits = max(options()$digits - 4, 3), quot
     if(is.null(int))
         int <- 1
     temp <- format(round(c(x$null.deviance, x$deviance), digits))
-    cat("\n    Null Deviance:", temp[1], "on",
-		     n - int, "degrees of freedom\n")
-    cat("Residual Deviance:", temp[2], "on",
-	   round(rdf, digits), "degrees of freedom  (LL=",
-		format(x$loglik), ")\n")
+    cat("Degrees of Freedom:", n, "Total;", rdf, "Residual\n")
+    cat("-2*Log-Likelihood:", format(-2 * x$loglik), "\n\n")
     cat("Number of Newton-Raphson Iterations:", format(trunc(x$iter)),
         "\n")
     if(!is.null(correl)) {
