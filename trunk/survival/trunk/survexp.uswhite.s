@@ -1,4 +1,4 @@
-#SCCS $Date: 1992-04-14 18:08:03 $ $Id: survexp.uswhite.s,v 4.2 1992-04-14 18:08:03 grill Exp $
+#SCCS $Date: 1993-12-02 21:52:45 $ $Id: survexp.uswhite.s,v 4.3 1993-12-02 21:52:45 therneau Exp $
 "survexp.uswhite"<-
 structure(.Data = c(8.5341e-05, 5.79655e-06, 3.79562e-06, 2.89274e-06, 
 	2.46983e-06, 2.21618e-06, 2.04731e-06, 1.84955e-06, 1.73688e-06, 
@@ -184,3 +184,19 @@ structure(.Data = c(8.5341e-05, 5.79655e-06, 3.79562e-06, 2.89274e-06,
 	"86", "87", "88", "89", "90", "91", "92", "93", "94", "95", "96", "97",
 	"98", "99", "100", "101", "102", "103", "104", "105", "106", "107",
 	"108", "109"), c("Male", "Female"), c("1950", "1960", "1970", "1980")))
+
+#
+# set the attributes of US white table
+#
+#  The use of ".249999" rather than .25 is important.  Try the statement
+#   "plot(1:40, rbind(round((1:40)*.25)))" to see why.  One would expect
+#    4 points per horizontal step, but that's not what I get (Sun 4).
+
+attrbutes(survexp.uswhite) <- list(dim=c(110, 2, 4),
+	     dimnames=list(0:109, c("Male", "Female"), 10*195:198),
+	     dimid=c("age", "sex", "year"),
+	     factor=c(0,1,10),
+	     cutpoints=list(round(365.249999 * 0:109), NULL,
+				mdy.date(1,1, 10*195:198)),
+	     class='ratetable'
+	     )

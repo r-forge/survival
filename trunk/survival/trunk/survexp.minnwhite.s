@@ -1,4 +1,4 @@
-#SCCS $Date: 1992-04-14 18:07:58 $ $Id: survexp.minnwhite.s,v 4.2 1992-04-14 18:07:58 grill Exp $
+#SCCS $Date: 1993-12-02 21:52:46 $ $Id: survexp.minnwhite.s,v 4.3 1993-12-02 21:52:46 therneau Exp $
 "survexp.minnwhite"<-
 structure(.Data = c(7.52761e-05, 4.84479e-06, 3.86508e-06, 2.6268e-06, 
 	2.14857e-06, 2.06528e-06, 1.98199e-06, 1.89838e-06, 1.78619e-06, 
@@ -184,3 +184,12 @@ structure(.Data = c(7.52761e-05, 4.84479e-06, 3.86508e-06, 2.6268e-06,
 	"92", "93", "94", "95", "96", "97", "98", "99", "100", "101", "102",
 	"103", "104", "105", "106", "107", "108", "109"), c("Male", "Female"),
 	c("1950", "1960", "1970", "1980")))
+
+attrbutes(survexp.minnwhite) <- list(dim=c(110, 2, 4),
+	     dimnames=list(0:109, c("Male", "Female"), 10*195:198),
+	     dimid=c("age", "sex", "year"),
+	     factor=c(0,1,10),
+	     cutpoints=list(round(365.249999 * 0:109), NULL,
+				mdy.date(1,1, 10*195:198)),
+	     class='ratetable'
+	     )
