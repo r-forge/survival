@@ -1,12 +1,29 @@
-# SCCS $Id: survexp.cfit.s,v 4.3 1994-11-09 09:41:26 therneau Exp $
+# SCCS $Id: survexp.cfit.s,v 4.4 1994-11-25 16:49:46 therneau Exp $
 #
 #  Do expected survival based on a Cox model
 #   A fair bit of the setup work is identical to survfit.coxph, i.e.,
 #     to reconstruct the data frame
 #
-survexp.cfit <- function(x, y, death, cox, se.fit, method) {
+#  The execution path for individual survival is completely separate, and
+#    a whole lot simpler.
+#
+survexp.cfit <- function(x, y, death, individual, cox, se.fit, method) {
     if (!is.matrix(x)) stop("x must be a matrix")
 
+    #
+    # If it is individual survival, things are fairly easy
+    #    (the parent routine has guarranteed NO strata in the Cox model
+    #
+    if (individual) {
+	fit <- survfit.coxph(cox, se.fit=F)
+	risk <- x[,-1,drop=F] %*% cox$coef  -  sum(cox$coef *cox$means)
+	nt <- length(fit$time)
+	surv <- approx(-c(0,fit$time), c(1,fit$surv), -y,
+				method='constant', rule=2, f=1)$y
+	return(list(time=y, surv=c(surv^(exp(risk)))))
+	}
+
+    # Otherwise, get on with the real work
     temp <- coxph.getdata(cox, y=T, x=se.fit, strata=F)
     cy <- temp$y
     cx <- temp$x
