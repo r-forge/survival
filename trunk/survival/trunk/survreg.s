@@ -1,4 +1,4 @@
-#SCCS $Id: survreg.s,v 4.13 1992-12-30 14:19:35 therneau Exp $
+#SCCS $Id: survreg.s,v 4.14 1993-03-29 14:27:25 therneau Exp $
 survreg <- function(formula=formula(data), data=sys.parent(),
 	subset, na.action,
 	link='log',
@@ -97,13 +97,11 @@ survreg <- function(formula=formula(data), data=sys.parent(),
 	var[good,good] <- solve(qr(sfit$imat[good,good], tol=1e-12))
 	fit$var <- var
 	fit$fixed <- sfit$fixed
-	fit$flag <- sfit$flag
 	dev <- sd$deviance(Y, fit$parms, sfit$deriv[,1])
 	fit$dresiduals <- sign(fit$residuals)*sqrt(dev)
 	fit$deviance <- sum(dev)
 	fit$null.deviance <- fit$deviance +2*(sfit$loglik[2]- sfit$ndev[2])
 	fit$loglik <- c(sfit$ndev[2], sfit$loglik[2])
-	fit$link <- link
 	}
 
     na.action <- attr(m, "na.action")
