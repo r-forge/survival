@@ -1,4 +1,4 @@
-#SCCS $Id: plot.survfit.s,v 4.10 1993-04-07 12:25:37 therneau Exp $
+#SCCS $Id: plot.survfit.s,v 4.11 1994-12-14 14:51:23 therneau Exp $
 plot.survfit<- function(surv, conf.int,  mark.time=T,
 		 mark=3,col=1,lty=1, lwd=1, cex=1,log=F, yscale=1,
 		 xscale=1,
@@ -57,6 +57,12 @@ plot.survfit<- function(surv, conf.int,  mark.time=T,
     xend _ NULL
     yend _ NULL
 
+    #
+    # The 'whom' addition is to replace verbose horizonal sequences
+    #  like (1, .2), (1.4, .2), (1.8, .2), (2.3, .2), (2.9, .2), (3, .1)
+    #  with (1, .2), (3, .1) -- remember that type='s'.  They are slow,
+    #  and can smear the looks of a line type
+    #
     for (j in unique(stemp)) {
 	who _ (stemp==j)
 	xx _ c(0,stime[who])
@@ -65,10 +71,11 @@ plot.survfit<- function(surv, conf.int,  mark.time=T,
 	    for (k in 1:ncol(ssurv)) {
 		i _ i+1
 		yy _ c(1,ssurv[who,k])
-		lines(xx, yy, lty=lty[i], col=col[i], lwd=lwd[i], type='s')
+		nn <- length(xx)
+		whom <- c(match(unique(yy[-nn]), yy), nn)
+		lines(xx[whom], yy[whom], lty=lty[i], col=col[i], lwd=lwd[i], type='s')
 
 		if (is.numeric(mark.time)) {
-		    nn <- length(xx)
 		    indx <- mark.time
 		    for (k in seq(along=mark.time))
 			indx[k] <- sum(mark.time[k] > xx)
@@ -94,10 +101,11 @@ plot.survfit<- function(surv, conf.int,  mark.time=T,
 	else {
 	    i <- i+1
 	    yy _ c(1,ssurv[who])
-	    lines(xx, yy, lty=lty[i], col=col[i], lwd=lwd[i], type='s')
+	    nn <- length(xx)
+	    whom <- c(match(unique(yy[-nn]), yy), nn)
+	    lines(xx[whom], yy[whom], lty=lty[i], col=col[i], lwd=lwd[i], type='s')
 
 	    if (is.numeric(mark.time)) {
-		nn <- length(xx)
 		indx <- mark.time
 		for (k in seq(along=mark.time))
 		    indx[k] <- sum(mark.time[k] > xx)

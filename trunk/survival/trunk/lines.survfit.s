@@ -1,4 +1,4 @@
-# SCCS $Id: lines.survfit.s,v 4.7 1994-10-01 11:12:57 therneau Exp $
+# SCCS $Id: lines.survfit.s,v 4.8 1994-12-14 14:51:24 therneau Exp $
 lines.survfit <- function(x, type='s', mark=3, col=1, lty=1, lwd=1,
 		       mark.time =T, xscale=1, yscale=1,  ...) {
     if (inherits(x, 'survexp')) {
@@ -31,10 +31,18 @@ lines.survfit <- function(x, type='s', mark=3, col=1, lty=1, lwd=1,
 	j <-  j+n
 	xx <- c(0, time[who])/xscale
 	yy <- c(1, x$surv[who])*yscale
-	lines(xx, yy, type=type, col=col[i], lty=lty[i], lwd=lwd[i], ...)
+	nn <- length(xx)
+	#
+	# This 'whom' addition is to replace verbose horizonal sequences
+	#  like (1, .2), (1.4, .2), (1.8, .2), (2.3, .2), (2.9, .2), (3, .1)
+	#  with (1, .2), (3, .1) if type='s' and (1, .2), (2.9, .2), (3, .1)
+	#  otherwise.  They are slow, and can smear the looks of a line type
+	#
+	whom <- c(match(unique(yy[-nn]), yy), nn)
+	if (type!='s') whom <- sort(unique(c(whom, whom[-1]-1)))
+	lines(xx[whom], yy[whom], type=type, col=col[i], lty=lty[i], lwd=lwd[i], ...)
 
 	if (is.numeric(mark.time)) {
-	    nn <- length(xx)
 	    indx <- mark.time
 	    for (k in seq(along=mark.time))
 		indx[k] <- sum(mark.time[k] > xx)
