@@ -1,4 +1,4 @@
-#SCCS $Date: 1998-08-30 15:04:14 $ $Id: Surv.s,v 5.1 1998-08-30 15:04:14 therneau Exp $
+#SCCS $Date: 1998-09-25 22:43:59 $ $Id: Surv.s,v 5.2 1998-09-25 22:43:59 therneau Exp $
 # Package up surivival type data as a structure
 #
 Surv <- function(time, time2, event,
@@ -118,17 +118,22 @@ as.character.Surv <- function(xx) {
 	}
     }
 
-"[.Surv" <- function(x,i,j, drop=F) {
-    temp <- oldClass(x)
-    type <- attr(x, "type")
-    oldClass(x) <- NULL
-    if (missing(j)) {
-	x <- x[i,,drop=drop]
+"[.Surv" <- function(x, ..., drop=F) {
+    # If only 1 subscript is given, the result will still be a Surv object
+    #  If the second is given extract the relevant columns as a matrix
+    if (missing(..2)) {
+	temp <- oldClass(x)
+	type <- attr(x, "type")
+	oldClass(x) <- NULL
+	x <- x[..., drop=F]
 	oldClass(x) <- temp
 	attr(x, "type") <- type
 	x
 	}
-    else NextMethod("[")
+    else {
+	oldClass(x) <- NULL
+	NextMethod("[")
+	}
     }
 
 is.na.Surv <- function(x) {

@@ -1,4 +1,4 @@
-# SCCS $Id: cox.zph.s,v 5.1 1998-08-30 15:05:59 therneau Exp $
+# SCCS $Id: cox.zph.s,v 5.2 1998-09-25 22:44:00 therneau Exp $
 #  Test proportional hazards
 #
 cox.zph <- function(fit, transform='km', global=T) {
@@ -62,9 +62,10 @@ cox.zph <- function(fit, transform='km', global=T) {
     temp
     }
 
-"[.cox.zph" <- function(x,i, ..., drop=F) {
-    z<- list(table=x$table[i,,drop=drop], x=x$x, y=x$y[ ,i,drop=drop],
-		var=x$var[i,i, drop=drop], call=x$call,
+"[.cox.zph" <- function(x, ..., drop=F) {
+    i <- ..1
+    z<- list(table=x$table[i,,drop=F], x=x$x, y=x$y[ ,i,drop=F],
+		var=x$var[i,i, drop=F], call=x$call,
 		transform=x$transform)
     attributes(z) <- attributes(x)
     z

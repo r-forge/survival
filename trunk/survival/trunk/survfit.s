@@ -1,4 +1,4 @@
-#SCCS $Date: 1998-09-10 07:46:11 $ $Id: survfit.s,v 4.11 1998-09-10 07:46:11 therneau Exp $
+#SCCS $Date: 1998-09-25 22:44:01 $ $Id: survfit.s,v 4.12 1998-09-25 22:44:01 therneau Exp $
 survfit <- function (formula, data, weights, subset, na.action, ...) {
     call <- match.call()
     # Real tricky -- find out if the first arg is "Surv(...)" without
@@ -56,7 +56,9 @@ survfit <- function (formula, data, weights, subset, na.action, ...) {
 # The subscript function is bundled in here, although used most
 #  often in plotting
 
-"[.survfit" <- function(fit,i,j, drop=F) {
+"[.survfit" <- function(fit, ..., drop=F) {
+    if (missing(..1)) i<- NULL  else i <- ..1
+    if (missing(..2)) j<- NULL  else j <- ..2
     if (is.null(fit$strata)) {
 	if (is.matrix(fit$surv)) {
 	    fit$surv <- fit$surv[,i,drop=drop]
@@ -67,7 +69,7 @@ survfit <- function (formula, data, weights, subset, na.action, ...) {
 	else warning("Survfit object has only a single survival curve")
 	}
     else {
-	if (missing(i)) keep <- seq(along=fit$time)
+	if (is.null(i)) keep <- seq(along=fit$time)
 	else {
 	    if (is.character(i)) strat <- rep(names(fit$strata), fit$strata)
 	    else                 strat <- rep(1:length(fit$strata), fit$strata)
@@ -79,7 +81,7 @@ survfit <- function (formula, data, weights, subset, na.action, ...) {
 	    fit$n.event <- fit$n.event[keep]
 	    }
 	if (is.matrix(fit$surv)) {
-	    if (missing(j)) {
+	    if (is.null(j)) {
 		fit$surv <- fit$surv[keep,,drop=drop]
 		if (!is.null(fit$std.err)) 
 			fit$std.err <- fit$std.err[keep,,drop=drop]
