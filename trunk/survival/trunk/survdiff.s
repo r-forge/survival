@@ -1,4 +1,4 @@
-#SCCS $Date: 1992-03-04 16:48:30 $ $Id: survdiff.s,v 4.1 1992-03-04 16:48:30 therneau Exp $
+#SCCS $Date: 1992-03-08 20:15:16 $ $Id: survdiff.s,v 4.2 1992-03-08 20:15:16 therneau Exp $
 surv.diff <- function(formula, rho=0, riskwt,
 		      weights, subset) {
     call <- match.call()
