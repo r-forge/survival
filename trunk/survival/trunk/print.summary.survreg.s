@@ -1,4 +1,4 @@
-# SCCS $Id: print.summary.survreg.s,v 4.12 1998-11-30 08:29:14 therneau Exp $
+# SCCS $Id: print.summary.survreg.s,v 4.13 1999-01-06 07:21:40 therneau Exp $
 print.summary.survreg <- function(x, digits = max(options()$digits - 4, 3), 
 				  quote = T, prefix = "") {
     correl <- x$correl
@@ -6,17 +6,17 @@ print.summary.survreg <- function(x, digits = max(options()$digits - 4, 3),
 
     if(is.null(digits))
         digits <- options()$digits
-    else options(digits = digits)
     cat("\nCall:\n")
     dput(x$call)
 
     print(x$table, digits = digits)
     if (nrow(x$var)==length(x$coefficients)) 
-	    cat("\nScale fixed at",format(x$scale),"\n") 
-    else if (length(x$scale)==1) cat ("\nScale=", format(x$scale), "\n")
+	    cat("\nScale fixed at",format(x$scale, digits=digits),"\n") 
+    else if (length(x$scale)==1) 
+	    cat ("\nScale=", format(x$scale, digits=digits), "\n")
     else {
 	cat("\nScale:\n")
-	print(x$scale, ...)
+	print(x$scale, digits=digits, ...)
 	}
 
     cat("\n", x$parms, "\n", sep='')
@@ -40,10 +40,9 @@ print.summary.survreg <- function(x, digits = max(options()$digits - 4, 3),
         if(p > 1) {
             cat("\nCorrelation of Coefficients:\n")
             ll <- lower.tri(correl)
-            correl[ll] <- format(round(correl[ll], digits))
+            correl[ll] <- format(round(correl[ll], digits=digits))
             correl[!ll] <- ""
-            print(correl[-1,  - p, drop = F], quote = F, digits = 
-                digits)
+            print(correl[-1,  - p, drop = F], quote = F)
             }
         }
     cat("\n")
