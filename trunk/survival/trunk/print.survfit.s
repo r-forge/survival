@@ -1,4 +1,4 @@
-#SCCS $Date: 1993-03-26 17:04:56 $ $Id: print.survfit.s,v 4.6 1993-03-26 17:04:56 therneau Exp $
+#SCCS $Date: 1993-04-12 11:06:51 $ $Id: print.survfit.s,v 4.7 1993-04-12 11:06:51 therneau Exp $
 print.survfit <- function(fit, scale=1, digits=3, ...) {
 
     if (!is.null(cl<- fit$call)) {
@@ -6,6 +6,8 @@ print.survfit <- function(fit, scale=1, digits=3, ...) {
 	dput(cl)
 	cat("\n")
 	}
+    omit <- fit$na.action
+    if (length(omit)) cat("  ", naprint(omit), "\n")
 
     savedig <- options(digits=digits)
     on.exit(options(savedig))
