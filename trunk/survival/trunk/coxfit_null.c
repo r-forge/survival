@@ -1,4 +1,4 @@
-/* SCCS $Id: coxfit_null.c,v 4.2 1992-08-10 13:40:46 grill Exp $  */
+/* SCCS $Id: coxfit_null.c,v 4.3 1992-08-25 14:31:02 grill Exp $  */
 /*
 ** Special case: fit the "Null" model.  All that is needed are the loglik
 **     and the cumulative hazard
@@ -21,7 +21,7 @@
 */
 #include <math.h>
 
-void coxfit_null2( nusedx, time, status, offset, strata,
+void coxfit_null( nusedx, time, status, offset, strata,
 		  loglik, cumhaz)
 
 long    *nusedx,

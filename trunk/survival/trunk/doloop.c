@@ -1,4 +1,4 @@
-/* SCCS $Id: doloop.c,v 4.3 1992-08-10 13:58:45 grill Exp $  */
+/* SCCS $Id: doloop.c,v 4.4 1992-08-25 14:33:53 grill Exp $  */
 /*
 ** Program to mimic a set of nested do loops
 **
@@ -43,7 +43,7 @@ int max;  {
     depth =1;
     }
 
-int doloop2 (nloops, index)
+int doloop (nloops, index)
 
 int nloops;
 int index[];  {
