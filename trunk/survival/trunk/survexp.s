@@ -1,40 +1,52 @@
-#SCCS $Id: survexp.s,v 4.8 1992-04-14 18:08:01 grill Exp $
+#SCCS $Id: survexp.s,v 4.9 1992-04-20 17:14:33 therneau Exp $
 survexp <- function(entry, birth, sex,
-		      data=sys.parent(), subset, na.action,
 		      times=round(182.6 * 0:8),
+		      data=sys.parent(), subset, na.action,
 		      type=c("mean", "individual", "matrix"),
 		      expected=survexp.uswhite, interp=F) {
     call <- match.call()
 
     type <- match.arg(type)
 
-    # Build a formula, in order to get the data frame
-    #      with all the trimmings
+    #
+    # Mimic the processing of a formula.  It is tempting to just build a
+    #  formula and then use it, but then constants in the arg list don't
+    #  come through.  And if you paste together I(entry) + ..., then the
+    #  date attribute gets lost.
+    # So evaluate, and then do the formula.  I could do the na.action and
+    #  etc "by hand", but then miss out on global changes to S
+    #
     if (missing(entry)) stop("The entry argument is required")
     if (missing(birth)) stop("The birth argument is required")
     if (missing(sex))   stop("The sex argument is required")
-    form <- paste("~", deparse(call[["entry"]]), "+" ,
-		       deparse(call[["birth"]]), "+" ,
-		       deparse(call[["sex"]]))
-    if (type=='individual') form <- paste(form, "+", deparse(call[["times"]]))
+    entry <- eval(call[['entry']], data)
+    birth <- eval(call[['birth']], data)
+    sex   <- eval(call[['sex']], data)
+    nused <- length(sex)
+    if (length(birth) != nused || length(entry) != nused)
+	stop("First 3 arguments must be the same length")
+
     m <- call
-    m$formula <- as.formula(form)
+    if (type=='individual') {
+	times <- eval(call[["times"]], data)
+	if (length(times) != nused) stop("Wrong length for \"times\"")
+	m$formula <- formula("~entry + birth + sex + times")
+	}
+    else {
+	if (any(is.na(times))) stop("Missing values not allowed in 'times'")
+	m$formula <- formula("~ entry + birth + sex")
+	}
     m[[1]] <- as.name("model.frame")
-    m <- m[match(c("", "formula", "data", "subset", "na.action"),
+    m <- m[match(c("", "formula", "subset", "na.action"),
 		     names(m), 0)]
     m <- eval(m)
+
     entry <- m[[1]]
     birth <- m[[2]]
     sex   <- m[[3]]
-    nused <- length(sex)
+    if (type=='individual') times <- m[[4]]
+    else    times <- as.integer(sort(unique(times)))
     if (!inherits(entry, "date")) stop ("'Entry' must be a date")
-
-    if (type=='individual')
-	times <- m[[4]]
-    else
-	if (any(is.na(times))) stop("Missing values not allowed in 'times'")
-
-
     if (!inherits(birth, "date")) {
 	# Assume that they gave an age
 	if (any(birth <=0)) stop ("Age must be >0 ")
@@ -44,7 +56,6 @@ survexp <- function(entry, birth, sex,
 
     if (any(entry<birth)) stop("Subject entered before birth")
     if (any(times<0)) stop ("'Times' must be >=0")
-    if (type != 'individual') times <- as.integer(sort(unique(times)))
     ntime <- length(times)
 
     dn <- dimnames(expected)
