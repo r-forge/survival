@@ -1,6 +1,7 @@
-#SCCS $Id: plot.survfit.s,v 4.4 1992-04-14 18:07:10 grill Exp $
+#SCCS $Id: plot.survfit.s,v 4.5 1992-05-07 09:46:55 therneau Exp $
 plot.survfit<- function(surv, conf.int,  mark.time=T,
 		 mark=3,col=1,lty=1, lwd=1, cex=1,log=F,yscale=1,
+		 xscale=1,
 		 xlab="", ylab="", xaxs='i', ...) {
 
     if (!inherits(surv, 'survfit'))
@@ -27,16 +28,17 @@ plot.survfit<- function(surv, conf.int,  mark.time=T,
     lwd  <- rep(lwd, length=nstrat)
 
     if (is.numeric(mark.time)) mark.time <- sort(mark.time[mark.time>0])
+    stime <- surv$time * xscale
     #
     # for log plots we have to be tricky about the y axis scaling
     #
     if   (log) {
-	    plot(c(0, max(surv$time)),
+	    plot(c(0, max(stime)),
 	       yscale*c(.99,min(.1,surv$surv[surv$surv>0],na.rm=T)),
 	       type ='n', log='y', xlab=xlab, ylab=ylab, xaxs=xaxs,...)
 	    }
      else
-	 plot(c(0,max(surv$time)), yscale*c(0,1),
+	 plot(c(0,max(stime)), yscale*c(0,1),
 	      type='n', xlab=xlab, ylab=ylab, xaxs=xaxs, ...)
 
     if (yscale !=1) par(usr=par("usr")/ c(1,1,yscale, yscale))
@@ -51,8 +53,8 @@ plot.survfit<- function(surv, conf.int,  mark.time=T,
 	i _ i+1
 	who _ (stemp==j)
 	# next line identifies all of the 'step downs' or 'last point'
-	drops _ (surv$n.event>0 | surv$time==max(surv$time[who]))
-	xx _ c(0,surv$time[who & drops])
+	drops _ (surv$n.event>0 | stime==max(stime[who]))
+	xx _ c(0,stime[who & drops])
 	yy _ c(1,surv$surv[who &drops])
 	lines(xx, yy, lty=lty[i], col=col[i], lwd=lwd[i], type='s')
 
@@ -65,7 +67,7 @@ plot.survfit<- function(surv, conf.int,  mark.time=T,
 		   pch=mark[i],col=col[i],cex=cex)
 	    }
 	else if (mark.time==T & any(surv$n.event[who]==0))
-	    points(surv$time[who & surv$n.event==0],
+	    points(stime[who & surv$n.event==0],
 		   surv$surv[who & surv$n.event==0],
 		   pch=mark[i],col=col[i],cex=cex)
 	xend _ c(xend,max(xx))
