@@ -1,4 +1,4 @@
-#SCCS $Date: 1993-01-30 19:37:18 $ $Id: coxph.fit.s,v 4.10 1993-01-30 19:37:18 therneau Exp $
+#SCCS $Date: 1993-01-30 21:21:42 $ $Id: coxph.fit.s,v 4.11 1993-01-30 21:21:42 therneau Exp $
 coxph.fit <- function(x, y, strata, offset, init, iter.max,
 			eps, method, rownames)
     {
@@ -30,7 +30,7 @@ coxph.fit <- function(x, y, strata, offset, init, iter.max,
 				    as.integer(method=='efron'),
 				    stime,
 				    sstat,
-				    offset[sorted],
+				    exp(offset[sorted]),
 				    newstrat,
 				    loglik=double(1),
 				    resid = double(n) )

@@ -1,4 +1,4 @@
-/* SCCS $Id: coxfit_null.c,v 4.4 1993-01-30 19:34:58 therneau Exp $  */
+/* SCCS $Id: coxfit_null.c,v 4.5 1993-01-30 21:21:43 therneau Exp $  */
 /*
 ** Special case: fit the "Null" model.  All that is needed are the loglik
 **     and the residual  -- 90% of the work is the residual
@@ -34,7 +34,7 @@ double  score[],
 double  loglik[],  /* returned values */
 	resid[];
 {
-    register int i,j, person;
+    register int i,j;
     double deaths;
     int n;
     double  denom;
@@ -47,9 +47,9 @@ double  loglik[],  /* returned values */
     ** pass 1- resid will contain the risk sum
     */
     strata[n-1] =1;  /* just in case */
-    for (person=n-1; person>=0; person--) {
-	if (strata[person] == 1) denom = 0;
-	denom += score[person];
+    for (i=n-1; i>=0; i--) {
+	if (strata[i] == 1) denom = 0;
+	denom += score[i];
 	if (i==0 || strata[i-1]==1 || time[i-1]!=time[i])
 	    resid[i] = denom;
 	else resid[i] =0;
