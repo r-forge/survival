@@ -1,4 +1,4 @@
-#SCCS $Date: 1995-12-22 17:05:19 $ $Id: summary.coxph.s,v 4.4 1995-12-22 17:05:19 therneau Exp $
+#SCCS $Date: 1996-01-06 21:35:43 $ $Id: summary.coxph.s,v 4.5 1996-01-06 21:35:43 therneau Exp $
 summary.coxph <-
  function(cox, table = T, coef = T, conf.int = 0.95, scale = 1,
 			digits = max(options()$digits-4,3) )
@@ -28,17 +28,19 @@ summary.coxph <-
 	}
 
     beta <- cox$coef
+    nabeta <- !(is.na(beta))          #non-missing coefs
+    beta2 <- beta[nabeta]
     if(is.null(beta) | is.null(cox$var))
         stop("Input is not valid")
 
     if (is.null(cox$naive.var)) {
 	se <- sqrt(diag(cox$var))
-	wald.test <-  sum(beta * solve(cox$var, beta))
+	wald.test <-  sum(beta2 * solve(cox$var[nabeta,nabeta], beta2))
 	}
     else {
 	nse <- sqrt(diag(cox$naive.var))        #naive se
 	se <- sqrt(diag(cox$var))
-	wald.test <-  sum(beta * solve(cox$var, beta))
+	wald.test <-  sum(beta2 * solve(cox$var[nabeta,nabeta], beta2))
 	}
     if(coef) {
 	if (is.null(cox$naive.var)) {
@@ -70,7 +72,7 @@ summary.coxph <-
         }
     logtest <- -2 * (cox$loglik[1] - cox$loglik[2])
     sctest <- cox$score
-    df <- length(beta)
+    df <- length(beta2)
     cat("\n")
     cat("Rsquare=", format(round(1-exp(-logtest/cox$n),3)),
 	"  (max possible=", format(round(1-exp(2*cox$loglik[1]/cox$n),3)),
@@ -84,5 +86,8 @@ summary.coxph <-
     cat("Efficient score test = ", format(round(sctest, 2)), "  on ", df,
         " df,", "   p=", format(1 - pchisq(sctest, df)), "\n\n", sep = 
         "")
+    if (!is.null(cox$naive.var))
+      cat("   (Note: the likelihood ratio and efficient score tests",
+	  " assume independence of the observations).\n")
     invisible()
     }

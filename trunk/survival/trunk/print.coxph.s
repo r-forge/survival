@@ -1,4 +1,4 @@
-# SCCS $Id: print.coxph.s,v 4.6 1995-12-22 17:05:18 therneau Exp $
+# SCCS $Id: print.coxph.s,v 4.7 1996-01-06 21:35:42 therneau Exp $
 print.coxph <-
  function(cox, digits=.Options$digits -4, ...)
     {
@@ -36,7 +36,7 @@ print.coxph <-
     prmatrix(tmp)
 
     logtest <- -2 * (cox$loglik[1] - cox$loglik[2])
-    df <- length(coef)
+    df <- sum(!is.na(coef))
     cat("\n")
     cat("Likelihood ratio test=", format(round(logtest, 2)), "  on ",
 	df, " df,", " p=", format(1 - pchisq(logtest, df)),  sep="")
