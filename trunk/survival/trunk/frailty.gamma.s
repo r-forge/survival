@@ -1,4 +1,4 @@
-# SCCS $Id: frailty.gamma.s,v 1.1 1998-10-28 08:51:58 therneau Exp $
+# SCCS $Id: frailty.gamma.s,v 1.2 1998-11-30 08:31:45 therneau Exp $
 # 
 # Defining function for gamma frailty fits
 #
@@ -82,10 +82,10 @@ frailty.gamma <- function(x, sparse=T, theta, df, eps= 1e-5,
 		     printfun=printfun,
 		     diag =T,
 		     sparse= sparse,
-		     cargs = c("x", "status", "loglik", "df", "plik"),	
+		     cargs = c("x", "status", "loglik", "neff","df", "plik"),
 		     cparm=list(eps=eps, lower=0, init=c(.1, 1), ...),
 		     cfun =function(opt, iter, old, group, status, loglik,...){
-			 temp <- frailty.controlaic(opt, iter, old, status,...)
+			 temp <- frailty.controlaic(opt, iter, old, ...)
 			 if (iter >0) {
 			     #compute correction to the loglik
 			     if (old$theta==0) correct <- 0
@@ -127,6 +127,13 @@ frailty.gamma <- function(x, sparse=T, theta, df, eps= 1e-5,
 
 			 temp
 		         })
+	}
+
+    # If not sparse, give shorter names to the coefficients, so that any
+    #   printout of them is readable.
+    if (!sparse) {
+	vname <- paste("gamma", levels(x), sep=':')
+	temp <- c(temp, list(varname=vname))
 	}
     attributes(x) <- c(attributes(x), temp)
     x

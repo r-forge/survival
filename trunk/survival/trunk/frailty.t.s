@@ -1,4 +1,4 @@
-# SCCS $Id: frailty.t.s,v 1.1 1998-10-28 08:52:00 therneau Exp $
+# SCCS $Id: frailty.t.s,v 1.2 1998-11-30 08:31:47 therneau Exp $
 # 
 # Defining function for t-distribution frailty fits
 #
@@ -86,7 +86,7 @@ frailty.t <- function(x, sparse=T, theta, df, eps= 1e-5,  tdf=5,
 		     printfun=printfun,
 		     diag =T,
 		     sparse= sparse,
-		     cargs = c("status", "df", "plik"),	
+		     cargs = c("neff", "df", "plik"),	
 		     cparm=list(lower=0, init=c(.1,1), eps=eps, ...),
 		     cfun = frailty.controlaic)
 	}
@@ -100,6 +100,13 @@ frailty.t <- function(x, sparse=T, theta, df, eps= 1e-5,  tdf=5,
 		     cparm=list(df=df, eps=eps, thetas=0, dfs=0,
 		                guess=3*df/length(unclass(x)), ...),
                      cfun = frailty.controldf)
+	}
+
+    # If not sparse, give shorter names to the coefficients, so that any
+    #   printout of them is readable.
+    if (!sparse) {
+	vname <- paste("gamma", levels(x), sep=':')
+	temp <- c(temp, list(varname=vname))
 	}
     attributes(x) <- c(attributes(x), temp)
     x

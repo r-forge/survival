@@ -1,4 +1,4 @@
-# SCCS $Id: frailty.gaussian.s,v 1.1 1998-10-28 08:51:59 therneau Exp $
+# SCCS $Id: frailty.gaussian.s,v 1.2 1998-11-30 08:31:46 therneau Exp $
 # 
 # Defining function for gaussian frailty fits
 #
@@ -27,7 +27,7 @@ frailty.gaussian <- function(x, sparse=T, theta, df,
     if (sparse){
 	x <-as.numeric(as.factor(x))
 	oldClass(x) <- "coxph.penalty"
-        }
+	}
     else{
 	x <- as.factor(x)
 	oldClass(x) <- "coxph.penalty"
@@ -85,7 +85,7 @@ frailty.gaussian <- function(x, sparse=T, theta, df,
 		     printfun=printfun,
 		     diag =T,
 		     sparse= sparse,
-		     cargs = c("status", "df", "plik"),	
+		     cargs = c("neff", "df", "plik"),	
 		     cparm=list(...),
 		     cfun = frailty.controlaic)
 	}
@@ -99,9 +99,16 @@ frailty.gaussian <- function(x, sparse=T, theta, df,
 		                guess=3*df/length(unclass(x)), ...),
                      cfun = frailty.controldf)
 	}
+
+    # If not sparse, give shorter names to the coefficients, so that any
+    #   printout of them is readable.
+    if (!sparse) {
+	vname <- paste("gamma", levels(x), sep=':')
+	temp <- c(temp, list(varname=vname))
+	}
     attributes(x) <- c(attributes(x), temp)
     x
-}
+    }
 
 			  
 			   
