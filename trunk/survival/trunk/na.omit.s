@@ -1,5 +1,5 @@
-#SCCS $Date: 1992-04-14 18:06:53 $ $Id: na.omit.s,v 4.3 1992-04-14 18:06:53 grill Exp $
-naomit <- function(frame)  {
+#SCCS $Date: 1992-04-16 10:54:45 $ $Id: na.omit.s,v 4.4 1992-04-16 10:54:45 grill Exp $
+na.omit <- function(frame)  {
     n <- length(frame)
     omit <- FALSE
     vars <- seq(length = n)
