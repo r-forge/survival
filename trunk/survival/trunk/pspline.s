@@ -1,4 +1,4 @@
-# SCCS $Id: pspline.s,v 1.2 1998-11-30 08:32:20 therneau Exp $
+# SCCS $Id: pspline.s,v 1.3 1998-12-02 13:35:47 therneau Exp $
 #
 # the p-spline function for a Cox model
 #
@@ -43,7 +43,7 @@ pspline <- function(x, df=4, theta, nterm=2.5*df, degree=3, eps=.1, ...) {
 	if (theta >=1) list(penalty= 100*(1-theta), flag=T)
 	else {
 	    if (theta <= 0) lambda <- 0 
-	    else lambda <- (n/length(theta))* theta / (1-theta)
+	    else lambda <- theta / (1-theta)
 	    list(penalty= c(coef %*% dmat %*% coef) * lambda/2,
 		 first  = c(dmat %*% coef) * lambda ,
 		 second = c(dmat * lambda),
