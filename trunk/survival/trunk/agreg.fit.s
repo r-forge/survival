@@ -1,4 +1,4 @@
-#SCCS $Id: agreg.fit.s,v 4.17 1998-10-29 19:15:16 therneau Exp $
+#SCCS $Id: agreg.fit.s,v 4.18 1998-12-22 13:17:53 therneau Exp $
 agreg.fit <- function(x, y, strata, offset, init, iter.max,
 			eps, toler.chol, weights, method, rownames)
     {
@@ -36,7 +36,7 @@ agreg.fit <- function(x, y, strata, offset, init, iter.max,
 		       as.integer(method=='efron'),
 		       sstart, sstop,
 		       sstat,
-		       offset[sorted],
+		       as.double(offset[sorted]),
 		       as.double(weights),
 		       newstrat,
 		       loglik=double(1))
