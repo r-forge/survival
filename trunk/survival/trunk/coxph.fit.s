@@ -1,5 +1,5 @@
-#SCCS $Date: 1992-03-04 16:48:03 $ $Id: coxph.fit.s,v 4.1 1992-03-04 16:48:03 therneau Exp $
-coxreg.fit <- function(y, x, strata, casewt, offset, init, iter.max,
+#SCCS $Date: 1992-03-30 09:44:23 $ $Id: coxph.fit.s,v 4.2 1992-03-30 09:44:23 therneau Exp $
+coxreg.fit <- function(x, y, strata, offset, init, iter.max,
 			eps, inf.ratio, method, rownames)
     {
     n <-  nrow(y)
@@ -18,7 +18,6 @@ coxreg.fit <- function(y, x, strata, casewt, offset, init, iter.max,
 	newstrat <- as.integer(c(1*(diff(strata)!=0), 1))
 	}
     if (is.null(offset)) offset <- rep(0,n)
-    if (is.null(casewt)) casewt <- rep(1,n)
 
     stime <- as.double(time[sorted])
     sstat <- as.integer(status[sorted])
@@ -66,7 +65,7 @@ coxreg.fit <- function(y, x, strata, casewt, offset, init, iter.max,
 		       mark = integer(n),
 		       double(2*nvar*nvar + 3*nvar),
 		       as.double(eps),
-		       sctest=as.double(method=="cox.efron") )
+		       sctest=as.double(method=="efron") )
 
 
 	if (coxfit$flag == 1000 && iter.max>1)
