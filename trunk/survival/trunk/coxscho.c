@@ -1,4 +1,4 @@
-/* SCCS $Id: coxscho.c,v 4.2 1993-01-19 14:24:35 therneau Exp $
+/* SCCS $Id: coxscho.c,v 4.3 1993-01-30 19:34:58 therneau Exp $
 /*
 ** Return the Schoenfeld residuals.
 **
@@ -22,8 +22,9 @@
 **  work arrays
 **       a(nvar)
 **       a2(nvar)
+**       mean(nvar)
 **
-**  the 2 arrays a and a2 are passed as a single
+**  the 3 vectors a, a2 and mean are passed as a single
 **    vector of storage, and then broken out.
 **
 **  the data must be sorted by ascending time within strata, deaths before
@@ -50,11 +51,12 @@ double  *covar2,
     double **covar;
     double *a;
     double *a2;
+    double *mean;
     double  denom, weight;
     double  time;
     double  temp, temp2;
     double     method;
-    int     deaths;
+    double   deaths;
     double efron_wt;
     double  *start,
 	    *stop,
@@ -69,6 +71,7 @@ double  *covar2,
     covar= dmatrix(covar2, nused, nvar);
     a = work;
     a2= a+nvar;
+    mean = a2+nvar;
     start =y;
     stop  =y + nused;
     event =y + nused +nused;
@@ -107,14 +110,21 @@ double  *covar2,
 		}
 
 	    /*
-	    ** Compute the residual for this time point
+	    ** Compute the mean at this time point
 	    */
-	    temp = method * (deaths -1) / 2.0;
+	    for (i=0; i<nvar; i++) mean[i] =0;
+	    for (k=0; k<deaths; k++) {
+		temp = method *k/deaths;
+		for (i=0; i<nvar; i++)
+		    mean[i] += (a[i] - temp*a2[i])/(deaths*(denom -temp*efron_wt));
+		}
+	    /*
+	    ** Compute the residual(s) for this time point
+	    */
 	    for (k=person; k<nused && stop[k]==time; k++) {
 		if (event[k]==1) {
 		    for (i=0; i<nvar; i++) {
-			temp2 = (a[i] - temp*a2[i])/(denom - temp*efron_wt);
-			covar[i][k] -= temp2;
+			covar[i][k] -= mean[i];
 			}
 		    }
 		person++;
