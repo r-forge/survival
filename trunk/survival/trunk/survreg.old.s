@@ -1,13 +1,15 @@
-#  SCCS $Id: survreg.old.s,v 1.2 1999-02-07 23:36:53 therneau Exp $
+#  SCCS @(#)survreg.old.s	1.1 11/25/98
 # Map the argument list of the old survreg to the new one
 #
 survreg.old <- function(formula, data=sys.parent(), ...,
         link='log',
         dist=c("extreme", "logistic", "gaussian", "exponential",
-               "rayleigh"),
+               "rayleigh", "weibull"),
 	fixed=list()) {
     
-    if (link=='log') {
+    dist <- match.arg(dist)
+
+    if ((dist!='weibull' && dist != 'rayleigh') && link=='log') {
 	if (dist=='extreme') dist <- 'weibull'
 	else dist <- paste('log', dist, sep='')
 	}
