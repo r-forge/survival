@@ -1,4 +1,4 @@
-#SCCS $Date: 2000-03-03 10:22:32 $ $Id: survfit.s,v 4.17 2000-03-03 10:22:32 boos Exp $
+#SCCS 03/03/00 @(#)survfit.s	4.17
 survfit <- function (formula, data, weights, subset, na.action, ...) {
     call <- match.call()
     # Real tricky -- find out if the first arg is "Surv(...)" without
@@ -72,11 +72,17 @@ survfit <- function (formula, data, weights, subset, na.action, ...) {
     else {
 	if (is.null(i)) keep <- seq(along=fit$time)
 	else {
-	    if (is.character(i)) strat <- rep(names(fit$strata), fit$strata)
-	    else                 strat <- rep(1:length(fit$strata), fit$strata)
+	    if (is.null(fit$ntimes.strata)) strata.var <- fit$strata
+	    else strata.var <- fit$ntimes.strata
+	    if (is.character(i)) strat <- rep(names(fit$strata), strata.var)
+	    else                 strat <- rep(1:length(fit$strata), strata.var)
 	    keep <- seq(along=strat)[match(strat, i, nomatch=0)>0]
 	    if (length(i) <=1) fit$strata <- NULL
 	    else               fit$strata  <- fit$strata[i]
+	    if (!is.null(fit$ntimes.strata)) {
+		fit$strata.all <- fit$strata.all[i]
+		fit$ntimes.strata <- fit$ntimes.strata[i]
+	        }
 	    fit$time    <- fit$time[keep]
 	    fit$n.risk  <- fit$n.risk[keep]
 	    fit$n.event <- fit$n.event[keep]
@@ -98,6 +104,9 @@ survfit <- function (formula, data, weights, subset, na.action, ...) {
 	    }
 	else {
 	    fit$surv <- fit$surv[keep]
+	    if (!is.null(fit$enter)) fit$enter <- fit$enter[keep]
+	    if (!is.null(fit$exit.censored))
+		    fit$exit.censored <- fit$exit.censored[keep]
 	    if (!is.null(fit$std.err)) fit$std.err <- fit$std.err[keep]
 	    if (!is.null(fit$upper)) fit$upper <- fit$upper[keep]
 	    if (!is.null(fit$lower)) fit$lower <- fit$lower[keep]
@@ -105,4 +114,5 @@ survfit <- function (formula, data, weights, subset, na.action, ...) {
 	}
     fit
     }
+
 
