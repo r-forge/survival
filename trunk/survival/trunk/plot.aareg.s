@@ -1,3 +1,4 @@
+# SCCS $Id: plot.aareg.s,v 1.4 2002-04-29 14:27:18 therneau Exp $
 plot.aareg <- function(x, se=T, maxtime, type='s', ...) {
     if (!inherits(x, 'aareg')) stop ("Must be an aareg object")
 
