@@ -1,4 +1,4 @@
-/* SCCS  $Id: coxmart.c,v 4.1 1993-01-21 09:40:16 therneau Exp $      */
+/* SCCS  $Id: coxmart.c,v 4.2 1993-04-20 16:29:34 therneau Exp $     */
 /*
 ** Compute the martingale residual for a Cox model
 **
@@ -42,8 +42,9 @@ long    n[1],
     for (i= *n -1; i>=0; i--) {
 	if (strata[i]==1) denom =0;
 	denom += score[i];
-	if (deaths>0 && (i==0 || strata[i-1]==1 ||  time[i-1]!=time[i]))
+	if (i==0 || strata[i-1]==1 ||  time[i-1]!=time[i])
 		expect[i] = denom;
+	else    expect[i] =0;
 	}
 
     /* Pass 2-- now do the work */
@@ -80,5 +81,6 @@ long    n[1],
 	    deaths =0;
 	    e_denom =0;
 	    }
+	if (strata[i]==1) hazard =0;
 	}
     }
