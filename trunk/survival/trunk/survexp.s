@@ -1,20 +1,27 @@
-#SCCS $Date: 1992-03-04 16:48:32 $ $Id: survexp.s,v 4.1 1992-03-04 16:48:32 therneau Exp $
+#SCCS $Date: 1992-03-08 20:19:22 $ $Id: survexp.s,v 4.2 1992-03-08 20:19:22 therneau Exp $
 surv.exp <- function(entry, birth, sex, times=round(182.6 * 0:8),
-		      expected=surv.exp.uswhite, mean=T, interp=F) {
+		      type=c("mean", "individual", "matrix"),
+		      expected=surv.exp.uswhite, interp=F) {
     call <- match.call()
     if (!inherits(entry, "date")) stop ("'Entry' must be a date")
     nn <- length(entry)
     if (length(birth) != nn) stop("Entry and birth not the same length")
     if (length(sex) != nn) stop ("Entry and sex not the same length")
 
-    # toss out missings
+    type <- match.arg(type)
+    if (missing(type)){
+	if (!missing(times) && length(times)==nn) type <-'individual'
+	else type <- 'mean'
+	}
+
     nomiss <- !(is.na(entry) | is.na(birth) | is.na(sex))
-    if (!mean && length(times)==nn) {
-	special <- T
+    if (type=='indivdual') {
 	nomiss <- nomiss & !is.na(times)
 	times <- times[nomiss]
 	}
-    else special <- F
+    else if (any(is.na(times))) stop("Missing values not allowed in 'times'")
+
+    # toss out missings
     entry <- entry[nomiss]
     birth <-birth[nomiss]   #I need to watch out that the 'class' isn't lost
     sex <- sex[nomiss]
@@ -28,19 +35,21 @@ surv.exp <- function(entry, birth, sex, times=round(182.6 * 0:8),
 	if (any(birth >130))stop ("Impossibly large value for age at entry")
 	birth <- entry - round(birth*365.25)
 	}
-    if (!all(sex==1 | sex==2)) stop("Invalid value for sex")
 
     if (any(times<0)) stop ("'Times' must be >=0")
-    if (!special) times <- as.integer(sort(unique(times)))
+    if (type != 'individual') times <- as.integer(sort(unique(times)))
     ntime <- length(times)
 
     dn <- dimnames(expected)
     dd <- dim(expected)
-    if (is.null(dd) || length(dd) <2 || dd[2]!=2 || length(dd) >3 )
+    if (is.null(dd) || length(dd) <2 || dd[2]<2 || length(dd) >3 )
 	stop("The hazard table is not in the correct format")
     ages <- as.integer(round(365.25 *as.numeric(dn[[1]])))
     if (ages[1] !=0  ||  length(ages)<2 || any(diff(ages)<=0))
 	stop("The hazard table is not in the correct format")
+
+    if (!all(sex==floor(sex) & sex>0 & sex<=dd[2]))
+	 stop("Invalid value for \'sex\'")
 
     if (length(dd) ==2 || dd[3]==1) {
 	years <- 1
@@ -68,8 +77,8 @@ surv.exp <- function(entry, birth, sex, times=round(182.6 * 0:8),
 	    years <- mdy.date(1,1,new)
 	    }
 	}
-    if (mean || special) nsurv <- 1
-    else                 nsurv <- nused
+    if (type != 'matrix') nsurv <- 1
+    else                  nsurv <- nused
     temp <-  .C("survexp", as.integer(ntime),
 			    as.integer(times),
 			    as.integer(dd[1]),
@@ -83,15 +92,26 @@ surv.exp <- function(entry, birth, sex, times=round(182.6 * 0:8),
 			    as.integer(sex),
 			    double(ntime),
 			    as.integer(nsurv),
-			    as.integer(special),
+			    as.integer(type=='individual'),
 			    surv= double(ntime*nsurv))
 
-    if (mean || special) xx <- list(time=times, surv=temp$surv, n=nused)
+    if (any(!nomiss)) {
+	omit <- seq(along=nused)[!nused]
+	attr(nuse, 'omit') <- omit
+	}
+    if (type != 'matrix') xx <- list(time=times, surv=temp$surv, n=nused)
     else     xx <-  list(time=times,
 			 surv=matrix(temp$surv, nrow=nused, byrow=T),
 			 n=used)
     xx$call <- call
-    attr(xx, "class") <- c("surv.exp", "surv.fit")
+    if (type == 'individual') {
+	if (any(!nomiss)) {
+	    xx$time <- na.expand(times, omit)
+	    xx$surv <- na.expand(xx$surv, omit)
+	    }
+	attr(xx, "class") <- "surv.exp"
+	}
+    else attr(xx, "class") <- c("surv.exp", "surv.fit")
     xx
     }
 
