@@ -1,4 +1,4 @@
-#SCCS  $Id: coxph.s,v 4.8 1993-01-12 23:26:01 therneau Exp $
+#SCCS  $Id: coxph.s,v 4.9 1993-03-26 17:02:38 therneau Exp $
 coxph <- function(formula=formula(data), data=sys.parent(),
 	subset, na.action,
 	eps=.0001, init, iter.max=10,
@@ -37,7 +37,9 @@ coxph <- function(formula=formula(data), data=sys.parent(),
     if (length(strats)) {
 	temp <- untangle.specials(Terms, 'strata', 1)
 	X <- model.matrix(Terms[-temp$terms], m)[,-1,drop=F]
-	strats <- as.numeric(strata(m[temp$vars]))
+	if (length(temp$vars)==1) strata.keep <- m[[temp$vars]]
+	else strata.keep <- strata(m[temp$vars], shortlabel=T)
+	strats <- as.numeric(strata.keep)
 	}
     else X <- model.matrix(Terms, m)[,-1,drop=F]   #remove column of 1's though
 
@@ -71,7 +73,7 @@ coxph <- function(formula=formula(data), data=sys.parent(),
 	if (model) fit$model <- m
 	if (x)  {
 	    fit$x <- X
-	    if (length(strats)) fit$strata <- strats
+	    if (length(strats)) fit$strata <- strata.keep
 	    }
 	if (y)     fit$y <- Y
 	}

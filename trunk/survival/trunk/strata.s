@@ -1,7 +1,7 @@
-# $Id: strata.s,v 4.6 1992-11-18 14:04:45 therneau Exp $
+# $Id: strata.s,v 4.7 1993-03-26 17:02:37 therneau Exp $
 # Create a strata variable, possibly from many objects
 #
-strata <- function(..., na.group=F) {
+strata <- function(..., na.group=F, shortlabel=F) {
     words <- as.character((match.call())[-1])
     if (!missing(na.group)) words <- words[-1]
     allf <- list(...)
@@ -30,7 +30,7 @@ strata <- function(..., na.group=F) {
 	    wlev[is.na(wlev)] <- length(wlab)
 	    wlab <- c(wlab, "NA")
 	    }
-	wlab <- format(paste(words[i], wlab, sep='='))
+	if (!shortlabel) wlab <- format(paste(words[i], wlab, sep='='))
 	levs <- levs * length(wlab) + wlev
 	labs <- as.vector(outer(wlab, labs, paste, sep = ", "))
 	}
