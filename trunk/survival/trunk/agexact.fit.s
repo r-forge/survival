@@ -72,8 +72,8 @@ agexact.fit <- function(x, y, strata, offset, iter.max,
 	       warning("Ran out of iterations and did not converge")
 	else if (any((infs > eps) & (infs > sqrt(eps)*abs(coef))))
 	    warning(paste("Loglik converged before variable ",
-		      paste((1:nvar)[(infs>eps)]),
-		      ", beta may be infinite. "))
+			  paste((1:nvar)[(infs>eps)],collapse=","),
+			  "; beta may be infinite. "))
 	}
 
     names(coef) <- dimnames(x)[[2]]
