@@ -40,6 +40,11 @@ if TRUE, then the y vector (or survival times) is returned.
 all the optional arguments to lm, including `singular.ok'.
 .RT
 an object of class `survreg' is returned, which inherits from class `glm'.
+.SH Computation
+  This routine is not as robust against nearly singular X matrices as lm();
+the problem occurs when we explicitly invert the covariance matrix with
+solve().  This can sometimes be solved by subtracting the mean from all
+continuous covariates.
 .EX
 survreg(Surv(futime, fustat) ~ ecog.ps + rx, fleming, dist='extreme',
 		link='log', scale=1)   #Fit an exponential
