@@ -1,7 +1,7 @@
-#SCCS  $Id: pyears.s,v 4.1 1993-12-02 21:37:07 therneau Exp $
+#SCCS  $Id: pyears.s,v 4.2 1994-04-21 16:48:50 therneau Exp $
 pyears <- function(formula=formula(data), data=sys.parent(),
 	weights, subset, na.action,
-	ratetable=survexp.uswhite, scale=365.25,
+	ratetable=survexp.us, scale=365.25,
 	model=F, x=F, y=F) {
 
     call <- match.call()
@@ -34,9 +34,9 @@ pyears <- function(formula=formula(data), data=sys.parent(),
 	stop ("Can have only 1 ratetable() call in a formula")
     else if (length(rate)==1) {
 	ovars <- (dimnames(attr(Terms, 'factors'))[[1]])[-c(1, rate)]
-	temp <- match.ratetable(m[,rate], ratetable)
-	R <- temp$R
-	if (!is.null(temp$call)) {  #need to dop some dimensions from ratetable
+	rtemp <- match.ratetable(m[,rate], ratetable)
+	R <- rtemp$R
+	if (!is.null(rtemp$call)) {  #need to drop some dimensions from ratetable
 	    ratetable <- eval(parse(text=temp$call))
 	    }
 	}
@@ -82,16 +82,35 @@ pyears <- function(formula=formula(data), data=sys.parent(),
     ocut <-c(ocut,0)   #just in case it were of length 0
     osize <- prod(odims)
     if (length(rate)) {  #include expected
-	temp <- attributes(ratetable)
+	atts <- attributes(ratetable)
+	cuts <- atts$cutpoints
+	rfac <- atts$factor
+	us.special <- (rfac >1)
+	if (any(us.special)) {  #special handling for US pop tables
+	    if (sum(us.special) >1)
+		stop("Two columns marked for special handling as a US rate table")
+	    #slide entry date so that it appears that they were born on Jan 1
+	    cols <- match(c("age", "year"), atts$dimid)
+	    if (any(is.na(cols))) stop("Ratetable does not have expected shape")
+	    temp <- date.mdy(R[,cols[2]]-R[,cols[1]])
+	    R[,cols[2]] <- R[,cols[2]] - mdy.date(temp$month, temp$day, 1960)
+	    # Doctor up "cutpoints"
+	    temp <- (1:length(rfac))[us.special]
+	    nyear <- length(cuts[[temp]])
+	    nint <- rfac[temp]       #intervals to interpolate over
+	    cuts[[temp]] <- round(approx(nint*(1:nyear), cuts[[temp]],
+					    nint:(nint*nyear))$y - .0001)
+	    }
+
 	temp <- .C("pyears1",
 			as.integer(n),
 			as.integer(ncol(Y)),
 			as.integer(is.Surv(Y)),
 			as.double(Y),
-			as.integer(length(temp$dim)),
-			as.integer(temp$factors),
-			as.integer(temp$dim),
-			as.double(unlist(temp$cutpoints)),
+			as.integer(length(atts$dim)),
+			as.integer(rfac),
+			as.integer(atts$dim),
+			as.double(unlist(cuts)),
 			ratetable,
 			as.double(R),
 			as.integer(odim),
@@ -128,7 +147,7 @@ pyears <- function(formula=formula(data), data=sys.parent(),
 		offtable = temp$offtable/scale)
     if (length(rate)) {
 	out$expected <- array(temp$pexpect, dim=odims, dimnames=outdname)
-	out$unitcheck <- (attr(ratetable, "Rfun"))(R)
+	if (!is.null(rtemp$summ)) out$summ <- rtemp$summ
 	}
     if (is.Surv(Y))
 	out$event    <- array(temp$pcount, dim=odims, dimnames=outdname)
