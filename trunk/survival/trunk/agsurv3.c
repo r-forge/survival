@@ -1,4 +1,4 @@
-/*  SCCS $Id: agsurv3.c,v 5.3 1998-10-27 17:29:51 therneau Exp $
+/*  SCCS $Id: agsurv3.c,v 5.4 2000-02-09 14:30:21 therneau Exp $
 /*
 ** Create the cohort survival curve(s) for a set of subjects.
 **
@@ -214,7 +214,7 @@ S_EVALUATOR
 		/*
 		** kalbfleisch estimator requires iteration;
 		*/
-		if (deaths = nrisk) km=0;
+		if (deaths == nrisk) km=0;
 		else if (deaths ==1) {
 		    km = pow(1- score[kk]/denom, 1/score[kk]);
 		    }
