@@ -1,4 +1,4 @@
-/* SCCS $Id: agfit2.c,v 4.7 1993-06-17 12:25:29 therneau Exp $  */
+/* SCCS $Id: agfit2.c,v 4.8 1994-03-09 12:46:59 therneau Exp $  */
 /*
 ** Anderson-Gill formulation of the cox Model
 **
@@ -29,15 +29,13 @@
 **                      if flag<0, imat is undefined upon return
 **       loglik(2)    :loglik at beta=initial values, at beta=final
 **       sctest       :the score test at beta=initial
-**       flag         :success flag  0 - ok
-**                                  -1 to -nvar: variable __ caused a singular
-**                                             matrix failure
-**                                   1 to nvar: var __ is going to infinity
-**                                 1000 did not converge
+**       flag         :success flag  1000  did not converge
+**                                   1 to nvar: rank of the solution
 **       maxiter      :actual number of iterations used
 **
 **  work arrays
 **       score(n)              the score exp(beta*z)
+**       end(n)                how far to look
 **       a(nvar)
 **       a2(nvar)
 **       cmat(nvar,nvar)       ragged array
@@ -60,12 +58,13 @@ double **dmatrix();
 void agfit2(maxiter, nusedx, nvarx, start, stop, event, covar2, offset,
 		 weights, strata,
 		 means, beta, u, imat2, loglik, flag, work,
-		 eps, sctest)
+		 end, eps, sctest)
 
 long    *nusedx,
 	*nvarx,
 	*maxiter,
 	*flag,
+	end[],
 	strata[],
 	event[];
 double  *covar2,
@@ -165,6 +164,7 @@ double  *eps;
 	    deaths=0;
 	    for (k=person; k<nused; k++) {
 		if (start[k] < time) {
+		    end[person] = k;     /*speed up -- last obs in risk set */
 		    risk = exp(score[k]) * weights[k];
 		    denom += risk;
 		    for (i=0; i<nvar; i++) {
@@ -191,7 +191,7 @@ double  *eps;
 	    */
 	    meanwt /= deaths;
 	    itemp = -1;
-	    for (k=person; k<nused && stop[k]==time; k++) {
+	    for (k=person; k<= end[person] && stop[k]==time; k++) {
 		if (event[k]==1) {
 		    itemp++;
 		    temp = itemp*method/deaths;
@@ -207,7 +207,6 @@ double  *eps;
 			}
 		    }
 		person++;
-		if (strata[k]==1) break;
 		}
 	    }
 	}   /* end  of accumulation loop */
@@ -280,7 +279,7 @@ double  *eps;
 		    }
 		time = stop[person];
 		deaths=0;
-		for (k=person; k<nused; k++) {
+		for (k=person; k<=end[person]; k++) {
 		    if (start[k] < time) {
 			risk = exp(score[k]) * weights[k];
 			denom += risk;
@@ -300,12 +299,11 @@ double  *eps;
 				}
 			    }
 			}
-		    if (strata[k]==1) break;
 		    }
 
 		itemp = -1;
 		meanwt /= deaths;
-		for (k=person; k<nused && stop[k]==time; k++) {
+		for (k=person; k<=end[person] && stop[k]==time; k++) {
 		    if (event[k]==1) {
 			itemp++;
 			temp = itemp*method/deaths;
@@ -322,7 +320,6 @@ double  *eps;
 			}
 
 		    person++;
-		    if (strata[k]==1) break;
 		    }
 		}
 	    }   /* end  of accumulation loop */

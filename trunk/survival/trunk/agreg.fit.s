@@ -1,4 +1,4 @@
-#SCCS $Id: agreg.fit.s,v 4.11 1993-06-17 12:25:31 therneau Exp $
+#SCCS $Id: agreg.fit.s,v 4.12 1994-03-09 12:47:00 therneau Exp $
 agreg.fit <- function(x, y, strata, offset, init, iter.max,
 			eps, weights, method, rownames)
     {
@@ -81,24 +81,27 @@ agreg.fit <- function(x, y, strata, offset, init, iter.max,
 		       imat= double(nvar*nvar), loglik=double(2),
 		       flag=integer(1),
 		       double(2*nvar*nvar +nvar*3 + n),
+		       integer(n),
 		       as.double(eps),
 		       sctest=as.double(method=='efron') )
 
-	if (agfit$flag < 0)
-	      return(paste("X matrix deemed to be singular; variable",
-			-agfit$flag, 'at iteration', agfit$iter))
-	infs <- abs(agfit$u %*% matrix(agfit$imat,nvar))
+	var <- matrix(agfit$imat,nvar,nvar)
+	coef <- agfit$coef
+	if (agfit$flag < nvar) which.sing <- diag(var)==0
+	else which.sing <- rep(F,nvar)
+
+	infs <- abs(agfit$u %*% var)
 	if (iter.max >1) {
 	    if (agfit$flag == 1000)
 		   warning("Ran out of iterations and did not converge")
-	    else if (any((infs > eps) & (infs > sqrt(eps)*abs(agfit$coef))))
+	    else if (any((infs > eps) & (infs > sqrt(eps)*abs(coef))))
 		warning(paste("Loglik converged before variable ",
 			  paste((1:nvar)[(infs>eps)]),
 			  ", beta may be infinite. "))
 	    }
 
-	names(agfit$coef) <- dimnames(x)[[2]]
-	lp  <- x %*% agfit$coef + offset - sum(agfit$coef *agfit$means)
+	names(coef) <- dimnames(x)[[2]]
+	lp  <- x %*% coef + offset - sum(coef *agfit$means)
 	score <- as.double(exp(lp[sorted]))
 	agres <- .C("agmart",
 		       as.integer(n),
@@ -113,9 +116,10 @@ agreg.fit <- function(x, y, strata, offset, init, iter.max,
 	resid _ double(n)
 	resid[sorted] <- agres$resid
 	names(resid) <- rownames
+	coef[which.sing] <- NA
 
-	list(coefficients  = agfit$coef,
-		    var    = matrix(agfit$imat, ncol=nvar),
+	list(coefficients  = coef,
+		    var    = var,
 		    loglik = agfit$loglik,
 		    score  = agfit$sctest,
 		    iter   = agfit$iter,
