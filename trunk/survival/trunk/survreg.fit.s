@@ -1,5 +1,5 @@
 # 
-#  SCCS $Id: survreg.fit.s,v 5.5 1998-12-02 13:34:46 therneau Exp $
+#  SCCS $Id: survreg.fit.s,v 5.6 1998-12-06 21:57:18 therneau Exp $
 #
 survreg.fit<- function(x, y, weights, offset, init, controlvals, dist, 
 		       scale=0, nstrat=1, strata) {
@@ -120,14 +120,16 @@ survreg.fit<- function(x, y, weights, offset, init, controlvals, dist,
 		       as.integer(dnum))$deriv
 
 	wt <-  -1*deriv[,3]*weights
-	coef <- solve(t(x)%*% (wt*x), c((wt*eta + weights*deriv[,2])%*% x))
+	coef <- coxph.wtest(t(x)%*% (wt*x), 
+		       c((wt*eta + weights*deriv[,2])%*% x),
+			    toler=toler.chol)$solve
 	init <- c(coef, vars)
 	}
 
     # Now for the fit in earnest
     fit <- .C("survreg2",
 		   iter = as.integer(iter.max),
-		   as.integer(n),
+		   n = as.integer(n),
 		   as.integer(nvar),
 		   as.double(y),
 		   as.integer(ny),
