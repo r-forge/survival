@@ -10,7 +10,7 @@ survival curves.
 survsum(formula, data=sys.parent(), sptms=NULL, xlim, 
 tlines=T, log=F, xscale=1,yscale=100, mark.time=F, mark=3, 
 cex=1, xlab="Time", ylab="Survival (%)", lgd="bl",
-ttl="",...)
+ttl="K-M Survival",...)
 .RA
 .AG formula
 a formula expression as for other survival models, of the  form
@@ -56,8 +56,7 @@ character string label for the y axis.
 legend placement.  "tr"=top right corner of the plot, "under"=under the plot,
 "n" omits the legend.  The default is: "bl"=bottom left corner of the plot.
 .AG ttl
-title to be printed in upper left corner of page (only visible on printed
-copy).
+title to be printed in the center top.
 .AG ...
 In addition, the high-level graphics arguments described under par and the
 arguments to title may be supplied to this function.
