@@ -1,4 +1,4 @@
-#SCCS $Date: 1992-03-08 20:13:48 $ $Id: print.survdiff.s,v 4.2 1992-03-08 20:13:48 therneau Exp $
+#SCCS $Date: 1992-03-30 02:44:29 $ $Id: print.survdiff.s,v 4.3 1992-03-30 02:44:29 therneau Exp $
 print.surv.diff <- function(diff.list, digits=4, ...) {
 
     fit <- diff.list
@@ -13,9 +13,9 @@ print.surv.diff <- function(diff.list, digits=4, ...) {
 	cat("\n")
 	}
 
-    omit <- attr(fit$n, 'omit')
-    if (length(omit)) cat("n=", sum(fit$n), ", ", length(omit),
-					  "deleted due to missing.\n\n")
+    omit <- diff.list$na.action
+    if (length(omit)) cat("n=", sum(fit$n), ", ", naprint(omit),
+					  ".\n\n")
 
     temp <- cbind(fit$n, fit$obs, fit$exp, ((fit$obs-fit$exp)^2)/ fit$exp)
     if (length(fit$n)==1)  {
