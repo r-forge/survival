@@ -1,4 +1,4 @@
-/*  SCCS $Id: chsolve2.c,v 5.1 1998-08-30 14:52:35 therneau Exp $
+/*  SCCS $Id: chsolve2.c,v 5.2 1998-10-27 17:31:16 therneau Exp $
 /*
 ** Solve the equation Ab = y, where the cholesky decomposition of A and y
 **   are the inputs.
@@ -11,6 +11,7 @@
 **
 **  Terry Therneau
 */
+#include "survS.h"
 #include "survproto.h"
 
 void chsolve2(double **matrix, int n, double *y)

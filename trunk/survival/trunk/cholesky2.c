@@ -1,4 +1,4 @@
-/*  SCCS $Id: cholesky2.c,v 5.1 1998-08-30 14:52:34 therneau Exp $
+/*  SCCS $Id: cholesky2.c,v 5.2 1998-10-27 17:31:15 therneau Exp $
 /*
 ** subroutine to do Cholesky decompostion on a matrix: C = FDF'
 **   where F is lower triangular with 1's on the diagonal, and D is diagonal
@@ -6,6 +6,7 @@
 ** arguments are:
 **     n         the size of the matrix to be factored
 **     **matrix  a ragged array containing an n by n submatrix to be factored
+**     toler     the threshold value for detecting "singularity"
 **
 **  The factorization is returned in the lower triangle, D occupies the
 **    diagonal and the upper triangle is left undisturbed.
@@ -17,10 +18,10 @@
 **
 **   Terry Therneau
 */
-#define EPSILON .000000001     /* <= EPS is considered a zero */
+#include "survS.h"
 #include "survproto.h"
 
-int cholesky2(double **matrix, int n)
+int cholesky2(double **matrix, int n, double toler)
     {
     register double temp;
     register int  i,j,k;
@@ -32,7 +33,7 @@ int cholesky2(double **matrix, int n)
 	if (matrix[i][i] > eps)  eps = matrix[i][i];
 	for (j=(i+1); j<n; j++)  matrix[j][i] = matrix[i][j];
 	}
-    eps *= EPSILON;
+    eps *= toler;
 
     rank =0;
     for (i=0; i<n; i++) {

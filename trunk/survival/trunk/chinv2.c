@@ -1,4 +1,4 @@
-/*  SCCS $Id: chinv2.c,v 5.1 1998-08-30 14:52:33 therneau Exp $
+/*  SCCS $Id: chinv2.c,v 5.2 1998-10-27 17:31:14 therneau Exp $
 /*
 ** matrix inversion, given the cholesky decomposition
 **
@@ -10,6 +10,7 @@
 **
 **  Terry Therneau
 */
+#include "survS.h"
 #include "survproto.h"
 
 void chinv2(double **matrix , int n)
