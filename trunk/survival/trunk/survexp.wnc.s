@@ -1,4 +1,4 @@
-# SCCS $Id: survexp.wnc.s,v 4.2 1994-11-23 10:57:32 therneau Exp $
+# SCCS $Id: survexp.wnc.s,v 4.3 1996-06-07 08:46:02 therneau Exp $
 #
 # Create the WNC hazards table
 #   The raw numbers below are q* 10^5.  Note that there are 24 leap years/100
@@ -150,3 +150,5 @@ survexp.wnc  <- {
 	class='ratetable')
     temp
     }
+rm(fix, temp, temp2)
+
