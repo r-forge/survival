@@ -1,4 +1,4 @@
-#SCCS  $Id: coxph.s,v 4.24 1997-08-01 10:20:26 therneau Exp $
+#SCCS  $Id: coxph.s,v 4.25 1997-10-22 14:10:27 therneau Exp $
 # Version with general penalized likelihoods
 coxph <- function(formula=formula(data), data=sys.parent(),
 	weights, subset, na.action,
@@ -125,28 +125,6 @@ coxph <- function(formula=formula(data), data=sys.parent(),
 		else fit2$linear.predictors <- c(X %*% init)
 		temp0 <- residuals.coxph(fit2, type='score', collapse=cluster,
 					 weighted=T)
-		#Now for ICC
-# Erased -- still too immature
-#		indx <- match(cluster, unique(cluster))
-#		k    <- as.vector(table(indx))
-#		if (any(k>1)) {
-#		    #compute the ICC for the m-residuals
-#		    N    <- sum(k * (k-1))
-#		    mu   <- sum(fit$resid * (k-1)[indx])/N   #grand mean
-#		    mu2  <- tapply(fit$resid, indx, mean)    # group means
-#		    sig  <- tapply((fit$resid - mu)^2, indx, sum)  #SS
-#		    icc1 <- sum( (k*(mu2-mu))^2 - sig) / sum((k-1)*sig)
-#		    #rank residuals
-#		    rr <- rank(fit$resid)
-#		    mu   <- sum(rr * (k-1)[indx])/N   #grand mean
-#		    mu2  <- tapply(rr, indx, mean)    # group means
-#		    sig  <- tapply((rr - mu)^2, indx, sum)  #SS
-#		    icc2 <- sum( (k*(mu2-mu))^2 - sig) / sum((k-1)*sig)
-#
-#		    fit$icc <- c(length(k), icc1, icc2)
-#		    names(fit$icc) <- c("nclust", "icc(resid)",
-#						    "icc(rank(resid))")
-#		    }
 		}
 	    else {
 		temp <- residuals.coxph(fit2, type='dfbeta', weighted=T)
@@ -155,14 +133,23 @@ coxph <- function(formula=formula(data), data=sys.parent(),
 	        }
 	    fit$var <- t(temp) %*% temp
 	    u <- apply(as.matrix(temp0), 2, sum)
-	    fit$rscore <- c(u %*% solve(t(temp0)%*%temp0, u))
+	    #fit$rscore <- c(u %*% solve(t(temp0)%*%temp0, u))
+	    tsvd <- svd(temp0)
+	    u <- c(u %*% tsvd$v)
+	    fit$rscore <- sum((u/tsvd$d)^2)
 	    }
 	#Wald test
 	if (length(fit$coef)) {  #not for intercept only models
 	    nabeta <- !is.na(fit$coef)
 	    if (is.null(init)) temp <- fit$coef[nabeta]
 	    else               temp <- (fit$coef - init)[nabeta]
-	    fit$wald.test <-  sum(temp * solve(fit$var[nabeta,nabeta], temp))
+	    #
+	    # The solve function has proven to be too inaccurate
+	    #  some data sets not singular in coxfit2 it considers singular
+	    #fit$wald.test <-  sum(temp * solve(fit$var[nabeta,nabeta], temp))
+	    tsvd <- svd(fit$var[nabeta, nabeta])
+	    temp <- c(temp %*% tsvd$u)
+	    fit$wald.test <- sum(temp^2/tsvd$d)
 	    }
 	na.action <- attr(m, "na.action")
 	if (length(na.action)) fit$na.action <- na.action
