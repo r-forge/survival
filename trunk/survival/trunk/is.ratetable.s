@@ -1,5 +1,5 @@
 #
-# SCCS $Id: is.ratetable.s,v 4.5 1996-04-17 14:08:58 therneau Exp $
+# SCCS $Id: is.ratetable.s,v 4.6 1998-08-01 22:40:41 therneau Exp $
 #
 is.ratetable <- function(x, verbose=F) {
     if (!verbose) {
@@ -28,7 +28,7 @@ is.ratetable <- function(x, verbose=F) {
 	}
 
     #verbose return messages, useful for debugging
-    msg <- ""
+    msg <- NULL
     if (!inherits(x, 'ratetable')) msg <- c(msg, "wrong class")
     att <- attributes(x)
     if (any(is.na(match(c("dim", "dimnames", "dimid", "factor", "cutpoints"),
@@ -44,12 +44,17 @@ is.ratetable <- function(x, verbose=F) {
     if (any(fac <0)) msg <- c(msg, 'factor <0')
     for (i in 1:nd) {
 	n <- att$dim[i]
-	if (length(att$dimnames[[i]]) !=n) msg <- c(msg, 'dimnames wrong length')
-	if (fac[i]!=1 && length(att$cutpoints[[i]])!=n) msg <- c(msg, 'cutpnt missing')
-	if (fac[i]!=1 && any(order(att$cutpoints[[i]])!= 1:n)) msg <- c(msg, 'unsorted cutpoints')
-	if (fac[i]==1 && !is.null(att$cutpoints[[i]]))  msg <- c(msg, 'cutpnt should be null')
-	if (fac[i]>1 && i<nd) msg <- c(msg, 'only the last dim can be interpolated')
+	if (length(att$dimnames[[i]]) !=n) 
+		msg <- c(msg, 'dimnames wrong length')
+	if (fac[i]!=1 && length(att$cutpoints[[i]])!=n) 
+		msg <- c(msg, 'cutpnt missing')
+	if (fac[i]!=1 && any(order(att$cutpoints[[i]])!= 1:n)) 
+		msg <- c(msg, 'unsorted cutpoints')
+	if (fac[i]==1 && !is.null(att$cutpoints[[i]]))  
+		msg <- c(msg, 'cutpnt should be null')
+	if (fac[i]>1 && i<nd) 
+		msg <- c(msg, 'only the last dim can be interpolated')
 	}
-    if (msg=='') T
+    if (length(msg)==0) T
     else msg
     }
