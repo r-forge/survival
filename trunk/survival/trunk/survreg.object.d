@@ -45,7 +45,7 @@ a vector of the column means of the coefficient matrix.
 .AG dist
 the distribution used in the fit.
 .AG df.residual
-the number of observations - the sum of the degrees of freedom.
+the number of observations minus the sum of the degrees of freedom.
 Needed by the anova.survreg routine.
 .PP
 The object will also have the following components found in 
@@ -54,7 +54,7 @@ other model results (some are optional):
 `call', `terms' and `formula'.
 See `lm.object'.
 .SA
-`survreg', `lm.object'
+`survreg'
 .KW regression
 .KW survival
 .WR
