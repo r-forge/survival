@@ -1,4 +1,4 @@
-# SCCS $Id: survexp.oldwnc.s,v 1.1 1998-12-28 11:23:54 therneau Exp $
+# SCCS $Id: survexp.oldwnc.s,v 1.2 2000-06-12 09:54:31 boos Exp $
 #
 # The old WNC table, pre 1990 extrapolation
 #
@@ -138,7 +138,7 @@ survexp.oldwnc  <- {
 	cutpoints=list(c(0,.5,1:109)* 365.24, NULL, mdy.date(1,1, 191:200*10)),
 	summary = function(R) {
 		     x <- c(format(round(min(R[,1]) /365.24, 1)),
-			    format(round(max(R[,1]) /355.24, 1)),
+			    format(round(max(R[,1]) /365.24, 1)),
 			    sum(R[,2]==1), sum(R[,2]==2))
 		     x2<- as.character(as.date(c(min(R[,3]), max(R[,3]))))
 

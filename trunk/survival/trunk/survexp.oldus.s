@@ -1,4 +1,4 @@
-# SCCS $Id: survexp.oldus.s,v 1.1 1998-12-17 11:27:38 therneau Exp $
+# SCCS $Id: survexp.oldus.s,v 1.2 2000-06-12 09:53:38 boos Exp $
 #
 # A copy of survexp.us, just prior to adding the new 1990 data
 #   The raw numbers below are q* 10^5.  Note that there are 24 leap years/100
@@ -65,7 +65,7 @@ survexp.oldus  <- {
 	cutpoints=list(0:109 * 365.24, NULL, mdy.date(1,1, (196:200)*10)),
 	summary = function(R) {
 		     x <- c(format(round(min(R[,1]) /365.24, 1)),
-			    format(round(max(R[,1]) /355.24, 1)),
+			    format(round(max(R[,1]) /365.24, 1)),
 			    sum(R[,2]==1), sum(R[,2]==2))
 		     x2<- as.character(as.date(c(min(R[,3]), max(R[,3]))))
 

@@ -1,4 +1,4 @@
-# SCCS $Id: survexp.oldusr.s,v 1.1 1998-12-17 11:27:38 therneau Exp $
+# SCCS $Id: survexp.oldusr.s,v 1.2 2000-06-12 09:53:53 boos Exp $
 #
 # A copy of survexp.usr, before updateing the 1990 rates
 #
@@ -126,7 +126,7 @@ survexp.oldusr  <- {
 	cutpoints=list(0:109 * 365.24, NULL, mdy.date(1,1, 196:200*10), NULL),
 	summary = function(R) {
 		     x <- c(format(round(min(R[,1]) /365.24, 1)),
-			    format(round(max(R[,1]) /355.24, 1)),
+			    format(round(max(R[,1]) /365.24, 1)),
 			    sum(R[,2]==1), sum(R[,2]==2),
 			    sum(R[,4]==1), sum(R[,4]==2), sum(R[,4]==3))
 		     x2<- as.character(as.date(c(min(R[,3]), max(R[,3]))))
