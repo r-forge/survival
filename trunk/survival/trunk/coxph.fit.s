@@ -1,9 +1,10 @@
-#SCCS $Date: 1995-02-28 11:54:01 $ $Id: coxph.fit.s,v 4.15 1995-02-28 11:54:01 therneau Exp $
+#SCCS $Date: 1995-09-01 12:29:38 $ $Id: coxph.fit.s,v 4.16 1995-09-01 12:29:38 therneau Exp $
 coxph.fit <- function(x, y, strata, offset, init, iter.max,
 			eps, weights, method, rownames)
     {
     n <-  nrow(y)
-    nvar <- ncol(x)
+    if (is.matrix(x)) nvar <- ncol(x)
+    else  if (is.null(x)) nvar <-0;  else nvar <-1
     time <- y[,1]
     status <- y[,2]
 
