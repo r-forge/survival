@@ -1,4 +1,4 @@
-#SCCS $Id: survfit.km.s,v 4.10 1993-06-10 12:59:20 therneau Exp $
+#SCCS $Id: survfit.km.s,v 4.11 1993-06-17 12:24:33 therneau Exp $
 survfit.km <- function(x, y, casewt=rep(1,n),
 	    type=c('kaplan-meier', 'fleming-harrington', 'fh2'),
 	    error=c('greenwood', "tsiatis"), se.fit=T,
@@ -82,18 +82,19 @@ survfit.km <- function(x, y, casewt=rep(1,n),
 	    }
 	if (conf.type=='log') {
 	    xx <- ifelse(temp$surv==0,1,temp$surv)  #avoid some "log(0)" messages
-	    temp1 <- ifelse(temp$surv==0, 0*std.err, exp(log(xx) + zval* std.err))
-	    temp2 <- ifelse(temp$surv==0, 0*std.err, exp(log(xx) - zval* std.low))
+	    temp1 <- ifelse(temp$surv==0, NA, exp(log(xx) + zval* std.err))
+	    temp2 <- ifelse(temp$surv==0, NA, exp(log(xx) - zval* std.low))
 	    temp <- c(temp, list(upper=pmin(temp1,1), lower=temp2,
 			    conf.type='log', conf.int=conf.int))
 	    }
 	if (conf.type=='log-log') {
 	    who <- (temp$surv==0 | temp$surv==1) #special cases
+	    temp3 <- ifelse(temp$surv==0, NA, 1)
 	    xx <- ifelse(who, .1,temp$surv)  #avoid some "log(0)" messages
 	    temp1 <- exp(-exp(log(-log(xx)) + zval*std.err/log(xx)))
-	    temp1 <- ifelse(who, temp$surv + 0*std.err, temp1)
+	    temp1 <- ifelse(who, temp3, temp1)
 	    temp2 <- exp(-exp(log(-log(xx)) - zval*std.low/log(xx)))
-	    temp2 <- ifelse(who, temp$surv + 0*std.low, temp2)
+	    temp2 <- ifelse(who, temp3, temp2)
 	    temp <- c(temp, list(upper=temp1, lower=temp2,
 			    conf.type='log-log', conf.int=conf.int))
 	    }
