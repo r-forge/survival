@@ -1,5 +1,4 @@
-
-#SCCS $Id: tcut.s,v 4.1 1993-12-02 22:02:11 therneau Exp $
+#SCCS $Id: tcut.s,v 4.2 1994-10-16 19:00:30 therneau Exp $
 tcut <-  function (x, breaks, labels, scale=1){
     if(length(breaks) == 1) {
 	if(breaks < 1)
@@ -29,9 +28,10 @@ tcut <-  function (x, breaks, labels, scale=1){
     structure(x*scale, cutpoints=breaks*scale, labels=labels, class='tcut')
     }
 
-
-
-
-
-
-
+"[.tcut" <- function(x,i) {
+    atts <- attributes(x)
+    class(x) <- NULL
+    x <- x[i]
+    attributes(x) <- atts
+    x
+    }
