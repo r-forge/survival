@@ -71,7 +71,7 @@ class <s-expression>"Surv"</s-expression>, otherwise an <s-expression>F</s-expre
 In theory it is possible to represent interval censored data without a 
 third column containing the explicit status.  Exact, right censored, 
 left censored and interval censored observation would be represented as 
-intervals of (a,a), (a,infinity), (-infinity,b), and (a,b) respectively; 
+intervals of [a,a], [a,infinity), (-infinity,b], and [a,b) respectively; 
 each interval is a pair of time points within which the event is known to  
 have occurred.   
 <br><br>
