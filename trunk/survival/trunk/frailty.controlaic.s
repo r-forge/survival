@@ -1,8 +1,10 @@
-#
+#   SCCS $Id: frailty.controlaic.s,v 1.2 1998-11-21 17:48:48 therneau Exp $
 # Control function to minimize the AIC
 #  the optional paramater "caic" chooses corrected aic (default)
+# n is the "effective" sample size
 #
-frailty.controlaic <- function(parms, iter, old, status, df, loglik) {
+
+frailty.controlaic <- function(parms, iter, old, n, df, loglik) {
     if (iter==0) {  # initial call
 	if (is.null(parms$init)) theta <-0.005
 	else theta <- parms$init[1]
@@ -13,9 +15,8 @@ frailty.controlaic <- function(parms, iter, old, status, df, loglik) {
     if (length(parms$caic)) correct <- parms$caic
     else correct <- T
 
-    n <- sum(status)  #effective n for a Cox model
-    if (n < df) dfc <- (df -n) + (df+1)*df/2 -1  #avoid pathology
-    else        dfc<- -1 + (df+1)/(1- ((df+2)/n))
+    if (n < df+2) dfc <- (df -n) + (df+1)*df/2 -1  #avoid pathology
+    else          dfc <- -1 + (df+1)/(1- ((df+2)/n))
     if (iter==1) { # Second guess in series
 	history <- c(theta=old$theta, loglik=loglik,
 		     df=df, aic=loglik-df, aicc=loglik - dfc)
