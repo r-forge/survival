@@ -1,7 +1,7 @@
-#SCCS $Id: survexp.s,v 4.3 1992-03-09 00:17:17 therneau Exp $
+#SCCS $Id: survexp.s,v 4.4 1992-03-30 02:53:41 therneau Exp $
 surv.exp <- function(entry, birth, sex, times=round(182.6 * 0:8),
 		      type=c("mean", "individual", "matrix"),
-		      expected=surv.exp.uswhite, interp=F) {
+		      expected=surv.exp.uswhite, interp=F, na.action) {
     call <- match.call()
     if (!inherits(entry, "date")) stop ("'Entry' must be a date")
     nn <- length(entry)
@@ -14,20 +14,25 @@ surv.exp <- function(entry, birth, sex, times=round(182.6 * 0:8),
 	else type <- 'mean'
 	}
 
-    nomiss <- !(is.na(entry) | is.na(birth) | is.na(sex))
-    if (type=='indivdual') {
-	nomiss <- nomiss & !is.na(times)
-	times <- times[nomiss]
+    # Use na.action to deal with missing values
+    if (missing(na.action) &&
+	    !is.null(tj <- attr(data, "na.action")))  na.action <- tj
+    if (type=='individual') {
+	temp <- list(entry, birth, sex, times)
+	names(temp) <- names(call)[1:4]
+	m <- na.action(temp)
+	times <- m[[4]]
 	}
-    else if (any(is.na(times))) stop("Missing values not allowed in 'times'")
-
-    # toss out missings
-    entry <- entry[nomiss]
-    birth <-birth[nomiss]   #I need to watch out that the 'class' isn't lost
-    sex <- sex[nomiss]
-    nused <- sum(nomiss)
-    if (nused==0) stop ("No data remains after deleting missing values")
-    if (any(!nomiss)) attr(nused, 'omit') <- seq(nn)[!nomiss]
+    else {
+	if (any(is.na(times))) stop("Missing values not allowed in 'times'")
+	temp <- list(entry, birth, sex)
+	names(temp) <- names(call)[1:3]
+	m <- na.action(temp)
+	}
+    entry <- m[[1]]
+    birth <- m[[2]]
+    sex   <- m[[3]]
+    nused <- length(sex)
 
     if (!inherits(birth, "date")) {
 	# Assume that they gave an age
@@ -95,15 +100,12 @@ surv.exp <- function(entry, birth, sex, times=round(182.6 * 0:8),
 			    as.integer(type=='individual'),
 			    surv= double(ntime*nsurv))
 
-    if (any(!nomiss)) {
-	omit <- seq(along=nused)[!nused]
-	attr(nuse, 'omit') <- omit
-	}
     if (type != 'matrix') xx <- list(time=times, surv=temp$surv, n=nused)
     else     xx <-  list(time=times,
 			 surv=matrix(temp$surv, ncol=nused, byrow=F),
 			 n=nused)
     xx$call <- call
+    if(!is.null(tj <- attr(m, 'na.action')))  xx$na.action <- tj
     if (type == 'individual') {
 	if (any(!nomiss)) {
 	    xx$time <- na.expand(times, omit)
