@@ -1,4 +1,4 @@
-/* SCCS  $Id: coxscore.c,v 4.1 1993-01-30 19:51:50 therneau Exp $
+/* SCCS  $Id: coxscore.c,v 4.2 1993-04-25 19:01:32 therneau Exp $
 /*
 ** Compute the score residuals for a Cox model
 **
@@ -45,6 +45,7 @@ double  y[],
     double **resid;
     double hazard;
     double downwt, temp2;
+    double mean;
 
     n = *nx;
     nvar  = *nvarx;
@@ -100,9 +101,9 @@ double  y[],
 		    temp = denom - downwt* e_denom;
 		    hazard = 1/temp;
 		    for (j=0; j<nvar; j++) {
-			temp = (a[j] - downwt*a2[j])/ temp;
+			mean = (a[j] - downwt*a2[j])/ temp;
 			for (k=i; k<n; k++) {
-			    temp2 = covar[j][k] - temp;
+			    temp2 = covar[j][k] - mean;
 			    if (time[k]==time[i] && status[k]==1) {
 				resid[j][k] += temp2/deaths;
 				resid[j][k] -= temp2 * score[k] * hazard *
