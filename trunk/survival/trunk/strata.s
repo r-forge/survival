@@ -1,4 +1,4 @@
-# $Id: strata.s,v 4.9 1993-07-21 10:41:30 therneau Exp $
+# @(#)strata.s	4.9 07/21/93
 # Create a strata variable, possibly from many objects
 #
 strata <- function(..., na.group=F, shortlabel=F) {
@@ -40,7 +40,8 @@ strata <- function(..., na.group=F, shortlabel=F) {
     ulevs <- sort(unique(levs[!is.na(levs)]))
     levs <- match(levs, ulevs)
     labs <- labs[ulevs]
-    levels(levs) <- labs
-    class(levs) <- "factor"
-    levs
+#    levels(levs) <- labs
+#    class(levs) <- "factor"
+#    levs
+    factor(levs, labels=labs)
     }

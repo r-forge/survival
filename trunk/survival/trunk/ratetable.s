@@ -1,4 +1,4 @@
-#SCCS $Id: ratetable.s,v 4.9 1995-01-31 15:00:00 therneau Exp $
+# SCCS $Id: ratetable.s,v 5.1 1998-08-30 15:36:40 therneau Exp $
 #
 # This is a 'specials' function for pyears
 #   it is a stripped down version of as.matrix(data.frame(...))
@@ -28,7 +28,7 @@ ratetable <- function(...) {
 	}
     attr(x, "constants") <- (ll==1) & (n>1)
     attr(x, "levlist")   <- levlist
-    attr(x, "class")  <- "ratetable2"
+    oldClass(x)  <- "ratetable2"
     x
     }
 
@@ -47,7 +47,7 @@ is.na.ratetable2 <- function(x) {
     y <- x[rows,,drop=F]
     attr(y,'constants') <- aa$constants
     attr(y,'levlist')   <- aa$levlist
-    class(y) <- aa$class
+    oldClass(y) <- 'ratetable2'
     y
     }
 
@@ -80,8 +80,8 @@ is.na.ratetable2 <- function(x) {
 				   dimnames = dimnames(y)[!dropped],
 				   dimid = aa$dimid[!dropped],
 				   factor = aa$factor[!dropped],
-				   cutpoints =aa$cutpoints[!dropped],
-				   class = aa$class)
+				   cutpoints =aa$cutpoints[!dropped])
+	    oldClass(y) <- 'ratetable'
 	    y
 	    }
 	}

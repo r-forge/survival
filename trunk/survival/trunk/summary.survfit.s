@@ -1,4 +1,4 @@
-#SCCS $Date: 1995-02-28 11:22:40 $ $Id: summary.survfit.s,v 1.7 1995-02-28 11:22:40 therneau Exp $
+# SCCS $Id: summary.survfit.s,v 5.1 1998-08-30 15:44:06 therneau Exp $
 summary.survfit <- function(fit, times, censored=F, scale=1, ...) {
     if (!inherits(fit, 'survfit'))
 	    stop("Invalid data")
@@ -106,6 +106,6 @@ summary.survfit <- function(fit, times, censored=F, scale=1, ...) {
 	    labels = names(fit$strata)[sort(unique(stemp))])
     temp$call <- fit$call
     if (!is.null(fit$na.action)) temp$na.action <- fit$na.action
-    class(temp) <- 'summary.survfit'
+    oldClass(temp) <- 'summary.survfit'
     temp
     }

@@ -1,4 +1,4 @@
-# SCCS $Id: residuals.coxph.s,v 4.28 1998-07-20 13:33:40 therneau Exp $
+#  SCCS $Id: residuals.coxph.s,v 5.1 1998-08-30 15:37:49 therneau Exp $
 residuals.coxph <-
   function(object, type=c("martingale", "deviance", "score", "schoenfeld",
 			  "dfbeta", "dfbetas", "scaledsch"),
@@ -63,11 +63,11 @@ residuals.coxph <-
     # Now I have gotton the data that I need-- do the work
     #
     if (type=='schoenfeld') {
-	if (ny==2) {
-	    mintime <- min(y[,1])
-	    if (mintime < 0) y <- cbind(2*mintime -1, y)
-	    else             y <- cbind(-1,y)
-	    }
+  	if (ny==2) {
+ 	    mintime <- min(y[,1])
+ 	    if (mintime < 0) y <- cbind(2*mintime -1, y)
+ 	    else             y <- cbind(-1,y)
+ 	    }
 	temp <- .C("coxscho", n=as.integer(n),
 			    as.integer(nvar),
 			    as.double(y),
@@ -101,10 +101,10 @@ residuals.coxph <-
 	    resid <- .C("coxscore", as.integer(n),
 				as.integer(nvar),
 				as.double(y),
-				x=x,
+				x=as.double(x),
 				as.integer(newstrat),
-				score,
-				weights,
+				as.double(score),
+				as.double(weights),
 				as.integer(method=='efron'),
 				resid= double(n*nvar),
 				double(2*nvar))$resid
@@ -114,10 +114,10 @@ residuals.coxph <-
 				as.integer(n),
 				as.integer(nvar),
 				as.double(y),
-				x,
+				as.double(x),
 				as.integer(newstrat),
-				score,
-				weights,
+				as.double(score),
+				as.double(weights),
 				as.integer(method=='efron'),
 				resid=double(n*nvar),
 				double(nvar*6))$resid
@@ -159,7 +159,7 @@ residuals.coxph <-
     if (!missing(collapse)) {
 	if (length(collapse) !=n) stop("Wrong length for 'collapse'")
 	rr <- rowsum(rr, collapse)
-	status <- rowsum(status, collapse)
+  	if (type=='deviance') status <- rowsum(status, collapse)
 	}
 
     # Deviance residuals are computed after collapsing occurs

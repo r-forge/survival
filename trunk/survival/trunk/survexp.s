@@ -1,4 +1,6 @@
-#SCCS  $Id: survexp.s,v 4.23 1997-10-16 15:35:01 therneau Exp $
+# SCCS $Id: survexp.s,v 5.1 1998-08-30 15:51:20 therneau Exp $
+setOldClass(c('survexp', 'survfit'))
+
 survexp <- function(formula=formula(data), data=sys.parent(),
 	weights, subset, na.action,
 	times,  cohort=T,  conditional=F,
@@ -36,7 +38,6 @@ survexp <- function(formula=formula(data), data=sys.parent(),
 			  paste( varlist, "=", varlist, collapse = ","), ")"))
 	Terms <- if (missing(data)) terms(formula, "ratetable")
 	         else               terms(formula, "ratetable", data = data)
-	rate <- attr(Terms, "specials")$ratetable
 	}
 
     m$formula <- Terms
@@ -115,7 +116,7 @@ survexp <- function(formula=formula(data), data=sys.parent(),
 	    odim <- length(ovars)
 	    for (i in 1:odim) {
 		temp <- m[[ovars[i]]]
-		ctemp <- class(temp)
+		ctemp <- oldClass(temp)
 		if (!is.null(ctemp) && ctemp=='tcut')
 		    stop("Can't use tcut variables in expected survival")
 		}
@@ -200,7 +201,7 @@ survexp <- function(formula=formula(data), data=sys.parent(),
 	if (no.Y) out$method <- 'exact'
 	else if (conditional) out$method <- 'conditional'
 	else                  out$method <- 'cohort'
-	class(out) <- c("survexp", "survfit")
+	oldClass(out) <- "survexp"
 	out
 	}
 

@@ -1,4 +1,4 @@
-# SCCS $Id: survexp.cfit.s,v 4.6 1998-07-20 13:33:41 therneau Exp $
+#  SCCS $Id: survexp.cfit.s,v 5.1 1998-08-30 15:46:05 therneau Exp $
 #
 #  Do expected survival based on a Cox model
 #   A fair bit of the setup work is identical to survfit.coxph, i.e.,
@@ -47,10 +47,10 @@ survexp.cfit <- function(x, y, death, individual, cox, se.fit, method) {
     # Also, expand y to (start, stop] form.  This leads to slower processing,
     #  but I only have to program one case instead of 2.
     if (ncol(cy) ==2) {
-	mintime <- min(cy[,1])
-	if (mintime < 0) cy <- cbind(2*mintime-1, cy)
-	else	       cy <- cbind(-1, cy)
-	}
+  	mintime <- min(cy[,1])
+ 	if (mintime < 0) cy <- cbind(2*mintime-1, cy)
+ 	else	       cy <- cbind(-1, cy)
+ 	}
     ord <- order(cy[,2], -cy[,3])
     cy  <- cy[ord,]
     score <- exp(cox$linear.predictors[ord])
@@ -67,6 +67,7 @@ survexp.cfit <- function(x, y, death, individual, cox, se.fit, method) {
     n <- nrow(x)
     ncurve <- length(unique(x[,1]))
     npt <- length(unique(cy[cy[,3]==1,2]))  #unique death times
+    storage.mode(cy) <- 'double'
     xxx  <- .C('agsurv3', as.integer(n),
 			  as.integer(nvar),
 			  as.integer(ncurve),
@@ -80,10 +81,10 @@ survexp.cfit <- function(x, y, death, individual, cox, se.fit, method) {
 			  cox$means,
 			  as.integer(cn),
 			  cy = cy,
-			  cx,
-			  surv = matrix(0, npt, ncurve),
-			  varhaz = matrix(0, npt, ncurve),
-			  nrisk  = matrix(0, npt, ncurve),
+			  as.double(cx),
+			  surv = matrix(0.0, npt, ncurve),
+			  varhaz = matrix(0.0, npt, ncurve),
+			  nrisk  = matrix(0.0, npt, ncurve),
 			  as.integer(method))
 
     surv <- apply(xxx$surv, 2, cumprod)
