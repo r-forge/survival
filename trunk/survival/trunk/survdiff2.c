@@ -1,4 +1,4 @@
-/*  SCCS $Id: survdiff2.c,v 5.1 1998-08-30 14:52:58 therneau Exp $
+/*  SCCS $Id: survdiff2.c,v 5.2 1998-08-30 16:28:53 therneau Exp $ */
 #include <math.h>
 #include "survproto.h"
 
