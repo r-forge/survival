@@ -1,9 +1,9 @@
-# SCCS $Id: coxph.control.s,v 5.4 1999-09-22 14:06:55 therneau Exp $
+# SCCS $Id: coxph.control.s,v 5.5 1999-12-13 17:21:44 therneau Exp $
 #
 # Gather all of the control parameters for coxph into one spot
 #
 coxph.control <- function(eps=1e-4, 
-			  toler.chol = Machine$double.eps ^ .75, 
+			  toler.chol = .Machine$double.eps ^ .75, 
 			  iter.max=10,
 			  toler.inf= sqrt(eps), outer.max=10 ) {
     if (iter.max <0) stop("Invalid value for iterations")
