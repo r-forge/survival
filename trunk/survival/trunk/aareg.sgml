@@ -2,7 +2,7 @@
 <!entity % S-OLD "INCLUDE">
 ]
 >
-<!-- SCCS $Id: aareg.sgml,v 1.5 2004-11-04 08:12:52 therneau Exp $ -->
+<!-- SCCS $Id: aareg.sgml,v 1.6 2004-11-05 11:09:21 therneau Exp $ -->
 <s-function-doc>
 <s-topics>
 <s-topic> aareg </s-topic>
@@ -110,6 +110,7 @@ of the estimated variance matrices at the last 4 death times,
 with a weight of 1 for the current death time and decreasing to 1/4 for
 prior event times.
 The default value gives the standard Aalen model.
+</s-arg>
 
 <s-arg name=" test ">
 selects the weighting to be used, for computing an overall ``average''
