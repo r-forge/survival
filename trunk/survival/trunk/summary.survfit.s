@@ -1,11 +1,11 @@
-#SCCS $Date: 1992-05-05 10:31:59 $ $Id: summary.survfit.s,v 1.1 1992-05-05 10:31:59 therneau Exp $
+#SCCS $Date: 1992-07-10 08:10:45 $ $Id: summary.survfit.s,v 1.2 1992-07-10 08:10:45 sicks Exp $
 summary.survfit <- function(fit.list, times, censored=F,
 		       print.it=T,  scale=1, digits=3, ... ) {
     fit <- fit.list
     if (!inherits(fit.list, 'survfit'))
 	    stop("Invalid data")
 
-    if (!is.null(cl<- fit$call)) {
+    if (print.it && !is.null(cl<- fit$call)) {
 	cat("Call: ")
 	dput(cl)
 	cat("\n")
@@ -57,6 +57,8 @@ summary.survfit <- function(fit.list, times, censored=F,
 
     else {  #this case is much harder
 	if (any(times<0)) stop("Invalid time point requested")
+        if(max(fit$time) < min(times))
+            stop("Requested times are all beyond the end of the survival curve")
 	if (length(times) >1 )
 	    if (any(diff(times)<0)) stop("Times must be in increasing order")
 
@@ -118,7 +120,8 @@ summary.survfit <- function(fit.list, times, censored=F,
 		}
 	    }
 	if (!is.null(fit$strata))
-	    temp$strata <- factor(stemp, labels=names(fit$strata))
+	    temp$strata <- factor(stemp, 
+                labels = names(fit$strata)[sort(unique(stemp))])
 	return(invisible(temp))
 	}
 
