@@ -1,4 +1,4 @@
-# SCCS $Id: coxph.fit.s,v 5.1 1998-08-30 15:07:09 therneau Exp $
+# SCCS $Id: coxph.fit.s,v 5.2 1998-09-25 22:50:57 therneau Exp $
 coxph.fit <- function(x, y, strata, offset, init, iter.max,
 			eps, weights, method, rownames)
     {
@@ -18,8 +18,8 @@ coxph.fit <- function(x, y, strata, offset, init, iter.max,
 	strata <- (as.numeric(strata))[sorted]
 	newstrat <- as.integer(c(1*(diff(strata)!=0), 1))
 	}
-    if (missing(offset) || is.null(offset)) offset <- rep(0,n)
-    if (missing(weights)|| is.null(weights))weights<- rep(1,n)
+    if (missing(offset) || is.null(offset)) offset <- rep(0.0, n)
+    if (missing(weights)|| is.null(weights))weights<- rep(1.0, n)
     else {
 	if (any(weights<=0)) stop("Invalid weights, must be >0")
 	weights <- weights[sorted]
@@ -54,7 +54,7 @@ coxph.fit <- function(x, y, strata, offset, init, iter.max,
 	if (!missing(init) && !is.null(init)) {
 	    if (length(init) != nvar) stop("Wrong length for inital values")
 	    }
-	else init <- rep(0,nvar)
+	else init <- rep(0.0, nvar)
 
 	coxfit <- .C("coxfit2", iter=as.integer(iter.max),
 		       as.integer(n),

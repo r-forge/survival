@@ -1,4 +1,4 @@
-#SCCS $Id: agreg.fit.s,v 4.15 1995-02-28 11:54:02 therneau Exp $
+#SCCS $Id: agreg.fit.s,v 4.16 1998-09-25 22:47:27 therneau Exp $
 agreg.fit <- function(x, y, strata, offset, init, iter.max,
 			eps, weights, method, rownames)
     {
@@ -18,8 +18,8 @@ agreg.fit <- function(x, y, strata, offset, init, iter.max,
 	strata <- (as.numeric(strata))[sorted]
 	newstrat <- as.integer(c(1*(diff(strata)!=0), 1))
 	}
-    if (missing(offset) || is.null(offset)) offset <- rep(0,n)
-    if (missing(weights)|| is.null(weights))weights<- rep(1,n)
+    if (missing(offset) || is.null(offset)) offset <- rep(0.0, n)
+    if (missing(weights)|| is.null(weights))weights<- rep(1.0, n)
     else {
 	if (any(weights<=0)) stop("Invalid weights, must be >0")
 	weights <- weights[sorted]
