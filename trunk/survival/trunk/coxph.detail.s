@@ -1,4 +1,4 @@
-#SCCS  $Id: coxph.detail.s,v 4.8 1994-11-09 09:41:25 therneau Exp $
+#SCCS  $Id: coxph.detail.s,v 4.9 1994-12-29 15:13:14 therneau Exp $
 coxph.detail <-  function(object) {
     method <- object$method
     if (method!='breslow' && method!='efron')
@@ -6,7 +6,7 @@ coxph.detail <-  function(object) {
 			"method"))
     n <- length(object$residuals)
     rr <- object$residual
-    weights <- object$weights
+    weights <- object$weights        #always present if there are weights
     x <- object$x
     y <- object$y
     strat <- object$strata
@@ -16,11 +16,10 @@ coxph.detail <-  function(object) {
     strats <- attr(Terms, "specials")$strata
 
     if (is.null(y)  ||  is.null(x)) {
-	temp <- coxph.getdata(y=T, x=T, strata=T, weight=T)
+	temp <- coxph.getdata(object, y=T, x=T, strata=T)
 	y <- temp$y
 	x <- temp$x
 	if (length(strats)) strat <- temp$strata
-	weights <- temp$weights
 	}
 
     nvar <- ncol(x)
