@@ -1,4 +1,4 @@
-/* SCCS %w% $Date: 1999-10-26 14:44:36 $
+/* SCCS %w% $Date: 2000-03-01 11:45:42 $
 /*
 ** Fit the survival curve
 **  Input
@@ -66,7 +66,6 @@ void survfit3(long   *sn,              double *y,               double *wt,
     varhaz = 0;
 
     for (i=0; i<ntimes_strata[grp]; i++) {
-
       /** reset counts for each time **/
       enter_count = 0; 
       exit_censored_count = 0; 
