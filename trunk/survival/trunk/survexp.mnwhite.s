@@ -1,10 +1,10 @@
-# SCCS $Id: survexp.mnwhite.s,v 4.2 1994-10-14 17:16:27 therneau Exp $
+# SCCS $Id: survexp.mnwhite.s,v 4.3 1994-11-22 21:56:27 therneau Exp $
 #
 # Create the Minnesota white total hazards table
 #   The raw numbers below are q* 10^5.  Note that there are 24 leap years/100
 #
 # For the first year, 1950, we had to recreate q from a derived table of
-#   hazards.  This should have regenerated the integer values, but didn't
+#   hazards.  This should have regenerated integer values, but didn't
 #   quite.
 #
 survexp.mnwhite  <- {
@@ -72,14 +72,21 @@ survexp.mnwhite  <- {
      20568,22228,23729,25173,26551,27859,29094,30255,31342,32355,33297,34168,
      34973,35715,36397,37022)
 
-    temp <- -log(1- temp/100000)/365.24    #daily hazard rate
+    temp2 <- -log(1- temp/100000)/365.24    #daily hazard rate
+
+    #Add in the extrapolated data for 1990 and 2000
+    temp <- array(0, c(110,2,6))
+    temp[,,1:4] <- temp2
+    fix  <- c(.00092*(0:109) - .1615, .00020*(0:109) - .1746)
+    temp[,,5]   <- exp(log(temp[,,4]) + fix)
+    temp[,,6]   <- exp(log(temp[,,5]) + fix)
+
     attributes(temp) <- list (
-	dim      =c(110,2,4),
-	dimnames =list(0:109, c("male", "female"),
-				 c("1950", "1960", "1970", "1980")),
+	dim      =c(110,2,6),
+	dimnames =list(0:109, c("male", "female"), 10* 195:200 ),
 	dimid    =c("age", "sex", "year"),
 	factor   =c(0,1,10),
-	cutpoints=list(0:109 * 365.24, NULL, mdy.date(1,1, 5:8*10)),
+	cutpoints=list(0:109 * 365.24, NULL, mdy.date(1,1, 195:200*10)),
 	summary = function(R) {
 		     x <- c(format(round(min(R[,1]) /365.24, 1)),
 			    format(round(max(R[,1]) /355.24, 1)),

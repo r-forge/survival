@@ -1,4 +1,4 @@
-# SCCS $Id: survexp.mn.s,v 4.1 1994-01-04 14:57:52 therneau Exp $
+# SCCS $Id: survexp.mn.s,v 4.2 1994-11-22 21:56:26 therneau Exp $
 #
 # Create the Minnesota total hazards table
 #   The raw numbers below are q* 10^5.  Note that there are 24 leap years/100
@@ -34,13 +34,21 @@ survexp.mn  <- {
      20278,21823,23221,24560,25834,27040,28176,29242,30237,31163,32023,32817,
      33550,34224,34843,35411)
 
-    temp <- -log(1- temp/100000)/365.24    #daily hazard rate
+    temp2 <- -log(1- temp/100000)/365.24    #daily hazard rate
+
+    #Add in the extrapolated data for 1990 and 2000
+    temp <- array(0, c(110,2,4))
+    temp[,,1:2] <- temp2
+    fix  <- c(.00092*(0:109) - .1615, .00020*(0:109) - .1746)
+    temp[,,3]   <- exp(log(temp[,,2]) + fix)
+    temp[,,4]   <- exp(log(temp[,,3]) + fix)
+
     attributes(temp) <- list (
-	dim      =c(110,2,2),
-	dimnames =list(0:109, c("male", "female"), c("1970", "1980")),
+	dim      =c(110,2,4),
+	dimnames =list(0:109, c("male", "female"), 10 * 197:200),
 	dimid    =c("age", "sex", "year"),
 	factor   =c(0,1,10),
-	cutpoints=list(0:109 * 365.24, NULL, mdy.date(1,1, 7:8*10)),
+	cutpoints=list(0:109 * 365.24, NULL, mdy.date(1,1, 197:200*10)),
 	summary = function(R) {
 		     x <- c(format(round(min(R[,1]) /365.24, 1)),
 			    format(round(max(R[,1]) /355.24, 1)),

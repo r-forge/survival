@@ -1,4 +1,4 @@
-# SCCS $Id: survexp.uswhite.s,v 4.5 1994-04-21 10:56:51 therneau Exp $
+# SCCS $Id: survexp.uswhite.s,v 4.6 1994-11-22 21:56:29 therneau Exp $
 #
 # Create the US total hazards table, whites only
 #   The raw numbers below are q* 10^5.  Note that there are 24 leap years/100
@@ -64,13 +64,21 @@ survexp.uswhite  <- {
      16231,17709,19198,20690,22228,23729,25173,26551,27859,29094,30255,31342,
      32355,33297,34168,34973,35715,36397,37022)
 
-    temp <- -log(1- c(temp1,temp2)/100000)/365.24    #daily hazard rate
+    temp2 <- -log(1- c(temp1,temp2)/100000)/365.24    #daily hazard rate
+
+    #Add in the extrapolated data
+    temp <- array(0, c(110,2,6))
+    temp[,,1:4] <- temp2
+    fix  <- c( .00061*(0:109) - .1271, .00041*(0:109) - .1770)
+    temp[,,5]   <- exp(log(temp[,,4]) + fix)
+    temp[,,6]   <- exp(log(temp[,,5]) + fix)
+
     attributes(temp) <- list (
-	dim      =c(110,2,4),
-	dimnames =list(0:109, c("male", "female"), c("1950","1960", "1970", "1980")),
+	dim      =c(110,2,6),
+	dimnames =list(0:109, c("male", "female"), 10 * 195:200),
 	dimid    =c("age", "sex", "year"),
 	factor   =c(0,1,10),
-	cutpoints=list(0:109 * 365.24, NULL, mdy.date(1,1, (5:8)*10)),
+	cutpoints=list(0:109 * 365.24, NULL, mdy.date(1,1, (195:200)*10)),
 	summary = function(R) {
 		     x <- c(format(round(min(R[,1]) /365.24, 1)),
 			    format(round(max(R[,1]) /355.24, 1)),

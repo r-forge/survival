@@ -1,4 +1,4 @@
-# SCCS $Id: survexp.usr.s,v 4.1 1994-01-04 14:50:34 therneau Exp $
+# SCCS $Id: survexp.usr.s,v 4.2 1994-11-22 21:56:29 therneau Exp $
 #
 # Create the US total hazards table, by race
 #   The raw numbers below are q* 10^5.  Note that there are 24 leap years/100
@@ -108,14 +108,23 @@ survexp.usr  <- {
      8335,8744,9106,9591,10168,10886,11738,12656,13619,14672,15816,17027,18279,
      19170,20022,20825,21577,22279,22930,23534,24091,24605,25077,25510,25907,
      26269,26600)
-    temp <- -log(1- c(temp1,temp2, temp2[1:440], temp3)/100000)/365.24
+    temp3 <- -log(1- c(temp1,temp2, temp2[1:440], temp3)/100000)/365.24
+
+    # Add in the extrapolated data for 1990 and 2000
+    temp <- array(0, c(110,2, 5, 3))
+    temp[,,1:3,] <- temp3
+    fix  <- c(.00061*(0:109) - .1271, rep(-.00015*(0:109) - .0979, 2),
+	      .00041*(0:109) - .1770, rep(.00050*(0:109) - .1448, 2))
+    temp[,,4,]   <- exp(log(temp[,,3,]) + fix)
+    temp[,,5,]   <- exp(log(temp[,,4,]) + fix)
+
     attributes(temp) <- list (
-	dim      =c(110,2,3,3),
-	dimnames =list(0:109, c("male", "female"), c("1960", "1970", "1980"),
+	dim      =c(110,2,5,3),
+	dimnames =list(0:109, c("male", "female"), 10* 196:200,
 			      c("white", "nonwhite", "black")),
 	dimid    =c("age", "sex", "year", "race"),
 	factor   =c(0,1,10,1),
-	cutpoints=list(0:109 * 365.24, NULL, mdy.date(1,1, 6:8*10), NULL),
+	cutpoints=list(0:109 * 365.24, NULL, mdy.date(1,1, 196:200*10), NULL),
 	summary = function(R) {
 		     x <- c(format(round(min(R[,1]) /365.24, 1)),
 			    format(round(max(R[,1]) /355.24, 1)),
