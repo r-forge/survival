@@ -1,4 +1,4 @@
-# SCCS $Id: coxpenal.fit.s,v 1.11 2001-02-08 11:15:37 therneau Exp $
+# SCCS $Id: coxpenal.fit.s,v 1.12 2002-03-13 19:51:49 therneau Exp $
 #
 # General penalized likelihood
 #
@@ -437,7 +437,7 @@ coxpenal.fit <- function(x, y, strata, offset, init, control,
     names(iterlist) <- names(pterms[pterms>0])
 
     if (nfrail >0) {
-	lp <- offset + coxfit$fcoef[x[,fcol]]
+	lp <- offset + coxfit$fcoef[frailx]
 	if (nvar >0) {   #sparse frailties and covariates
 	    lp <- lp + x[,-fcol,drop=F] %*%coef - sum(means*coef)
 	    list(coefficients  = coef,
