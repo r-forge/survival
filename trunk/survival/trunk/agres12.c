@@ -1,4 +1,4 @@
-/* SCCS: @(#)agres1.c	2.1 6/12/91
+/* SCCS: $Id: agres12.c,v 1.2 1992-03-30 02:26:10 therneau Exp $
 /*
 ** Do the score residuals
 **
