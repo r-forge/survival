@@ -10,7 +10,7 @@ hazards model.
 .CS
 survfit( object, data=sys.parent(), weights, subset, na.action, 
           newdata, individual=F, conf.int=.95, se.fit=T, 
-          type=c("kaplan-meier","flemington-harrington"),
+	  type=c("kaplan-meier","flemington-harrington", "fh2"),
           error=c("greenwood","tsiatis"),
           conf.type=c("log","log-log","plain","none"))
 .RA
@@ -53,14 +53,14 @@ Default is 0.95.
 a logical value indicating whether standard errors should be
 computed.  Default is true.
 .AG type
-either "kaplan-meier" , or "fleming-harrington",  (only
-the   first  character  is  necessary).   The  default  is
+either "kaplan-meier" , "fleming-harrington" or "fh2",  (only
+the   first  two characters  are  necessary).   The  default  is
 "fleming-harrington" when a coxph object is given,  and  it  is
 "kaplan-meier" otherwise.
 .AG error
 either the string "greenwood" for the Greenwood formula
 or  "tsiatis"  for  the  Tsiatis  formula, (only the first
-character  is  necessary).   The  default  is  "cox"  when
+character  is  necessary).   The  default  is  "tsiatis"  when
 a coxph object is given, and it is "greenwood" otherwise.
 .AG conf.type
 One of "none", "plain", "log", or "log-log".  Only
@@ -84,17 +84,27 @@ Cox model, subject weights of exp(sum(coef*(x-center))) are used,
 ignoring any value for wt input by the user.  There is also an extra
 term in the variance of the curve, due to the variance of coef and
 hence variance in the computed weights.
-
+.PP
 The Greenwood formula for the variance is a sum of terms
 d/(n*(n-m)), where d is the number of deaths at a given time point, n
 is the sum of wt for all individuals still at risk at that time, and
 m is the sum of weights for the deaths at that time.  The
-justification is based on a bi- nomial argument when weights are all
+justification is based on a binomial argument when weights are all
 equal to one; extension to the weighted case is ad hoc.  Tsiatis
 (1981) proposes a sum of terms d/(n*n), based on a counting process
 argument which includes the weighted case.
+.PP
+The two variants of the F-H estimate have to do with how ties are handled.
+If there were 3 deaths out of 10 at risk, then the first would increment
+the hazard by 3/10 and the second by 1/10 + 1/9 + 1/8.  For curves created
+after a Cox model these correspond to the Breslow and Efron estimates,
+respectively, and the proper choice is made automatically.
+The fh2 method will give results closer to the Kaplan-Meier.
 .SH REFERENCES
 Terry Therneau, author of local function.
+
+Fleming, T. H. and Harrington, D.P. (1984).  Nonparametric estimation of the
+survival distribution in censored data.  Comm. in Statistics 13, 2469-86.
 
 Kablfleisch, J. D. and Prentice, R. L. (1980).   The  
 Statistical Analysis of Failure Time Data.  Wiley, New York.
