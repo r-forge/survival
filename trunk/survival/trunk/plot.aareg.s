@@ -1,4 +1,4 @@
-# SCCS $Id: plot.aareg.s,v 1.1 2001-04-17 08:23:42 therneau Exp $
+# SCCS $Id: plot.aareg.s,v 1.2 2002-01-29 14:00:52 therneau Exp $
 plot.aareg <- function(x, se=T, maxtime, ...) {
     if (!inherits(x, 'aareg')) stop ("Must be an aareg object")
 
@@ -37,6 +37,9 @@ plot.aareg <- function(x, se=T, maxtime, ...) {
 		     xlab='Time', ylab=yylab)
 	}
     else {
-	matplot(xx, cum, ..., type='s', xlab='Time')
+        if (ncurve >1) 
+	     matplot(xx, cum, ..., type='s', xlab='Time')
+        else 
+	     matplot(xx, cum, ..., type='s', xlab='Time', ylab=yylab)
 	}
     }
