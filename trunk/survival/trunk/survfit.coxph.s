@@ -1,4 +1,4 @@
-#SCCS $Id: survfit.coxph.s,v 4.6 1992-08-11 08:19:13 grill Exp $
+#SCCS $Id: survfit.coxph.s,v 4.7 1992-08-25 15:11:49 grill Exp $
 survfit.coxph <-
   function(object, newdata, se.fit=T, conf.int=.95, individual=F,
 	    type=c('tsiatis', 'kaplan-meier'),
@@ -105,7 +105,7 @@ survfit.coxph <-
 
     dimnames(y) <- NULL   #I only use part of Y, so names become invalid
     if (stype==1) {
-	surv <- .C("agsurv12", as.integer(n),
+	surv <- .C("agsurv1", as.integer(n),
 			     as.integer(nvar),
 			     y[ord,],
 			     score,
@@ -131,7 +131,7 @@ survfit.coxph <-
 	if (se.fit) temp$std.err <- sqrt(surv$varh[ntime])
 	}
     else {
-	surv <- .C('agsurv22', as.integer(n),
+	surv <- .C('agsurv2', as.integer(n),
 			      as.integer(nvar* se.fit),
 			      y = y[ord,],
 			      score[ord],

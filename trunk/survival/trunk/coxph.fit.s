@@ -1,4 +1,4 @@
-#SCCS $Date: 1992-08-11 08:08:35 $ $Id: coxph.fit.s,v 4.7 1992-08-11 08:08:35 grill Exp $
+#SCCS $Date: 1992-08-25 15:09:40 $ $Id: coxph.fit.s,v 4.8 1992-08-25 15:09:40 grill Exp $
 coxph.fit <- function(x, y, strata, offset, init, iter.max,
 			eps, method, rownames)
     {
@@ -26,7 +26,7 @@ coxph.fit <- function(x, y, strata, offset, init, iter.max,
 	# A special case: Null model.
 	#  (This is why I need the rownames arg- can't use x' names)
 	score <- exp(offset[sorted])
-	coxfit <- .C("coxfit_null2", as.integer(n),
+	coxfit <- .C("coxfit_null", as.integer(n),
 				    stime,
 				    sstat,
 				    offset[sorted],

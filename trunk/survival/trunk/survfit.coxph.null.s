@@ -1,4 +1,4 @@
-#SCCS  $Id: survfit.coxph.null.s,v 4.6 1992-08-11 08:17:25 grill Exp $ % G%
+#SCCS  $Id: survfit.coxph.null.s,v 4.7 1992-08-25 15:10:43 grill Exp $ % G%
 survfit.coxph.null <-
   function(object, newdata, se.fit=T, conf.int=.95, individual=F,
 	    type=c('tsiatis', 'kaplan-meier'),
@@ -53,7 +53,7 @@ survfit.coxph.null <-
 	stop("A newdata argument does not make sense for a null model")
 
     dimnames(y) <- NULL   #I only use part of Y, so names become invalid
-    surv <- .C('agsurv22', as.integer(n),
+    surv <- .C('agsurv2', as.integer(n),
 			  as.integer(0),
 			  y = y[ord,],
 			  score[ord],

@@ -1,4 +1,4 @@
-#SCCS $Date: 1992-08-11 08:06:26 $ $Id: agreg.fit.s,v 4.7 1992-08-11 08:06:26 grill Exp $
+#SCCS $Date: 1992-08-25 15:08:58 $ $Id: agreg.fit.s,v 4.8 1992-08-25 15:08:58 grill Exp $
 agreg.fit <- function(x, y, strata, offset, init, iter.max,
 			eps, method, rownames)
     {
@@ -27,7 +27,7 @@ agreg.fit <- function(x, y, strata, offset, init, iter.max,
     if (is.null(nvar)) {
 	# A special case: Null model.  Just return obvious stuff
 	score <- as.double(exp(offset[sorted]))
-	agfit <- .C("agfit_null2",
+	agfit <- .C("agfit_null",
 		       as.integer(n),
 		       sstart, sstop,
 		       sstat,

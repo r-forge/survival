@@ -1,4 +1,4 @@
-#SCCS $Date: 1992-08-10 16:27:31 $ $Id: agexact.fit.s,v 4.8 1992-08-10 16:27:31 grill Exp $
+#SCCS $Date: 1992-08-25 15:07:47 $ $Id: agexact.fit.s,v 4.9 1992-08-25 15:07:47 grill Exp $
 agexact.fit <- function(x, y, strata, offset, iter.max,
 			eps, init, method, rownames)
     {
@@ -42,7 +42,7 @@ agexact.fit <- function(x, y, strata, offset, iter.max,
 	}
     else init <- rep(0,nvar)
 
-    agfit <- .C("agexact2", iter= as.integer(iter.max),
+    agfit <- .C("agexact", iter= as.integer(iter.max),
 		   as.integer(n),
 		   as.integer(nvar), sstart, sstop,
 		   sstat,
