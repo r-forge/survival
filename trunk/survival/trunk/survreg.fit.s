@@ -1,8 +1,8 @@
 # 
-#  SCCS $Id: survreg.fit.s,v 5.6 1998-12-06 21:57:18 therneau Exp $
+#  SCCS $Id: survreg.fit.s,v 5.7 1999-02-06 23:39:41 therneau Exp $
 #
 survreg.fit<- function(x, y, weights, offset, init, controlvals, dist, 
-		       scale=0, nstrat=1, strata) {
+		       scale=0, nstrat=1, strata, parms=NULL) {
 
     iter.max <- controlvals$iter.max
     eps <- controlvals$rel.tol
@@ -30,14 +30,64 @@ survreg.fit<- function(x, y, weights, offset, init, controlvals, dist,
 	if (is.null(sd)) stop ("Unrecognized distribution")
 	}
     else sd <- dist
+    if (!is.function(sd$density)) 
+	stop("Missing density function in the definition of the distribution")
     dnum <- match(sd$name, c("Extreme value", "Logistic", "Gaussian"))
     if (is.na(dnum)) {
 	# Not one of the "built-in distributions
 	dnum <- 4
-	if (!is.function(sd$density)) 
-		stop("Missing density function in user defined distribution")
-	stop ('function not yet finished')
+	fitter <- 'survreg3'
+	#Set up the callback for the sparse frailty term
+	n2 <- n + sum(y[,ny]==3)
+	expr1 <- expression({
+	    z <- survlist$z
+	    if (length(parms)) temp <- sd$density(z, parms)
+	    else               temp <- sd$density(z)
+	    
+	    if (!is.matrix(temp) || any(dim(temp) != c(n2,5)))
+		    stop("Density function returned an invalid matrix")
+	    survlist$density <- as.vector(as.double(temp))
+	    survlist})
+	survlist <- list(z=double(n2), density=double(n2*5))
+	.C("init_survcall", as.integer(sys.nframe()), expr1)
 	}
+    else fitter <- 'survreg2'
+
+    # This is a subset of residuals.survreg: define the first and second
+    #   derivatives at z=0 for the 4 censoring types
+    #   Used below for starting estimates
+    derfun <- function(y, eta, sigma, density, parms) {
+	ny <<- ncol(y)
+	status <- y[,ny]
+	z <- (y[,1] - eta)/sigma
+	dmat <- density(z,parms)
+	dtemp<- dmat[,3] * dmat[,4]    #f'
+	if (any(status==3)) {
+	    z2 <- (y[,2] - eta)/sigma
+	    dmat2 <- density(z2)
+	    }
+	else {
+	    dmat2 <- matrix(0,1,5)   #dummy values
+	    z2 <- 0
+	    }
+	tdenom <- ((status==0) * dmat[,2]) +
+		  ((status==1) * 1 )       +
+		  ((status==2) * dmat[,1]) +
+		  ((status==3) * ifelse(z>0, dmat[,2]-dmat2[,2], 
+		                             dmat2[,1] - dmat[,1]))
+	tdenom <- 1/(tdenom* sigma)
+	dg <- -tdenom   *(((status==0) * (0-dmat[,3])) +
+			  ((status==1) * dmat[,4]) + 
+			  ((status==2) * dmat[,3]) +
+			  ((status==3) * (dmat2[,3]- dmat[,3])))
+
+	ddg <- (tdenom/sigma)*(((status==0) * (0- dtemp)) +
+			       ((status==1) * dmat[,5]) +
+			       ((status==2) * dtemp) +
+			       ((status==3) * (dmat2[,3]*dmat2[,4] - dtemp))) 
+	list(dg = dg, ddg = ddg - dg^2)
+	}
+
     #
     # Fit the model with just a mean and scale
     #    assume initial values don't apply here
@@ -46,27 +96,21 @@ survreg.fit<- function(x, y, weights, offset, init, controlvals, dist,
     meanonly <- (nvar==1 && all(x==1))
     if (!meanonly) {
 	yy <- ifelse(y[,ny]!=3, y[,1], (y[,1]+y[,2])/2 )
-	coef <- sd$init(yy, weights)
+	coef <- sd$init(yy, weights, parms)
 	if (scale >0) vars <- log(scale)
 	else vars <- log(coef[2])/2   #init returns \sigma^2, I need log(sigma)
-	coef <- c(coef[1], rep(vars, nstrat))
+	# We sometimes get into trouble with a small estimate of sigma,
+	#  (the surface isn't SPD), but never with a large one.  Double it.
+	coef <- c(coef[1], rep(vars + .7, nstrat))
+	
 	# get a better initial value for the mean using the "glim" trick
-	deriv <- .C("survreg3",
-		    as.integer(n),
-		    as.double(y),
-		    as.integer(ny),
-		    as.double(yy),
-		    nstrat = as.integer(nstrat2),
-		    strata = as.integer(strata),
-		    vars= as.double(coef[-1]),
-		    deriv = matrix(double(n * 3),nrow=n),
-		    as.integer(3),
-		    as.integer(dnum))$deriv
-	coef[1] <- coef[1] - sum(weights*deriv[,2])/sum(weights*deriv[,3])
+	deriv <- derfun(y, yy, exp(vars), sd$density, parms)
+	coef[1] <- sum(weights* (deriv$dg + deriv$ddg*(yy -offset))) /
+		                        sum(weights*deriv$ddg)
 
 	# Now the fit proper (intercept only)
 	nvar2 <- 1 +nstrat2
-	fit0 <- .C("survreg2",
+	fit0 <- .C(fitter,
 		       iter = as.integer(iter.max),
 		       as.integer(n),
 		       as.integer(1),
@@ -100,34 +144,23 @@ survreg.fit<- function(x, y, weights, offset, init, controlvals, dist,
 	# Do the 'glim' method of finding an initial value of coef
 	if (meanonly) {
 	    yy <- ifelse(y[,ny]!=3, y[,1], (y[,1]+y[,2])/2 )
-	    coef <- sd$init(yy, weights)
+	    coef <- sd$init(yy, weights, parms)
 	    if (scale >0) vars <- rep(log(scale), nstrat)
-	    else vars  <- rep(log(coef[2])/2, nstrat)  
+	    else vars  <- rep(log(coef[2])/2 + .7, nstrat)  
 	    }
 	else vars <- fit0$coef[-1]
 	eta <- yy - offset     #what would be true for a 'perfect' model
 
-	deriv <- .C("survreg3",
-		       as.integer(n),
-		       as.double(y),
-		       as.integer(ny),
-		       as.double(yy),
-		       nstrat = as.integer(nstrat2),
-		       strata = as.integer(strata),
-		       vars= as.double(vars),
-		       deriv = matrix(double(n * 3),nrow=n),
-		       as.integer(3),
-		       as.integer(dnum))$deriv
-
-	wt <-  -1*deriv[,3]*weights
+	deriv <- derfun(y, yy, exp(vars[strata]), sd$density, parms)
+	wt <-  -1*deriv$ddg*weights
 	coef <- coxph.wtest(t(x)%*% (wt*x), 
-		       c((wt*eta + weights*deriv[,2])%*% x),
+		       c((wt*eta + weights*deriv$dg)%*% x),
 			    toler=toler.chol)$solve
 	init <- c(coef, vars)
 	}
 
     # Now for the fit in earnest
-    fit <- .C("survreg2",
+    fit <- .C(fitter,
 		   iter = as.integer(iter.max),
 		   n = as.integer(n),
 		   as.integer(nvar),

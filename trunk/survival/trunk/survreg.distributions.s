@@ -1,4 +1,4 @@
-# SCCS $Id: survreg.distributions.s,v 4.6 1998-12-22 08:14:44 therneau Exp $
+# SCCS $Id: survreg.distributions.s,v 4.7 1999-02-06 23:39:40 therneau Exp $
 #
 # Create the survreg.distributions object
 #
@@ -21,12 +21,12 @@ survreg.distributions <- list(
 				    ifelse(status==3, temp3, 0))
 	list(center=center, loglik=best) 
 	},
-    density = function(x) {
+    density = function(x,parms) {
 	w <- exp(x)
 	ww <- exp(-w)
 	cbind(1-ww, ww, w*ww, (1-w), w*(w-3) +1)
 	},
-    quantile = function(p, ...) log(-log(1-p))
+    quantile = function(p,parms) log(-log(1-p))
     ),
 
 logistic = list(
@@ -47,11 +47,11 @@ logistic = list(
 				    ifelse(status==3, temp3, 0))
 	list(center=center, loglik=best) 
 	},
-    density = function(x, ...) {
+    density = function(x, parms) {
 	w <- exp(x)
 	cbind(w/(1+w), 1/(1+w), w/(1+w)^2, (1-w)/(1+w), (w*(w-4) +1)/(1+w)^2)
 	},
-    quantile = function(p, ...) log(p/(1-p))
+    quantile = function(p, parms) log(p/(1-p))
     ),
 
 gaussian = list(
@@ -71,10 +71,10 @@ gaussian = list(
 				ifelse(status==3, temp2, 0))
 	list(center=center, loglik=best) 
 	},
-    density = function(x, ...) {
-	cbind(pnorm(x, df), pnorm(-x, df), dnorm(x,df), -x, x^2-1)	
+    density = function(x, parms) {
+	cbind(pnorm(x), pnorm(-x), dnorm(x), -x, x^2-1)	
 	},
-    quantile = function(p, ...) qnorm(p)
+    quantile = function(p, parms) qnorm(p)
     ),
 
 weibull = list(
@@ -137,21 +137,19 @@ t = list(
 	var  <- sum(weights*(x-mean)^2)/ sum(weights)
 	c(mean, var*(df-2)/df)
 	},
-    deviance= function(y, df, loglik) {
-			status <- y[,ncol(y)]
-			scale <- exp(parms[1])
-			df <- parms[2]
-			temp <-  ifelse(status==3, (y[,2] - y[,1])/scale, 1)
-			temp2 <- 2*(pt(temp/2, df) -.5)
-			temp3 <- lgamma((df+1)/2) -
-				    (lgamma(df/2) + .5*log(pi*df*scale^2))
-			best <- ifelse(status==1, temp3,
+    deviance= function(y, scale, parms) {
+	status <- y[,ncol(y)]
+	width <- ifelse(status==3,(y[,2] - y[,1])/scale, 0)
+	center <- y[,1] - width/2
+	temp2 <- log(1 - 2*pt(width/2, df=parms))
+	best <- ifelse(status==1, -log(dt(0, df=parms)*scale),
 				ifelse(status==3, temp2, 0))
-			2*(best-loglik)
-			},
+	list(center=center, loglik=best) 
+	},
     density = function(x, df) {
 	cbind(pt(x, df), pt(-x, df), dt(x,df),
-	      -(df+1)*x/(2+x^2), (df+1)*(x^2 * (df+3)/(2+x^2)^2 - 1/(2+x^2)))
+	      -(df+1)*x/(df+x^2), 
+	      (df+1)*(x^2 *(df+3)/(df+x^2) - 1)/(df +x^2))
 	},
     quantile = function(p, df) qt(p, df)
   )
