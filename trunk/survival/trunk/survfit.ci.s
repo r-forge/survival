@@ -1,5 +1,5 @@
 #
-# SCCS $Id: survfit.ci.s,v 1.1 2002-08-09 10:06:56 therneau Exp $
+# SCCS $Id: survfit.ci.s,v 1.2 2003-05-08 09:20:31 therneau Exp $
 #
 # Compute the current incidence curve for a data set
 #   A strata() statement identifies the outcomes
@@ -181,7 +181,7 @@ survfit.ci <- function(formula=formula(data), data=sys.parent(),
         # If the argument is absent, consider all states prior to the last of
         #  each subject to be non-absorbing (a transition was from them).
         # To process the data, we need to figure out each subject's last
-        #  observation. The status variable is set the set to 2 for
+        #  observation. The status variable is set to 2 for
         #  "had an event, it's their last obs, new state not absorbing".
         temp <- order(id, time)
         id2 <- id[temp]                 #sorted by time within subject
