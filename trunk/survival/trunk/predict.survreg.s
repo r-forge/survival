@@ -1,4 +1,4 @@
-# SCCS $Id: predict.survreg.s,v 4.4 1992-03-25 01:33:35 therneau Exp $
+# SCCS $Id: predict.survreg.s,v 4.5 1992-03-30 02:41:22 therneau Exp $
 #What do I need to do predictions --
 #
 #linear predictor:  exists
@@ -18,12 +18,11 @@
 predict.surv.reg <-
 function(object, newdata, type=c("lp", "risk", "expected", "terms"),
 	    se.fit=F,
-	    terms=labels.lm(object), miss.expand=T, collapse, safe=F, ...)
+	    terms=labels.lm(object), collapse, safe=F, ...)
 
     {
     type <- match.arg(type)
     n <- object$n
-    omit <- attr(n, 'omit')
     Terms <- object$terms
     strata <- attr(Terms, 'specials')$strata
     if (length(strata)) Terms2 <- Terms[-strata]
@@ -104,10 +103,11 @@ function(object, newdata, type=c("lp", "risk", "expected", "terms"),
     if (se.fit) se <- drop(se)
     pred <- drop(pred)
     #Expand out the missing values in the result
-    if (miss.expand && !is.null(omit <- attr(object$n, 'omit'))) {
-	pred <- na.expand(pred, omit)
-	if(se.fit) se <- na.expand(se, omit)
-	n  <- n + length(omit)
+    if (!is.null(object$na.action)) {
+	pred <- naresid(object$na.action, pred)
+	if (is.matrix(pred)) n <- nrow(pred)
+	else               n <- length(pred)
+	if(se.fit) se <- naresid(object$na.action, se)
 	}
 
     # Collapse over subjects, if requested
