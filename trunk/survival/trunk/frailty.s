@@ -1,9 +1,9 @@
-# SCCS $Id: frailty.s,v 1.1 1998-10-28 08:52:00 therneau Exp $
+# SCCS $Id: frailty.s,v 1.2 1999-01-14 09:38:59 therneau Exp $
 # 
 # Parent function for frailty, calls the actuall working functions
 #
 frailty <- function(x, distribution = 'gamma', ...) {
-    dlist <- c("gamma", "gaussian", "cauchy")
+    dlist <- c("gamma", "gaussian", "t")
     i <- pmatch(distribution, dlist)
     if (!is.na(i)) distribution <- dlist[i]
 
