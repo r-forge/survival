@@ -1,4 +1,4 @@
-# SCCS $Id: survfit.coxph.s,v 5.8 2003-04-25 15:59:57 therneau Exp $
+# SCCS $Id: survfit.coxph.s,v 5.9 2003-10-06 09:42:21 therneau Exp $
 setOldClass(c('survfit.cox', 'survfit'))
 
 survfit.coxph <-
@@ -125,7 +125,7 @@ survfit.coxph <-
                                       levels=levels(data$strata))
                     Terms <- Terms[-strata.term$terms] 
 		    }
-		else strata2 <- rep(1, nrow(x2))
+		else strata2 <- rep(1, nrow(m2))
                 x2 <- model.matrix(Terms, m2)[,-1,drop=F]
 		y2 <- model.extract(m2, 'response')
 		if (attr(y2,'type') != type)
