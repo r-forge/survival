@@ -1,8 +1,11 @@
-#SCCS $Date: 1992-03-04 16:48:34 $ $Id: survfit.coxph.null.s,v 4.1 1992-03-04 16:48:34 therneau Exp $
+#SCCS  $Id: survfit.coxph.null.s,v 4.2 1992-03-11 14:37:58 therneau Exp $ % G%
 surv.fit.coxreg.null <-
-  function(object, newdata, se.fit=T, conf.int=.95, at.failtime=F,
+  function(object, newdata, se.fit=T, conf.int=.95, individual=F,
 	    type=c('tsiatis', 'kaplan-meier'),
 	    conf.type=c('log', 'log-log', 'plain', 'none'), ...) {
+    # May have strata and/or offset terms, linear predictor = offset
+    #  newdata doesn't make any sense
+    #  This is surv.fit.coxreg with lots of lines removed
 
     call <- match.call()
     Terms <- terms(object)
@@ -15,15 +18,24 @@ surv.fit.coxreg.null <-
     if (!se.fit) conf.type <- 'none'
     else conf.type <- match.arg(conf.type)
 
-    if (!missing(newdata)) stop("Cannot have new data values for a null model")
-
-    y <- object$y
-    if (is.null(y)) {
-	y <- eval(resp)
-	if (!is.null(omit)) y <- y[omit,]
+    if (length(strat) ) {  # I need to fetch the model frame
+	y <-object$y
+	strata <- object$strata
+	if (is.null(strata)) {
+	    m <- model.frame(object)
+	    if (length(strat)>1) stop("Only one strata() expression allowed")
+	    strata <- m[[(as.character(Terms))[strat]]]
+	    }
+	if (is.null(y)) y <- model.extract(m, 'response')
 	}
-    if (length(strat)) strata <- eval(as.vector(Terms)[strat])
-    else               strata <- rep(1,n)
+    else {
+	y <- object$y
+	if (is.null(y)) {
+	    y <- eval(resp)
+	    if (!is.null(omit)) y <- y[omit,]
+	    }
+	strata <- rep(1,n)
+	}
 
     ny <- ncol(y)
     if (nrow(y) != n) stop ("Mismatched lengths: logic error")
@@ -34,7 +46,7 @@ surv.fit.coxreg.null <-
 	      stop ("KM method not valid for counting type data")
 	}
     else if (type=='right') {
-	ord <- order(strata, y[,1], -y[-3])
+	ord <- order(strata, y[,1], -y[,2])
 	y <- cbind(0, y)
 	}
     else stop("Cannot handle \"", type, "\" type survival data")
@@ -45,20 +57,24 @@ surv.fit.coxreg.null <-
 	}
     else newstrat <- as.integer(c(rep(0,n-1),1))
 
+    if ( !missing(newdata))
+	stop("A newdata argument does not make sense for a null model")
+
+    dimnames(y) <- NULL   #I only use part of Y, so names become invalid
     surv <- .C('agsurv2', as.integer(n),
-			  nvar= as.integer(0),
+			  as.integer(0),
 			  y = y[ord,],
 			  score[ord],
 			  strata = newstrat,
 			  surv = double(n),
 			  varhaz = double(n),
-			  x= 0.,
-			  varmat= 0.,
-			  nsurv = as.integer(method=='kaplan-meier'),
+			  double(1),
 			  double(0),
-			  n2 = as.integer(1),
-			  x2= 0.,
-			  newrisk=exp(mean(object$linear.predictor)))
+			  nsurv = as.integer(method=='kaplan-meier'),
+			  double(2),
+			  as.integer(1),
+			  double(1),
+			  newrisk= as.double(1))
     nsurv <- surv$nsurv
     ntime <- 1:nsurv
     tsurv <- surv$surv[ntime]
