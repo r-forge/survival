@@ -74,16 +74,16 @@ agexact.fit <- function(x, y, strata, offset, iter.max,
     names(agfit$coef) <- dimnames(x)[[2]]
     lp  <- x %*% agfit$coef + offset - sum(agfit$coef *agfit$means)
     score <- as.double(exp(lp[sorted]))
-    aghaz <- .C("aghaz2",
+    agres <- .C("agmart",
 		   as.integer(n),
+		   as.integer(0),
 		   sstart, sstop,
 		   sstat,
 		   score,
 		   newstrat,
-		   hazard=double(n), cumhaz=double(n))
-
+		   resid=double(n))
     resid _ double(n)
-    resid[sorted] <- sstat - score*aghaz$cumhaz
+    resid[sorted] <- agres$resid
     names(resid) <- rownames
 
     list(coefficients  = agfit$coef,
