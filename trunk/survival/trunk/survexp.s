@@ -1,4 +1,4 @@
-#SCCS $Id: survexp.s,v 4.11 1992-07-13 21:41:11 therneau Exp $
+#SCCS $Id: survexp.s,v 4.12 1992-08-11 08:15:40 grill Exp $
 survexp <- function(entry, birth, sex,
 		      times=round(182.6 * 0:8),
 		      data=sys.parent(), subset, na.action,
@@ -86,7 +86,7 @@ survexp <- function(entry, birth, sex,
 	}
     if (type != 'matrix') nsurv <- 1
     else                  nsurv <- n
-    temp <-  .C("survexp", as.integer(ntime),
+    temp <-  .C("survexp2", as.integer(ntime),
 			    as.integer(times),
 			    as.integer(dd),
 			    ages,

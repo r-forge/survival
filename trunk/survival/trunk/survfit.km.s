@@ -1,4 +1,4 @@
-#SCCS $Id: survfit.km.s,v 4.4 1992-05-07 14:37:25 therneau Exp $
+#SCCS $Id: survfit.km.s,v 4.5 1992-08-11 08:20:45 grill Exp $
 survfit.km <- function(x, y, casewt=rep(1,n),
 	    type=c('kaplan-meier', 'fleming-harrington'),
 	    error=c('greenwood', "tsiatis"), se.fit=T,
@@ -28,7 +28,7 @@ survfit.km <- function(x, y, casewt=rep(1,n),
 
     storage.mode(y) <- "double"
     dimnames(y) <- NULL
-    surv <- .C("survfit", as.integer(n),
+    surv <- .C("survfit2", as.integer(n),
 			  y = y,
 			  as.integer(ny),
 			  as.double(casewt),

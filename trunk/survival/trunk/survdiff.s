@@ -1,4 +1,4 @@
-#SCCS $Date: 1992-06-01 09:54:04 $ $Id: survdiff.s,v 4.7 1992-06-01 09:54:04 therneau Exp $
+#SCCS $Date: 1992-08-11 08:14:08 $ $Id: survdiff.s,v 4.8 1992-08-11 08:14:08 grill Exp $
 survdiff <- function(formula, data, subset, rho=0) {
     call <- match.call()
     m <- match.call(expand=F)
@@ -61,7 +61,7 @@ survdiff <- function(formula, data, subset, rho=0) {
 	if (ny!=2) stop("Surf.diff does not apply to interval time data (yet)")
 	ord <- order(y[,1])
 
-	xx <- .C("survdiff", as.integer(n),
+	xx <- .C("survdiff2", as.integer(n),
 		       as.integer(ngroup),
 		       as.double(rho),
 		       as.double(y[ord,1]),
