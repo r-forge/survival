@@ -1,4 +1,4 @@
-/* SCCS $Id: coxfit_null.c,v 4.6 1993-06-17 12:26:16 therneau Exp $  */
+/* SCCS $Id: coxfit_null.c,v 4.7 1997-06-13 17:47:43 therneau Exp $  */
 /*
 ** Special case: fit the "Null" model.  All that is needed are the loglik
 **     and the residual  -- 90% of the work is the residual
@@ -48,6 +48,7 @@ double  loglik[],  /* returned values */
     n = *nusedx;
     /*
     ** pass 1- resid will contain the risk sum
+    **  it is non 0 only for the first of a set of tied times
     */
     strata[n-1] =1;  /* just in case */
     for (i=n-1; i>=0; i--) {
@@ -68,20 +69,24 @@ double  loglik[],  /* returned values */
     lastone = 0;
     loglik[0] =0;
     for (i= 0; i<n; i++) {
-	if (resid[i]!=0) denom = resid[i];
-	resid[i] = status[i];
+	if (resid[i]!=0) {
+	    lastone =i;
+	    denom = resid[i];
+	    }
+
 	if (status[i]==1) {
 	    deaths++;
 	    e_denom += score[i] * weights[i];
 	    meanwt += weights[i];
 	    loglik[0] += weights[i] *log(score[i]);
 	    }
-	if (strata[i]==1 ||  time[i+1]!=time[i]) {
+
+	if (i==(n-1) || resid[i+1]!=0) {
 	    /*last subject of a set of tied times */
 	    if (deaths<2 || *method==0) {
 		hazard += meanwt/denom;
 		loglik[0] -= meanwt * log(denom);
-		for (j=lastone; j<=i; j++) resid[j] -= score[j]*hazard;
+		for (j=lastone; j<=i; j++) resid[j] =status[j]-score[j]*hazard;
 		}
 	    else {
 		temp = hazard;
@@ -94,16 +99,14 @@ double  loglik[],  /* returned values */
 		    }
 		for (j=lastone; j<=i; j++) {
 		    if (status[j]==0) resid[j] = -score[j]*hazard;
-		    else  resid[j] -=  score[j]* temp;
+		    else  resid[j] =  1 - score[j]* temp;
 		    }
 		}
-	    lastone =i +1;
 	    deaths =0;
 	    e_denom =0;
 	    meanwt =0;
 	    }
-	}
 
-    /* finish any "trailing" censored obs */
-    for (j=lastone; j<n; j++)  resid[j] -= score[j]*hazard;
+	if (strata[i] ==1) hazard =0;
+	}
     }
