@@ -1,4 +1,4 @@
-#SCCS  $Id: pyears.s,v 5.8 2001-12-30 17:05:05 therneau Exp $
+#SCCS  $Id: pyears.s,v 5.9 2003-08-29 13:40:32 therneau Exp $
 pyears <- function(formula=formula(data), data=sys.parent(),
 	weights, subset, na.action,
 	ratetable=survexp.us, scale=365.25,  expect=c('event', 'pyears'),
@@ -87,7 +87,7 @@ pyears <- function(formula=formula(data), data=sys.parent(),
 		outdname[[i]] <- attr(temp, 'labels')
 		}
 	    else {
-		temp2 <- factor(temp)
+		temp2 <- as.factor(temp)
 		X[,i] <- temp2
 		temp3 <- levels(temp2)
 		odims[i] <- length(temp3)
