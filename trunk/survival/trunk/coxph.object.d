@@ -18,6 +18,10 @@ matrix.
 .AG var
 the variance matrix of the coefficients.  Rows and columns corresponding to
 any missing coefficients are set to zero.
+.AG naive.var
+this component will be present only if the `robust' option was true.  If so,
+the `var' component will contain the robust estimate of variance, and this
+component will contain the ordinary estimate.
 .AG loglik
 a vector of length 2 containing the log-likelihood with the initial values and
 with the final values of the coefficients.

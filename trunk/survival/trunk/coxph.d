@@ -1,4 +1,4 @@
-\." SCCS $Id: coxph.d,v 1.5 1993-06-17 14:33:07 therneau Exp $
+\." SCCS $Id: coxph.d,v 1.6 1994-10-02 20:01:15 therneau Exp $
 .BG
 .FN coxph
 .TL
@@ -12,7 +12,7 @@ of Anderson and Gill.
 coxph(formula=formula(data), data=sys.parent(), subset, 
        na.action, weights, eps=0.0001, init,
        iter.max=10, method=c("efron","breslow","exact"),
-       singular.ok=T,
+       singular.ok=T, robust,
        model=F, x=F, y=T)
 .RA
 .AG formula
@@ -56,6 +56,9 @@ that are linear combinations of earlier columns.  In this case the
 coefficients for such columns will be NA, and the variance matrix will contain
 zeros.  For ancillary calculations, such as the linear predictor, the missing
 coefficients are treated as zeros.
+.AG robust
+if TRUE a robust variance estimate is returned.  Default is TRUE if the
+model includes a cluster() operative, FALSE otherwise.
 .AG model,x,y
 flags to control what is returned.  If these are true, then the model
 frame, the model matrix, and/or the response is returned as components
