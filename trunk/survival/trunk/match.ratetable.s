@@ -1,4 +1,4 @@
-# SCCS $Id: match.ratetable.s,v 4.4 1994-05-31 12:37:51 therneau Exp $
+# SCCS $Id: match.ratetable.s,v 4.5 1997-11-18 14:15:17 therneau Exp $
 # Do a set of error checks on whether the ratetable() vars match the
 #   actual ratetable
 # This is called by pyears and survexp, but not by users
@@ -58,9 +58,9 @@ match.ratetable <- function(R, ratetable) {
 	else {   # ratetable() thinks it is a continuous variable
 	    if (efac[i]==1) {   #but it's not-- make sure it is an integer
 		temp <- R[,i]
-		if (any(floor(temp)!=temp) || any(temp<0) ||
+		if (any(floor(temp)!=temp) || any(temp<=0) ||
 			    max(temp) > length(dtemp[[i]]))
-		stop(paste("In ratetable()",dimid[i],"out of range"))
+		stop(paste("In ratetable(),",dimid[i],"is out of range"))
 		}
 	    }
 	if (i==nd) call <- paste(call, "]")
