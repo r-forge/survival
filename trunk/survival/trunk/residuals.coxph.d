@@ -9,7 +9,7 @@ Cox proportional hazards model.
 resid(object,
        type=c("martingale", "deviance", "score", "schoenfeld",
 	      "dfbeta", "dfbetas", "scaledsch"),
-       collapse)
+       collapse, weighted=F)
 .RA
 .AG object
 a coxph object, output from a coxph fit.
@@ -24,6 +24,9 @@ models more than one row data can pertain to a single individual.
 If there were 4 individuals represented by 3, 1, 2 and 4 rows of data
 respectively, then `collapse=c(1,1,1, 2, 3,3, 4,4,4,4)' could be used to
 obtain per subject rather than per observation residuals.
+.AG weighted
+if TRUE and the model was fit with case weights, then the weighted
+residuals are returned.
 .RT
 For martingale and deviance residuals, the returned object is a vector
 with one element for each subject (without `collapse').

@@ -1,8 +1,8 @@
-#SCCS $Id: residuals.coxph.s,v 4.24 1995-03-14 16:24:01 therneau Exp $
+#SCCS $Id: residuals.coxph.s,v 4.25 1995-10-25 17:00:10 therneau Exp $
 residuals.coxph <-
   function(object, type=c("martingale", "deviance", "score", "schoenfeld",
 			  "dfbeta", "dfbetas", "scaledsch"),
-	    collapse=F)
+	    collapse=F, weighted=F)
     {
     type <- match.arg(type)
     otype <- type
@@ -54,7 +54,7 @@ residuals.coxph <-
 	    x <- x[ord,]
 	    y <- y[ord,]
 	    score <- exp(object$linear.predictor)[ord]
-	    if (is.null(weights)) weights <- rep(1,n)
+	    if (is.null(weights)) {weights <- rep(1,n); weighted <- F}
 	    else                  weights <- weights[ord]
 	    }
 	}
@@ -125,6 +125,11 @@ residuals.coxph <-
 	    }
 	else rr[ord] <- resid
 	}
+
+    #
+    # Multiply up by case weights, if requested
+    #
+    if (!is.null(weights) & weighted) rr <- rr * weights
 
     #Expand out the missing values in the result
     if (!is.null(object$na.action)) {

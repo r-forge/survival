@@ -1,4 +1,4 @@
-#SCCS  $Id: coxph.s,v 4.17 1995-06-21 11:11:09 therneau Exp $
+#SCCS  $Id: coxph.s,v 4.18 1995-10-25 17:00:09 therneau Exp $
 coxph <- function(formula=formula(data), data=sys.parent(),
 	weights, subset, na.action,
 	eps=.0001, init, iter.max=10,
@@ -93,12 +93,13 @@ coxph <- function(formula=formula(data), data=sys.parent(),
 	    # a little sneaky here: by calling resid before adding the
 	    #   na.action method, I avoid having missings re-inserted
 	    # I also make sure that it doesn't have to reconstruct X and Y
-	    fit2 <- c(fit, list(x=X, y=Y))
+	    fit2 <- c(fit, list(x=X, y=Y, weights=weights))
 	    if (length(strats)) fit2$strata <- strata.keep
 	    if (length(cluster))
-		temp <- residuals.coxph(fit2, type='dfbeta', collapse=cluster)
+		temp <- residuals.coxph(fit2, type='dfbeta', collapse=cluster,
+					  weighted=T)
 	    else
-		temp <- residuals.coxph(fit2, type='dfbeta')
+		temp <- residuals.coxph(fit2, type='dfbeta', weighted=T)
 	    fit$var <- t(temp) %*% temp
 	    }
 	na.action <- attr(m, "na.action")
