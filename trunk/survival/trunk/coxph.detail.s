@@ -1,4 +1,4 @@
-#SCCS  $Id: coxph.detail.s,v 4.9 1994-12-29 15:13:14 therneau Exp $
+#SCCS  $Id: coxph.detail.s,v 4.10 1995-07-28 17:09:07 therneau Exp $
 coxph.detail <-  function(object) {
     method <- object$method
     if (method!='breslow' && method!='efron')
@@ -77,7 +77,7 @@ coxph.detail <-  function(object) {
     temp <- list(time = time, means=means, nevent=ff$y[keep,1],
 	 nrisk = ff$y[keep,2], hazard= ff$y[keep,3], score= score,  imat=var,
 	 varhaz=ff$weights[keep], y=y, x=x)
-    if (length(strats)) temp$strata <- strat[keep]
+    if (length(strats)) temp$strata <- table((strat[ord])[ff$index[keep]])
     if (!all(weights==1)) temp$weights <- weights
     temp
     }
