@@ -1,4 +1,4 @@
-/* SCCS $Id: agfit_null.c,v 4.1 1992-03-04 16:51:43 therneau Exp $  */
+/* SCCS $Id: agfit_null.c,v 4.2 1992-08-10 13:15:01 grill Exp $  */
 /*
 ** Fit a "null" model.  We just need the loglik and cumulative hazard
 **
@@ -21,7 +21,7 @@
 */
 #include <math.h>
 
-void agfit_null(n, start, stop, event, offset, strata, loglik, hazard, cumhaz)
+void agfit_null2(n, start, stop, event, offset, strata, loglik, hazard, cumhaz)
 double  offset[],
 	start[],
 	stop[],

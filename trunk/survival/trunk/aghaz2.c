@@ -1,4 +1,4 @@
-/* SCCS $Id: aghaz2.c,v 4.1 1992-03-04 16:51:45 therneau Exp $  */
+/* SCCS $Id: aghaz2.c,v 4.2 1992-08-10 13:16:36 grill Exp $  */
 /* SCCS: @(#)aghaz.c	2.1  6/12/91
 /*
 ** Compute the hazard and cumulative hazard functions.
@@ -22,7 +22,7 @@
 */
 #include <stdio.h>
 
-void aghaz(n, start, stop, event, score, strata, hazard, cumhaz)
+void aghaz2(n, start, stop, event, score, strata, hazard, cumhaz)
 double  score[],
 	start[],
 	stop[],

@@ -1,4 +1,4 @@
-/* SCCS: $Id: agres12.c,v 1.3 1992-05-01 16:28:44 splus Exp $
+/* SCCS: $Id: agres12.c,v 1.4 1992-08-10 13:18:32 grill Exp $
 /*
 ** Do the score residuals
 **
@@ -22,7 +22,7 @@
 #include <stdio.h>
 extern double **dmatrix();
 
-void agres1(nx, nvarx, y, covar2, strata, score,
+void agres12(nx, nvarx, y, covar2, strata, score,
 		hazard, cumhaz, resid2)
 long    nx[1],
 	nvarx[1],

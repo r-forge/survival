@@ -1,4 +1,4 @@
-/* SCCS $Id: agfit2.c,v 4.3 1992-08-06 16:26:51 therneau Exp $  */
+/* SCCS $Id: agfit2.c,v 4.4 1992-08-10 13:12:00 grill Exp $  */
 /*
 ** Anderson-Gill formulation of the cox Model
 **
@@ -56,7 +56,7 @@
 
 double **dmatrix();
 
-void agfit(maxiter, nusedx, nvarx, start, stop, event, covar2, offset, strata,
+void agfit2(maxiter, nusedx, nvarx, start, stop, event, covar2, offset, strata,
 		 means, beta, u, imat2, loglik, flag, work,
 		 eps, sctest)
 
