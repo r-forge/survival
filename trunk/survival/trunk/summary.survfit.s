@@ -1,4 +1,4 @@
-#SCCS $Date: 1992-08-11 08:12:49 $ $Id: summary.survfit.s,v 1.3 1992-08-11 08:12:49 grill Exp $
+#SCCS $Date: 1992-09-18 16:21:54 $ $Id: summary.survfit.s,v 1.4 1992-09-18 16:21:54 sicks Exp $
 summary.survfit <- function(fit.list, times, censored=F,
 		       print.it=T,  scale=1, digits=3, ... ) {
     fit <- fit.list
@@ -102,7 +102,7 @@ summary.survfit <- function(fit.list, times, censored=F,
     #
     ncurve <- ncol(surv)
     if (print.it==F) {
-	temp <- list(time=times, n.risk=n.risk, n.event=n.event)
+	temp <- list(surv=surv, time=times, n.risk=n.risk, n.event=n.event)
 	if (ncurve==1) {
 	    temp$surv <- drop(temp$surv)
 	    if (!is.null(std.err)) temp$std.err <- drop(std.err)
