@@ -1,14 +1,14 @@
-#SCCS  $Id: survexp.s,v 4.16 1994-01-06 11:02:45 therneau Exp $
+#SCCS  $Id: survexp.s,v 4.17 1994-04-08 15:26:06 therneau Exp $
 survexp <- function(formula=formula(data), data=sys.parent(),
 	weights, subset, na.action,
 	times,  cohort=T,  conditional=T,
-	ratetable=survexp.us, scale=1, npoints,
+	ratetable=survexp.us, scale=1, npoints, se.fit,
 	model=F, x=F, y=F) {
 
     call <- match.call()
     m <- match.call(expand=F)
     m$ratetable <- m$model <- m$x <- m$y <- m$scale<- m$cohort <- NULL
-    m$times <- m$conditional <- m$npoints <- NULL
+    m$times <- m$conditional <- m$npoints <- m$se.fit <- NULL
 
     Terms <- if(missing(data)) terms(formula, 'ratetable')
 	     else              terms(formula, 'ratetable',data=data)
@@ -18,6 +18,12 @@ survexp <- function(formula=formula(data), data=sys.parent(),
     m[[1]] <- as.name("model.frame")
     m <- eval(m, sys.parent())
     n <- nrow(m)
+
+    if (!missing(times)) {
+	if (any(times<0)) stop("Invalid time point requested")
+	if (length(times) >1 )
+	    if (any(diff(times)<0)) stop("Times must be in increasing order")
+	}
 
     Y <- model.extract(m, 'response')
     no.Y <- is.null(Y)
@@ -32,14 +38,9 @@ survexp <- function(formula=formula(data), data=sys.parent(),
 	if (missing(times)) newtime <- sort(temp)
 	else  newtime <- sort(unique(c(times, temp[temp<max(times)])))
 	}
-    else {
-	conditional <- F
-	if (missing(times))
-	   stop("There is no times argument, and no follow-up times are given in the formula")
-	else newtime <- sort(unique(times))
-	Y <- rep(max(times), n)
-	}
+    else conditional <- F
     weights <- model.extract(m, 'weights')
+    if (!is.null(weights)) warning("Weights ignored")
 
     rate <- attr(Terms, "specials")$ratetable
     if (length(rate)==0)
@@ -49,11 +50,42 @@ survexp <- function(formula=formula(data), data=sys.parent(),
 
     if (no.Y) ovars <- attr(Terms, 'term.labels')[-rate]
     else      ovars <- attr(Terms, 'term.labels')[-(rate-1)]
-    rtemp <- match.ratetable(m[,rate], ratetable)
-    R <- rtemp$R
-    if (!is.null(rtemp$call)) {  #need to dop some dimensions from ratetable
-	ratetable <- eval(parse(text=rtemp$call))
+
+    if (is.ratetable(ratetable)) {
+	israte <- T
+	if (no.Y) {
+	    if (missing(times))
+	       stop("There is no times argument, and no follow-up times are given in the formula")
+	    else newtime <- sort(unique(times))
+	    Y <- rep(max(times), n)
+	    }
+	se.fit <- F
+	rtemp <- match.ratetable(m[,rate], ratetable)
+	R <- rtemp$R
+	if (!is.null(rtemp$call)) {  #need to dop some dimensions from ratetable
+	    ratetable <- eval(parse(text=rtemp$call))
+	    }
+       }
+    else if (inherits(ratetable, 'coxph')) {
+	israte <- F
+	Terms <- ratetable$terms
+	if (!inherits(Terms, 'terms'))
+		stop("invalid terms component of fit")
+	if (!is.null(attr(Terms, 'offset')))
+	    stop("Cannot deal with models that contain an offset")
+	m2 <- data.frame(unclass(m[,rate]))
+	strats <- attr(Terms, "specials")$strata
+	if (length(strats))
+	    stop("survexp cannot handle stratified Cox models")
+	R <- model.matrix(delete.response(Terms), m2)[,-1,drop=F]
+	if (any(dimnames(R)[[2]] != names(ratetable$coef)))
+	    stop("Unable to match new data to old formula")
+	if (no.Y) {
+	    if (missing(se.fit)) se.fit <- T
+	    }
+	else se.fit <- F
 	}
+    else stop("Invalid ratetable argument")
 
     if (cohort) {
 	# Now process the other (non-ratetable) variables
@@ -70,31 +102,51 @@ survexp <- function(formula=formula(data), data=sys.parent(),
 	    }
 
 	#do the work
-	temp <- survexp.fit(cbind(as.numeric(X),R), Y, newtime,
+	if (israte)
+	    temp <- survexp.fit(cbind(as.numeric(X),R), Y, newtime,
 			       conditional, ratetable)
+	else {
+	    temp <- survexp.cfit(cbind(as.numeric(X),R), Y,
+			       conditional, ratetable, se.fit=se.fit)
+	    newtime <- temp$times
+	    }
 	#package the results
 	if (missing(times)) {
 	    n.risk <- temp$n
-	    if (is.matrix(temp$surv)) surv <- apply(temp$surv, 2,cumprod)
-	    else                      surv <- cumprod(temp$surv)
+	    surv <- temp$surv
+	    if (se.fit) err <- temp$se
 	    }
 	else {
-	    keep <- match(times, newtime)
+	    if (israte) keep <- match(times, newtime)
+	    else {
+		# taken straight out of summary.survfit....
+		n <- length(temp$times)
+		temp2 <- .C("survindex2", as.integer(n),
+					  as.double(temp$times),
+					  as.integer(rep(1,n)),
+					  as.integer(length(times)),
+					  as.double(times),
+					  as.integer(1),
+					  indx = integer(length(times)),
+					  indx2= integer(length(times)) )
+		keep <- temp2$indx[temp2$indx>0]
+		}
+
 	    if (is.matrix(temp$surv)) {
-		surv <- apply(temp$surv, 2, cumprod)
 		surv <- surv[keep,,drop=F]
 		n.risk <- temp$n[keep,,drop=F]
+		if (se.fit) err <- temp$se[keep,,drop=F]
 		}
 	    else {
-		surv <- cumprod(temp$surv)
 		surv <- surv[keep]
 		n.risk <- temp$n[keep]
+		if (se.fit) err <- temp$se[keep]
 		}
 	    newtime <- times
 	    }
 	newtime <- newtime/scale
 	if (length(ovars)) {    #matrix output
-	    if (no.Y) { # n's are all the same, so just send a vector
+	    if (no.Y && israte){ # n's are all the same, so just send a vector
 		dimnames(surv) <- list(NULL, levels(X))
 		out <- list(call=call, surv=surv, n.risk=c(n.risk[,1]),
 			    time=newtime)
@@ -107,9 +159,13 @@ survexp <- function(formula=formula(data), data=sys.parent(),
 		names(tstrat) <- levels(X)
 		out$strata <- tstrat
 		}
+	    if (se.fit) out$std.err <- err
 	    }
-	else  out <- list(call=call, surv=c(surv), n.risk=c(n.risk),
+	else {
+	     out <- list(call=call, surv=c(surv), n.risk=c(n.risk),
 			   time=newtime)
+	     if (se.fit) out$std.err <- c(err)
+	     }
 
 	na.action <- attr(m, "na.action")
 	if (length(na.action))  out$na.action <- na.action
@@ -119,7 +175,7 @@ survexp <- function(formula=formula(data), data=sys.parent(),
 		dimnames=list(row.names(m), c("group", dimid)))
 	    if (y) out$y <- Y
 	    }
-	out$summ <- rtemp$summ
+	if (israte && !is.null(rtemp$summ)) out$summ <- rtemp$summ
 	if (no.Y) out$method <- 'exact'
 	else if (conditional) out$method <- 'conditional'
 	else                  out$method <- 'cohort'
@@ -128,7 +184,10 @@ survexp <- function(formula=formula(data), data=sys.parent(),
 	}
 
     else { #individual survival
-	temp <- survexp.fit(cbind(1:n,R), Y, max(Y), conditional, ratetable)
+	if (no.Y) stop("For non-cohort, an observation time must be given")
+	if (israte)
+	    temp <- survexp.fit (cbind(1:n,R), Y, max(Y), T, ratetable)
+	else temp<- survexp.cfit(cbind(1:n,R), Y, T, ratetable, F)
 	xx <- temp$surv
 	names(xx) <- row.names(m)
 	na.action <- attr(m, "na.action")
