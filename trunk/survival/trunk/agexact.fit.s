@@ -1,4 +1,4 @@
-#SCCS $Date: 1992-08-06 17:32:19 $ $Id: agexact.fit.s,v 4.7 1992-08-06 17:32:19 therneau Exp $
+#SCCS $Date: 1992-08-10 16:27:31 $ $Id: agexact.fit.s,v 4.8 1992-08-10 16:27:31 grill Exp $
 agexact.fit <- function(x, y, strata, offset, iter.max,
 			eps, init, method, rownames)
     {
@@ -42,7 +42,7 @@ agexact.fit <- function(x, y, strata, offset, iter.max,
 	}
     else init <- rep(0,nvar)
 
-    agfit <- .C("agexact", iter= as.integer(iter.max),
+    agfit <- .C("agexact2", iter= as.integer(iter.max),
 		   as.integer(n),
 		   as.integer(nvar), sstart, sstop,
 		   sstat,
@@ -74,7 +74,7 @@ agexact.fit <- function(x, y, strata, offset, iter.max,
     names(agfit$coef) <- dimnames(x)[[2]]
     lp  <- x %*% agfit$coef + offset - sum(agfit$coef *agfit$means)
     score <- as.double(exp(lp[sorted]))
-    aghaz <- .C("aghaz",
+    aghaz <- .C("aghaz2",
 		   as.integer(n),
 		   sstart, sstop,
 		   sstat,
