@@ -1,4 +1,4 @@
-#SCCS $Date: 1996-01-07 01:35:50 $ $Id: survdiff.s,v 4.10 1996-01-07 01:35:50 therneau Exp $
+#SCCS $Date: 1998-08-30 15:45:28 $ $Id: survdiff.s,v 5.1 1998-08-30 15:45:28 therneau Exp $
 survdiff <- function(formula, data, subset, na.action, rho=0) {
     call <- match.call()
     m <- match.call(expand=F)
@@ -78,6 +78,6 @@ survdiff <- function(formula, data, subset, na.action, rho=0) {
     na.action <- attr(m, "na.action")
     if (length(na.action)) rval$na.action <- na.action
     rval$call <- call
-    attr(rval, "class") <- 'survdiff'
+    oldClass(rval) <- 'survdiff'
     rval
     }
