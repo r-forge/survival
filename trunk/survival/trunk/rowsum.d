@@ -3,7 +3,7 @@
 .TL
 Give row sums of a matrix, based on a grouping variable.
 .CS
-rowsum(x, group, reorder=F)
+rowsum(x, group, reorder=T)
 .RA
 .AG x
  a matrix or vector of numeric data.  Missing values are allowed.
@@ -15,6 +15,8 @@ Missing values are not allowed.
 if True, then the result will be in order of sort(unique(group)),
 if False, it will be in the order that rows were encountered (and
 may run faster for large matrices).
+The default is to reorder the data, so as to agree with tapply (see
+example below).
 .RT
 a matrix containing the sums.  There will be one row per unique value
 of `group'.

@@ -1,5 +1,5 @@
-#SCCS $Date: 1994-02-17 09:53:32 $ $Id: rowsum.s,v 4.3 1994-02-17 09:53:32 therneau Exp $
-rowsum <- function(x, group, reorder=F) {
+#SCCS $Date: 1994-05-23 07:45:49 $ $Id: rowsum.s,v 4.4 1994-05-23 07:45:49 therneau Exp $
+rowsum <- function(x, group, reorder=T) {
     if (!is.numeric(x)) stop("x must be numeric")
     if (is.matrix(x)) dd <- dim(x)
     else              dd <- c(length(x), 1)
