@@ -1,4 +1,4 @@
-# SCCS  $Id: survobrien.s,v 4.3 1992-04-14 18:08:10 grill Exp $
+# SCCS  $Id: survobrien.s,v 4.4 1997-03-27 16:16:41 therneau Exp $
 #
 # The test for survival proposed by Peter O'Brien
 #
@@ -12,15 +12,10 @@ survobrien <- function(formula, data= sys.parent()) {
     if (attr(y, 'type') != 'right') stop("Can only handle right censored data")
 
     # Figure out which are the continuous predictor variables
-    m.name <- names(m)
-    temp <- match(attr(Terms, 'term.labels'), m.name)
-    cont <- NULL
-    for (i in temp) {if (!is.factor(m[[i]])) cont <- c(cont, i)}
-    if (is.null(cont)) stop ("No continuous variables to modify")
+    keepers <- unlist(lapply(m, is.factor))
+    cont <- ((seq(keepers))[!keepers]) [-1]
+    if (length(cont)==0) stop ("No continuous variables to modify")
 
-    keepers <- rep(T, length(m))  #The ones to be kept "as is"
-    keepers[cont] <- F
-    keepers[attr(Terms, 'response')] <- F
     ord <- order(y[,1])
     x <- as.matrix(m[ord, cont])
     time <- y[ord,1]
@@ -30,14 +25,15 @@ survobrien <- function(formula, data= sys.parent()) {
     nline <- 0
     for (i in unique(time[status==1])) nline <- nline + sum(time >=i)
     start <- stop <- event <- double(nline)
-    xx <- matrix(double(nline*nvar), ncol=nvar)
+    xx <- matrix(double(nline*nvar), ncol=nvar, 
+		 dimnames=list(NULL, dimnames(x)[[2]]))
     ltime <- 0
     j<- 1
     keep.index <- NULL
     for (i in unique(time[status==1])) {
 	who <- (time >=i)
 	nrisk <- sum(who)
-	if (nrisk<2) break
+
 	temp <- apply(x[who,,drop=F], 2, rank)
 	temp <- (2*temp -1)/ (2* nrisk)   #percentiles
 	logit<- log(temp/(1-temp))           #logits
@@ -53,15 +49,10 @@ survobrien <- function(formula, data= sys.parent()) {
 	keep.index <- c(keep.index, ord[who])
 	}
 
-    if (any(keepers)) {
-	 temp <- list(m[keep.index, keepers], start, stop, event, xx)
-	 names(temp) <- c(m.name[keepers], "start", "stop", "event",
-				m.name[cont])
-	 }
-    else {
-	temp <- list(start, stop, event, xx)
-	names(temp) <- c(m.name[keepers], "start", "stop", "event",
-				m.name[cont])
-	}
-    temp
+    if (any(keepers)){
+	temp <- m[keep.index, keepers, drop=F]
+	names(temp) <- (names(m))[keepers]
+	data.frame(temp, start, stop, event, xx)
+        }
+    else  data.frame(start, stop, event, xx)
     }
