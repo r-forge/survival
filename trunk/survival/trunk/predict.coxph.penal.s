@@ -1,4 +1,4 @@
-# SCCS $Id: predict.coxph.penal.s,v 1.1 1998-11-01 00:25:38 therneau Exp $
+# SCCS $Id: predict.coxph.penal.s,v 5.1 1998-11-01 07:54:46 therneau Exp $
 predict.coxph.penal <- function(object,  newdata, 
 				type=c("lp", "risk", "expected", "terms"),
 				se.fit=F, terms=labels.lm(object), 
@@ -60,22 +60,23 @@ predict.coxph.penal <- function(object,  newdata,
 	    if (type=='terms' && missing(newdata)) {
 		# In this case (only) I add the sparse term back in
 		spterm <- object$frail[indx]
+		ststd  <- sqrt(object$fvar[indx])
 		if (nvar==2) {
 		    if (xvar==2) {
 			pred <- cbind(pred, spterm)
-			if (se.fit) se <- cbind(se, 0)
+			if (se.fit) se <- cbind(se, ststd)
 			}
 		    else {
 			pred <- cbind(spterm, pred)
-			if (se.fit) se <- cbind(0, se)
+			if (se.fit) se <- cbind(ststd, se)
 			}
 		    }
 		else {
-		    first <- ifelse(xvar==1, 0, 1:(xvar-1))
-		    secnd <- ifelse(xvar==nvar, 0, (xvar+1):nvar)
-		    pred  <- cbind(pred[,first], spterm, pred[,second])
+		    first <- if (xvar==1) 0 else 1:(xvar-1)
+		    secnd <- if (xvar==nvar) 0 else  (xvar+1):nvar
+		    pred  <- cbind(pred[,first], spterm, pred[,secnd])
 		    if (se.fit)
-			    se <- cbind(se[,first], 0, se[,second])
+			    se <- cbind(se[,first], ststd, se[,secnd])
 		    }
 		dimnames(pred) <- list(dimnames(x)[[1]], termname)
 		if (se.fit) dimnames(se) <- dimnames(pred)
