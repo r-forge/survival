@@ -1,4 +1,4 @@
-# SCCS $Id: cox.zph.s,v 1.10 1993-03-05 08:17:05 therneau Exp $
+# SCCS $Id: cox.zph.s,v 1.11 1993-04-06 15:52:58 therneau Exp $
 #  Test proportional hazards
 #
 cox.zph <- function(fit, transform='km', global=T) {
@@ -15,17 +15,25 @@ cox.zph <- function(fit, transform='km', global=T) {
     else         times <- as.numeric(dimnames(sresid)[[1]])
 
     if (is.character(transform)) {
+	tname <- transform
 	ttimes <- switch(transform,
-			       'identity'= times,
-			       'rank'    = rank(times),
-			       'km' = {
-				    temp <- survfit.km(factor(rep(1,nrow(fit$y))),
-							fit$y, se.fit=F)
-				    1-(c(1,temp$surv))[match(times,temp$time)]
-				    },
-			       stop("Unrecognized transform"))
+			   'identity'= times,
+			   'rank'    = rank(times),
+			   'log'     = log(times),
+			   'km' = {
+				temp <- survfit.km(factor(rep(1,nrow(fit$y))),
+						    fit$y, se.fit=F)
+				# A nuisance to do left cont KM
+				t1 <- temp$surv[temp$n.event>0]
+				t2 <- temp$n.event[temp$n.event>0]
+				1- rep(c(1,t1), c(t2,0))
+				},
+			   stop("Unrecognized transform"))
 	}
-    else ttimes <- transform(times)
+    else {
+	tname <- deparse(substitute(transform))
+	ttimes <- transform(times)
+	}
     xx <- ttimes - mean(ttimes)
 
     r2 <- sresid %*% fit$var * ndead
@@ -44,7 +52,7 @@ cox.zph <- function(fit, transform='km', global=T) {
 
     dimnames(r2) <- list(times, names(fit$coef))
     temp <-list(table=Z.ph, x=ttimes, y=r2 + outer(rep(1,ndead), fit$coef),
-    var=fit$var, call=call)
+    var=fit$var, call=call, transform=tname)
     class(temp) <- "cox.zph"
     temp
     }

@@ -1,4 +1,4 @@
-#SCCS $Id: plot.cox.zph.s,v 4.2 1993-03-05 08:17:06 therneau Exp $
+#SCCS $Id: plot.cox.zph.s,v 4.3 1993-04-06 15:52:59 therneau Exp $
 plot.cox.zph <- function(x, resid=T, se=T, df=4, nsmo=40, var) {
     xx <- x$x
     yy <- x$y
@@ -32,13 +32,19 @@ plot.cox.zph <- function(x, resid=T, se=T, df=4, nsmo=40, var) {
     #    values on the 'transformed' axis.  Then adjust until they correspond
     #    to rounded 'true time' values.  Avoid the edges of the x axis, or
     #    approx() may give a missing value
-    xtime <- as.numeric(dimnames(yy)[[1]])
-    apr1  <- approx(xx, xtime, seq(min(xx), max(xx), length=17)[2*(1:8)])
-    temp <- signif(apr1$y,2)
-    apr2  <- approx(xtime, xx, temp)
-    xaxisval <- apr2$y
-    xaxislab <- rep("",8)
-    for (i in 1:8) xaxislab[i] <- format(temp[i])
+    if (x$transform == 'log') {
+	xx <- exp(xx)
+	pred.x <- exp(pred.x)
+	}
+    else if (x$transform != 'identity') {
+	xtime <- as.numeric(dimnames(yy)[[1]])
+	apr1  <- approx(xx, xtime, seq(min(xx), max(xx), length=17)[2*(1:8)])
+	temp <- signif(apr1$y,2)
+	apr2  <- approx(xtime, xx, temp)
+	xaxisval <- apr2$y
+	xaxislab <- rep("",8)
+	for (i in 1:8) xaxislab[i] <- format(temp[i])
+	}
 
     for (i in var) {
 	y <- yy[,i]
@@ -52,8 +58,14 @@ plot.cox.zph <- function(x, resid=T, se=T, df=4, nsmo=40, var) {
 	    yr <- range(yr, yup, ylow)
 	    }
 
-	plot(range(xx), yr, type='n', xlab="Time", ylab=ylab[i], xaxt='n')
-	axis(1, xaxisval, xaxislab)
+	if (x$transform=='identity')
+	    plot(range(xx), yr, type='n', xlab="Time", ylab=ylab[i])
+	else if (x$transform=='log')
+	    plot(range(xx), yr, type='n', xlab="Time", ylab=ylab[i], log='x')
+	else {
+	    plot(range(xx), yr, type='n', xlab="Time", ylab=ylab[i], xaxt='n')
+	    axis(1, xaxisval, xaxislab)
+	    }
 	if (resid) points(xx, y)
 	lines(pred.x, yhat)
 	if (se) {
