@@ -1,5 +1,5 @@
-#SCCS $Date: 1992-03-04 16:48:03 $ $Id: agreg.fit.s,v 4.1 1992-03-04 16:48:03 therneau Exp $
-agreg.fit <- function(y, x, strata, casewt, offset, init, iter.max,
+#SCCS $Date: 1992-03-30 02:22:45 $ $Id: agreg.fit.s,v 4.2 1992-03-30 02:22:45 therneau Exp $
+agreg.fit <- function(x, y, strata, offset, init, iter.max,
 			eps, inf.ratio, method, rownames)
     {
     n <- nrow(y)
@@ -19,7 +19,6 @@ agreg.fit <- function(y, x, strata, casewt, offset, init, iter.max,
 	newstrat <- as.integer(c(1*(diff(strata)!=0), 1))
 	}
     if (is.null(offset)) offset <- rep(0,n)
-    if (is.null(casewt)) casewt <- rep(1,n)
 
     sstart <- as.double(start[sorted])
     sstop <- as.double(stopp[sorted])
@@ -75,7 +74,7 @@ agreg.fit <- function(y, x, strata, casewt, offset, init, iter.max,
 		       flag=integer(1),
 		       double(2*nvar*nvar +nvar*4 + n),
 		       as.double(eps),
-		       sctest=as.double(method=='cox.efron') )
+		       sctest=as.double(method=='efron') )
 
 	if (agfit$flag == 1000 &&  iter.max>1)
 	       warning("Ran out of iterations and did not converge")
