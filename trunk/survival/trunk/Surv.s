@@ -1,4 +1,4 @@
-#SCCS $Date: 1993-03-14 19:31:17 $ $Id: Surv.s,v 4.13 1993-03-14 19:31:17 therneau Exp $
+#SCCS $Date: 1993-03-18 11:52:00 $ $Id: Surv.s,v 4.14 1993-03-18 11:52:00 therneau Exp $
 # Package up surivival type data as a structure
 #
 Surv <- function(time, time2, event,
@@ -84,7 +84,7 @@ Surv <- function(time, time2, event,
     }
 
 print.Surv <- function(xx, quote=F, ...)
-    invisible(print(as.character.Surv, quote=quote, ...))
+    invisible(print(as.character.Surv(xx), quote=quote, ...))
 
 as.character.Surv <- function(xx) {
     class(xx) <- NULL
