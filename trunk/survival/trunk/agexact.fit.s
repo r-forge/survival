@@ -19,7 +19,7 @@ agexact.fit <- function(x, y, strata, offset, iter.max,
 	}
 
     # Sort the data (or rather, get a list of sorted indices)
-    if (is.null(strata)) {
+    if (length(strata)==0) {
 	sorted <- order(stopp, -event)
 	newstrat <- as.integer(rep(0,n))
 	}

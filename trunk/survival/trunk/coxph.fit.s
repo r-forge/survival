@@ -1,4 +1,4 @@
-#SCCS $Date: 1993-06-17 12:26:16 $ $Id: coxph.fit.s,v 4.12 1993-06-17 12:26:16 therneau Exp $
+#SCCS $Date: 1994-09-08 15:51:52 $ $Id: coxph.fit.s,v 4.13 1994-09-08 15:51:52 therneau Exp $
 coxph.fit <- function(x, y, strata, offset, init, iter.max,
 			eps, weights, method, rownames)
     {
@@ -8,7 +8,7 @@ coxph.fit <- function(x, y, strata, offset, init, iter.max,
     status <- y[,2]
 
     # Sort the data (or rather, get a list of sorted indices)
-    if (is.null(strata)) {
+    if (length(strata)==0) {
 	sorted <- order(time)
 	newstrat <- as.integer(rep(0,n))
 	}

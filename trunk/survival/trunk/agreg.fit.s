@@ -1,4 +1,4 @@
-#SCCS $Id: agreg.fit.s,v 4.12 1994-03-09 12:47:00 therneau Exp $
+#SCCS $Id: agreg.fit.s,v 4.13 1994-09-08 15:51:53 therneau Exp $
 agreg.fit <- function(x, y, strata, offset, init, iter.max,
 			eps, weights, method, rownames)
     {
@@ -9,7 +9,7 @@ agreg.fit <- function(x, y, strata, offset, init, iter.max,
     event <- y[,3]
 
     # Sort the data (or rather, get a list of sorted indices)
-    if (is.null(strata)) {
+    if (length(strata)==0) {
 	sorted <- order(stopp, -event)
 	newstrat <- as.integer(rep(0,n))
 	}
