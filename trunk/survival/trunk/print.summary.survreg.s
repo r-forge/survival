@@ -1,4 +1,4 @@
-# SCCS $Id: print.summary.survreg.s,v 4.6 1992-11-19 17:37:07 therneau Exp $
+# SCCS $Id: print.summary.survreg.s,v 4.7 1992-12-30 14:20:56 therneau Exp $
 print.summary.survreg <- function(x, digits = 3, quote = T, prefix = "")
 {
     nas <- x$nas
@@ -54,7 +54,8 @@ print.summary.survreg <- function(x, digits = 3, quote = T, prefix = "")
     cat("\n    Null Deviance:", temp[1], "on",
 		     n - int, "degrees of freedom\n")
     cat("Residual Deviance:", temp[2], "on",
-	   round(rdf, digits), "degrees of freedom\n")
+	   round(rdf, digits), "degrees of freedom  (LL=",
+		format(x$loglik), ")\n")
     cat("Number of Newton-Raphson Iterations:", format(trunc(x$iter)),
         "\n")
     if(!is.null(correl)) {
