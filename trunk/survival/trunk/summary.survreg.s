@@ -1,4 +1,4 @@
-# SCCS @(#)summary.survreg.s	4.5 7/14/92
+# SCCS $Id: summary.survreg.s,v 4.8 1992-11-19 17:37:08 therneau Exp $
 summary.survreg<- function(object, correlation = T)
 {
     if (!is.null(object$fail)) {
@@ -11,9 +11,7 @@ summary.survreg<- function(object, correlation = T)
     resid <- object$residuals
     dresid <- object$dresiduals
     n <- length(resid)
-    p <- object$rank
-    if(is.null(p))
-        p <- sum(!is.na(coef))
+    p <- sum(!is.na(coef))
     if(!p) {
         warning("This model has zero rank --- no summary is provided")
         return(object)
