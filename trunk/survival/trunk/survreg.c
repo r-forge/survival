@@ -1,4 +1,4 @@
-/* SCCS $Id: survreg.c,v 4.1 1992-09-20 23:30:36 therneau Exp $    */
+/* SCCS $Id: survreg.c,v 4.2 1992-09-24 13:35:06 therneau Exp $    */
 /*
 ** Fit one of several censored data distributions
 **
@@ -199,8 +199,8 @@ double  beta[],
 	else if (status[person]==3) {
 	    temp2= (time2[person] - time[person])/scale;
 	    switch(*dist) {
-		case1:  temp3= log(temp2/(exp(temp2)-1));
-			best = log(exp(-exp(temp3)) - exp(-exp(temp2+temp3)));
+		case 1: temp3= temp2/(exp(temp2)-1);
+			best = log(exp(-temp3) - exp(-exp(temp2)*temp3));
 			break;
 		case 2: temp3= exp(temp2/2);
 			best = log((temp3-1)/ (temp3+1));
@@ -467,7 +467,7 @@ int j;
 		 ans[2] = 1-w;
 		 ans[3] = w*(w-3) +1;
 		 break;
-	case 2:  ans[0] = 1-temp;    /*inaccurate for small z, but insoluble*/
+	case 2:  ans[0] = 1-temp;
 		 ans[1] = temp;
 		 ans[2] = w*temp;
 		 ans[3] = w*temp*(1-w);
