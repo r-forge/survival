@@ -169,36 +169,14 @@ void survdiff2(long   *nn,     long   *nngroup,    long   *nstrat,
 	       double *exp,    double *var,        double *risk, 
 	       double *kaplan);
 
-void survfit2(long   *sn,      double *y,       double *wt,
-	      long   *strata,  long   *method,  long   *error, 
-	      double *mark,    double *surv,	double *varh,
-	      double *risksum);
+void survfit2(long   *sn,     double *y,        long   *ny, 
+	      double *wt,     long   *strata,   long   *method, 
+	      long   *error,  double *mark,     double *surv,
+	      double *varh,   double *risksum,  long   *snsurv);
 
-void survfit3(long   *sn,        double *y,               double *wt,
-	      long   *strata,    long   *method,          long   *error, 
-	      long   *nstrat,    double *ntimes_strata,  
-	      double *timelist,  double *weighted_event,  double *surv,
-	      double *varh,	 double *risksum,         double *enter,
-	      double *exit_censored);
-
-void survindex2(long   *n,          double *stime,      long   *strata,
-		long   *ntime,      double *time,       long   *nstrat,
-		long   *o_n_risk,   long   *o_n_event,  double *o_surv,
-		double *o_std_err,  double *o_upper,    double *o_lower, 
-		long   *n_risk,     long   *n_event,    double *surv,
-		double *std_err,    double *upper,      double *lower,
-		double *new_start,  long   *num_extend, long   *times_strata,
-		double *temp_times);
-
-void survindex3(long   *n,          double *stime,        long   *strata,
-		long   *ntime,      double *time,         long   *nstrat, 
-		long   *o_n_risk,   long   *o_n_entered,  long   *o_n_censored,
-		long   *o_n_event,  double *o_surv,       double *o_std_err,
-		double *o_upper,    double *o_lower,      long   *n_risk, 
-		long   *n_entered,  long   *n_censored,   long   *n_event,
-		double *surv,       double *std_err,      double *upper,
-		double *lower,      double *new_start, 	  long   *num_extend,
-		long   *times_strata,                     double *temp_times);
+void survindex2(long   *n,     double *stime,   long   *strata, 
+		long   *ntime, double *time,    long   *nstrat, 
+		long   *indx,  long   *indx2);
 
 void survreg2(long   *maxiter,   long   *nx,    long   *nvarx, 
 	     double *y,          long   *ny,    double *covar2, double *wtx,
