@@ -1,6 +1,6 @@
-#SCCS $Date: 1992-03-04 16:48:39 $ $Id: survreg.s,v 4.1 1992-03-04 16:48:39 therneau Exp $
+#SCCS $Date: 1992-03-30 02:57:57 $ $Id: survreg.s,v 4.2 1992-03-30 02:57:57 therneau Exp $
 surv.reg <- function(formula=formula(data), data=sys.parent(),
-	weights,  subset, na.action,
+	subset, na.action,
 	eps=.0001, init, iter.max=10,
 	method= c("weibull"),
 	model=F, x=F, y=F, ...) {
@@ -20,7 +20,6 @@ surv.reg <- function(formula=formula(data), data=sys.parent(),
 
     Y <- model.extract(m, "response")
     if (!inherits(Y, "Surv")) stop("Response must be a survival object")
-    casewt<- model.extract(m, "weights")
     offset<- attr(Terms, "offset")
     if (!is.null(offset)) offset <- as.numeric(m[[offset]])
     X <- model.matrix(Terms, m)
@@ -38,8 +37,8 @@ surv.reg <- function(formula=formula(data), data=sys.parent(),
     if (is.character(fit))  fit <- list(fail=fit)
     else {
 	fit$n <- nrow(Y)
-	omit <- attr(m, "omit")
-	if (length(omit)) attr(fit$n, "omit") <- omit
+	na.action <- attr(m, "na.action")
+	if (length(na.action)) fit$na.action <- na.action
 	}
 
     attr(fit, "class") <-  c(method, "surv.reg", "lm")
