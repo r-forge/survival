@@ -1,3 +1,4 @@
+#SCCS $Id: survfit.coxph.s,v 4.3 1992-03-30 02:56:21 therneau Exp $
 surv.fit.coxreg <-
   function(object, newdata, se.fit=T, conf.int=.95, individual=F,
 	    type=c('tsiatis', 'kaplan-meier'),
@@ -9,7 +10,6 @@ surv.fit.coxreg <-
     strat <- attr(Terms, "specials")$strata
     resp <-  attr(Terms, "variables")[attr(Terms, "response")]
     n <- object$n
-    omit <- attr(n, 'omit')
     nvar <- length(object$coef)
     score <- exp(object$linear.predictor)
     method <- match.arg(type)
@@ -110,14 +110,14 @@ surv.fit.coxreg <-
 			     y[ord,],
 			     score,
 			     strata=newstrat,
-			     surv=double(n),
-			     varh=double(n),
+			     surv=double(n*n2),
+			     varh=double(n*n2),
 			     nsurv=integer(1),
 			     x[ord,],
 			     double(2*nvar),
 			     object$var,
-			     y = double(3*n*nrow(x2)),
-			     as.integer(nrow(x2)),
+			     y = double(3*n*n2),
+			     as.integer(n2),
 			     y2,
 			     x2,
 			     newrisk,
