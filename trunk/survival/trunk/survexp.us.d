@@ -26,7 +26,9 @@ total Arizona population, by age and sex, 1970 and 1980.
 .AG azr
 Arizona population, by age, sex and race, 1970-1980.  Race is
 white versus nonwhite.  For 1970 the nonwhite population values
-were not reported separately, so the white values were used.
+were not reported separately.
+In order to make the rate table be a matrix, the 1980 values were
+repeated.  (White and non-white values are quite different).
 .PP
 Each of these tables contains the daily hazard rate for a matched subject
 from the population, defined as -log(1-q)/365.24 where q is the 1 year
@@ -47,6 +49,8 @@ available in 1995 or 96.
 Some of the deficiencies, e.g. 1970 Arizona non-white, are a result of
 local conditions.  The data probably exists, but we don't have a copy
 it in the library.
+.PP In November 1994 all of the tables were augmented to contain extrapolated
+values for 1990 and 2000.  The details can be found in technical report 55.
 .KW survival
 .WR
 
