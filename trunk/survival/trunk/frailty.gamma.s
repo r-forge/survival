@@ -1,9 +1,10 @@
-# SCCS $Id: frailty.gamma.s,v 1.2 1998-11-30 08:31:45 therneau Exp $
+# SCCS $Id: frailty.gamma.s,v 1.3 1999-01-14 09:40:35 therneau Exp $
 # 
 # Defining function for gamma frailty fits
 #
-frailty.gamma <- function(x, sparse=T, theta, df, eps= 1e-5, 
+frailty.gamma <- function(x, sparse=(nclass >5), theta, df, eps= 1e-5, 
 			  method=c("em", "aic", "df", "fixed"), ...) {
+    nclass <- length(unique(x))
     if (sparse)	x <-as.numeric(as.factor(x))
     else{
 	x <- as.factor(x)

@@ -1,9 +1,10 @@
-# SCCS $Id: frailty.t.s,v 1.2 1998-11-30 08:31:47 therneau Exp $
+# SCCS $Id: frailty.t.s,v 1.3 1999-01-14 09:40:36 therneau Exp $
 # 
 # Defining function for t-distribution frailty fits
 #
-frailty.t <- function(x, sparse=T, theta, df, eps= 1e-5,  tdf=5,
+frailty.t <- function(x, sparse=(nclass>5), theta, df, eps= 1e-5,  tdf=5,
 			  method=c("aic", "df", "fixed"), ...) {
+    nclass <- length(unique(x))
     if (sparse){
 	x <-as.numeric(as.factor(x))
 	oldClass(x) <- "coxph.penalty"

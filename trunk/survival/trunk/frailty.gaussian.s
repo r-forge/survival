@@ -1,10 +1,11 @@
-# SCCS $Id: frailty.gaussian.s,v 1.2 1998-11-30 08:31:46 therneau Exp $
+# SCCS $Id: frailty.gaussian.s,v 1.3 1999-01-14 09:40:36 therneau Exp $
 # 
 # Defining function for gaussian frailty fits
 #
-frailty.gaussian <- function(x, sparse=T, theta, df, 
+frailty.gaussian <- function(x, sparse=(nclass >5), theta, df, 
 		   method=c("reml", "aic", "df", "fixed"), ...) {
 
+    nclass <- length(unique(x))
     # Check for consistency of the arguments
     if (missing(method)) {
 	if (!missing(theta)) {
