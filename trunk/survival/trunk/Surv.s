@@ -1,4 +1,4 @@
-#SCCS $Id: Surv.s,v 5.8 2001-07-20 15:53:43 therneau Exp $
+#SCCS $Id: Surv.s,v 5.9 2001-08-03 14:59:08 therneau Exp $
 # Package up surivival type data as a structure
 #
 Surv <- function(time, time2, event,
@@ -70,12 +70,11 @@ Surv <- function(time, time2, event,
 	}
 
     else {  #interval censored data
-	if (length(time2) !=nn) stop ("Start and stop are different lengths")
-	if (!is.numeric(time2)) stop("Stop time is not numeric")
-
 	if (type=='interval2') {
 	    # convert to "interval" type, infer the event code
 	    if (!is.numeric(time2)) stop("Time2 must be numeric")
+	    if (length(time2) !=nn) 
+		    stop ("Time1 and time2 are different lengths")
 	    status <- ifelse(is.na(time), 2,
 		      ifelse(is.na(time2),0,
 		      ifelse(time==time2, 1,3)))
@@ -94,6 +93,12 @@ Surv <- function(time, time2, event,
 		if (!all(temp, na.rm=T))
 			warning("Status must be 0, 1, 2 or 3; converted to NA")
 		}
+	    if (any(event==3)) {
+		if (!is.numeric(time2)) stop("Time2 must be numeric")
+		if (length(time2) !=nn) 
+		    stop ("Time1 and time2 are different lengths")
+		}
+	    else time2 <- 1  #dummy value, time2 is never used
 	    }
 
 	temp <- (time[status==3] > time2[status==3])
