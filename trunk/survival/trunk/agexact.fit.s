@@ -1,4 +1,4 @@
-#SCCS $Id: agexact.fit.s,v 4.16 1995-02-28 11:55:06 therneau Exp $
+#SCCS $Id: agexact.fit.s,v 4.17 1998-09-25 23:40:18 therneau Exp $
 agexact.fit <- function(x, y, strata, offset, iter.max,
 			eps, weights, init, method, rownames)
     {
@@ -85,7 +85,7 @@ agexact.fit <- function(x, y, strata, offset, iter.max,
 		   sstart, sstop,
 		   sstat,
 		   score,
-		   rep(1,n),
+		   rep(1.0, n),
 		   newstrat,
 		   resid=double(n))
     resid _ double(n)
