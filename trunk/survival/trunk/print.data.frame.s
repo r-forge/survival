@@ -1,4 +1,4 @@
-#SCCS $Date: 1993-03-14 19:32:27 $ $Id: print.data.frame.s,v 4.3 1993-03-14 19:32:27 therneau Exp $
+#SCCS $Date: 1994-01-03 07:55:34 $ $Id: print.data.frame.s,v 4.4 1994-01-03 07:55:34 therneau Exp $
 #
 # In order to get objects with attributes to print correctly, I replace the
 #   call to "as.matrix" with a copy of as.matrix.data.frame, one that knows
@@ -63,4 +63,5 @@ function(x, ..., quote = F, right = T)
 	class(x) <- "matrix"
 	print(x, ..., quote=quote, right=right)
 	}
+    invisible(x)
     }
