@@ -1,8 +1,8 @@
-# SCCS $Id: summary.survreg.s,v 4.15 1999-02-11 16:40:25 therneau Exp $
+# SCCS $Id: summary.survreg.s,v 4.16 2002-05-27 21:35:25 therneau Exp $
 summary.survreg<- function(object, correlation = F)
 {
     if (!is.null(object$fail)) {
-	warning(" Survreg failed.", x$fail, "   No summary provided\n")
+	warning(" Survreg failed.", object$fail, "   No summary provided\n")
 	return(invisible(object))
 	}
     wt <- object$weights
