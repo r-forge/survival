@@ -1,9 +1,9 @@
-#SCCS $Date: 1992-04-17 17:34:58 $ $Id: Surv.s,v 4.8 1992-04-17 17:34:58 therneau Exp $
+#SCCS $Date: 1992-04-21 14:56:44 $ $Id: Surv.s,v 4.9 1992-04-21 14:56:44 therneau Exp $
 # Package up surivival type data as a structure
-#  Eventually allow lots of censored data types
 #
 Surv <- function(time, time2, event,
-		       type=c('right', 'left', 'interval', 'counting')) {
+		       type=c('right', 'left', 'interval', 'counting'),
+		       origin=0) {
     nn <- length(time)
     ng <- nargs()
     if (missing(type)) {
@@ -67,7 +67,7 @@ Surv <- function(time, time2, event,
 		    }
 		else event("Invalid status value")
 	    }
-	ss <- cbind(time, time2,status)
+	ss <- cbind(time-origin, time2-origin, status)
 	}
     attr(ss, "class") <- c("Surv")
     attr(ss, "type")  <- type
