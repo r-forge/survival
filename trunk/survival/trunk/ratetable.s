@@ -1,4 +1,4 @@
-#SCCS $Id: ratetable.s,v 4.3 1993-12-20 09:21:00 therneau Exp $
+#SCCS $Id: ratetable.s,v 4.4 1993-12-20 10:37:43 therneau Exp $
 #
 # This is a 'specials' function for pyears
 #   it is a stripped down version of as.matrix(data.frame(...))
@@ -55,13 +55,26 @@ ratetable <- function(...) {
     aa <- attributes(x)
     attributes(x) <- aa[c("dim", "dimnames")]
     y <- NextMethod("[", drop=F)
-    if (drop && any(dropped <- attr(y, 'dim')==1)){
+    newdim <- attr(y, 'dim')
+    dropped <- (newdim==1)
+    if (drop)  change <- (newdim!=aa$dim & !dropped)
+    else       change <- (newdim!=aa$dim)
+
+    if (any(change)) {  #dims that got smaller, but not dropped
+	newcut <- aa$cutpoints
+	args <- list(...)
+	for (i in (1:length(change))[change])
+	    newcut[[i]] <- (newcut[[i]])[args[[i]]]
+	aa$cutpoints <- newcut
+	}
+    if (drop && any(dropped)){
 	if (all(dropped)) as.numeric(y)   #single element
 	else {
 	    attributes(y) <- list( dim = dim(y)[!dropped],
 				   dimnames = dimnames(y)[!dropped],
 				   dimid = aa$dimid[!dropped],
 				   factor = aa$factor[!dropped],
+				   summary= aa$summary,
 				   cutpoints =aa$cutpoints[!dropped],
 				   class = aa$class)
 	    y
@@ -69,27 +82,20 @@ ratetable <- function(...) {
 	}
     else {
 	attributes(y) <- c(attributes(y), aa[c('dimid','factor','cutpoints',
-						'class')])
+						'summary', 'class')])
 	y
 	}
     }
 
 Math.ratetable <- function(x, ...) {
-    attr(x, 'dimid') <- attr(x, 'factor') <- attr(x,'cutpoints') <- NULL
-    class(x) <- NULL
+    attributes(x) <- attributes(x)[c("dim", "dimnames")]
     NextMethod(.Generic)
     }
 
 Ops.ratetable <- function(e1, e2) {
     #just treat it as an array
-    if (nchar(.Method[1])) {
-	attr(e1, 'dimid') <- attr(x, 'factor') <- attr(x,'cutpoints') <- NULL
-	class(e1) <- NULL
-	}
-    if (nchar(.Method[2])) {
-	attr(e2, 'dimid') <- attr(x, 'factor') <- attr(x,'cutpoints') <- NULL
-	class(e2) <- NULL
-	}
+    if (nchar(.Method[1])) class(e1) <- NULL
+    if (nchar(.Method[2])) class(e2) <- NULL
     NextMethod(.Generic)
     }
 
