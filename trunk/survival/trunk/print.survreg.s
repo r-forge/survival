@@ -1,4 +1,4 @@
-#SCCS %#% 7/13/92
+#SCCS $Id: print.survreg.s,v 4.8 1992-11-19 17:39:09 therneau Exp $
 print.survreg <- function(x, ...)
 {
     if(!is.null(cl <- x$call)) {
@@ -9,10 +9,9 @@ print.survreg <- function(x, ...)
 	cat(" Survreg failed.", x$fail, "\n")
 	return(invisible(x))
 	}
-    coef <- x$coef
+    coef <- c(x$coef, x$parms[!x$fixed])
     if(any(nas <- is.na(coef))) {
-        if(is.null(names(coef))) names(coef) <- paste("b", 1:length(
-                coef), sep = "")        #               coef <- coef[!nas]
+	if(is.null(names(coef))) names(coef) <- paste("b", 1:length(coef), sep = "")
         cat("\nCoefficients: (", sum(nas), 
             " not defined because of singularities)\n", sep = "")
         }
@@ -27,7 +26,7 @@ print.survreg <- function(x, ...)
         rdf <- nobs - rank
     omit <- x$na.action
     if (length(omit))
-	cat("  n=", nobs, " (", naprint(omit), ")\n", sep="")
+	cat("n=", nobs, " (", naprint(omit), ")\n", sep="")
     sd <- survreg.distributions[[x$family[1]]]
     cat("\n", sd$print(x$parms, x$fixed), "\n", sep='')
     cat("Degrees of Freedom:", nobs, "Total;", rdf, "Residual\n")
