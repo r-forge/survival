@@ -1,5 +1,5 @@
 # 
-#  SCCS $Id: survpenal.fit.s,v 1.8 2000-07-10 14:43:41 therneau Exp $
+#  SCCS  $Id: survpenal.fit.s,v 1.9 2001-01-19 15:41:20 therneau Exp $
 # fit a penalized parametric model
 #
 survpenal.fit<- function(x, y, weights, offset, init, controlvals, dist, 
@@ -20,6 +20,11 @@ survpenal.fit<- function(x, y, weights, offset, init, controlvals, dist,
     if (missing(weights)|| is.null(weights)) weights<- rep(1.0,n)
     else if (any(weights<=0)) stop("Invalid weights, must be >0")
 
+    # The strata() term in survreg signals one scale parameter is
+    #  to be fit per strata.  Here strata contains the strata level of each
+    #  subject (variable not needed for only one strata), nstrat= # of strata.
+    # Set nstrat2 = the number of coefficients I need to fit (which is 0
+    #  if the scale is pre-fixed).
     if (scale <0) stop("Invalid scale")
     if (scale >0 && nstrat >1) 
 	    stop("Cannot have both a fixed scale and strata")
@@ -35,22 +40,23 @@ survpenal.fit<- function(x, y, weights, offset, init, controlvals, dist,
     else sd <- dist
     dnum <- match(sd$name, c("Extreme value", "Logistic", "Gaussian"))
     if (is.na(dnum)) {
-	# Not one of the "built-in distributions
+	# Not one of the "built-in" distributions
+	#  Set up for a callback to the expression below for its evaluation
 	dnum <- 4
 	fitter <- c('survreg3', 'survreg5')
 	#Set up the callback for the sparse frailty term
+	# The C routine will have filled in "zzeta"
+	# It is important to never assign to zzeta in this routine
 	n2 <- n + sum(y[,ny]==3)
-	expr1 <- expression({
-	    z <- survlist$z
-	    if (length(parms)) temp <- sd$density(z, parms)
-	    else               temp <- sd$density(z)
+	expr1 <- Quote({
+	    if (length(parms)) temp <- sd$density(zzeta, parms)
+	    else               temp <- sd$density(zzeta)
 	    
 	    if (!is.matrix(temp) || any(dim(temp) != c(n2,5)))
 		    stop("Density function returned an invalid matrix")
-	    survlist$density <- as.vector(as.double(temp))
-	    survlist})
-	survlist <- list(z=double(n2), density=double(n2*5))
-	.C("init_survcall", as.integer(sys.nframe()), expr1)
+	    as.vector(as.double(temp))
+	    })
+	.Call("init_survcall", as.integer(sys.nframe()), as.integer(n2), expr1)
 	}
     else fitter <- c('survreg2', 'survreg4')
 
@@ -93,7 +99,7 @@ survpenal.fit<- function(x, y, weights, offset, init, controlvals, dist,
     #
     # are there any sparse frailty terms?
     # 
-    npenal <- length(pattr)
+    npenal <- length(pattr)   # total number of penalized terms
     if (npenal == 0 || length(pcols) != npenal)
 	    stop("Invalid pcols or pattr arg")
     sparse <- sapply(pattr, function(x) !is.null(x$sparse) &&  x$sparse)
@@ -156,26 +162,32 @@ survpenal.fit<- function(x, y, weights, offset, init, controlvals, dist,
 	nvar <- nvar - 1
 
 	#Set up the callback for the sparse frailty term
+	#  The c-code will set the value of "coef1" before evaluating this
 	pfun1 <- sparse.attr$pfun
-	expr1 <- expression({
-	    coef <- coxlist1$coef
-	    if (is.null(extra1)) temp <- pfun1(coef, theta1, n.eff)
-	    else  temp <- pfun1(coef, theta1, n.eff, extra1)
+	expr1 <- Quote( {
+	    if (is.null(extra1)) temp <- pfun1(coef1, theta1, n.eff)
+	    else  temp <- pfun1(coef1, theta1, n.eff, extra1)
 
-	    if (!is.null(temp$recenter)) 
-		    coxlist1$coef <- coxlist1$coef - as.double(temp$recenter)
+	    if (!is.null(temp$recenter)) newcoef <- coef1 - temp$recenter
+	    else   		         newcoef <- coef1
+
 	    if (!temp$flag) {
-		coxlist1$first <- -as.double(temp$first)
-		coxlist1$second <- as.double(temp$second)
-	        }
-	    coxlist1$penalty <- -as.double(temp$penalty)
-	    coxlist1$flag   <- as.logical(temp$flag)
+		coxlist1 <- list(coef=newcoef, first= -as.double(temp$first),
+				 second = as.double(temp$second),
+				 penalty= -as.double(temp$penalty),
+				 flag   = F)
+		}
+	    else {
+		coxlist1 <- list(coef=newcoef, first= double(nfrail), 
+				 second = double(nfrail),
+				 penalty= -as.double(temp$penalty),
+				 flag   = T)
+		}
 	    if (any(sapply(coxlist1, length) != c(rep(nfrail,3), 1, 1)))
 		    stop("Incorrect length in coxlist1")
 	    coxlist1})
-	coxlist1 <- list(coef=double(nfrail), first=double(nfrail), 
-			 second=double(nfrail), penalty=0.0, flag=F)
-	.C("init_coxcall1", as.integer(sys.nframe()), expr1)
+	.Call('init_coxcall1', as.integer(sys.nframe()), as.integer(nfrail),
+	          expr1, copy=c(F,F,F))
 	}
     else {
 	frailx <- 0
@@ -187,18 +199,19 @@ survpenal.fit<- function(x, y, weights, offset, init, controlvals, dist,
     if (sum(!sparse) >0) {
 	full.imat <- !all(unlist(lapply(pattr, function(x) x$diag)))
 	ipenal <- (1:length(pattr))[!sparse]   #index for non-sparse terms
-	expr2 <- expression({
+	# The c-routine will have set 'coef2' to it's new values
+	expr2 <- Quote({
 	    pentot <- 0
+	    tcoef <- coef2
 	    for (i in ipenal) {
 		pen.col <- pcols[[i]]
-		coef <- coxlist2$coef[pen.col]
+		coef <- coef2[pen.col]
 		if (is.null(extralist[[i]]))
 			temp <- ((pattr[[i]])$pfun)(coef, thetalist[[i]],n.eff)
 		else    temp <- ((pattr[[i]])$pfun)(coef, thetalist[[i]],
 						n.eff,extralist[[i]])
-		if (!is.null(temp$recenter))
-		    coxlist2$coef[pen.col] <- coxlist2$coef[pen.col]- 
-			                               temp$recenter
+		if (!is.null(temp$recenter)) 
+		    tcoef[pen.col] <- tcoef[pen.col]-  temp$recenter
 		if (temp$flag) coxlist2$flag[pen.col] <- T
 		else {
 		    coxlist2$flag[pen.col] <- F
@@ -212,13 +225,14 @@ survpenal.fit<- function(x, y, weights, offset, init, controlvals, dist,
 		    }
 		pentot <- pentot - temp$penalty
 	        }
+	    coxlist2$coef <- tcoef
 	    coxlist2$penalty <- as.double(pentot)
 	    if (any(sapply(coxlist2, length) != length2)) 
 		    stop("Length error in coxlist2")
 	    coxlist2})
 	if (full.imat) {
 	    coxlist2 <- list(coef=double(nvar2), first=double(nvar2), 
-		    second= double(nvar2*nvar2), penalty=0.0, flag=rep(F,nvar2))
+		   second= double(nvar2*nvar2), penalty=0.0, flag=rep(F,nvar2))
 	    length2 <- c(nvar2, nvar2, nvar2*nvar2, 1, nvar2)
 	    }  
 	else {
@@ -226,7 +240,8 @@ survpenal.fit<- function(x, y, weights, offset, init, controlvals, dist,
 		    second=double(nvar2), penalty= 0.0, flag=rep(F,nvar2))
 	    length2 <- c(nvar2, nvar2, nvar2, 1, nvar2)
 	    }
-	.C("init_coxcall2", as.integer(sys.nframe()), expr2)
+	.Call("init_coxcall2", as.integer(sys.nframe()), as.integer(nvar2), 
+	      expr2, copy=c(F,F,F))
         }
     else full.imat <- F
 

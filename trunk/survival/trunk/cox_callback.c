@@ -1,135 +1,121 @@
 /*
+**  SCCS $Id: cox_callback.c,v 1.2 2001-01-19 15:41:15 therneau Exp $
 ** callback routines for the coxph frailty interface
-** This is modeled directly on the interface code for glm/gam
+**  This version has been updated to use the "Green book" macros
 */
 #include "survS.h"
-#include "survproto.h"
-#include "eval.h"
+#include "survproto.h" 
 
 static long nframe;
-static s_name *coxlist1, *coxlist2;
-static s_object *expr1;   /* penalized term(s) */
-static s_object *expr2;   /* sparse term */
+static s_object *coef1;  /*sparse frailties */
+static s_object *coef2;  /* coefs for non-sparse penalized terms */
+static s_object *expr1;  /*the evaluation expression for sparse */
+static s_object *expr2;  /* the expression for non-sparse */
+static double *cdata1;   /* pointer to the data portion of coef1 */
+static double *cdata2;
+static long length1;
+static long length2;
 
 /*
-** The first routine just saves away the location of things
+** The first routine just saves away the location of the calling frame,
+**   allocates an object for the 'coef1' vector, assigns the vector
+**   to the orignal frame, and saves the expression to be computed.
 */
-void init_coxcall1(long *ptr1, s_object **ptr2) {
-S_EVALUATOR
-    long old_ptr;
-    s_object *cl; 
-   	
-    nframe = *ptr1;  /* the frame number of the calling routine */	
-	
-    /* find the coxlist1 object, and save away it's location */
-    coxlist1 = make_name("coxlist1", S_evaluator);  /*name of desired object*/
-    while(nframe > 1 && !(cl= find_in_frame(coxlist1, nframe, S_evaluator)))
-          nframe = parent_frame[nframe];
-    if(nframe == 1) PROBLEM
-          "coxph C code couldn't find object \"coxlist1\""
-            ERROR;
+s_object *init_coxcall1(s_object *frame, s_object *nfrail, s_object *expr) {
+    S_EVALUATOR
 
-    /* now grab a copy of the expression */
-    old_ptr = set_alloc(nframe, S_evaluator);       /*save prior location */
-    expr1 = copy_data(*ptr2, Frames->value.tree[nframe-1], S_evaluator);
-    cl = copy_data(cl, NULL_ENTRY, S_evaluator);        /* ? */
-    set_in_frame(nframe, cl, coxlist1, S_evaluator);    /* ? */
-    set_alloc(old_ptr, S_evaluator);			/*restore prior */
-}
+    nframe = INTEGER_VALUE(frame);/* the frame number of the calling routine */
+    length1= INTEGER_VALUE(nfrail);
+    coef1  = NEW_NUMERIC(length1);
+    ASSIGN_IN_FRAME("coef1", coef1, nframe); 
+    cdata1 = NUMERIC_POINTER(coef1);
+    expr1  = expr;
+    return(frame);   /* From the docs, it appears that I have to 
+				 return something */
+    }
 
-void init_coxcall2(long *ptr1, s_object **ptr2) {
-S_EVALUATOR
-    long old_ptr;
-    s_object *cl; 
-   	
-    nframe = *ptr1;  /* the frame number of the calling routine */	
-	
-    coxlist2 = make_name("coxlist2", S_evaluator);
-    while(nframe > 1 && !(cl =find_in_frame(coxlist2, nframe, S_evaluator)))
-          nframe = parent_frame[nframe];
-    if(nframe == 1) PROBLEM
-          "coxph C code couldn't find object \"coxlist2\""
-            ERROR;
+s_object *init_coxcall2(s_object *frame, s_object *ncoef, s_object *expr) {
+    S_EVALUATOR
 
-     /* now grab a copy of the expression */
-    old_ptr = set_alloc(nframe, S_evaluator);  /*save prior location */
-    expr2 = copy_data(*ptr2, Frames->value.tree[nframe-1], S_evaluator);/*get*/
-    cl = copy_data(cl, NULL_ENTRY, S_evaluator);        /* ? */
-    set_in_frame(nframe, cl, coxlist2, S_evaluator);    /* ? */
-    set_alloc(old_ptr, S_evaluator);  /*restore prior */
-}
+    nframe = INTEGER_VALUE(frame);/* the frame number of the calling routine */
+    length2= INTEGER_VALUE(ncoef);
+    coef2  = NEW_NUMERIC(length2);
+    ASSIGN_IN_FRAME("coef2", coef2, nframe); 
+    cdata2 = NUMERIC_POINTER(coef2);
+    expr2  = expr;
+    return(frame);
+    }
 
 /*
 ** This part is called by the coxfit4 function, to get the penalty terms
 */
 void cox_callback (int which, double *coef, double *first, 
 	           double *second, double *penalty, long *flag) {
-S_EVALUATOR
-    s_object *coxlist, *temp;
-    long preva, prevf;
+    S_EVALUATOR
+	int i, j;
+    s_object *coxlist;
+    s_object **lptr;    /* pointer to the list of elements in coxlist */
+    double *dptr;
+    long   *logical;
+    long  n;
 
-    /* Find the coxlist vector, back in the original S calling frame */
-    preva = set_alloc(nframe, S_evaluator);
-
+    /* 
+    ** Assign the frailty coef in the parent frame,
+    **  and evaluate the expression.
+    ** It is important that coef1 and coef2 be treated as "read only" objects
+    **  in the parent frame, since we replace (again and again) the elements
+    **  of the vectors without checking to see that they have not been 
+    **  supplanted by a new copy.  In some sense, calling ASSIGN_IN_FRAME
+    **  each time we entered this routine would be safer, except for the fact
+    **  that in this version (6.0) reassigning the same object into a frame
+    **  more than once crashes Splus.
+    ** The expression darned well better return a list.
+    */
     if (which==1) {
-        coxlist = find_in_frame(coxlist1, nframe, S_evaluator);
-	if (!coxlist)  Recover("Couldn't find coxlist1!", NULL, S_evaluator); 
+	for (i=0; i<length1; i++) cdata1[i]= coef[i];
+	coxlist = EVAL_IN_FRAME(expr1, nframe);
+	n = length1;
 	}
     else {
-        coxlist = find_in_frame(coxlist2, nframe, S_evaluator);
-	if (!coxlist)  Recover("Couldn't find coxlist2!", NULL, S_evaluator); 
+	for (i=0; i<length2; i++) cdata2[i]= coef[i];
+	coxlist = EVAL_IN_FRAME(expr2, nframe);
+	n = length2;
         }
-
-    /* Now plug the new value of coef into it */
-    temp = xact_comp(coxlist, "coef", S_evaluator);
-    if (!temp) Recover("Couldn't find coef in the list", NULL, S_evaluator);
-    temp = coevec(temp, DOUBLE, TRUE, CHECK_IT, S_evaluator);
-    Memmove(temp->value.Double, coef, temp->length);
-
+    if (!IS_LIST(coxlist)) PROBLEM
+			       "The expression expr%d did not return a list!",
+			          which ERROR;
     
-   /* evaluate the expression */
-    prevf = Nframe;
-    set_frame(nframe, S_evaluator);
-    if (which==1) eval(expr1, S_evaluator);
-    else          eval(expr2, S_evaluator);
+    /*
+    ** Grab data back off of the list
+    **  The C-code here is fragile: it assumes that the elements of the
+    **  list are coef, first, second, penalty, and flag IN THAT ORDER
+    */
+    j = LENGTH(coxlist);
+    if (j !=5) PROBLEM
+	  "The expression expr%d returned a list of %d elements, %d required",
+		   which, j  ERROR;
+    lptr = LIST_POINTER(coxlist);
 
-    /* Grab the updated values from the list */
-    if (which==1) {
-        coxlist = find_in_frame(coxlist1, nframe, S_evaluator);
-	if (!coxlist)  Recover("Couldn't find coxlist1!", NULL, S_evaluator); 
-	}
+    dptr = NUMERIC_POINTER(lptr[0]);  /* coef, possibly recentered */
+    j =    LENGTH(lptr[0]);
+    if (j != n) PROBLEM "Wrong length for coef, want %d got %d", n, j ERROR;
+    for (i=0; i<j; i++) coef[i] = dptr[i];
+
+    dptr = NUMERIC_POINTER(lptr[1]);  /* first derivative */
+    j =    LENGTH(lptr[1]);
+    if (j != n) PROBLEM "Wrong length for first, want %d got %d", n, j ERROR;
+    for (i=0; i<j; i++) first[i] = dptr[i];
+
+    dptr = NUMERIC_POINTER(lptr[2]);  /* second derivative */
+    j =    LENGTH(lptr[2]);
+    for (i=0; i<j; i++) second[i] = dptr[i];
+
+    penalty[0] = NUMERIC_VALUE(lptr[3]);
+
+    j = LENGTH(lptr[4]);
+    if (j==1) flag[0] = LOGICAL_VALUE(lptr[4]);
     else {
-        coxlist = find_in_frame(coxlist2, nframe, S_evaluator);
-	if (!coxlist)  Recover("Couldn't find coxlist2!", NULL, S_evaluator); 
-        }
-	
-    temp = xact_comp(coxlist, "coef", S_evaluator);
-    if (!temp) Recover("Couldn't find coef in coxlist", NULL, S_evaluator);
-    temp = coevec(temp, DOUBLE, TRUE, CHECK_IT, S_evaluator);
-    Memmove(coef, temp->value.Double, temp->length);
-    
-    temp = xact_comp(coxlist, "first", S_evaluator);
-    if (!temp) Recover("Couldn't find first in coxlist", NULL, S_evaluator);
-    temp = coevec(temp, DOUBLE, TRUE, CHECK_IT, S_evaluator);
-    Memmove(first, temp->value.Double, temp->length);
-
-    temp = xact_comp(coxlist, "second", S_evaluator);
-    if (!temp) Recover("Couldn't find second in coxlist", NULL, S_evaluator);
-    temp = coevec(temp, DOUBLE, TRUE, CHECK_IT, S_evaluator);
-    Memmove(second, temp->value.Double, temp->length);
-    
-    temp = xact_comp(coxlist, "flag", S_evaluator);
-    if (!temp) Recover("Couldn't find flag in coxlist", NULL, S_evaluator);
-    temp = coevec(temp, LGL, TRUE, CHECK_IT, S_evaluator);
-    Memmove(flag, temp->value.Long, temp->length);
-
-    temp = xact_comp(coxlist, "penalty", S_evaluator);
-    if (!temp) Recover("Couldn't find penalty in coxlist", NULL, S_evaluator);
-    temp = coevec(temp, DOUBLE, TRUE, CHECK_IT, S_evaluator);
-    Memmove(penalty, temp->value.Double, temp->length);
-
-    /* Clean up */
-    if (preva > nframe) set_frame(preva, S_evaluator);
-    set_alloc(preva, S_evaluator);
-    set_frame(prevf, S_evaluator);
+	logical = LOGICAL_POINTER(lptr[4]);
+	for (i=0; i<j; i++) flag[i] = logical[i];
+	}
     }

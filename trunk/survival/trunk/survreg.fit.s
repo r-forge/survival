@@ -1,5 +1,5 @@
 # 
-#  SCCS $Id: survreg.fit.s,v 5.10 2000-07-10 14:43:42 therneau Exp $
+#  SCCS $Id: survreg.fit.s,v 5.11 2001-01-19 15:41:21 therneau Exp $
 #
 survreg.fit<- function(x, y, weights, offset, init, controlvals, dist, 
 		       scale=0, nstrat=1, strata, parms=NULL) {
@@ -37,19 +37,20 @@ survreg.fit<- function(x, y, weights, offset, init, controlvals, dist,
 	# Not one of the "built-in distributions
 	dnum <- 4
 	fitter <- 'survreg3'
+
 	#Set up the callback for the sparse frailty term
+	# The C routine will have filled in "zzeta"
+	# It is important to never assign to zzeta in this routine
 	n2 <- n + sum(y[,ny]==3)
-	expr1 <- expression({
-	    z <- survlist$z
-	    if (length(parms)) temp <- sd$density(z, parms)
-	    else               temp <- sd$density(z)
+	expr1 <- Quote({
+	    if (length(parms)) temp <- sd$density(zzeta, parms)
+	    else               temp <- sd$density(zzeta)
 	    
 	    if (!is.matrix(temp) || any(dim(temp) != c(n2,5)))
 		    stop("Density function returned an invalid matrix")
-	    survlist$density <- as.vector(as.double(temp))
-	    survlist})
-	survlist <- list(z=double(n2), density=double(n2*5))
-	.C("init_survcall", as.integer(sys.nframe()), expr1)
+	    as.vector(as.double(temp))
+	    })
+	.Call("init_survcall", as.integer(sys.nframe()), as.integer(n2), expr1)
 	}
     else fitter <- 'survreg2'
 

@@ -1,4 +1,4 @@
-# SCCS $Id: coxpenal.fit.s,v 1.8 2000-06-12 07:50:03 therneau Exp $
+# SCCS @(#)coxpenal.fit.s	1.8 06/12/00
 #
 # General penalized likelihood
 #
@@ -115,27 +115,33 @@ coxpenal.fit <- function(x, y, strata, offset, init, control,
 	nvar <- nvar - 1
 
 	#Set up the callback for the sparse frailty term
+	#  The c-code will set the value of "coef1" before evaluating this
 	pfun1 <- sparse.attr$pfun
-	expr1 <- expression({
-	    coef <- coxlist1$coef
-	    if (is.null(extra1)) temp <- pfun1(coef, theta1, n.eff)
-	    else  temp <- pfun1(coef, theta1, n.eff, extra1)
+	expr1 <- Quote( {
+	    if (is.null(extra1)) temp <- pfun1(coef1, theta1, n.eff)
+	    else  temp <- pfun1(coef1, theta1, n.eff, extra1)
 
-	    if (!is.null(temp$recenter)) 
-		    coxlist1$coef <- coxlist1$coef - as.double(temp$recenter)
+	    if (!is.null(temp$recenter)) newcoef <- coef1 - temp$recenter
+	    else   		         newcoef <- coef1
+
 	    if (!temp$flag) {
-		coxlist1$first <- -as.double(temp$first)
-		coxlist1$second <- as.double(temp$second)
-	        }
-	    coxlist1$penalty <- -as.double(temp$penalty)
-	    coxlist1$flag   <- as.logical(temp$flag)
+		coxlist1 <- list(coef=newcoef, first= -as.double(temp$first),
+				 second = as.double(temp$second),
+				 penalty= -as.double(temp$penalty),
+				 flag   = F)
+		}
+	    else {
+		coxlist1 <- list(coef=newcoef, first= double(nfrail), 
+				 second = double(nfrail),
+				 penalty= -as.double(temp$penalty),
+				 flag   = T)
+		}
 	    if (any(sapply(coxlist1, length) != c(rep(nfrail,3), 1, 1)))
 		    stop("Incorrect length in coxlist1")
 	    coxlist1})
-	coxlist1 <- list(coef=double(nfrail), first=double(nfrail), 
-			 second=double(nfrail), penalty=0.0, flag=F)
-	.C("init_coxcall1", as.integer(sys.nframe()), expr1)
-    }
+	.Call('init_coxcall1', as.integer(sys.nframe()), as.integer(nfrail),
+	          expr1, copy=c(F,F,F))
+	}
     else {
 	xx <- x
 	frailx <- 0
@@ -146,18 +152,19 @@ coxpenal.fit <- function(x, y, strata, offset, init, control,
     if (sum(!sparse) >0) {
 	full.imat <- !all(unlist(lapply(pattr, function(x) x$diag)))
 	ipenal <- (1:length(pattr))[!sparse]   #index for non-sparse terms
-	expr2 <- expression({
+	# The c-routine will have set 'coef2' to it's new values
+	expr2 <- Quote({
 	    pentot <- 0
+	    tcoef <- coef2
 	    for (i in ipenal) {
 		pen.col <- pcols[[i]]
-		coef <- coxlist2$coef[pen.col]
+		coef <- coef2[pen.col]
 		if (is.null(extralist[[i]]))
 			temp <- ((pattr[[i]])$pfun)(coef, thetalist[[i]],n.eff)
 		else    temp <- ((pattr[[i]])$pfun)(coef, thetalist[[i]],
 						n.eff,extralist[[i]])
-		if (!is.null(temp$recenter))
-		    coxlist2$coef[pen.col] <- coxlist2$coef[pen.col]- 
-			                               temp$recenter
+		if (!is.null(temp$recenter)) 
+		    tcoef[pen.col] <- tcoef[pen.col]-  temp$recenter
 		if (temp$flag) coxlist2$flag[pen.col] <- T
 		else {
 		    coxlist2$flag[pen.col] <- F
@@ -171,6 +178,7 @@ coxpenal.fit <- function(x, y, strata, offset, init, control,
 		    }
 		pentot <- pentot - temp$penalty
 	        }
+	    coxlist2$coef <- tcoef
 	    coxlist2$penalty <- as.double(pentot)
 	    if (any(sapply(coxlist2, length) != length2)) 
 		    stop("Length error in coxlist2")
@@ -185,7 +193,8 @@ coxpenal.fit <- function(x, y, strata, offset, init, control,
 		    second=double(nvar), penalty= 0.0, flag=rep(F,nvar))
 	    length2 <- c(nvar, nvar, nvar, 1, nvar)
 	    }
-	.C("init_coxcall2", as.integer(sys.nframe()), expr2)
+	.Call("init_coxcall2", as.integer(sys.nframe()), as.integer(nvar), 
+	      expr2, copy=c(F,F,F))
         }
     else full.imat <- F
 
