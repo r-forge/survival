@@ -1,0 +1,67 @@
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<! SCCS $Id: plot.aareg.sgml,v 1.1 2001-04-17 08:23:42 therneau Exp $>
+<s-function-doc>
+<s-topics>
+<s-topic> plot.aareg </s-topic>
+</s-topics>
+<s-title>
+Plot an <s-object>aareg</s-object> object.
+</s-title>
+<s-description>
+Plot the estimated coefficient function(s) from a fit
+of Aalen's additive regression model.
+</s-description>
+<s-usage>
+<s-old-style-usage>
+plot.aareg(x, se=T, maxtime, ...)
+</s-old-style-usage>
+</s-usage>
+
+<s-args-required>
+<s-arg name=" x ">
+the result of a call to the <s-object>aareg</s-object> function
+</s-arg>
+</s-args-required>
+
+<s-args-optional>
+<s-arg name=" se ">
+if TRUE, standard error bands are included on the plot
+</s-arg>
+
+<s-arg name=" maxtime ">
+upper limit for the x-axis.
+</s-arg>
+
+<s-arg name=" ... ">
+other graphical parameters such as line type, color, or axis labels.
+</s-arg>
+</s-args-optional>
+<s-side-effects>
+A plot is produced on the current graphical device.
+</s-side-effects>
+<s-section name = "REFERENCES">
+Aalen, O.O. (1989). A linear regression model for the analysis of life times.
+Statistics in Medicine, 8:907-925.
+</s-section>
+<s-see>
+aareg
+</s-see>
+<s-examples>
+fit <- aareg(Surv(time, status) ~ age + sex + ph.ecog, data=lung)
+plot(fit[1])   # plot of the intercept term versus time
+plot(fit[3])   # the plot for the 'sex' coefficient
+<s-example>
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>
+survival
+</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

@@ -1,0 +1,73 @@
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<! SCCS $Id: print.aareg.sgml,v 1.1 2001-04-17 08:23:44 therneau Exp $>
+<s-function-doc>
+<s-topics>
+<s-topic> print.aareg </s-topic>
+</s-topics>
+<s-title>
+Print an <s-object>aareg</s-object> object
+</s-title>
+<s-description>
+Print out a fit of Aalen's additive regression model
+</s-description>
+<s-usage>
+<s-old-style-usage>
+print.aareg(x, maxtime, weight=c("var", "nrisk"))
+</s-old-style-usage>
+</s-usage>
+
+<s-args-required>
+<s-arg name=" x ">
+the result of a call to the <s-object>aareg</s-object> function
+</s-arg>
+</s-args-required>
+
+<s-args-optional>
+<s-arg name=" maxtime ">
+the upper time point to be used in the test for non-zero slope
+</s-arg>
+
+<s-arg name=" weight ">
+the weighting to be used in the test for non-zero slope.
+The default weights are based on the variance of each coefficient, as
+a function of time.  The alternative weight is proportional to the number
+of subjects still at risk at each time point.
+</s-arg>
+</s-args-optional>
+
+<s-value>
+the calling argument is returned.
+</s-value>
+
+<s-side-effects>
+the results of the fit are displayed.
+</s-side-effects>
+
+<s-details>
+The estimated increments in the coefficient estimates can become quite
+unstable near the end of follow-up, due to the small number of observations
+still at risk in a data set.
+Thus, the test for slope will sometimes be more powerful if this last
+`tail' is excluded.
+</s-details>
+
+<s-section name = "REFERENCES">
+Aalen, O.O. (1989). A linear regression model for the analysis of life times.
+Statistics in Medicine, 8:907-925.
+</s-section>
+
+<s-see>
+aareg
+</s-see>
+<s-keywords>
+<s-keyword>
+survival
+</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>
