@@ -1,11 +1,10 @@
-# SCCS $Id: survfit.coxph.s,v 5.2 1998-09-25 22:20:44 therneau Exp $
+# SCCS $Id: survfit.coxph.s,v 5.3 1998-11-04 02:03:39 therneau Exp $
 setOldClass(c('survfit.cox', 'survfit'))
 
 survfit.coxph <-
   function(object, newdata, se.fit=T, conf.int=.95, individual=F,
-	    type=c('tsiatis', 'kaplan-meier'),
-	    conf.type=c('log', 'log-log', 'plain', 'none'))
-		 {
+	    type, vartype,
+	    conf.type=c('log', 'log-log', 'plain', 'none')) {
 
     if(!is.null((object$call)$weights))
 	stop("Survfit cannot (yet) compute the result for a weighted model")
@@ -16,66 +15,88 @@ survfit.coxph <-
     n <- object$n
     nvar <- length(object$coef)
     score <- exp(object$linear.predictor)
-    method <- match.arg(type)
-    coxmethod <- object$method
+    
+    temp <- c('aalen', 'kalbfleisch-prentice', 'efron',
+	           'tsiatis', 'breslow', 'kaplan-meier', 'fleming-harringon',
+	           'greenwood', 'exact')
+    temp2 <- c(2,1,3,2,2,1,3,1,1)
+    if (missing(type)) type <- object$method
+    if (missing(vartype)) vartype <- type
+    method <- temp2[match(match.arg(type, temp), temp)]
+    if (is.na(method)) stop("Invalid survival curve type")
+    vartype <- temp2[match(match.arg(vartype, temp), temp)]
+    if (is.na(vartype)) stop("Invalid variance type specified")
     if (!se.fit) conf.type <- 'none'
     else conf.type <- match.arg(conf.type)
-    if (length(strat)) temp <- untangle.specials(Terms, 'strata', 1)
 
-    x <- object$x
-    y <- object$y
-    if (is.null(x) && (length(strat) || se.fit)) {  # I need both X and Y
-	stratum <- object$strata
-	m <- model.frame(object)
-	if (is.null(x)) {   #Both strata and X will be null, or neither
-	    if (length(strat)) {
-		x <- model.matrix(Terms[-temp$terms], m)[,-1,drop=F]
-		stratum <- strata(m[temp$vars])
-		}
-	    else {
-		x <- model.matrix(Terms, m)[,-1,drop=F]
-		stratum <- rep(1,n)
-		}
-	    }
-	if (is.null(y)) y <- model.extract(m, 'response')
-	}
-    else {
-	y <- object$y
-	if (is.null(y)) {
-	    m <- model.frame(object)
-	    y <- model.extract(m, 'response')
-	    }
-	if (length(strat)) stratum <- object$strata
-	else               stratum <- rep(1,n)
-	}
-    if (is.null(x)) x <- matrix(0,n,nvar)
-
+    # Recreate a copy of the data
+    data <- coxph.getdata(object, y=T, x=se.fit,
+			           strata=(se.fit || length(strat)))
+    y <- data$y
     ny <- ncol(y)
     if (nrow(y) != n) stop ("Mismatched lengths: logic error")
+
+    # Get the sort index for the data, and add a column to y if
+    #  necessary to make it of the "counting process" type  (I only
+    #  wrote 1 C routine to handle both cases).
+    #
     type <- attr(y, 'type')
     if (type=='counting') {
-	ord <- order(stratum, y[,2], -y[,3])
 	if (method=='kaplan-meier')
 	      stop ("KM method not valid for counting type data")
-	}
+	if (length(strat)) ord <- order(data$strata, y[,2], -y[,3])
+	else               ord <- order(y[,2], -y[,3]) 
+        }
     else if (type=='right') {
-	ord <- order(stratum, y[,1], -y[,2])
-	y <- cbind(-1, y)
+	if (length(strat)) ord <- order(data$strata, y[,1], -y[,2])
+	else               ord <- order(y[,1], -y[,2]) 
+	miny <- min(y[,1])
+	if (miny < 0) y <- cbind(2*miny -1, y)
+	else          y <- cbind(-1, y)
 	}
     else stop("Cannot handle \"", type, "\" type survival data")
 
+    if (!is.null(data$x)) x <- data$x[ord,]
+    else                  x <- 0
+    if (is.null(object$weights))  weights <- rep(1,n)
+    else                          weights <- object$weights[ord]
+
+    # Create a 'nice' strata vector for the C code, 1 at the last obs of
+    #   each strata, and 0 otherwise
     if (length(strat)) {
-	newstrat <- (as.numeric(stratum))[ord]
+	newstrat <- (as.numeric(data$strata))[ord]
 	newstrat <- as.integer(c(1*(diff(newstrat)!=0), 1))
 	}
-    else newstrat <- as.integer(c(rep(0,n-1),1))
+    else newstrat <- as.integer(rep(0,n))
+    newstrat[n] <- 1
 
+    # Which type of curve do I need?
+    #  1: the new data gives a covariate path for a single individual,
+    #          one curve as a result
+    #  2: each line of new data is "covariates over all time", and 
+    #          gives rise to a separate curve
+    #
     if (individual && !missing(newdata)) stype <- 1
     else {
 	stype <- 2
-	if (length(strat)) Terms <- Terms[-temp$terms]  #don't need it
+	# Don't need (or want) strata term if it is there
+	if (length(strat)) {
+	    temp <- untangle.specials(Terms, 'strata')
+	    Terms <- Terms[-temp$terms]
+	    }
 	}
-    offset2 <- mean(object$linear.predictors)
+    if (stype==1 && method != vartype)
+	    stop("The type and vartype args must agree for individual=T")
+    if (stype==1 && method==1)
+	    stop("Only Aalen and F-H estimates available for individual=T")
+
+    #
+    # Get the second, "new" data set.  By default the new curve is
+    #  produced around the mean of the old ones.  It the new data set
+    #  is missing, use the old data set along with the mean of the old
+    #  data set, but NOT the mean of the old offset variables.
+    #  
+    offset2 <- 0   #offset variable for the new data set
     if (!missing(newdata)) {
 	m2 <- model.newframe(Terms, newdata, response=(stype==1))
 	if (!inherits(m2, 'data.frame'))  {
@@ -108,21 +129,24 @@ survfit.coxph <-
 	}
     else x2 <- matrix(object$means, nrow=1)
     n2 <- nrow(x2)
+
+    # Compute risk scores for the new subjects
     coef <- ifelse(is.na(object$coef), 0, object$coef)
     newrisk <- exp(c(x2 %*% coef) + offset2 - sum(coef*object$means))
 
     dimnames(y) <- NULL   #I only use part of Y, so names become invalid
     storage.mode(y) <- 'double'
+    ndead <- sum(y[,3])
     if (stype==1) {
 	surv <- .C("agsurv1", as.integer(n),
 			     as.integer(nvar),
 			     y[ord,],
 			     as.double(score[ord]),
-			     strata=newstrat,
-			     surv=double(n*n2),
-			     varh=double(n*n2),
-			     nsurv=as.integer(2+ 1*(coxmethod=='efron')),
-			     as.double(x[ord,]),
+			     strata=as.integer(newstrat),
+			     surv=double(ndead*n2),
+			     varhaz=double(ndead*n2),
+			     nsurv=as.integer(method==3),
+			     as.double(x),
 			     double(3*nvar),
 			     as.double(object$var),
 			     y = double(3*n*n2),
@@ -137,26 +161,24 @@ survfit.coxph <-
 		     n.risk= temp[,2],
 		     n.event=temp[,3],
 		     surv = surv$surv[ntime])
-	if (se.fit) temp$std.err <- sqrt(surv$varh[ntime])
+	if (se.fit) temp$std.err <- sqrt(surv$varhaz[ntime])
 	}
     else {
-	temp <- ifelse(method=='kaplan-meier', 1,
-					2+as.integer(coxmethod=='efron'))
 	surv <- .C('agsurv2', as.integer(n),
 			      as.integer(nvar* se.fit),
 			      y = y[ord,],
 			      as.double(score[ord]),
-			      strata = newstrat,
-			      surv = double(n*n2),
-			      varhaz = double(n*n2),
-			      as.double(x[ord,]),
+			      strata = as.integer(newstrat),
+			      surv = double(ndead*n2),
+			      varhaz = double(ndead*n2),
+			      as.double(x),
 			      as.double(object$var),
-			      nsurv = as.integer(temp),
+			      nsurv = as.integer(c(method, vartype)),
 			      double(3*nvar),
 			      as.integer(n2),
 			      as.double(x2),
 			      as.double(newrisk))
-	nsurv <- surv$nsurv
+	nsurv <- surv$nsurv[1]
 	ntime <- 1:nsurv
 	if (n2>1) {
 	    tsurv <- matrix(surv$surv[1:(nsurv*n2)], ncol=n2)
@@ -175,7 +197,7 @@ survfit.coxph <-
 	else {
 	    temp <- surv$strata[1:(1+surv$strata[1])]
 	    tstrat <- diff(c(0, temp[-1])) #n in each strata
-	    names(tstrat) <- levels(stratum)
+	    names(tstrat) <- levels(data$strata)
 	    temp _ list(time=surv$y[ntime,1],
 		     n.risk=surv$y[ntime,2],
 		     n.event=surv$y[ntime,3],

@@ -1,4 +1,4 @@
-/*  SCCS $Id: agsurv1.c,v 5.2 1998-10-27 17:29:49 therneau Exp $
+/*  SCCS $Id: agsurv1.c,v 5.3 1998-11-04 02:03:37 therneau Exp $
 /*
 ** Fit the survival curve, the special case of an Anderson-Gill style data
 **   This program differs from survfit in several key ways:
@@ -23,6 +23,7 @@
 **    strata[n] - ==1 at the last obs of each strata
 **    xmat   = data matrix that generated the Cox fit
 **    varcov[nvar,nvar] = covariance matrix of the cox coefs
+**    snsurv = method, 0:Aalen, 1=Fleming-Harrington
 **
 **    hisn  = # of lines that define the new subject
 **    hisy  = the y matrix for the new subject -- column 3 is ignored
@@ -157,7 +158,7 @@ void agsurv1(long   *sn,     long   *snvar,  double *y,      double *score,
 		temp=0;
 		for (k=person; k<n && stop[k]==time; k++) {
 		    if (event[k]==1) {
-			if (method==3) downwt = temp++/deaths;
+			if (method==1) downwt = temp++/deaths;
 			else           downwt =0;
 			d2 = (denom - downwt*e_denom);
 			hazard += 1/d2;

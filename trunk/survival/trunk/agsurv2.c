@@ -1,4 +1,4 @@
-/*  SCCS $Id: agsurv2.c,v 5.3 1998-10-27 17:29:50 therneau Exp $
+/*  SCCS $Id: agsurv2.c,v 5.4 1998-11-04 02:03:38 therneau Exp $
 /*
 ** Fit the survival curve, the special case of an Anderson-Gill style data
 **   This program differs from survfit in several key ways:
@@ -20,7 +20,8 @@
 **    strata[n] - ==1 at the last obs of each strata
 **    xmat   = data matrix that generated the Cox fit
 **    varcov   = variance matrix of the coefs
-**    nsurv    = the method 1=Kalbfleisch/Prentice  2= Tsiatis/Breslow
+**    nsurv[2] = the methods for estimate and variance:
+**		1=Kalbfleisch/Prentice  2= Aalen/Breslow
 **                              3= Tsiatis, Efron approx
 **
 **    ncurve  = # of curves to produce
@@ -55,7 +56,7 @@ void agsurv2(long   *sn,      long   *snvar,    double *y,
     double hazard, varhaz;
     double *start, *stop, *event;
     int n, nvar;
-    int nsurv, method;
+    int nsurv, type, vartype;
     int kk, psave;
     int deaths;
     double *a, *a2;
@@ -82,7 +83,7 @@ void agsurv2(long   *sn,      long   *snvar,    double *y,
 
     n = *sn;  nvar = *snvar;
     ncurve = *sncurve;
-    method = *snsurv;
+    type = snsurv[0];  vartype=snsurv[1];
     start =y;
     stop  = y+n;
     event = y+n+n;
@@ -146,19 +147,36 @@ void agsurv2(long   *sn,      long   *snvar,    double *y,
 		for (k=person; k<n && stop[k]==time; k++) {
 		    if (event[k]==1) {
 			kk =k ;      /*save for km case */
-			if (method==3) downwt = temp++/deaths;
-			else           downwt =0;
-			d2 = (denom - downwt*e_denom);
-			hazard += 1/d2;
-			varhaz += 1/(d2*d2);
-			for (i=0; i<nvar; i++)
-			    d[i] += (a[i]- downwt*a2[i])/ (d2*d2);
+			downwt = temp/deaths;
+			if (type==3) {
+			    d2 = (denom - downwt*e_denom);
+			    hazard += 1/d2;
+			    }
+			else  hazard += 1/denom;
+			
+			if (vartype==3) {
+			    d2 = (denom - downwt*e_denom);
+			    varhaz += 1/(d2*d2);
+			    for (i=0; i<nvar; i++)
+				d[i] += (a[i]- downwt*a2[i])/ (d2*d2);
+			    }
+			else {
+			    if (vartype==2) varhaz += 1/(denom*denom);
+			    for (i=0; i<nvar; i++)
+				d[i] += a[i]/(denom*denom);
+			    }
+			temp++;
 			}
 		    person++;
 		    if (strata[k]==1) break;
 		    }
 
-		if (method==1) {
+		if (vartype==1) {
+		    if (denom >e_denom) 
+			varhaz += deaths/(denom*(denom-e_denom));
+		    else varhaz +=deaths; /* a hack to keep from zero divide */
+		    }
+		if (type==1) {
 		    /*
 		    ** kalbfleisch estimator is harder;
 		    */
@@ -190,6 +208,7 @@ void agsurv2(long   *sn,      long   *snvar,    double *y,
 		for (i=0; i<nvar; i++)
 		    for (j=0; j< nvar; j++)
 			temp += d[i]*d[j]*imat[i][j];
+
 		varh[nsurv] = varhaz + temp;
 		if (column==(ncurve-1)) {
 		    /* on the last pass, I can overwrite old data with new */

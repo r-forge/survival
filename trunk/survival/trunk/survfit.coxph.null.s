@@ -1,7 +1,7 @@
-# SCCS $Id: survfit.coxph.null.s,v 5.2 1998-11-03 13:20:19 therneau Exp $
+# SCCS $Id: survfit.coxph.null.s,v 5.3 1998-11-04 02:03:38 therneau Exp $
 survfit.coxph.null <-
   function(object, newdata, se.fit=T, conf.int=.95, individual=F,
-	    type=c('tsiatis', 'kaplan-meier'),
+	    type, vartype,
 	    conf.type=c('log', 'log-log', 'plain', 'none'), ...) {
     # May have strata and/or offset terms, linear predictor = offset
     #  newdata doesn't make any sense
@@ -12,7 +12,18 @@ survfit.coxph.null <-
     strat <- attr(Terms, "specials")$strata
     n <- object$n
     score <- exp(object$linear.predictor)
-    method <- match.arg(type)
+
+    temp <- c('aalen', 'kalbfleisch-prentice', 'efron',
+	           'tsiatis', 'breslow', 'kaplan-meier', 'fleming-harringon',
+	           'greenwood', 'exact')
+    temp2 <- c(2,1,3,2,2,1,3,1,1)
+    if (missing(type)) type <- object$method
+    if (missing(vartype)) vartype <- type
+    method <- temp2[match(match.arg(type, temp), temp)]
+    if (is.na(method)) stop("Invalid survival curve type")
+    vartype <- temp2[match(match.arg(vartype, temp), temp)]
+    if (is.na(vartype)) stop("Invalid variance type specified")
+
     if (!se.fit) conf.type <- 'none'
     else conf.type <- match.arg(conf.type)
 
@@ -60,17 +71,17 @@ survfit.coxph.null <-
 			  as.integer(0),
 			  y = y[ord,],
 			  as.double(score[ord]),
-			  strata = newstrat,
+			  strata = as.integer(newstrat),
 			  surv = double(n),
 			  varhaz = double(n),
 			  double(1),
-			  double(0),
-			  nsurv = as.integer(method=='kaplan-meier'),
+			  as.double(0),
+	                  nsurv = as.integer(c(method, vartype)),
 			  double(2),
 			  as.integer(1),
 			  double(1),
 			  newrisk= as.double(1))
-    nsurv <- surv$nsurv
+    nsurv <- surv$nsurv[1]
     ntime <- 1:nsurv
     tsurv <- surv$surv[ntime]
     tvar  <- surv$varhaz[ntime]
