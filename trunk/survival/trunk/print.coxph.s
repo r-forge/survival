@@ -1,6 +1,6 @@
-# SCCS $Id: print.coxph.s,v 4.3 1992-08-05 14:41:05 therneau Exp $
+# SCCS $Id: print.coxph.s,v 4.4 1993-07-04 16:08:54 therneau Exp $
 print.coxph <-
- function(cox, digits=3, ...)
+ function(cox, digits=.Options$digits -4, ...)
     {
     if (!is.null(cl<- cox$call)) {
 	cat("Call:\n")
@@ -18,10 +18,21 @@ print.coxph <-
     se <- sqrt(diag(cox$var))
     if(is.null(coef) | is.null(se))
         stop("Input is not valid")
-    tmp <- cbind(coef, exp(coef), se, coef/se, 1 - pchisq((coef/
-	se)^2, 1))
-    dimnames(tmp) <- list(names(coef), c("coef", "exp(coef)",
-	"se(coef)", "z", "p"))
+
+    if (is.null(cox$robust.var)) {
+	tmp <- cbind(coef, exp(coef), se, coef/se,
+	       signif(1 - pchisq((coef/ se)^2, 1), digits -1))
+	dimnames(tmp) <- list(names(coef), c("coef", "exp(coef)",
+	    "se(coef)", "z", "p"))
+	}
+    else {
+	rse <- sqrt(diag(cox$robust.var))
+	tmp <- cbind(coef, exp(coef), se, rse, coef/rse,
+	       signif(1 - pchisq((coef/rse)^2, 1), digits -1))
+	dimnames(tmp) <- list(names(coef), c("coef", "exp(coef)",
+	    "se(coef)", "robust se", "z", "p"))
+	}
+    cat("\n")
     prmatrix(tmp)
 
     logtest <- -2 * (cox$loglik[1] - cox$loglik[2])

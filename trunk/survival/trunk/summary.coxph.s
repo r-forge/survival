@@ -1,6 +1,7 @@
-#SCCS $Date: 1992-06-24 09:35:11 $ $Id: summary.coxph.s,v 4.1 1992-06-24 09:35:11 therneau Exp $
+#SCCS $Date: 1993-07-04 16:08:53 $ $Id: summary.coxph.s,v 4.2 1993-07-04 16:08:53 therneau Exp $
 summary.coxph <-
- function(cox, table = T, coef = T, conf.int = 0.95, scale = 1, digits=3)
+ function(cox, table = T, coef = T, conf.int = 0.95, scale = 1,
+			digits = .Options$digits-4 )
     {
     if (!is.null(cl<- cox$call)) {
 	cat("Call:\n")
@@ -24,14 +25,31 @@ summary.coxph <-
     savedig <- options(digits = digits)
     on.exit(options(savedig))
     beta <- cox$coef
-    se <- sqrt(diag(cox$var))
-    if(is.null(beta) | is.null(se))
+    if(is.null(beta) | is.null(cox$var))
         stop("Input is not valid")
+
+    if (is.null(cox$robust.var)) {
+	se <- sqrt(diag(cox$var))
+	wald.test <-  sum(beta * solve(cox$var, beta))
+	}
+    else {
+	nse <- sqrt(diag(cox$var))        #naive se
+	se <- sqrt(diag(cox$robust.var))
+	wald.test <-  sum(beta * solve(cox$robust.var, beta))
+	}
     if(coef) {
-        tmp <- cbind(beta, exp(beta), se, beta/se, 1 - pchisq((beta/
-            se)^2, 1))
-        dimnames(tmp) <- list(names(beta), c("coef", "exp(coef)", 
-            "se(coef)", "z", "p"))
+	if (is.null(cox$robust.var)) {
+	    tmp <- cbind(beta, exp(beta), se, beta/se,
+		   signif(1 - pchisq((beta/ se)^2, 1), digits -1))
+	    dimnames(tmp) <- list(names(beta), c("coef", "exp(coef)",
+		"se(coef)", "z", "p"))
+	    }
+	else {
+	    tmp <- cbind(beta, exp(beta), nse, se, beta/se,
+		   signif(1 - pchisq((beta/ se)^2, 1), digits -1))
+	    dimnames(tmp) <- list(names(beta), c("coef", "exp(coef)",
+		"se(coef)", "robust se", "z", "p"))
+	    }
         cat("\n")
         prmatrix(tmp)
         }
@@ -56,6 +74,9 @@ summary.coxph <-
 	")\n" )
     cat("Likelihood ratio test= ", format(round(logtest, 2)), "  on ",
 	df, " df,", "   p=", format(1 - pchisq(logtest, df)),
+	"\n", sep = "")
+    cat("Wald test            = ", format(round(wald.test, 2)), "  on ",
+	df, " df,", "   p=", format(1 - pchisq(wald.test, df)),
 	"\n", sep = "")
     cat("Efficient score test = ", format(round(sctest, 2)), "  on ", df,
         " df,", "   p=", format(1 - pchisq(sctest, df)), "\n\n", sep = 
