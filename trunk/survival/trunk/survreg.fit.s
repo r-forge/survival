@@ -1,5 +1,5 @@
 # 
-#  SCCS $Id: survreg.fit.s,v 5.7 1999-02-06 23:39:41 therneau Exp $
+#  SCCS $Id: survreg.fit.s,v 5.8 1999-02-07 22:04:45 therneau Exp $
 #
 survreg.fit<- function(x, y, weights, offset, init, controlvals, dist, 
 		       scale=0, nstrat=1, strata, parms=NULL) {
@@ -97,11 +97,12 @@ survreg.fit<- function(x, y, weights, offset, init, controlvals, dist,
     if (!meanonly) {
 	yy <- ifelse(y[,ny]!=3, y[,1], (y[,1]+y[,2])/2 )
 	coef <- sd$init(yy, weights, parms)
-	if (scale >0) vars <- log(scale)
-	else vars <- log(coef[2])/2   #init returns \sigma^2, I need log(sigma)
+	#init returns \sigma^2, I need log(sigma)
 	# We sometimes get into trouble with a small estimate of sigma,
 	#  (the surface isn't SPD), but never with a large one.  Double it.
-	coef <- c(coef[1], rep(vars + .7, nstrat))
+	if (scale >0) vars <- log(scale)
+	else vars <- log(coef[2])/2  +.7
+	coef <- c(coef[1], rep(vars, nstrat))
 	
 	# get a better initial value for the mean using the "glim" trick
 	deriv <- derfun(y, yy, exp(vars), sd$density, parms)
