@@ -1,4 +1,4 @@
-/*  SCCS $Id: agsurv2.c,v 5.1 1998-08-30 14:51:59 therneau Exp $
+/*  SCCS $Id: agsurv2.c,v 5.2 1998-09-25 23:45:42 therneau Exp $
 /*
 ** Fit the survival curve, the special case of an Anderson-Gill style data
 **   This program differs from survfit in several key ways:
@@ -208,6 +208,7 @@ void agsurv2(long   *sn,      long   *snvar,    double *y,
 		km=1;
 		hazard  =0;
 		varhaz  =0;
+		for (i=0; i<nvar; i++) d[i] =0;
 		}
 	    }
 	}
