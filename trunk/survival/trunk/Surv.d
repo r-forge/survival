@@ -24,7 +24,7 @@ one of left, right, counting, interval, or interval2.
 If this is not specified, the
 default is either right or counting, depending on whether the `time2'
 argument is absent or present, respectively.
-.OA origin
+.AG origin
 for counting process data, the hazard function origin.  This is most often
 used in conjunction with a model containing time dependent strata in order
 to align the subjects properly when they cross over from one strata to
