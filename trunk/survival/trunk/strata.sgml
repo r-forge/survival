@@ -2,6 +2,7 @@
 <!entity % S-OLD "INCLUDE">
 ]
 >
+<!-- SCCS $Id: strata.sgml,v 1.2 2003-08-22 08:27:22 therneau Exp $ -->
 <s-function-doc>
 <s-topics>
    <s-topic>strata</s-topic>
@@ -16,24 +17,32 @@ side of a formula.
 </s-description>
 <s-usage>
 <s-old-style-usage>
-strata(..., na.group=F) 
+strata(..., na.group=F, sep=', ') 
 </s-old-style-usage>
 </s-usage>
+
 <s-args-required>
 <s-arg name="...">
 any number of variables.  All must be the same length. 
 </s-arg>
 </s-args-required>
+
 <s-args-optional>
 <s-arg name="na.group">
 a logical variable, if TRUE, then missing values are treated as a 
 distinct level of each variable. 
 </s-arg>
+
+<s-arg name="sep">
+the character used to separate groups, in the created label
+</s-arg>
 </s-args-optional>
+
 <s-value>
 a new factor, whose levels are all possible combinations of the factors 
 supplied as arguments. 
 </s-value>
+
 <s-details>
 The result is identical to the <s-expression>interaction</s-expression> function, 
 but for the labeling of the factors (<s-expression>strata</s-expression> is more verbose). 
