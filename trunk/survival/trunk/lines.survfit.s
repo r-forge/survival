@@ -1,4 +1,4 @@
-# SCCS $Id: lines.survfit.s,v 4.15 1999-01-06 07:15:32 therneau Exp $
+# SCCS $Id: lines.survfit.s,v 4.16 1999-01-14 16:30:33 therneau Exp $
 lines.survfit <- function(x, type='s', mark=3, col=1, lty=1, lwd=1,
 			  mark.time =T, xscale=1, 
 			  firstx=0, firsty=1, xmax, fun,
@@ -139,7 +139,7 @@ lines.survfit <- function(x, type='s', mark=3, col=1, lty=1, lwd=1,
 	type=='l'
 	dostep <- function(x,y) {
 	    n <- length(x)
-	    if (n >1) {
+	    if (n >2) {
 		# replace verbose horizonal sequences like
 		# (1, .2), (1.4, .2), (1.8, .2), (2.3, .2), (2.9, .2), (3, .1)
 		# with (1, .2), (3, .1).  They are slow, and can smear the 
@@ -152,7 +152,8 @@ lines.survfit <- function(x, type='s', mark=3, col=1, lty=1, lwd=1,
 		yrep <- rep(y[dupy], c(rep(2, n2-1), 1))
 		list(x=xrep, y=yrep)
 		}
-	    else list(x=x, y=y)
+	    else if (n==1) list(x=x, y=y)
+	    else  list(x=x[c(1,2,2)], y=y[c(1,1,2)])
 	    }	
 	}
     else dostep <- function(x,y) list(x=x, y=y)
