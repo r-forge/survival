@@ -1,4 +1,4 @@
-# SCCS $Id: survfit.coxph.s,v 5.7 2001-12-31 09:32:51 therneau Exp $
+# SCCS $Id: survfit.coxph.s,v 5.8 2003-04-25 15:59:57 therneau Exp $
 setOldClass(c('survfit.cox', 'survfit'))
 
 survfit.coxph <-
@@ -81,13 +81,13 @@ survfit.coxph <-
     #  2: each line of new data is "covariates over all time", and 
     #          gives rise to a separate curve
     #
+    if (length(strat)) strata.term <- untangle.specials(Terms, 'strata')
     if (individual && !missing(newdata)) stype <- 1
     else {
 	stype <- 2
 	# Don't need (or want) strata term if it is there
 	if (length(strat)) {
-	    temp <- untangle.specials(Terms, 'strata')
-	    Terms <- Terms[-temp$terms]
+	    Terms <- Terms[-strata.term$terms]
 	    }
 	}
     if (stype==1 && method != vartype)
@@ -112,19 +112,21 @@ survfit.coxph <-
 	    }
 
 	else  {
-	    x2 <- model.matrix(Terms, m2)[,-1,drop=F]
-	    n2 <- nrow(x2)
-	    offset2 <- model.extract(m2, 'offset')
+            offset2 <- model.extract(m2, 'offset')
 	    if (is.null(offset2)) offset2 <- 0
-	    if (stype==1) {
+            n2 <- nrow(m2)
+            if (stype !=1) x2 <- model.matrix(Terms, m2)[,-1,drop=F]
+	    else {
 		#
 		# The case of an agreg, with a multiple line newdata
 		#
 		if (length(strat)) {
-		    strata2 <- factor(x2[,strat], levels=levels(stratum))
-		    x2 <- x2[, -strat, drop=F]
+		    strata2 <- factor(m2[,strata.term$var], 
+                                      levels=levels(data$strata))
+                    Terms <- Terms[-strata.term$terms] 
 		    }
 		else strata2 <- rep(1, nrow(x2))
+                x2 <- model.matrix(Terms, m2)[,-1,drop=F]
 		y2 <- model.extract(m2, 'response')
 		if (attr(y2,'type') != type)
 		    stop("Survival type of newdata does not match the fitted model")
