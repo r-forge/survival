@@ -1,4 +1,4 @@
-#SCCS $Id: print.survexp.s,v 4.7 1994-01-06 11:02:46 therneau Exp $
+#SCCS $Id: print.survexp.s,v 4.8 1994-01-07 11:24:16 therneau Exp $
 print.survexp <- function(fit, scale=1, digits=3, naprint=F, ...) {
     if (!inherits(fit, 'survexp'))
 	    stop("Invalid data")
@@ -23,8 +23,10 @@ print.survexp <- function(fit, scale=1, digits=3, naprint=F, ...) {
 	    miss <- (is.na(mat)) %*% rep(1,ncol(mat))
 	    mat <- mat[miss<(ncol(mat)-2),,drop=F]
 	    }
+	if (is.matrix(fit$surv)) cname <- dimnames(fit$surv)[[2]]
+	else                     cname <- "survival"
 	prmatrix(mat, rowlab=rep("", nrow(mat)),
-		   collab=c("Time", "n.risk", dimnames(fit$surv)[[2]]))
+		   collab=c("Time", "n.risk", cname))
 	}
     else  { #print it out one strata at a time, since n's differ
 	nstrat <- length(fit$strata)
