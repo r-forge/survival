@@ -1,4 +1,4 @@
-# SCCS $Id: survfit.coxph.s,v 5.1 1998-08-30 15:58:05 therneau Exp $
+# SCCS $Id: survfit.coxph.s,v 5.2 1998-09-25 22:20:44 therneau Exp $
 setOldClass(c('survfit.cox', 'survfit'))
 
 survfit.coxph <-
@@ -117,7 +117,7 @@ survfit.coxph <-
 	surv <- .C("agsurv1", as.integer(n),
 			     as.integer(nvar),
 			     y[ord,],
-			     as.double(score),
+			     as.double(score[ord]),
 			     strata=newstrat,
 			     surv=double(n*n2),
 			     varh=double(n*n2),
