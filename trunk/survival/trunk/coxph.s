@@ -1,7 +1,7 @@
-#SCCS  $Id: coxph.s,v 4.6 1992-07-14 00:01:22 therneau Exp $
+#SCCS  $Id: coxph.s,v 4.7 1992-08-06 17:32:16 therneau Exp $
 coxph <- function(formula=formula(data), data=sys.parent(),
 	subset, na.action,
-	eps=.0001, inf.ratio=200, init, iter.max=10,
+	eps=.0001, init, iter.max=10,
 	method= c("efron", "breslow", "exact"),
 	model=F, x=F, y=T) {
 
@@ -9,7 +9,7 @@ coxph <- function(formula=formula(data), data=sys.parent(),
     call <- match.call()
     m <- match.call(expand=F)
     m$method <- m$model <- m$x <- m$y <- m$... <-  NULL
-    m$eps <- m$inf.ratio <- m$init <- m$iter.max <- m$n.table <- NULL
+    m$eps <- m$init <- m$iter.max <- m$n.table <- NULL
 
     Terms <- if(missing(data)) terms(formula, 'strata')
 	     else              terms(formula, 'strata',data=data)
@@ -53,7 +53,7 @@ coxph <- function(formula=formula(data), data=sys.parent(),
 
     if (missing(init)) init <- NULL
     fit <- fitter(X, Y, strats, offset, iter.max=iter.max,
-			eps=eps, inf.ratio=inf.ratio, init=init,
+			eps=eps, init=init,
 			method=method, row.names(m) )
 
     if (is.character(fit)) {

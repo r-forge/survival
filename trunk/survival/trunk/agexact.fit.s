@@ -1,4 +1,4 @@
-#SCCS $Date: 1992-08-06 16:49:23 $ $Id: agexact.fit.s,v 4.6 1992-08-06 16:49:23 therneau Exp $
+#SCCS $Date: 1992-08-06 17:32:19 $ $Id: agexact.fit.s,v 4.7 1992-08-06 17:32:19 therneau Exp $
 agexact.fit <- function(x, y, strata, offset, iter.max,
 			eps, init, method, rownames)
     {
@@ -63,7 +63,7 @@ agexact.fit <- function(x, y, strata, offset, iter.max,
     if (iter.max >1) {
 	if (agfit$flag == 1000)
 	       warning("Ran out of iterations and did not converge")
-	else if (any((infs > eps) & (infs > eps*abs(agfit$coef))))
+	else if (any((infs > eps) & (infs > sqrt(eps)*abs(agfit$coef))))
 	    warning(paste("Loglik converged before variable ",
 		      (1:nvar)[(infs>eps)], ", beta may be infinite. ",
 		       collapse=''))
