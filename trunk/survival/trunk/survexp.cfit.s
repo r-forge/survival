@@ -1,4 +1,4 @@
-# SCCS $Id: survexp.cfit.s,v 4.4 1994-11-25 16:49:46 therneau Exp $
+# SCCS $Id: survexp.cfit.s,v 4.5 1995-03-14 13:12:14 therneau Exp $
 #
 #  Do expected survival based on a Cox model
 #   A fair bit of the setup work is identical to survfit.coxph, i.e.,
@@ -20,7 +20,7 @@ survexp.cfit <- function(x, y, death, individual, cox, se.fit, method) {
 	nt <- length(fit$time)
 	surv <- approx(-c(0,fit$time), c(1,fit$surv), -y,
 				method='constant', rule=2, f=1)$y
-	return(list(time=y, surv=c(surv^(exp(risk)))))
+	return(list(times=y, surv=c(surv^(exp(risk)))))
 	}
 
     # Otherwise, get on with the real work

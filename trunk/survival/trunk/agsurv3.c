@@ -1,4 +1,4 @@
-/* SCCS $Id: agsurv3.c,v 4.2 1994-04-14 10:27:58 therneau Exp $  */
+/* SCCS $Id: agsurv3.c,v 4.3 1995-03-14 13:12:11 therneau Exp $  */
 /*
 ** Create the cohort survival curve(s) for a set of subjects.
 **
@@ -97,8 +97,7 @@ double  *r,
     int deaths, nrisk;
     int need;
     double *a, *a2;
-    double time,
-	   weight,
+    double weight,
 	   e_denom,
 	   denom;
     double inc,

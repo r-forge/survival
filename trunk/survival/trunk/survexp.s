@@ -1,7 +1,7 @@
-#SCCS  $Id: survexp.s,v 4.20 1995-01-27 15:53:40 therneau Exp $
+#SCCS  $Id: survexp.s,v 4.21 1995-03-14 13:12:12 therneau Exp $
 survexp <- function(formula=formula(data), data=sys.parent(),
 	weights, subset, na.action,
-	times,  cohort=T,  conditional=T,
+	times,  cohort=T,  conditional=F,
 	ratetable=survexp.us, scale=1, npoints, se.fit,
 	model=F, x=F, y=F) {
 
@@ -106,8 +106,8 @@ survexp <- function(formula=formula(data), data=sys.parent(),
 	    temp <- survexp.fit(cbind(as.numeric(X),R), Y, newtime,
 			       conditional, ratetable)
 	else {
-	    temp <- survexp.cfit(cbind(as.numeric(X),R), Y, cohort,
-			       conditional, ratetable, se.fit=se.fit)
+	    temp <- survexp.cfit(cbind(as.numeric(X),R), Y, conditional, F,
+			       ratetable, se.fit=se.fit)
 	    newtime <- temp$times
 	    }
 	#package the results
@@ -187,7 +187,7 @@ survexp <- function(formula=formula(data), data=sys.parent(),
 	if (no.Y) stop("For non-cohort, an observation time must be given")
 	if (israte)
 	    temp <- survexp.fit (cbind(1:n,R), Y, max(Y), T, ratetable)
-	else temp<- survexp.cfit(cbind(1:n,R), Y, cohort, T, ratetable, F)
+	else temp<- survexp.cfit(cbind(1:n,R), Y, F, T, ratetable, F)
 	xx <- temp$surv
 	names(xx) <- row.names(m)
 	na.action <- attr(m, "na.action")
