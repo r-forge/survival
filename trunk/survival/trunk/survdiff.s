@@ -1,4 +1,4 @@
-#SCCS $Date: 1998-08-30 15:45:28 $ $Id: survdiff.s,v 5.1 1998-08-30 15:45:28 therneau Exp $
+#SCCS $Date: 2001-01-06 11:43:19 $ $Id: survdiff.s,v 5.2 2001-01-06 11:43:19 therneau Exp $
 survdiff <- function(formula, data, subset, na.action, rho=0) {
     call <- match.call()
     m <- match.call(expand=F)
@@ -22,7 +22,7 @@ survdiff <- function(formula, data, subset, na.action, rho=0) {
 	if (length(Terms)>0) stop("Cannot have both an offset and groups")
 	if (any(offset <0 | offset >1))
 	    stop("The offset must be a survival probability")
-	expected <- sum(1-offset)
+	expected <- sum(-log(offset))
 	observed <- sum(y[,ny])
 	if (rho!=0) {
 	    num <- sum(1/rho - ((1/rho + y[,ny])*offset^rho))
