@@ -10,6 +10,8 @@ function(object, type = c("deviance", "pearson", "working", "matrix"))
 		eta <- object$linear.predictors
 		n   <- length(eta)
 		y   <- object$y
+		if (is.null(y))
+		    stop("Program deficiency-- must have y=T for matrix residuals")
 		dist<- match(object$dist, c("extreme", "logistic",
 					    "gaussian", "cauchy"))
 		temp <-.C("survreg_g", as.integer(n),
