@@ -1,4 +1,4 @@
-# SCCS $Id: survexp.wnc.s,v 4.1 1994-03-09 15:17:18 therneau Exp $
+# SCCS $Id: survexp.wnc.s,v 4.2 1994-11-23 10:57:32 therneau Exp $
 #
 # Create the WNC hazards table
 #   The raw numbers below are q* 10^5.  Note that there are 24 leap years/100
@@ -121,13 +121,22 @@ survexp.wnc  <- {
       7471,8399,9432,10511,11613,12785,14143,15697,17324,18947,20568,22228,
       23729,25173,26551,27859,29094,30255,31342,32355,33297,34168,34973,35715,
       36397,37022 )
-    temp <- -log(1- temp/100000)/365.24    #daily hazard rate
+    temp2 <- -log(1- temp/100000)/365.24    #daily hazard rate
+
+    #Add in the extrapolated data for 1990 and 2000
+    temp <- array(0, c(111,2,10))
+    temp[,,1:8] <- temp2
+    fix <- c(0, .5, 1:109)
+    fix  <- c(.00092*fix - .1615, .00020*fix - .1746)
+    temp[,,9]   <- exp(log(temp[,,8]) + fix)
+    temp[,,10]  <- exp(log(temp[,,9]) + fix)
+
     attributes(temp) <- list (
-	dim      =c(111,2,8),
-	dimnames =list(c(0, .5, 1:109), c("male", "female"), 1900+ 10*1:8),
+	dim      =c(111,2,10),
+	dimnames =list(c(0, .5, 1:109), c("male", "female"), 1900+ 10*1:10),
 	dimid    =c("age", "sex", "year"),
 	factor   =c(0,1,10),
-	cutpoints=list(c(0,.5,1:109)* 365.24, NULL, mdy.date(1,1, 1:8*10)),
+	cutpoints=list(c(0,.5,1:109)* 365.24, NULL, mdy.date(1,1, 191:200*10)),
 	summary = function(R) {
 		     x <- c(format(round(min(R[,1]) /365.24, 1)),
 			    format(round(max(R[,1]) /355.24, 1)),
