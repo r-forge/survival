@@ -1,4 +1,4 @@
-#SCCS $Date: 1993-05-28 08:21:24 $ $Id: predict.coxph.s,v 4.6 1993-05-28 08:21:24 therneau Exp $
+#SCCS $Date: 1993-06-10 12:39:43 $ $Id: predict.coxph.s,v 4.7 1993-06-10 12:39:43 therneau Exp $
 #What do I need to do predictions --
 #
 #linear predictor:  exists
@@ -70,7 +70,7 @@ function(object, newdata, type=c("lp", "risk", "expected", "terms"),
     # Now, lay out the code one case at a time.
     #  There is some repetition this way, but otherwise the code just gets
     #    too complicated.
-    coef <- ifelse(is.na(object$coef), 0, coef)
+    coef <- ifelse(is.na(object$coef), 0, object$coef)
     if (type=='lp' || type=='risk') {
 	if (missing(newdata)) {
 	    pred <- object$linear.predictors
