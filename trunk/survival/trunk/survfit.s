@@ -1,5 +1,5 @@
-#SCCS $Date: 2000-03-02 21:48:10 $ $Id: survfit.s,v 4.15 2000-03-02 21:48:10 boos Exp $
-survfit <- function(formula, data, ...) {
+#SCCS $Date: 2000-03-02 22:43:06 $ $Id: survfit.s,v 4.16 2000-03-02 22:43:06 boos Exp $
+survfit <- function(formula, ...) {
     call <- match.call()  #make the "call" returned object correct
     # Real tricky -- for backwards compatability I want to allow the
     #   expression "survfit(Surv(time, status), data=...", that is, no ~1
@@ -27,7 +27,7 @@ survfit <- function(formula, data, ...) {
 	formula <- xx(paste(deparse(call[[2]]), 1, sep="~"))
         }
 
-    UseMethod("survfit", formula, data=data, ..., call=call)
+    UseMethod("survfit", formula, ..., call=call)
     }
 
 # The subscript function is bundled in here, although used most
