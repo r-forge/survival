@@ -1,22 +1,34 @@
 .BG
-.FN residuals.glm
+.FN residuals.survreg
 .TL
 Compute Residuals for `survreg' Objects
 .CS
-residuals.survreg(object, type)
+residuals.survreg(object, type, rsigma=T, collapse=F, weighted=F)
 .PP
 This is a method for the function `residuals()' for objects inheriting from
-class `glm'.  Several types of residuals are available for `glm' objects,
-hence the additional argument:
+class `survreg'.  Several types of residuals are available:
 .AG type
-type of residuals, with choices `"deviance"', `"pearson"', `"working"' or
-`"matrix"; the first is the default.
+type of residuals, with choices of response, deviance, dfbeta, dfbetas,
+working, ldcase, lsresp, ldshape, and matrix.
+See the latex documentation for more detail.
+.OA
+.AG rsigma
+include the scale parameters in the variance matrix, when doing computations.
+(I can think of no good reason not to).
+.AG collapse
+optional vector of subject groups.  If given, this must be of the same
+length as the residuals, and causes the result to be per group residuals.
+.AG weighted
+give weighted residuals?  Normally residuals are unweighted.
 .RT
-A vector of residuals is returned.
-The sum of squared deviance residuals
-add up to the deviance.  The pearson residuals are standardized residuals
-on the scale of the response.  The working residuals reside on the object,
-and are the residuals from the final IRLS fit.
+A vector or matrix of residuals is returned.
+Response residuals are on the scale of the original data,
+working residuals are on the scale of the linear predictor,
+and deviance residuals are on log-likelihood scale.
+The dfbeta residuals are a matrix, where the ith row gives the
+approximate change in the coefficients due to the addition of subject i.
+The dfbetas matrix contains the dfbeta residuals, with each column
+scaled by the standard deviation of that coefficient.
 .pp
 The matrix type produces a matrix based on derivatives of the log-likelihood
 function.  Let L be the log-likelihood, p be the linear preditor X %*% coef,
@@ -24,11 +36,21 @@ and s be log(sigma).  Then the 6 columns of the matrix are L, dL/dp,
 ddL/(dp dp), dL/ds, ddL/(ds ds) and ddL/(dp ds), where d stands for the
 derivative and dd the second derivative.  Diagnstics based on these quantities
 are dicussed in an article by Escobar and Meeker.
+The main ones are the likelihood displacement residuals for pertubation
+of a case weight (ldcase), the response value (ldresp), and the shape.
 .SH REFERENCES
 Escobar and Meeker (1992). Assessing influence in regression analysis with
 censored data. \fIBiometrics,\fP 48, 507-528.
 .EX
-fit <- survreg(Surv(time,status) ~x, aml)
-rr  <- residuals(fit, type='matrix')
+# plot figures 2 and 6 from Escobar and Meeker
+fit <- survreg(Surv(time,status) ~ age + age^2, data=stanford2,
+	dist='lognormal')
+rr <- residuals(fit, type='ldcase')
+tsplot(rr, xlab="Case Number", ylab='1/2 A')
+title(main="Case weight pertubations")
+
+rr <- residuals(fit, type='ldresp')
+tsplot(rr, xlab="Case Number", ylab='1/2 A')
+title(main="Response pertubations")
 .KW survival
 .WR
