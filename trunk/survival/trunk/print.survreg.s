@@ -1,4 +1,4 @@
-#SCCS $Id: print.survreg.s,v 4.9 1998-09-25 23:11:04 therneau Exp $
+#SCCS  $Id: print.survreg.s,v 4.10 1998-11-30 08:29:16 therneau Exp $
 print.survreg <- function(x, ...)
 {
     if(!is.null(cl <- x$call)) {
@@ -9,7 +9,7 @@ print.survreg <- function(x, ...)
 	cat(" Survreg failed.", x$fail, "\n")
 	return(invisible(x))
 	}
-    coef <- c(x$coef, x$parms[!x$fixed])
+    coef <- x$coef
     if(any(nas <- is.na(coef))) {
 	if(is.null(names(coef))) names(coef) <- paste("b", 1:length(coef), sep = "")
         cat("\nCoefficients: (", sum(nas), 
@@ -17,19 +17,30 @@ print.survreg <- function(x, ...)
         }
     else cat("\nCoefficients:\n")
     print(coef, ...)
-    rank <- x$rank
-    if(is.null(rank))
-        rank <- sum(!nas)
-    nobs <- length(x$residuals)
-    rdf <- x$df.resid
-    if(is.null(rdf))
-        rdf <- nobs - rank
+    
+    if (nrow(x$var)==length(coef)) 
+	    cat("\nScale fixed at",format(x$scale),"\n") 
+    else if (length(x$scale)==1) cat ("\nScale=", format(x$scale), "\n")
+    else {
+	cat("\nScale:\n")
+	print(x$scale, ...)
+	}
+
+
+    nobs <- length(x$linear)
+    chi <- 2*diff(x$loglik)
+    df  <- sum(x$df) - x$idf   # The sum is for penalized models
+    cat("\nLoglik(model)=", format(round(x$loglik[2],1)),
+	"  Loglik(intercept only)=", format(round(x$loglik[1],1)))
+    if (df > 0)
+	    cat("\n\tChisq=", format(round(chi,2)), "on", round(df,1),
+		"degrees of freedom, p=", 
+		format(signif(1-pchisq(chi, df),2)), "\n")
+    else cat("\n")
+
     omit <- x$na.action
     if (length(omit))
 	cat("n=", nobs, " (", naprint(omit), ")\n", sep="")
-    sd <- survreg.distributions[[x$family[1]]]
-    cat("\n", sd$print(x$parms, x$fixed), "\n", sep='')
-    cat("Degrees of Freedom:", nobs, "Total;", rdf, "Residual\n")
-    cat("Residual Deviance:", format(x$deviance), "\n")
+    else cat("n=", nobs, "\n")
     invisible(x)
     }
