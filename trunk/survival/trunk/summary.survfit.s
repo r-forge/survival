@@ -1,9 +1,9 @@
-#SCCS $Date: 1992-09-24 07:26:41 $ $Id: summary.survfit.s,v 1.6 1992-09-24 07:26:41 therneau Exp $
+#SCCS $Date: 1995-02-28 11:22:40 $ $Id: summary.survfit.s,v 1.7 1995-02-28 11:22:40 therneau Exp $
 summary.survfit <- function(fit, times, censored=F, scale=1, ...) {
     if (!inherits(fit, 'survfit'))
 	    stop("Invalid data")
 
-    n <- length(fit$surv)
+    n <- length(fit$time)
     stime <- fit$time/scale
     if (is.null(fit$strata)) {
 	stemp <- rep(1,n)
