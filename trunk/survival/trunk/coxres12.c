@@ -1,4 +1,4 @@
-/* SCCS  $Id: coxres12.c,v 4.4 1993-01-12 23:37:14 therneau Exp $      */
+/*  SCCS $Id: coxres12.c,v 5.1 1998-08-30 14:52:44 therneau Exp $
 /*
 ** Does only the  integral(xbar(t) dM_i(t)) part of the score residuals
 **
@@ -19,18 +19,11 @@
 **      scratch,  from which a and a2 are carved
 */
 #include <stdio.h>
-extern double **dmatrix();
+#include "survproto.h"
 
-void coxres12(nx, nvarx, y, covar2, strata, score, method, scratch)
-long    nx[1],
-	nvarx[1],
-	*method,
-	strata[];
-double  y[],
-	*covar2,
-	*scratch,
-	score[];
-
+void coxres12(long   *nx,     long   *nvarx,    double *y, 
+	      double *covar2, long   *strata,   double *score, 
+	      long   *method, double *scratch)
     {
     register int i,j, k;
     register double temp;

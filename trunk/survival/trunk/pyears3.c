@@ -1,4 +1,4 @@
-/* SCCS $Id: pyears3.c,v 4.6 1994-06-22 08:07:05 therneau Exp $  */
+/*  SCCS $Id: pyears3.c,v 5.1 1998-08-30 14:52:54 therneau Exp $
 /*
 **  Person-years calculations, leading to expected survival for a cohort.
 **    The output table depends only on factors, not on continuous.
@@ -30,32 +30,18 @@
 **      nsurv[ntime,ngrp]   number of subjects per cell of "esurv"
 */
 #include <math.h>
-double **dmatrix();
-double pystep();
+#include "survproto.h"
+#include "survS.h"
 
 /* names that begin with "s" will be re-declared in the main body */
-void pyears3(sdeath, sn, sedim, efac, edims, secut, expect,
-		 sx, y, sntime, sngrp,
-		 times, esurv,  nsurv)
-
-long    *sn,
-	*sdeath,
-	*sedim,
-	*sntime,
-	*sngrp,
-	nsurv[],
-	efac[],
-	edims[];
-
-double  *sx,
-	*y,
-	*secut,
-	*esurv,
-	*expect,
-	*times;
-
+void pyears3(long   *sdeath,    long   *sn,    long   *sedim, 
+	     long   *efac,      long   *edims, double *secut, 
+	     double *expect,    double *sx,    double *y, 
+	     long   *sntime,    long   *sngrp, double *times,
+	     double *esurv,     long   *nsurv)
     {
-    register int i,j,k;
+S_EVALUATOR
+    int i,j,k;
     int     n,
 	    death,
 	    edim,
@@ -84,12 +70,12 @@ double  *sx,
     ntime = *sntime;
     ngrp  = *sngrp;
     x     = dmatrix(sx, n, edim+1);
-    data2 = (double *)S_alloc(edim+1, sizeof(double));
-    wvec  = (double *)S_alloc(ntime*ngrp, sizeof(double));
+    data2 = (double *)ALLOC(edim+1, sizeof(double));
+    wvec  = (double *)ALLOC(ntime*ngrp, sizeof(double));
     /*
     ** ecut will be a ragged array
     */
-    ecut = (double **)S_alloc(edim, sizeof(double *));
+    ecut = (double **)ALLOC(edim, sizeof(double *));
     for (i=0; i<edim; i++) {
 	ecut[i] = secut;
 	if (efac[i]==0)     secut += edims[i];

@@ -1,4 +1,4 @@
-/* SCCS: $Id: agres12.c,v 1.5 1993-01-12 23:37:13 therneau Exp $
+/*  SCCS $Id: agres12.c,v 5.1 1998-08-30 14:51:55 therneau Exp $
 /*
 ** Do the score residuals
 **
@@ -19,23 +19,14 @@
 **      a       vector of length 3*nvar
 */
 #include <stdio.h>
-extern double **dmatrix();
+#include "survproto.h"
 
-void agres12(nx, nvarx, y, covar2, strata, score,
-		method, resid2, a)
-long    nx[1],
-	nvarx[1],
-	method[1],
-	strata[];
-double  y[],
-	*covar2,
-	score[],
-	*a,
-	*resid2;
-
+void agres12(long   *nx,     long   *nvarx,   double *y,    double *covar2, 
+	     long   *strata, double *score,   long *method, double *resid2, 
+	     double *a)
     {
-    register int i,k;
-    register double temp;
+    int i,k;
+    double temp;
     int n, nvar;
     int person;
     double denom, time;

@@ -1,22 +1,12 @@
-/* SCCS  $Id: survdiff2.c,v 1.5 1996-01-07 01:36:06 therneau Exp $      */
+/*  SCCS $Id: survdiff2.c,v 5.1 1998-08-30 14:52:58 therneau Exp $
 #include <math.h>
+#include "survproto.h"
 
-survdiff2(nn, nngroup, nstrat, rho,
-	  time, status, group, strata,
-	  obs, exp, var, risk, kaplan)
-long    *nn,
-	*nngroup,
-	*nstrat,
-	group[],
-	strata[],
-	status[];
-double  *rho;
-double  time[],
-	obs[],
-	exp[],
-	var[],
-	risk[],
-	kaplan[];
+void survdiff2(long   *nn,     long   *nngroup,    long   *nstrat, 
+	       double *rho,    double *time,       long   *status, 
+	       long   *group,  long   *strata,	   double *obs, 
+	       double *exp,    double *var,        double *risk, 
+	       double *kaplan)
     {
     register int i,j,k;
     int kk;

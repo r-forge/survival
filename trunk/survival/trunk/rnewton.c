@@ -1,4 +1,4 @@
-/* SCCS @(#)rnewton.c	4.7 9/20/92 */
+/*  SCCS $Id: rnewton.c,v 5.1 1998-08-30 14:52:56 therneau Exp $
 /*
 ** Ridge stabilized Newton iteration
 **
@@ -36,24 +36,13 @@
 */
 #include <math.h>
 #include <stdio.h>
+#include "survproto.h"
 #define POWER 2      /*how fast to increase or decrease the ridge parameter*/
 
-int rnewton(maxiter, n, nvar, beta, u, imat, loglik, eps,
-		    dolk, doimat, newbeta, savediag, debug)
-int     *maxiter,
-	n,
-	nvar,
-	debug;
-double  u[],
-	beta[],
-	loglik[2],
-	newbeta[],
-	savediag[],
-	eps;
-double  **imat;
-
-void    (*dolk)(),
-	(*doimat)();
+int rnewton(int    *maxiter,   int  n,        int  nvar,        double *beta, 
+	    double *u,         double **imat, double loglik[2], double eps,
+	    void (*dolk)(),    void (*doimat)(), 
+	    double *newbeta,   double *savediag,  int debug)
     {
     register int i,j;
     int     ierr, iter;

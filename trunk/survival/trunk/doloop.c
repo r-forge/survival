@@ -1,4 +1,4 @@
-/* SCCS $Id: doloop.c,v 4.4 1992-08-25 14:33:53 grill Exp $  */
+/*  SCCS $Id: doloop.c,v 5.1 1998-08-30 14:52:49 therneau Exp $
 /*
 ** Program to mimic a set of nested do loops
 **
@@ -30,23 +30,19 @@
 **                                  otherwise the value of the innermost loop
 **
 */
+#include "survproto.h"
 
 static int maxval, minval;
 static int firsttime, depth;
 
-void init_doloop(min,max)
-int min;
-int max;  {
+void init_doloop(int min, int max) {
     firsttime =1;
     minval = min;
     maxval = max;
     depth =1;
     }
 
-int doloop (nloops, index)
-
-int nloops;
-int index[];  {
+int doloop (int nloops, int *index) {
     register int i;
 
     if (firsttime ==1) {

@@ -1,4 +1,4 @@
-/* SCCS $Id: coxdetail.c,v 4.5 1994-04-07 22:36:16 therneau Exp $
+/*  SCCS $Id: coxdetail.c,v 5.1 1998-08-30 14:52:37 therneau Exp $
 /*
 ** Return all of the internal peices of a cox model
 **
@@ -44,25 +44,12 @@
 **          living within tied times.
 */
 #include <math.h>
-#include <stdio.h>
+#include "survproto.h"
 
-double **dmatrix();
-
-void coxdetail(nusedx, nvarx, ndeadx, y, covar2, strata,  score,
-		  weights, means2, u2, var, work)
-
-long    *nusedx,
-	*nvarx,
-	*ndeadx,
-	strata[];
-double  *covar2,
-	*u2,
-	*means2,
-	*var;
-double  *work,
-	*score,
-	*weights,
-	*y;
+void coxdetail(long   *nusedx,   long   *nvarx,    long   *ndeadx, 
+	       double *y,        double *covar2,   long   *strata,  
+	       double *score,    double *weights,  double *means2, 
+	       double *u2,       double *var,      double *work)
 {
     register int i,j,k,person;
     int     nused, nvar;

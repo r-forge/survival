@@ -1,4 +1,4 @@
-/* SCCS  $Id: coxhaz2.c,v 1.3 1992-08-31 10:04:49 therneau Exp $      */
+/*  SCCS $Id: coxhaz2.c,v 5.1 1998-08-30 14:52:41 therneau Exp $
 /*
 ** Compute the hazard and cumulative hazard functions.
 **
@@ -19,15 +19,10 @@
 ** The martingale residual will be status[i] - score[i]*cumhaz[i]
 */
 #include <stdio.h>
+#include "survproto.h"
 
-void coxhaz2(n, score, mark, strata, hazard, cumhaz)
-double  score[],
-	hazard[],
-	cumhaz[];
-long    n[1],
-	strata[],
-	mark[];
-
+void coxhaz2(long   *n,      double *score,   long   *mark, 
+	     long   *strata, double *hazard,  double *cumhaz)
     {
     register int i;
     register double temp;

@@ -1,4 +1,4 @@
-/* SCCS $Id: cholesky2.c,v 4.3 1993-06-10 10:12:19 therneau Exp $  */
+/*  SCCS $Id: cholesky2.c,v 5.1 1998-08-30 14:52:34 therneau Exp $
 /*
 ** subroutine to do Cholesky decompostion on a matrix: C = FDF'
 **   where F is lower triangular with 1's on the diagonal, and D is diagonal
@@ -18,10 +18,9 @@
 **   Terry Therneau
 */
 #define EPSILON .000000001     /* <= EPS is considered a zero */
+#include "survproto.h"
 
-cholesky2(matrix, n)
-double **matrix;
-int n;
+int cholesky2(double **matrix, int n)
     {
     register double temp;
     register int  i,j,k;

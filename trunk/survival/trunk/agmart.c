@@ -1,4 +1,4 @@
-/* SCCS  $Id: agmart.c,v 4.3 1993-06-17 12:27:05 therneau Exp $
+/*  SCCS $Id: agmart.c,v 5.1 1998-08-30 14:51:54 therneau Exp $
 /*
 ** Compute the martingale residual for a counting process model
 **
@@ -20,20 +20,13 @@
 **  Data must be sorted by time within strata, with events first
 */
 #include <stdio.h>
+#include "survproto.h"
 
-void agmart(n, method, start, stop, event, score, wt, strata, resid)
-double  score[],
-	resid[],
-	wt[],
-	start[],
-	stop[];
-long    n[1],
-	method[1],
-	event[],
-	strata[];
-
+void agmart(long   *n,     long   *method,  double *start,   double *stop, 
+	    long   *event, double *score,   double *wt,      long   *strata, 
+	    double *resid)
     {
-    register int i,k;
+    int i,k;
     double deaths, denom, e_denom;
     double hazard, e_hazard;
     double temp, time;

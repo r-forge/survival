@@ -1,4 +1,4 @@
-/* SCCS $Id: agsurv2.c,v 4.8 1997-05-02 11:05:27 therneau Exp $  */
+/*  SCCS $Id: agsurv2.c,v 5.1 1998-08-30 14:51:59 therneau Exp $
 /*
 ** Fit the survival curve, the special case of an Anderson-Gill style data
 **   This program differs from survfit in several key ways:
@@ -42,21 +42,15 @@
 **  Input must be sorted by (event before censor) within stop time within strata,
 */
 #include <math.h>
-double **dmatrix();
+#include "survproto.h"
 
-void agsurv2(sn, snvar, y, score, strata, surv, varh,
-		  xmat, varcov, snsurv, d,
-		  sncurve, newx, newrisk)
-long *sn, *snvar;
-long *snsurv, *sncurve;
-long strata[];
-double score[], y[], xmat[];
-double varh[];
-double surv[];
-double d[], varcov[];
-double newx[], newrisk[];
+void agsurv2(long   *sn,      long   *snvar,    double *y, 
+	     double *score,   long   *strata,   double *surv, 
+	     double *varh,    double *xmat,     double *varcov, 
+	     long   *snsurv,  double *d,        long   *sncurve,
+             double *newx,    double *newrisk)
 {
-    register int i,j,k,l;
+    int i,j,k,l;
     double hazard, varhaz;
     double *start, *stop, *event;
     int n, nvar;
@@ -214,7 +208,6 @@ double newx[], newrisk[];
 		km=1;
 		hazard  =0;
 		varhaz  =0;
-		for (i=0; i<nvar; i++) d[i] =0;
 		}
 	    }
 	}

@@ -1,4 +1,4 @@
-/* SCCS $Id: aghaz2.c,v 4.3 1992-09-23 16:23:40 therneau Exp $  */
+/*  SCCS $Id: aghaz2.c,v 5.1 1998-08-30 14:51:52 therneau Exp $
 /*
 ** Compute the hazard and cumulative hazard functions.
 **
@@ -20,20 +20,13 @@
 ** The martingale residual will be event[i] - score[i]*cumhaz[i]
 */
 #include <stdio.h>
+#include "survproto.h"
 
-void aghaz2(n, start, stop, event, score, strata, hazard, cumhaz)
-double  score[],
-	start[],
-	stop[],
-	hazard[],
-	cumhaz[];
-long    n[1],
-	strata[],
-	event[];
-
+void aghaz2(long   *n,     double *start,   double *stop,   long   *event, 
+	    double *score, long   * strata, double *hazard, double * cumhaz)
     {
-    register int i,j,k;
-    register double denom;
+    int i,j,k;
+    double denom;
     double temp;
     double time;
     int deaths;

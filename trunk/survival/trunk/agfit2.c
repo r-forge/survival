@@ -1,4 +1,4 @@
-/* SCCS $Id: agfit2.c,v 4.9 1994-05-23 07:22:37 therneau Exp $  */
+/*  SCCS $Id: agfit2.c,v 5.1 1998-08-30 14:51:50 therneau Exp $
 /*
 ** Anderson-Gill formulation of the cox Model
 **
@@ -51,35 +51,15 @@
 **          living within tied times.
 */
 #include <math.h>
-#include <stdio.h>
+#include "survproto.h"
 
-double **dmatrix();
-
-void agfit2(maxiter, nusedx, nvarx, start, stop, event, covar2, offset,
-		 weights, strata,
-		 means, beta, u, imat2, loglik, flag, work,
-		 end, eps, sctest)
-
-long    *nusedx,
-	*nvarx,
-	*maxiter,
-	*flag,
-	end[],
-	strata[],
-	event[];
-double  *covar2,
-	*imat2;
-double  means[],
-	*work,
-	beta[],
-	u[],
-	offset[],
-	weights[],
-	start[],
-	stop[];
-double  loglik[2],  /* returned values */
-	*sctest;
-double  *eps;
+void agfit2( long   *maxiter,  long   *nusedx,  long   *nvarx, 
+	     double *start,    double *stop,    long   *event, 
+	     double *covar2,   double *offset,  double *weights,
+	     long   *strata,   double *means,   double *beta, 
+	     double *u,        double *imat2,   double loglik[2], 
+	     long   *flag,     double *work,    long   *end,
+	     double *eps,      double *sctest)
 {
     register int i,j,k,person;
     int     iter;

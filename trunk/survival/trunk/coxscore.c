@@ -1,4 +1,4 @@
-/* SCCS  $Id: coxscore.c,v 4.3 1993-06-17 12:27:07 therneau Exp $
+/*  SCCS $Id: coxscore.c,v 5.1 1998-08-30 14:52:47 therneau Exp $
 /*
 ** Compute the score residuals for a Cox model
 **
@@ -23,24 +23,15 @@
 **                      censor within time.
 */
 #include <stdio.h>
-extern double **dmatrix();
+#include "survproto.h"
 
-void coxscore(nx, nvarx, y, covar2, strata, score, weights,
-		 method, resid2, scratch)
-long    nx[1],
-	nvarx[1],
-	*method,
-	strata[];
-double  y[],
-	*covar2,
-	*scratch,
-	*resid2,
-	weights[],
-	score[];
-
+void coxscore(long   *nx,      long   *nvarx,    double *y, 
+	      double *covar2,  long   *strata,   double *score, 
+	      double *weights, long   *method,   double *resid2,
+	      double *scratch)
     {
-    register int i,j, k;
-    register double temp;
+    int i,j, k;
+    double temp;
     int n, nvar;
     double deaths;
     int dd;

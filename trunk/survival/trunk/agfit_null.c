@@ -1,4 +1,4 @@
-/* SCCS $Id: agfit_null.c,v 4.5 1993-06-17 12:25:30 therneau Exp $  */
+/*  SCCS $Id: agfit_null.c,v 5.1 1998-08-30 14:51:51 therneau Exp $
 /*
 ** Fit a "null" model.  We just need the loglik
 **
@@ -17,21 +17,14 @@
 **
 */
 #include <math.h>
+#include "survproto.h"
 
-void agfit_null(n, method, start, stop, event, offset, weights,strata, loglik)
-double  offset[],
-	weights[],
-	start[],
-	stop[],
-	loglik[];
-long    n[1],
-	method[1],
-	strata[],
-	event[];
-
+void agfit_null(long   *n,      long   *method,   double *start, double *stop, 
+		long   *event,  double * offset,  double *weights,
+		long   *strata, double loglik[2])
     {
-    register int i,k;
-    register double denom;
+    int i,k;
+    double denom;
     double e_denom;
     double temp;
     double time;

@@ -1,4 +1,4 @@
-/* SCCS $Id: chinv2.c,v 2.5 1994-12-28 16:26:40 therneau Exp $  */
+/*  SCCS $Id: chinv2.c,v 5.1 1998-08-30 14:52:33 therneau Exp $
 /*
 ** matrix inversion, given the cholesky decomposition
 **
@@ -10,10 +10,9 @@
 **
 **  Terry Therneau
 */
+#include "survproto.h"
 
-chinv2(matrix ,n)
-int  n;
-double **matrix;
+void chinv2(double **matrix , int n)
      {
      register double temp;
      register int i,j,k;

@@ -1,4 +1,4 @@
-/* SCCS $Id: agexact.c,v 4.7 1993-06-17 12:25:27 therneau Exp $  */
+/*  SCCS $Id: agexact.c,v 5.1 1998-08-30 14:51:19 therneau Exp $
 /*
 ** Anderson-Gill formulation of the cox Model
 **   Do an exact calculation of the partial likelihood. (CPU city!)
@@ -48,34 +48,16 @@
 **          living within tied times.
 */
 #include <math.h>
-#include <stdio.h>
+#include "survproto.h"
 
 double **dmatrix();
 void  init_doloop();
 
-void agexact(maxiter, nusedx, nvarx, start, stop, event, covar2, offset, strata,
-		 means, beta,  u, imat2, loglik, flag, work, work2,
-		 eps, sctest)
-
-long    *nusedx,
-	*nvarx,
-	*maxiter,
-	*flag,
-	strata[],
-	*work2,
-	event[];
-double  *covar2,
-	*imat2;
-double  means[],
-	*work,
-	beta[],
-	u[],
-	offset[],
-	start[],
-	stop[];
-double  loglik[2],  /* returned values */
-	*sctest;
-double  *eps;
+void agexact(long *maxiter,  long *nusedx,   long *nvarx,   double *start, 
+	     double *stop,   long *event,    double *covar2,double *offset, 
+	     long   *strata, double *means,  double *beta,  double *u, 
+	     double *imat2,  double loglik[2], long *flag,  double *work, 
+	     long   *work2,  double *eps,     double *sctest)
 {
     register int i,j,k, l, person;
     int     iter;

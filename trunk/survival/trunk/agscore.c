@@ -1,4 +1,4 @@
-/* SCCS: $Id: agscore.c,v 1.2 1993-06-17 12:26:18 therneau Exp $
+/*  SCCS $Id: agscore.c,v 5.1 1998-08-30 14:51:56 therneau Exp $
 /*
 ** Do the score residuals
 **
@@ -20,23 +20,13 @@
 **      a       vector of length 3*nvar
 */
 #include <stdio.h>
-extern double **dmatrix();
+#include "survproto.h"
 
-void agscore(nx, nvarx, y, covar2, strata, score, weights,
-		method, resid2, a)
-long    nx[1],
-	nvarx[1],
-	method[1],
-	strata[];
-double  y[],
-	*covar2,
-	score[],
-	weights[],
-	*a,
-	*resid2;
-
+void agscore(long   *nx,       long   *nvarx,      double *y,
+	     double *covar2,   long   *strata,     double *score,
+	     double *weights,  long   *method,     double *resid2, double *a)
     {
-    register int i,k;
+    int i,k;
     int n, nvar;
     int person;
     double denom, time;

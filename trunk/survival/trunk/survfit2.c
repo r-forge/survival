@@ -1,4 +1,4 @@
-/* SCCS $Id: survfit2.c,v 4.8 1993-05-04 09:39:24 therneau Exp $
+/*  SCCS $Id: survfit2.c,v 5.1 1998-08-30 14:52:59 therneau Exp $
 /*
 ** Fit the survival curve
 **  Input
@@ -20,21 +20,13 @@
 **    strata[0: (n-1)]= last obs strata 1,2, etc
 */
 #include <math.h>
-
-void survfit2(sn, y, ny, wt, strata, method, error,mark,surv,
-		  varh, risksum, snsurv)
-long *sn;
-long *snsurv;
-long *method, *error;
-long *ny;
-long strata[];
-double mark[];
-double wt[], y[];
-double varh[];
-double surv[];
-double risksum[];
+#include "survproto.h"
+void survfit2(long   *sn,     double *y,        long   *ny, 
+	      double *wt,     long   *strata,   long   *method, 
+	      long   *error,  double *mark,     double *surv,
+	      double *varh,   double *risksum,  long   * snsurv)
 {
-    register int i,j;
+    int i,j;
     double hazard, varhaz;
     double sum, km;
     double *time, *status;

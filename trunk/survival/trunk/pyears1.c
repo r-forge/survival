@@ -1,4 +1,4 @@
-/* SCCS $Id: pyears1.c,v 4.3 1996-07-29 21:37:46 therneau Exp $  */
+/*  SCCS $Id: pyears1.c,v 5.1 1998-08-30 14:52:51 therneau Exp $
 /*
 **  Person-years calculations, in its most general
 **
@@ -42,38 +42,19 @@
 **      scratch[edim + odim]
 */
 #include<math.h>
-double **dmatrix();
-double pystep();
+#include "survproto.h"
+#include "survS.h"
 
 /* names that begin with "s" will be re-declared in the main body */
-void pyears1(sn, sny, sdoevent, sy,
-		     sedim, efac, edims, secut, expect, sedata,
-		     sodim, ofac, odims, socut, smethod, sodata,
-		     pyears, pn, pcount, pexpect, offtable)
-
-long    *sn,
-	*sny,
-	*sdoevent,
-	*sedim,
-	*sodim,
-        *smethod,
-	efac[],
-	ofac[],
-	edims[],
-	odims[];
-
-double  *sy,
-	*secut,
-	*socut,
-	*expect,
-	*sedata,
-	*sodata,
-	*pyears,
-	*pn,
-	*pcount,
-	*pexpect,
-	*offtable;
+void pyears1(long   *sn,      long   *sny,      long   *sdoevent, 
+	     double *sy,      long   *sedim,    long   *efac, 
+	     long   *edims,   double *secut,    double *expect, 
+	     double *sedata,  long   *sodim,    long   *ofac, 
+	     long   *odims,   double *socut,    long   *smethod, 
+	     double *sodata,  double *pyears,   double *pn, 
+	     double *pcount,  double *pexpect,  double *offtable)
     {
+S_EVALUATOR
     register int i,j;
     int     n,
 	    ny,
@@ -120,19 +101,19 @@ double  *sy,
     edata = dmatrix(sedata, n, edim);
     odata = dmatrix(sodata, n, odim);
     i=edim + odim;
-    data  = (double *) S_alloc(i, sizeof(double));
+    data  = (double *) ALLOC(i, sizeof(double));
     data2 = data + odim;
     /*
     ** ecut and ocut will be ragged arrays
     */
-    ecut = (double **)S_alloc(edim, sizeof(double *));
+    ecut = (double **)ALLOC(edim, sizeof(double *));
     for (i=0; i<edim; i++) {
 	ecut[i] = secut;
 	if (efac[i]==0)     secut += edims[i];
 	else if(efac[i] >1) secut += 1 + (efac[i]-1)*edims[i];
 	}
 
-    ocut = (double **)S_alloc(odim, sizeof(double *));
+    ocut = (double **)ALLOC(odim, sizeof(double *));
     for (i=0; i<odim; i++) {
 	ocut[i] = socut;
 	if (ofac[i]==0) socut += odims[i] +1;

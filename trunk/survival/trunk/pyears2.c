@@ -1,4 +1,4 @@
-/* SCCS $Id: pyears2.c,v 4.1 1993-12-02 21:36:43 therneau Exp $  */
+/*  SCCS $Id: pyears2.c,v 5.1 1998-08-30 14:52:52 therneau Exp $
 /*
 **  Person-years calculations.
 **     same as pyears1, but no expected rates
@@ -28,30 +28,17 @@
 ** Scratch     allocated on the fly
 **      scratch[edim]
 */
-
-double **dmatrix();
-double pystep();
+#include "survproto.h"
+#include "survS.h"
 
 /* names that begin with "s" will be re-declared in the main body */
-void pyears2(sn, sny, sdoevent, sy,
-		     sodim, ofac, odims, socut, sodata,
-		     pyears, pn, pcount, offtable)
-
-long    *sn,
-	*sny,
-	*sdoevent,
-	*sodim,
-	ofac[],
-	odims[];
-
-double  *sy,
-	*socut,
-	*sodata,
-	*pyears,
-	*pn,
-	*pcount,
-	*offtable;
+void pyears2(long   *sn,      long   *sny,   long   *sdoevent, 
+	     double *sy,      long   *sodim, long   *ofac, 
+	     long   *odims,   double *socut, double *sodata,
+	     double *pyears,  double *pn,    double *pcount, 
+	     double *offtable)
     {
+S_EVALUATOR
     register int i,j;
     int     n,
 	    ny,
@@ -85,11 +72,11 @@ double  *sy,
 	}
     event = stop +n;
     odata = dmatrix(sodata, n, odim);
-    data  = (double *) S_alloc(odim, sizeof(double));
+    data  = (double *) ALLOC(odim, sizeof(double));
     /*
     ** will be a ragged array
     */
-    ocut = (double **)S_alloc(odim, sizeof(double *));
+    ocut = (double **)ALLOC(odim, sizeof(double *));
     for (i=0; i<odim; i++) {
 	ocut[i] = socut;
 	if (ofac[i]==0) socut += odims[i] +1;

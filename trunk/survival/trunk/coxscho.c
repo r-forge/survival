@@ -1,4 +1,4 @@
-/* SCCS $Id: coxscho.c,v 4.3 1993-01-30 19:34:58 therneau Exp $
+/*  SCCS $Id: coxscho.c,v 5.1 1998-08-30 14:52:45 therneau Exp $
 /*
 ** Return the Schoenfeld residuals.
 **
@@ -31,22 +31,13 @@
 **          living within tied times.
 */
 #include <math.h>
-#include <stdio.h>
+#include "survproto.h"
 
-double **dmatrix();
-
-void coxscho(nusedx, nvarx, y, covar2, score, strata,  method2, work)
-
-long    *nusedx,
-	*nvarx,
-	*method2,
-	strata[];
-double  *covar2,
-	*work,
-	*score,
-	*y;
+void coxscho(long   *nusedx,    long   *nvarx,    double *y, 
+	     double *covar2,    double *score,    long   *strata,  
+	     long   *method2,   double *work)
 {
-    register int i,j,k,person;
+    int i,k,person;
     int     nused, nvar;
     double **covar;
     double *a;
@@ -54,7 +45,7 @@ double  *covar2,
     double *mean;
     double  denom, weight;
     double  time;
-    double  temp, temp2;
+    double  temp;
     double     method;
     double   deaths;
     double efron_wt;

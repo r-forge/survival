@@ -1,15 +1,17 @@
-/* SCCS $Id: dmatrix.c,v 4.4 1992-08-25 14:32:29 grill Exp $  */
+/*  SCCS $Id: dmatrix.c,v 5.1 1998-08-30 14:52:48 therneau Exp $
 /*
 ** set up ragged arrays, with #of columns and #of rows
 */
-double **dmatrix(array, ncol, nrow)
-double  *array;
-int ncol, nrow;
+#include "survproto.h"
+#include "survS.h"
+
+double **dmatrix(double *array, int ncol, int nrow)
     {
+S_EVALUATOR
     register int i;
     register double **pointer;
 
-    pointer = (double **) S_alloc(nrow, sizeof(double *));
+    pointer = (double **) ALLOC(nrow, sizeof(double *));
     for (i=0; i<nrow; i++) {
 	pointer[i] = array;
 	array += ncol;

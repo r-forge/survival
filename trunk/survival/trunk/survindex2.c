@@ -1,5 +1,5 @@
-/*    SCCS $Id: survindex2.c,v 2.3 1992-08-26 08:51:42 grill Exp $
-** A subroutine for surv.fit.print
+/*     SCCS $Id: survindex2.c,v 5.1 1998-08-30 14:53:01 therneau Exp $
+/* A subroutine for surv.fit.print
 **
 ** Input --
 **      n:      number of survival times
@@ -25,17 +25,11 @@
 **      indx2:  when =1 indicates a time less than any survival.  When =2
 **                 indicates an exact tie.
 */
+#include "survproto.h"
 
-void survindex2(n, stime, strata, ntime, time, nstrat, indx, indx2)
-long n[],
-     strata[],
-     ntime[],
-     nstrat[];
-long indx[];
-long indx2[];
-double stime[],
-       time[];
-
+void survindex2(long   *n,     double *stime,   long   *strata, 
+		long   *ntime, double *time,    long   *nstrat, 
+		long   *indx,  long   *indx2)
     {
     register int i,j;
     int nn;

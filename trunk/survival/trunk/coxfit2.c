@@ -1,4 +1,4 @@
-/* SCCS  $Date: 1996-11-18 07:55:39 $ $Id: coxfit2.c,v 4.10 1996-11-18 07:55:39 therneau Exp $                         /*
+/*  SCCS $Id: coxfit2.c,v 5.1 1998-08-30 14:52:38 therneau Exp $
 /*
 ** here is a cox regression program, written in c
 **     uses Efron's approximation for ties
@@ -49,33 +49,14 @@
 **  the data must be sorted by ascending time within strata
 */
 #include <math.h>
-#include <stdio.h>
+#include "survproto.h"
 
-double **dmatrix();
-
-void coxfit2(maxiter, nusedx, nvarx, time, status, covar2, offset,
-		 weights, strata,
-		 means, beta, u, imat2, loglik, flag, work,
-		 eps, sctest)
-
-long    *nusedx,
-	*nvarx,
-	*maxiter,
-	*flag,
-	strata[],
-	status[];
-double  *covar2,
-	*imat2;
-double  u[],
-	means[],
-	*work,
-	beta[],
-	offset[],
-	weights[],
-	time[];
-double  loglik[2],  /* returned values */
-	*sctest;
-double  *eps;
+void coxfit2(long   *maxiter,   long   *nusedx,    long   *nvarx, 
+	     double *time,      long   *status,    double *covar2, 
+	     double *offset,	double *weights,   long   *strata,
+	     double *means,     double *beta,      double *u, 
+	     double *imat2,     double loglik[2],  long   *flag, 
+	     double *work,	double *eps,       double *sctest)
 {
     register int i,j,k, person;
     int     iter;

@@ -1,4 +1,4 @@
-/* SCCS $Id: agsurv3.c,v 4.3 1995-03-14 13:12:11 therneau Exp $  */
+/*  SCCS $Id: agsurv3.c,v 5.1 1998-08-30 14:52:01 therneau Exp $
 /*
 ** Create the cohort survival curve(s) for a set of subjects.
 **
@@ -47,7 +47,8 @@
 **  cx and cy must be sorted by (event before censor) within stop time
 */
 #include <math.h>
-double **dmatrix();
+#include "survproto.h"
+#include "survS.h"
 
 static double   *y,
 		*nscore,
@@ -68,23 +69,14 @@ static int      death,
 		n;
 static void    addup();
 
-void agsurv3(sn, snvar, sncurve, snpt, sse, score, sy, r, coef, var, cmean,
-		  scn, cy, cx,
-		  ssurv, varh, sused, smethod)
-long    *sn, *snvar, *scn, *smethod, *sse;
-long    *sncurve, *snpt;
-double  sy[],
-	coef[],
-	*ssurv,
-	score[],
-	varh[],
-	cmean[];
-double  *r,
-	*cx,
-	*cy,
-	*sused,
-	*var;
+void agsurv3(long   *sn,    long   *snvar,    long   *sncurve, 
+	     long   *snpt,  long   *sse,      double *score, 
+	     double *sy,    double *r,        double *coef, 
+	     double *var,   double *cmean,    long   *scn, 
+	     double *cy,    double *cx,       double *ssurv,
+	     double *varh,  double *sused,    long   *smethod)
 {
+S_EVALUATOR
     register int i,j,k,l;
     double *start, *stop, *event;
     int cn;
@@ -129,13 +121,13 @@ double  *r,
     ** scratch space
     */
     need = 2*n + se*nvar*(2+ n*(n+1)/2);
-    nscore = (double *) S_alloc(need, sizeof(double));
+    nscore = (double *) ALLOC(need, sizeof(double));
     isurv  = nscore + n;
     for (i=0; i<n; i++) isurv[i]=1;
     if (se==1) {
 	a = isurv + n;
 	a2= a + nvar;
-	tvar = (double **) S_alloc(n, sizeof(double *));
+	tvar = (double **) ALLOC(n, sizeof(double *));
 	/* be tricky here, as only the bottom half is used */
 	tvar[0] = a2 + nvar;
 	for (i=1; i<n; i++)
