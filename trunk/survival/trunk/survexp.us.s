@@ -1,4 +1,4 @@
-#  SCCS $Id: survexp.us.s,v 5.1 1998-08-30 15:48:19 therneau Exp $
+#  SCCS $Id: survexp.us.s,v 5.2 1998-12-17 17:49:48 therneau Exp $
 #
 # Create the US total hazards table
 #   The raw numbers below are q* 10^5.  Note that there are 24 leap years/100
@@ -103,22 +103,31 @@ temp <- array(temp/100000, dim=c(113,2,6))
 # Change the array to one of daily hazard rates
 #  For the 4th row, make it so the sum of the first year's hazard is correct,
 #  i.e., 1*row1 + 6*row2 + 21*row3 + 337.24* row4 = -log(1-q)
-
-temp2 <- -log(1- temp)/365.24    
+temp2      <- -log(1- temp)/365.24    
 temp2[1,,] <- -log(1-temp[1,,]) /1
 temp2[2,,] <- -log(1-temp[2,,]) /6     #days 1-7
 temp2[3,,] <- -log(1-temp[3,,]) /21    #days 7-28
 temp2[4,,] <- (-log(1-temp[4,,]) -(temp2[1,,] + 6*temp2[2,,] + 21*temp2[3,,]))/
                    337.24
+#
+# Now, add in the year 2000 extrapolation
+#
+survexp.us <- array(0, dim=c(113,2,7))
+survexp.us[,,1:6] <- temp2
+data.restore('survexp2000.sdump')
+for (i in 1:4) {
+    survexp.us[i,,7] <- exp(log(temp2[i,,6]) + survexp.2000[1,,"total"])
+    }
+survexp.us[5:113,,7] <- exp(log(temp2[5:113,,6]) + survexp.2000[-1,,"total"])
 
-attributes(temp2) <- list (
-	dim      =c(113,2,6),
+attributes(survexp.us) <- list (
+	dim      =c(113,2,7),
 	dimnames =list(c('0-1d','1-7d', '7-28d', '28-365d', 
-	  as.character(1:109)), c("male", "female"), 10*(194:199)),
+	  as.character(1:109)), c("male", "female"), 10*(194:200)),
 	dimid    =c("age", "sex", "year"),
 	factor   =c(0,1,10),
 	cutpoints=list(c(0,1,7,28,1:109 * 365.24), NULL, 
-	               mdy.date(1,1, (194:199)*10)),
+	               mdy.date(1,1, (194:200)*10)),
 	summary = function(R) {
 		     x <- c(format(round(min(R[,1]) /365.24, 1)),
 			    format(round(max(R[,1]) /355.24, 1)),
@@ -129,6 +138,5 @@ attributes(temp2) <- list (
 			   " male:", x[3], " female:", x[4], "\n",
 			   " date of entry from", x2[1], "to", x2[2], "\n")
 		     })
-oldClass(temp2) <- 'ratetable'
-survexp.us <-    temp2
-rm(temp, temp2)    
+rm(temp, temp2, survexp.2000)    
+oldClass(survexp.us) <- 'ratetable'
