@@ -1,4 +1,4 @@
-#SCCS $Date: 1996-04-09 07:41:25 $ $Id: coxph.fit.s,v 4.18 1996-04-09 07:41:25 therneau Exp $
+# SCCS $Id: coxph.fit.s,v 5.1 1998-08-30 15:07:09 therneau Exp $
 coxph.fit <- function(x, y, strata, offset, init, iter.max,
 			eps, weights, method, rownames)
     {
@@ -96,8 +96,8 @@ coxph.fit <- function(x, y, strata, offset, init, iter.max,
 				stime,
 				sstat,
 				newstrat,
-				score,
-				weights,
+				as.double(score),
+				as.double(weights),
 				resid=double(n))
 	resid <- double(n)
 	resid[sorted] <- coxres$resid
