@@ -1,4 +1,4 @@
-#SCCS $Id: plot.cox.zph.s,v 4.3 1993-04-06 15:52:59 therneau Exp $
+#SCCS $Id: plot.cox.zph.s,v 4.4 1993-04-09 16:29:54 therneau Exp $
 plot.cox.zph <- function(x, resid=T, se=T, df=4, nsmo=40, var) {
     xx <- x$x
     yy <- x$y
@@ -63,8 +63,10 @@ plot.cox.zph <- function(x, resid=T, se=T, df=4, nsmo=40, var) {
 	else if (x$transform=='log')
 	    plot(range(xx), yr, type='n', xlab="Time", ylab=ylab[i], log='x')
 	else {
-	    plot(range(xx), yr, type='n', xlab="Time", ylab=ylab[i], xaxt='n')
+	    plot(range(xx), yr, type='n', xlab="Time", ylab=ylab[i], axes=F)
 	    axis(1, xaxisval, xaxislab)
+	    axis(2)
+	    box()
 	    }
 	if (resid) points(xx, y)
 	lines(pred.x, yhat)
