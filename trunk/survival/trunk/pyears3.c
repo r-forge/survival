@@ -1,4 +1,4 @@
-/* SCCS $Id: pyears3.c,v 4.3 1994-01-06 09:51:16 therneau Exp $  */
+/* SCCS $Id: pyears3.c,v 4.4 1994-01-10 10:52:21 therneau Exp $  */
 /*
 **  Person-years calculations, leading to expected survival for a cohort.
 **    The output table depends only on factors, not on continuous.
@@ -68,7 +68,6 @@ double  *sx,
 	    cumhaz;   /*total hazard to date for the subject */
     double  timeleft,
 	    thiscell,
-	    width,
 	    etime,
 	    et2;
     int     index,
@@ -111,7 +110,7 @@ double  *sx,
 	** add up hazard
 	*/
 	for (j=0; j<ntime && timeleft >0; j++) {
-	    width = thiscell = times[j] - time;
+	    thiscell = times[j] - time;
 	    if (thiscell > timeleft) thiscell = timeleft;
 	    index =j + ntime*group;
 
@@ -136,11 +135,11 @@ printf("time=%5.1f, rate1=%6e, rate2=%6e, wt=%3.1f\n", et2, expect[indx], expect
 		else          esurv[index]=0;
 		}
 	    else if (death==0) {
-		esurv[index] += exp(-(cumhaz+hazard)) * width;
+		esurv[index] += exp(-(cumhaz+hazard)) * thiscell;
 		wvec[index]  += exp(-cumhaz) * thiscell;
 		}
 	    else {
-		esurv[index] += hazard * width;
+		esurv[index] += hazard * thiscell;
 		wvec[index] +=  thiscell;
 		}
 	    nsurv[index] ++;
