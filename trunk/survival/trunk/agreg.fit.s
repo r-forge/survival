@@ -1,4 +1,4 @@
-#SCCS $Date: 1992-08-25 15:08:58 $ $Id: agreg.fit.s,v 4.8 1992-08-25 15:08:58 grill Exp $
+#SCCS 8/25/92 @(#)agreg.fit.s	4.8
 agreg.fit <- function(x, y, strata, offset, init, iter.max,
 			eps, method, rownames)
     {
@@ -76,18 +76,18 @@ agreg.fit <- function(x, y, strata, offset, init, iter.max,
 		       as.double(eps),
 		       sctest=as.double(method=='efron') )
 
+	if (agfit$flag < 0)
+	      return(paste("X matrix deemed to be singular; variable",
+			-agfit$flag, 'at iteration', agfit$iter))
 	infs <- abs(agfit$u %*% matrix(agfit$imat,nvar))
 	if (iter.max >1) {
 	    if (agfit$flag == 1000)
 		   warning("Ran out of iterations and did not converge")
 	    else if (any((infs > eps) & (infs > sqrt(eps)*abs(agfit$coef))))
 		warning(paste("Loglik converged before variable ",
-			  (1:nvar)[(infs>eps)], ", beta may be infinite. ",
-			   collapse=''))
+			  paste((1:nvar)[(infs>eps)]),
+			  ", beta may be infinite. "))
 	    }
-	if (agfit$flag < 0)
-	      return(paste("X matrix deemed to be singular; variable",
-			-agfit$flag, 'at iteration', agfit$iter))
 
 	names(agfit$coef) <- dimnames(x)[[2]]
 	lp  <- x %*% agfit$coef + offset - sum(agfit$coef *agfit$means)

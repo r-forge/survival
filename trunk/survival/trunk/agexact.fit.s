@@ -1,4 +1,4 @@
-#SCCS $Date: 1992-08-25 15:07:47 $ $Id: agexact.fit.s,v 4.9 1992-08-25 15:07:47 grill Exp $
+#SCCS 8/6/92 @(#)agexact.fit.s	4.7
 agexact.fit <- function(x, y, strata, offset, iter.max,
 			eps, init, method, rownames)
     {
@@ -59,22 +59,22 @@ agexact.fit <- function(x, y, strata, offset, iter.max,
 		   as.double(eps),
 		   sctest=double(1) )
 
+    if (agfit$flag < 0)
+	  return(paste("X matrix deemed to be singular; variable",-agfit$flag))
     infs <- abs(agfit$u %*% matrix(agfit$imat,nvar))
     if (iter.max >1) {
 	if (agfit$flag == 1000)
 	       warning("Ran out of iterations and did not converge")
 	else if (any((infs > eps) & (infs > sqrt(eps)*abs(agfit$coef))))
 	    warning(paste("Loglik converged before variable ",
-		      (1:nvar)[(infs>eps)], ", beta may be infinite. ",
-		       collapse=''))
+			  paste((1:nvar)[(infs>eps)]),
+			  ", beta may be infinite. "))
 	}
-    if (agfit$flag < 0)
-	  return(paste("X matrix deemed to be singular; variable",-agfit$flag))
 
     names(agfit$coef) <- dimnames(x)[[2]]
     lp  <- x %*% agfit$coef + offset - sum(agfit$coef *agfit$means)
     score <- as.double(exp(lp[sorted]))
-    aghaz <- .C("aghaz2",
+    aghaz <- .C("aghaz",
 		   as.integer(n),
 		   sstart, sstop,
 		   sstat,

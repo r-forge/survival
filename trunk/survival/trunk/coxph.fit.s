@@ -1,4 +1,4 @@
-#SCCS $Date: 1992-08-25 15:09:40 $ $Id: coxph.fit.s,v 4.8 1992-08-25 15:09:40 grill Exp $
+#SCCS $Date: 1992-09-20 23:25:09 $ $Id: coxph.fit.s,v 4.9 1992-09-20 23:25:09 therneau Exp $
 coxph.fit <- function(x, y, strata, offset, init, iter.max,
 			eps, method, rownames)
     {
@@ -66,18 +66,18 @@ coxph.fit <- function(x, y, strata, offset, init, iter.max,
 		       as.double(eps),
 		       sctest=as.double(method=="efron") )
 
+	if (coxfit$flag > 0 && coxfit$flag<1000)
+	      return(paste("X matrix deemed to be singular; variable",
+			    coxfit$flag, "iteration", coxfit$iter))
 	infs <- abs(coxfit$u %*% matrix(coxfit$imat,nvar))
 	if (iter.max >1) {
 	    if (coxfit$flag == 1000)
 		   warning("Ran out of iterations and did not converge")
 	    else if (any((infs > eps) & (infs > sqrt(eps)*abs(coxfit$coef))))
 		warning(paste("Loglik converged before variable ",
-			  (1:nvar)[(infs>eps)], ", beta may be infinite. ",
-			   collapse=''))
+			  paste((1:nvar)[(infs>eps)]),
+			  ", beta may be infinite. "))
 	    }
-	if (coxfit$flag > 0 && coxfit$flag<1000)
-	      return(paste("X matrix deemed to be singular; variable",
-			    coxfit$flag, "iteration", coxfit$iter))
 
 	names(coxfit$coef) <- dimnames(x)[[2]]
 	lp <- c(x %*% coxfit$coef) + offset - sum(coxfit$coef*coxfit$means)
