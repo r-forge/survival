@@ -1,4 +1,4 @@
-# SCCS $Id: coxpenal.fit.s,v 1.10 2001-01-19 15:56:21 therneau Exp $
+# SCCS $Id: coxpenal.fit.s,v 1.11 2001-02-08 11:15:37 therneau Exp $
 #
 # General penalized likelihood
 #
@@ -106,7 +106,7 @@ coxpenal.fit <- function(x, y, strata, offset, init, control,
 	    }
 	for (i in 1:npenal) {
 	    j <- pcols[[i]]
-	    if (j[1] > fcol) pcol[[i]] <- j-1
+	    if (j[1] > fcol) pcols[[i]] <- j-1
 	    }
 
 	frailx <- x[, fcol]
