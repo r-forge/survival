@@ -1,4 +1,4 @@
-# SCCS $Id: ratetable.s,v 5.2 1998-09-25 23:20:19 therneau Exp $
+# SCCS $Id: ratetable.s,v 5.3 2005-02-07 10:56:31 therneau Exp $
 #
 # This is a 'specials' function for pyears
 #   it is a stripped down version of as.matrix(data.frame(...))
@@ -112,7 +112,25 @@ as.matrix.ratetable <- function(x) {
     }
 
 print.ratetable <- function(x, ...)  {
-    cat ("Rate table with dimension(s):", attr(x, 'dimid'), "\n")
-    attributes(x) <- attributes(x)[c("dim", "dimnames")]
-    NextMethod()
+    ndim <- length(alist$dim)
+    if (ndim >1)
+        cat ("Rate table with dimensions:\n")
+    else cat("Rate table with 1 dimension:\n")
+    alist <- attributes(x)
+    ndim <- length(alist$dim)
+    fac <- alist$factor
+    temp1 <- format(alist$dimid)
+    for (i in 1:ndim) {
+        cat("    ", temp1[i], ": ", sep='')
+        if (fac[i]==1) {
+            cat("discrete factor with legal values of (",
+                paste(alist$dimnames[[i]], collapse=', '), ")\n", sep='')
+            }
+
+        else if (fac[i]==0)
+            cat("time variable with", format(alist$dim[i]), 
+                'categories\n')
+        else cat("time variable with", format(alist$dim[i]), 
+                 'categories (interpolated)\n')
+        }
     }
