@@ -1,4 +1,4 @@
-#SCCS $Date: 1997-04-23 16:30:19 $ $Id: plot.survfit.s,v 4.12 1997-04-23 16:30:19 therneau Exp $
+#SCCS $Date: 1997-08-04 09:42:10 $ $Id: plot.survfit.s,v 4.13 1997-08-04 09:42:10 atkinson Exp $
 plot.survfit<- function(surv, conf.int,  mark.time=T,
 		 mark=3,col=1,lty=1, lwd=1, cex=1,log.=F, yscale=1,
 		 xscale=1,  ptype=c('surv', 'event', 'cumhaz'),
@@ -9,7 +9,7 @@ plot.survfit<- function(surv, conf.int,  mark.time=T,
 
     ptype <- match.arg(ptype)
     if (missing(conf.int)) {
-	if (is.null(surv$strata) && !is.matrix(ssurv)) conf.int <-T
+	if (is.null(surv$strata) && !is.matrix(surv$surv)) conf.int <-T
 	else conf.int <- F
 	}
 
