@@ -1,4 +1,4 @@
-/* SCCS $Id: coxdetail.c,v 4.4 1993-06-17 12:27:04 therneau Exp $
+/* SCCS $Id: coxdetail.c,v 4.5 1994-04-07 22:36:16 therneau Exp $
 /*
 ** Return all of the internal peices of a cox model
 **
@@ -23,7 +23,8 @@
 **       score        :the indices of the unique time points
 **       y[1, ]       :the number of deaths at each time point
 **       y[2, ]       :the number at risk at each time point
-**       y[3, ]       :the increment in the hazard at t
+**       y[3, ]       :the increment in the cum -hazard at t
+**       weights[]    :the increment in the variance of the cum-haz at t
 **       means(nv,nd) :the matrix of weighted means, one col per unique event
 **                                              time
 **       u(nv,nd)     :the score vector components, one per unique event time
@@ -77,6 +78,7 @@ double  *work,
     double  temp, temp2, temp3;
     double     method;
     double  hazard;
+    double  varhaz;
     int     itemp, deaths;
     int     ideath;
     double  efron_wt, d2;
@@ -179,6 +181,7 @@ double  *work,
 	    */
 	    itemp = -1;
 	    hazard =0;
+	    varhaz =0;
 	    meanwt /= deaths;
 	    for (k=person; k<nused && stop[k]==time; k++) {
 		if (event[k]==1) {
@@ -186,6 +189,7 @@ double  *work,
 		    temp = itemp*method/deaths;
 		    d2 = denom - temp*efron_wt;
 		    hazard += meanwt/d2;
+		    varhaz += meanwt*meanwt/(d2*d2);
 		    for (i=0; i<nvar; i++) {
 			temp2 = (a[i] - temp*a2[i])/d2;
 			means[i][ideath] += (wmeans[i] +temp2)/deaths;
@@ -207,6 +211,7 @@ double  *work,
 	    start[ideath] = deaths;
 	    stop[ideath]  = nrisk;
 	    event[ideath] = hazard;
+	    weights[ideath]=varhaz;
 	    ideath++;
 	    }
 	}   /* end  of accumulation loop */
