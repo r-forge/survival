@@ -1,4 +1,4 @@
-#SCCS $Date: 1994-04-25 11:14:07 $ $Id: survfit.s,v 4.5 1994-04-25 11:14:07 therneau Exp $
+#SCCS $Date: 1994-05-23 07:51:38 $ $Id: survfit.s,v 4.6 1994-05-23 07:51:38 therneau Exp $
 survfit <- function (formula, data, weights, subset, na.action, ...) {
     call <- match.call()
     # Real tricky -- find out if the first arg is "Surv(...)" without
@@ -33,8 +33,7 @@ survfit <- function (formula, data, weights, subset, na.action, ...) {
 	if (is.null(casewt)) casewt <- rep(1,n)
 	else if (mode(casewt)=='argument') casewt <- eval(casewt[[1]])
 
-	off <- model.extract(m, 'offset')
-	if (!is.null(off)) warning("Offset term ignored")
+	if (!is.null(attr(Terms, 'offset'))) warning("Offset term ignored")
 
 	ll <- attr(Terms, 'term.labels')
 	if (length(ll) == 0) X <- factor(rep(1,n))
