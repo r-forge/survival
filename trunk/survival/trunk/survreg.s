@@ -1,4 +1,4 @@
-#SCCS $Id: survreg.s,v 4.8 1992-07-14 00:04:02 therneau Exp $
+#SCCS $Id: survreg.s,v 4.9 1992-08-06 16:33:01 therneau Exp $
 survreg <- function(formula=formula(data), data=sys.parent(),
 	subset, na.action,
 	link=c('log', 'identity'),
@@ -38,7 +38,7 @@ survreg <- function(formula=formula(data), data=sys.parent(),
 	     Y <- cbind(linkfun(Y[,1:2]), Y[,3])
 	else Y <- cbind(linkfun(Y[,1]), Y[,3])
 	}
-    else if (type=='right')
+    else if (type=='left')
 	     Y <- cbind(linkfun(Y[,1]), 2-Y[,2])
     else     Y <- cbind(linkfun(Y[,1]), Y[,2])
 
