@@ -20,8 +20,7 @@ If a formula object is supplied it must have a Surv object as the
 response on the left of the ~ operator and, if desired, terms 
 separated by + operators on the right.
 One of the terms may be a strata object.  For a single survival curve
-the "~ 1" part of the formula is not needed, unless
-a dataframe is supplied.  
+the "~ 1" part of the formula is not required.
 .OA
 .AG data
 a data.frame in which to interpret the variables named in
@@ -43,9 +42,10 @@ The curve(s) produced will be representative of a cohort who's
 covariates correspond to the values in newdata.  Default is
 the mean of the covariates used in the coxph fit.
 .AG individual
-a logical value indicating whether individual survivor curves 
-should be calculated for each row or one at the mean covariate values.  
-Default is false, only one curve.
+a logical value indicating whether the data frame represents different
+time epochs for only one individual (T), or whether multiple rows indicate
+multiple individuals (F, the default).  If the former only one curve
+will be produced; if the latter there will be one curve per row in `newdata'.
 .AG conf.int
 The level for a two-sided confidence interval on  the survival curve(s).
 Default is 0.95.
@@ -63,7 +63,7 @@ or  "tsiatis"  for  the  Tsiatis  formula, (only the first
 character  is  necessary).   The  default  is  "tsiatis"  when
 a coxph object is given, and it is "greenwood" otherwise.
 .AG conf.type
-One of "none", "plain", "log", or "log-log".  Only
+One of "none", "plain", "log" (the default), or "log-log".  Only
 enough of the string to uniquely identify it is necessary.
 The first option causes confidence intervals not to be
 generated.  The second causes the standard intervals
@@ -71,7 +71,19 @@ generated.  The second causes the standard intervals
 conf.int.  The log option calculates intervals based on the
 cumulative hazard or log(survival). The last option bases
 intervals on the log hazard or log(-log(survival)).  These
-last will never extend past 0 or 1. Default ??.
+last will never extend past 0 or 1.
+.PP
+If the letter "m" is added to the type, e.g. "logm", then a modified
+confidence interval is computed.  The upper limit is unchanged, but
+the lower one is based on an ``effective n'' argument.  The confidence
+bands will agree with the usual calculation at each death time, but unlike
+the usual bands the confidence interval becomes wider at each censored
+observation.
+This is especially useful for survival curves with a long flat tail.
+If the letter "p" is added as a suffix, then the Peto version of a lower
+limit is computed.  This is based on the same effective n argument as the
+modified limit, but also replaces the usual Greenwood variance term with
+a simple approximation.  It is known to be conservative.
 .RT
 a survfit object. Methods defined for survfit objects are
 print, plot, lines, and points.
@@ -100,8 +112,16 @@ the hazard by 3/10 and the second by 1/10 + 1/9 + 1/8.  For curves created
 after a Cox model these correspond to the Breslow and Efron estimates,
 respectively, and the proper choice is made automatically.
 The fh2 method will give results closer to the Kaplan-Meier.
+.PP
+Based on the work of Link (1984), the log transform is expected to produce
+the most accurate confidence intervals.  If there is heavy censoring, then
+based on the work of Dorey and Korn (1987) the modified estimate will give
+a more reliable confidence band for the tails of the curve.
 .SH REFERENCES
 Terry Therneau, author of local function.
+
+Dorey, F.J. and Korn, E.L. (1987).  Effective sample sizes for confidence
+intervals for survival probabilities.  Statistics in Medicine 6, 679-87.
 
 Fleming, T. H. and Harrington, D.P. (1984).  Nonparametric estimation of the
 survival distribution in censored data.  Comm. in Statistics 13, 2469-86.
