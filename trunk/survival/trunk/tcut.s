@@ -1,5 +1,9 @@
-#SCCS $Id: tcut.s,v 4.2 1994-10-16 19:00:30 therneau Exp $
+# SCCS $Id: tcut.s,v 5.1 1998-08-30 16:00:54 therneau Exp $
 tcut <-  function (x, breaks, labels, scale=1){
+    # avoid some problems with dates
+    x <- as(x, 'numeric')
+    breaks <- as(breaks, 'numeric')
+
     if(length(breaks) == 1) {
 	if(breaks < 1)
 		stop("Must specify at least one interval")
@@ -25,13 +29,16 @@ tcut <-  function (x, breaks, labels, scale=1){
 	   stop("Number of labels must be 1 less than number of break points")
 	}
 
-    structure(x*scale, cutpoints=breaks*scale, labels=labels, class='tcut')
+    temp <- structure(x*scale, cutpoints=breaks*scale, labels=labels)
+    oldClass(temp) <- 'tcut'
+    temp
     }
 
 "[.tcut" <- function(x,i) {
     atts <- attributes(x)
-    class(x) <- NULL
+    oldClass(x) <- NULL
     x <- x[i]
     attributes(x) <- atts
+    oldClass(x) <- 'tcut'
     x
     }

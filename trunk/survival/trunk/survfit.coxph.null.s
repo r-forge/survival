@@ -1,4 +1,4 @@
-#SCCS  $Id: survfit.coxph.null.s,v 4.11 1997-04-18 16:33:09 therneau Exp $
+# SCCS $Id: survfit.coxph.null.s,v 5.1 1998-08-30 15:57:38 therneau Exp $
 survfit.coxph.null <-
   function(object, newdata, se.fit=T, conf.int=.95, individual=F,
 	    type=c('tsiatis', 'kaplan-meier'),
@@ -53,10 +53,11 @@ survfit.coxph.null <-
 	stop("A newdata argument does not make sense for a null model")
 
     dimnames(y) <- NULL   #I only use part of Y, so names become invalid
+    storage.mode(y) <- 'double'
     surv <- .C('agsurv2', as.integer(n),
 			  as.integer(0),
 			  y = y[ord,],
-			  score[ord],
+			  as.double(score[ord]),
 			  strata = newstrat,
 			  surv = double(n),
 			  varhaz = double(n),
@@ -114,6 +115,6 @@ survfit.coxph.null <-
 	}
 
     temp$call <- call
-    attr(temp, 'class') <- c("survfit.coxph", "survfit")
+    oldClass(temp) <- "survfit.cox"
     temp
     }

@@ -1,4 +1,6 @@
-#SCCS $Id: survreg.s,v 4.15 1995-02-04 12:15:16 therneau Exp $
+# SCCS $Id: survreg.s,v 5.1 1998-08-30 16:00:16 therneau Exp $
+setOldClass(c('survreg', 'glm', 'lm'))
+
 survreg <- function(formula=formula(data), data=sys.parent(),
 	subset, na.action,
 	link='log',
@@ -106,7 +108,7 @@ survreg <- function(formula=formula(data), data=sys.parent(),
 
     na.action <- attr(m, "na.action")
     if (length(na.action)) fit$na.action <- na.action
-    attr(fit, "class") <-  c("survreg", "glm", "lm")
+    oldClass(fit) <-  "survreg"
     fit$terms <- Terms
     fit$formula <- as.vector(attr(Terms, "formula"))
     fit$call <- call

@@ -1,4 +1,6 @@
-#SCCS $Id: survfit.coxph.s,v 4.16 1997-04-18 16:33:08 therneau Exp $
+# SCCS $Id: survfit.coxph.s,v 5.1 1998-08-30 15:58:05 therneau Exp $
+setOldClass(c('survfit.cox', 'survfit'))
+
 survfit.coxph <-
   function(object, newdata, se.fit=T, conf.int=.95, individual=F,
 	    type=c('tsiatis', 'kaplan-meier'),
@@ -110,23 +112,24 @@ survfit.coxph <-
     newrisk <- exp(c(x2 %*% coef) + offset2 - sum(coef*object$means))
 
     dimnames(y) <- NULL   #I only use part of Y, so names become invalid
+    storage.mode(y) <- 'double'
     if (stype==1) {
 	surv <- .C("agsurv1", as.integer(n),
 			     as.integer(nvar),
 			     y[ord,],
-			     score,
+			     as.double(score),
 			     strata=newstrat,
 			     surv=double(n*n2),
 			     varh=double(n*n2),
 			     nsurv=as.integer(2+ 1*(coxmethod=='efron')),
-			     x[ord,],
+			     as.double(x[ord,]),
 			     double(3*nvar),
-			     object$var,
+			     as.double(object$var),
 			     y = double(3*n*n2),
 			     as.integer(n2),
-			     y2,
-			     x2,
-			     newrisk,
+			     as.double(y2),
+			     as.double(x2),
+			     as.double(newrisk),
 			     as.integer(strata2) )
 	ntime <- 1:surv$nsurv
 	temp <- (matrix(surv$y, ncol=3))[ntime,]
@@ -142,17 +145,17 @@ survfit.coxph <-
 	surv <- .C('agsurv2', as.integer(n),
 			      as.integer(nvar* se.fit),
 			      y = y[ord,],
-			      score[ord],
+			      as.double(score[ord]),
 			      strata = newstrat,
 			      surv = double(n*n2),
 			      varhaz = double(n*n2),
-			      x[ord,],
-			      object$var,
+			      as.double(x[ord,]),
+			      as.double(object$var),
 			      nsurv = as.integer(temp),
 			      double(3*nvar),
 			      as.integer(n2),
-			      x2,
-			      newrisk)
+			      as.double(x2),
+			      as.double(newrisk))
 	nsurv <- surv$nsurv
 	ntime <- 1:nsurv
 	if (n2>1) {
@@ -208,6 +211,6 @@ survfit.coxph <-
 	}
 
     temp$call <- call
-    attr(temp, 'class') <- c("survfit.coxph", "survfit")
+    oldClass(temp) <- "survfit.cox"
     temp
     }
