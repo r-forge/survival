@@ -1,4 +1,4 @@
-/*  SCCS $Id: pyears1.c,v 5.3 2001-06-12 14:23:43 therneau Exp $
+/*  SCCS $Id: pyears1.c,v 5.4 2001-12-30 17:05:04 therneau Exp $
 /*
 **  Person-years calculations, in its most general
 **
@@ -180,7 +180,7 @@ S_EVALUATOR
 		else           pexpect[index] += exp(-cumhaz)*temp * weight[i];
 		cumhaz += hazard;
 		}
-	    else  *offtable += thiscell;
+	    else  *offtable += thiscell * weight[i];
 
 	    for (j=0; j<odim; j++)
 		if (ofac[j] ==0) data[j] += thiscell;

@@ -1,4 +1,4 @@
-/*  SCCS $Id: pyears2.c,v 5.3 2001-06-12 14:23:44 therneau Exp $
+/*  SCCS $Id: pyears2.c,v 5.4 2001-12-30 17:05:04 therneau Exp $
 /*
 **  Person-years calculations.
 **     same as pyears1, but no expected rates
@@ -63,11 +63,14 @@ S_EVALUATOR
     doevent = *sdoevent;
     odim = *sodim;
     start = sy;
+
     if (ny==3 || (ny==2 && doevent==0)) {
+	/* each subject has a "start" time */
 	stop = sy +n;
 	dostart =1;
 	}
     else   {
+	/* followup starts at time 0 */
 	stop  = sy;
 	dostart =0;
 	}
@@ -87,6 +90,10 @@ S_EVALUATOR
     for (i=0; i<n; i++) {
 	/*
 	** initialize
+	** "data" will be the vector of starting values for each subject
+	**    for a factor variable this is just the cell number (1,2,3,...)
+	**    for a continuous one it is the value, which will be matched to
+	**       the ocuts list, by pystep, to figure out a cell number
 	*/
 	for (j=0; j<odim; j++) {
 	    if (ofac[j] ==1 || dostart==0) data[j] = odata[j][i];
@@ -96,6 +103,11 @@ S_EVALUATOR
 	else            timeleft = stop[i];
 	/*
 	** add up p-yrs
+	**   d1 and d2 are only relevant to rate tables, so ignored here
+	** If there are only factor variables, the loop below will finish in
+	**   one iteration.  Otherwise, the value "thiscell" is the amount of
+	**   person-years in the current cell, up to the next cell boundary
+	**   (or the amount of time left, whichever is lesser).
 	*/
 	while (timeleft >0) {
 	    thiscell = pystep(odim, &index, &d1, &d2, data, ofac, odims, ocut,
@@ -108,7 +120,7 @@ S_EVALUATOR
 
 	    for (j=0; j<odim; j++)
 		if (ofac[j] ==0) data[j] += thiscell;
-	    timeleft -=thiscell;
+	    timeleft -= thiscell;
 	    }
 	if (index >=0 && doevent) pcount[index] += event[i] * wt[i];
 	}
