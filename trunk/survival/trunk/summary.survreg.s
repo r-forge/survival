@@ -45,11 +45,11 @@ summary.survreg<- function(object, correlation = T)
     cnames <- names(coef[!nas])
     coef <- matrix(rep(coef[!nas], 4), ncol = 4)
     dimnames(coef) <- list(cnames, c("Value", "Std. Error", "z value", "p"))
-    stds <- sqrt(diag(object$var[!nas,!nas]))
+    stds <- sqrt(diag(object$var[!nas,!nas,drop=F]))
     coef[, 2] <- stds
     coef[, 3] <- coef[, 1]/stds
     coef[, 4] <- 2*pnorm(-abs(coef[,3]))
-    if(correlation) {
+    if(correlation && sum(!nas)>1 ) {
 	correl <- diag(1/stds) %*% object$var[!nas, !nas] %*% diag(1/stds)
         dimnames(correl) <- list(cnames, cnames)
         }
