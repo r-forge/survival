@@ -1,4 +1,4 @@
-#SCCS $Date: 1994-10-05 15:30:24 $ $Id: Surv.s,v 4.16 1994-10-05 15:30:24 therneau Exp $
+#SCCS $Date: 1995-12-22 13:04:49 $ $Id: Surv.s,v 4.17 1995-12-22 13:04:49 therneau Exp $
 # Package up surivival type data as a structure
 #
 Surv <- function(time, time2, event,
@@ -21,14 +21,6 @@ Surv <- function(time, time2, event,
 	}
     who <- !is.na(time)
 
-    if (type=='interval2') {
-	event <- ifelse(is.na(time), 2,
-		 ifelse(is.na(time2),0,
-		 ifelse(time==time2, 1,3)))
-	time <- ifelse(event!=2, time, time2)
-	type <- 'interval'
-	}
-
     if (ng==1) {
 	if (!is.numeric(time)) stop ("Time variable is not numeric")
 	else if (any(time[who]<0))  stop ("Time variable must be >= 0")
@@ -50,34 +42,45 @@ Surv <- function(time, time2, event,
 	 ss <- cbind(time, status)
 	 dimnames(ss) <- list(NULL, c("time", "status"))
 	}
-    else  {
+    else  if (type=='counting') {
 	if (length(time2) !=nn) stop ("Start and stop are different lengths")
 	if (length(event)!=nn) stop ("Start and event are different lengths")
 	if (!is.numeric(time))stop("Start time is not numeric")
 	if (!is.numeric(time2)) stop("Stop time is not numeric")
 	who3 <- who & !is.na(time2)
 	if (any (time[who3]>= time2[who3]))stop("Stop time must be > start time")
-	if (type=='interval') {
+	if (is.logical(event)) status <- 1*event
+	    else  if (is.numeric(event)) {
+		who2 <- !is.na(event)
+		status <- event - min(event[who2])
+		if (any(status[who2] !=0  & status[who2]!=1))
+				stop("Invalid status value")
+		}
+	    else stop("Invalid status value")
+	ss <- cbind(time-origin, time2-origin, status)
+	}
+
+    else {  #interval censored data
+	if (type=='interval2') {
+	    event <- ifelse(is.na(time), 2,
+		     ifelse(is.na(time2),0,
+		     ifelse(time==time2, 1,3)))
+	    if (any(time[event==3] > time2[event==3]))
+		stop("Invalid interval: start > stop")
+	    time <- ifelse(event!=2, time, time2)
+	    type <- 'interval'
+	    }
+	else {
 	    temp <- event[!is.na(event)]
 	    if (!is.numeric(temp)) stop("Status indicator must be numeric")
 	    if (length(temp)>0 && any(temp!= floor(temp) | temp<0 | temp>3))
 		stop("Status indicator must be 0, 1, 2 or 3")
-	    status <- event
-	    ss <- cbind(time, ifelse(!is.na(event) & event==3, time2, 1),
-				status)
 	    }
-	else {
-	    if (is.logical(event)) status <- 1*event
-		else  if (is.numeric(event)) {
-		    who2 <- !is.na(event)
-		    status <- event - min(event[who2])
-		    if (any(status[who2] !=0  & status[who2]!=1))
-				    stop("Invalid status value")
-		    }
-		else stop("Invalid status value")
-	    ss <- cbind(time-origin, time2-origin, status)
-	    }
+	status <- event
+	ss <- cbind(time, ifelse(!is.na(event) & event==3, time2, 1),
+			    status)
 	}
+
     attr(ss, "class") <- c("Surv")
     attr(ss, "type")  <- type
     ss
