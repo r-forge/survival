@@ -44,6 +44,11 @@ the standard deviation of the survival value.
 lower confidence limits for the curve.
 .AG upper CI
 upper confidence limits for the curve.
+.AG strata
+the number of points per curve.  If there are multiple curves in this
+result, then the `time', `surv', etc vectors will contain multiple
+curves, pasted end to end, and length(surv)=sum(strata).  The names
+of the strata vector are the labels for the curves.
 .AG call
 the statement used to create the `fit' object.
 .AG na.action
