@@ -1,4 +1,4 @@
-#
+#  SCCS $Id: frailty.gammacon.s,v 1.2 1999-02-21 16:22:30 therneau Exp $
 # Correct the loglik for a gamma frailty
 #  Term2 is the hard one, discussed in section 3.5 of the report
 # The penalty function only adds \vu \sum(w_j) to the CoxPL, so this

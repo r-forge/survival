@@ -1,4 +1,4 @@
-#
+#  SCCS  $Id: is.na.coxph.penalty.s,v 1.4 1999-02-21 16:23:27 therneau Exp $
 # The subscript function for coxph.penalty objects
 #  without it the "subset" arg of a model statement tosses
 #  away all of the attributes
