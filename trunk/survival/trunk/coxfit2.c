@@ -1,4 +1,4 @@
-/* SCCS $Id: coxfit2.c,v 4.1 1992-03-04 16:51:48 therneau Exp $  */
+/* SCCS $Id: coxfit2.c,v 4.2 1992-08-06 16:26:52 therneau Exp $  */
 /*
 ** here is a cox regression program, written in c
 **     uses Efron's approximation for ties
@@ -18,7 +18,6 @@
 **       offset(n)    :offset for the linear predictor
 **       eps          :tolerance for convergence.  Iteration continues until
 **                       the percent change in loglikelihood is <= eps.
-**       maxbe        :the 'infinite beta' test values
 **       sctest       : on input contains the method 0=Breslow, 1=Efron
 **
 **  returned parameters
@@ -30,9 +29,8 @@
 **       loglik(2)    :loglik at beta=initial values, at beta=final
 **       sctest       :the score test at beta=initial
 **       flag         :success flag  0 - ok
-**                                  -1 to -nvar: variable __ caused a singular
+**                                  1 to nvar: variable __ caused a singular
 **                                             matrix failure
-**                                   1 to nvar: var __ is going to infinity
 **                                 1000 did not converge
 **       maxiter      :actual number of iterations used
 **
@@ -55,7 +53,7 @@
 double **dmatrix();
 
 void coxfit(maxiter, nusedx, nvarx, time, status, covar2, offset, strata,
-		 means, beta, u, maxbe, imat2, loglik, flag, mark, work,
+		 means, beta, u, imat2, loglik, flag, mark, work,
 		 eps, sctest)
 
 long    *nusedx,
@@ -69,7 +67,6 @@ double  *covar2,
 	*imat2;
 double  u[],
 	means[],
-	maxbe[],
 	*work,
 	beta[],
 	offset[],
@@ -127,19 +124,12 @@ double  *eps;
     /*
     ** Subtract the mean from each covar, as this makes the regression
     **  much more stable
-    ** At the same time, determine maxbeta (input contains the constant).
     */
     for (i=0; i<nvar; i++) {
 	temp=0;
 	for (person=0; person<nused; person++) temp += covar[i][person];
 	temp /= nused;
 	means[i] = temp;
-	denom=0;
-	for (person=0; person<nused; person++) {
-	    covar[i][person] -=temp;
-	    denom += fabs(covar[i][person]);
-	    }
-	maxbe[i] /= (denom/nused);
 	}
 
     /*
@@ -227,7 +217,7 @@ double  *eps;
 
     ierr= cholesky(imat, nvar);
     if (ierr != 0) {
-	*flag= -ierr;
+	*flag= ierr;
 	*maxiter=0;
 	return;
 	}
@@ -329,7 +319,7 @@ double  *eps;
 	*/
 	ierr = cholesky(imat, nvar);
 	if (ierr != 0) {
-	    *flag= -ierr;
+	    *flag= ierr;
 	    *maxiter=iter;
 	    return;
 	    }
@@ -363,12 +353,6 @@ double  *eps;
 		for (i=0; i<nvar; i++) {
 		    beta[i] = newbeta[i];
 		    newbeta[i] = newbeta[i] +  u[i];
-
-		    if (fabs(newbeta[i]) > maxbe[i]) {   /*failing ! */
-			*flag = 1+i;
-			*maxiter = iter;
-			return;
-			}
 		    }
 		}
 	}   /* return for another iteration */

@@ -9,7 +9,7 @@ and other extensions are incorporated using the counting process formulation
 of Anderson and Gill.
 .CS
 coxph(formula=formula(data), data=sys.parent(), subset, 
-       na.action, eps=0.0001, inf.ratio=200, init, 
+       na.action, eps=0.0001, init,
        iter.max=10, method=c("breslow","efron","exact"),
        model=F, x=F, y=T)
 .RA
@@ -30,17 +30,6 @@ subset argument has been used.  Default is options()$na.action.
 .AG eps
 convergence criteria.  Iteration will continue until relative change
 in log-likelihood is less than eps.  Default is .0001.
-.AG inf.ratio
-warning criterion.  In certain data cases the actual MLE estimate of a
-coefficient is infinity, e.g., a dichotomous variable where one of the
-groups has no events.  When this happens the associated coefficient
-grows at a steady pace and a race condition will exist in the fitting
-routine, either the log likelihood converges, the information matrix
-becomes effectively singular, an argument to exp becomes too large for
-the computer hardware, the maximum number of interactions is exceeded,
-or "average" risk ratio associated with the covariate is deemed to be
-greater then inf.ratio. In the latter case, a warning message is
-printed.  Default is 200.
 .AG init
 vector of initial values of the iteration.  Default initial
 value is zero for all variables.
@@ -75,6 +64,16 @@ as time marches onward we observe the events for a subject, rather
 like watching a Geiger counter.
 The data for a subject is presented as multiple rows or "observations", each
 of which applies to an interval of observation (start, stop].
+.SH CONVERGENCE
+In certain data cases the actual MLE estimate of a
+coefficient is infinity, e.g., a dichotomous variable where one of the
+groups has no events.  When this happens the associated coefficient
+grows at a steady pace and a race condition will exist in the fitting
+routine, either the log likelihood converges, the information matrix
+becomes effectively singular, an argument to exp becomes too large for
+the computer hardware, or the maximum number of interactions is exceeded.
+The routine attempts to detect when this has happened, not always
+successfully.
 .SH REFERENCES
 Terry Therneau, author of local function.
 

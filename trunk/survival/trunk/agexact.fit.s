@@ -1,6 +1,6 @@
-#SCCS $Date: 1992-04-14 18:06:18 $ $Id: agexact.fit.s,v 4.4 1992-04-14 18:06:18 grill Exp $
+#SCCS $Date: 1992-08-06 16:26:54 $ $Id: agexact.fit.s,v 4.5 1992-08-06 16:26:54 therneau Exp $
 agexact.fit <- function(x, y, strata, offset, iter.max,
-			eps, inf.ratio, init, method, rownames)
+			eps, init, method, rownames)
     {
     if (!is.matrix(x)) stop("Invalid formula for cox fitting function")
     n <- nrow(x)
@@ -51,21 +51,25 @@ agexact.fit <- function(x, y, strata, offset, iter.max,
 		   newstrat,
 		   means = double(nvar),
 		   coef= as.double(init),
-		   rep(log(inf.ratio), nvar),
+		   u = double(nvar),
 		   imat= double(nvar*nvar), loglik=double(2),
 		   flag=integer(1),
-		   double(2*nvar*nvar +nvar*5 + n),
+		   double(2*nvar*nvar +nvar*4 + n),
 		   integer(2*n),
 		   as.double(eps),
 		   sctest=double(1) )
 
-    if (agfit$flag == 1000 &&  iter.max>1)
-	   warning("Ran out of iterations and did not converge")
+    infs <- abs((agfit$u %*% matrix(agfit$imat,nvar))/ agfit$coef)
+    if (iter.max >1) {
+	if (agfit$flag == 1000)
+	       warning("Ran out of iterations and did not converge")
+	else if (any(infs > sqrt(eps)))
+	    warning(paste("Loglik converged before variable ",
+		      (1:nvar)[(infs>eps)], ", beta may be infinite. ",
+		       collapse=''))
+	}
     if (agfit$flag < 0)
 	  return(paste("X matrix deemed to be singular; variable",-agfit$flag))
-    if (agfit$flag > 0 && agfit$flag <=nvar)
-	  return(paste("Variable ", agfit$flag,"is becoming infinite:",
-			agfit$coef[agfit$flag]))
 
     names(agfit$coef) <- dimnames(x)[[2]]
     lp  <- x %*% agfit$coef + offset - sum(agfit$coef *agfit$means)

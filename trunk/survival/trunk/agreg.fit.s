@@ -1,6 +1,6 @@
-#SCCS $Date: 1992-04-14 18:06:24 $ $Id: agreg.fit.s,v 4.3 1992-04-14 18:06:24 grill Exp $
+#SCCS $Date: 1992-08-06 16:26:55 $ $Id: agreg.fit.s,v 4.4 1992-08-06 16:26:55 therneau Exp $
 agreg.fit <- function(x, y, strata, offset, init, iter.max,
-			eps, inf.ratio, method, rownames)
+			eps, method, rownames)
     {
     n <- nrow(y)
     nvar <- ncol(x)
@@ -69,20 +69,25 @@ agreg.fit <- function(x, y, strata, offset, init, iter.max,
 		       newstrat,
 		       means = double(nvar),
 		       coef= as.double(init),
-		       rep(log(inf.ratio), nvar),
+		       u = double(nvar),
 		       imat= double(nvar*nvar), loglik=double(2),
 		       flag=integer(1),
-		       double(2*nvar*nvar +nvar*4 + n),
+		       double(2*nvar*nvar +nvar*3 + n),
 		       as.double(eps),
 		       sctest=as.double(method=='efron') )
 
-	if (agfit$flag == 1000 &&  iter.max>1)
-	       warning("Ran out of iterations and did not converge")
+	infs <- abs((agfit$u %*% matrix(agfit$imat,nvar))/ agfit$coef)
+	if (iter.max >1) {
+	    if (agfit$flag == 1000)
+		   warning("Ran out of iterations and did not converge")
+	    else if (any(infs > sqrt(eps)))
+		warning(paste("Loglik converged before variable ",
+			  (1:nvar)[(infs>eps)], ", beta may be infinite. ",
+			   collapse=''))
+	    }
 	if (agfit$flag < 0)
-	      return(paste("X matrix deemed to be singular; variable",-agfit$flag))
-	if (agfit$flag > 0 && agfit$flag <=nvar)
-	      return(paste("Variable ", agfit$flag,"is becoming infinite:",
-			    agfit$coef[agfit$flag]))
+	      return(paste("X matrix deemed to be singular; variable",
+			-agfit$flag, 'at iteration', agfit$iter))
 
 	names(agfit$coef) <- dimnames(x)[[2]]
 	lp  <- x %*% agfit$coef + offset - sum(agfit$coef *agfit$means)

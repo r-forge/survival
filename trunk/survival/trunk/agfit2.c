@@ -1,4 +1,4 @@
-/* SCCS $Id: agfit2.c,v 4.2 1992-03-30 02:21:55 therneau Exp $  */
+/* SCCS $Id: agfit2.c,v 4.3 1992-08-06 16:26:51 therneau Exp $  */
 /*
 ** Anderson-Gill formulation of the cox Model
 **
@@ -19,11 +19,11 @@
 **       offset(n)    :linear offset
 **       eps          :tolerance for convergence.  Iteration continues until
 **                       the percent change in loglikelihood is <= eps.
-**       maxbe        :the 'infinite beta' check values
 **
 **  returned parameters
 **       means(nv)    :column means of the X matrix
 **       beta(nv)     :the vector of answers (at start contains initial est)
+**       u(nv)        :score vector
 **       imat(nv,nv)  :the variance matrix at beta=final, also a ragged array
 **                      if flag<0, imat is undefined upon return
 **       loglik(2)    :loglik at beta=initial values, at beta=final
@@ -42,9 +42,8 @@
 **       cmat(nvar,nvar)       ragged array
 **       cmat2(nvar,nvar)
 **       newbeta(nvar)         always contains the "next iteration"
-**       u(nvar)
 **
-**  the 7 arrays score, a, cmat, newbeta, and u are passed as a single
+**  the 6 arrays score, a, cmat, and newbeta are passed as a single
 **    vector of storage, and then broken out.
 **
 **  calls functions:  cholesky, chsolve, chinv
@@ -58,7 +57,7 @@
 double **dmatrix();
 
 void agfit(maxiter, nusedx, nvarx, start, stop, event, covar2, offset, strata,
-		 means, beta, maxbe, imat2, loglik, flag, work,
+		 means, beta, u, imat2, loglik, flag, work,
 		 eps, sctest)
 
 long    *nusedx,
@@ -69,10 +68,10 @@ long    *nusedx,
 	event[];
 double  *covar2,
 	*imat2;
-double  maxbe[],
-	means[],
+double  means[],
 	*work,
 	beta[],
+	u[],
 	offset[],
 	start[],
 	stop[];
@@ -85,7 +84,7 @@ double  *eps;
     int     nused, nvar;
 
     double **covar, **cmat, **imat;  /*ragged array versions*/
-    double *a, *newbeta, *u;
+    double *a, *newbeta;
     double *a2, **cmat2;
     double *score;
     double  denom, zbeta, weight;
@@ -109,26 +108,18 @@ double  *eps;
     cmat2= dmatrix(work + nvar*nvar, nvar, nvar);
     a = work + 2*nvar*nvar;
     a2= a+nvar;
-    u = a2+ nvar;
-    newbeta = u + nvar;
+    newbeta = a2 + nvar;
     score   = newbeta + nvar;
 
     /*
     ** Subtract the mean from each covar, as this makes the regression
     **  much more stable
-    ** At the same time, determine maxbeta (input contains the constant).
     */
     for (i=0; i<nvar; i++) {
 	temp=0;
 	for (person=0; person<nused; person++) temp += covar[i][person];
 	temp /= nused;
 	means[i] = temp;
-	denom=0;
-	for (person=0; person<nused; person++) {
-	    covar[i][person] -=temp;
-	    denom += fabs(covar[i][person]);
-	    }
-	maxbe[i] /= (denom/nused);
 	}
 
     /*
@@ -369,12 +360,6 @@ double  *eps;
 		for (i=0; i<nvar; i++) {
 		    beta[i] = newbeta[i];
 		    newbeta[i] = newbeta[i] +  u[i];
-
-		    if (fabs(newbeta[i]) > maxbe[i]) {   /*failing ! */
-			*flag = 1+i;
-			*maxiter = iter;
-			return;
-			}
 		    }
 		}
 	}   /* return for another iteration */

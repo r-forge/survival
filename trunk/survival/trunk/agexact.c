@@ -1,4 +1,4 @@
-/* SCCS $Id: agexact.c,v 4.1 1992-03-04 16:51:41 therneau Exp $  */
+/* SCCS $Id: agexact.c,v 4.2 1992-08-06 16:26:53 therneau Exp $  */
 /*
 ** Anderson-Gill formulation of the cox Model
 **   Do an exact calculation of the partial likelihood. (CPU city!)
@@ -20,11 +20,11 @@
 **       offset(n)    :linear offset
 **       eps          :tolerance for convergence.  Iteration continues until
 **                       the percent change in loglikelihood is <= eps.
-**       maxbe        :the 'infinite beta' check values
 **
 **  returned parameters
 **       means(nv)    :column means of the X matrix
 **       beta(nv)     :the vector of answers (at start contains initial est)
+**       u            :the first derivative vector at solution
 **       imat(nv,nv)  :the variance matrix at beta=final, also a ragged array
 **                      if flag<0, imat is undefined upon return
 **       loglik(2)    :loglik at beta=initial values, at beta=final
@@ -41,9 +41,8 @@
 **       a(nvar)
 **       cmat(nvar,nvar)       ragged array
 **       newbeta(nvar)         always contains the "next iteration"
-**       u(nvar)
 **
-**  the 5 arrays score, a, cmat, newbeta, and u are passed as a single
+**  the 4 arrays score, a, cmat, and newbeta are passed as a single
 **    vector of storage, and then broken out.
 **
 **  calls functions:  cholesky, chsolve, chinv
@@ -57,7 +56,7 @@
 double **dmatrix();
 
 void agexact(maxiter, nusedx, nvarx, start, stop, event, covar2, offset, strata,
-		 means, beta, maxbe, imat2, loglik, flag, work, work2,
+		 means, beta,  u, imat2, loglik, flag, work, work2,
 		 eps, sctest)
 
 long    *nusedx,
@@ -69,10 +68,10 @@ long    *nusedx,
 	event[];
 double  *covar2,
 	*imat2;
-double  maxbe[],
-	means[],
+double  means[],
 	*work,
 	beta[],
+	u[],
 	offset[],
 	start[],
 	stop[];
@@ -85,7 +84,7 @@ double  *eps;
     int     n, nvar;
 
     double **covar, **cmat, **imat;  /*ragged array versions*/
-    double *a, *newbeta, *u;
+    double *a, *newbeta;
     double *score, *newvar;
     double  denom, zbeta, weight;
     double  time;
@@ -104,8 +103,7 @@ double  *eps;
     imat = dmatrix(imat2,  nvar, nvar);
     cmat = dmatrix(work,   nvar, nvar);
     a = work + nvar*nvar;
-    u = a+ nvar;
-    newbeta = u + nvar;
+    newbeta = a + nvar;
     score   = newbeta + nvar;
     newvar  = score + n;
     index =  work2;
@@ -114,19 +112,12 @@ double  *eps;
     /*
     ** Subtract the mean from each covar, as this makes the regression
     **  much more stable
-    ** At the same time, determine maxbeta (input contains the constant).
     */
     for (i=0; i<nvar; i++) {
 	temp=0;
 	for (person=0; person<n; person++) temp += covar[i][person];
 	temp /= n;
 	means[i] = temp;
-	denom=0;
-	for (person=0; person<n; person++) {
-	    covar[i][person] -=temp;
-	    denom += fabs(covar[i][person]);
-	    }
-	maxbe[i] /= (denom/n);
 	}
 
     /*
@@ -409,12 +400,6 @@ double  *eps;
 		for (i=0; i<nvar; i++) {
 		    beta[i] = newbeta[i];
 		    newbeta[i] = newbeta[i] +  u[i];
-
-		    if (fabs(newbeta[i]) > maxbe[i]) {   /*failing ! */
-			*flag = 1+i;
-			*maxiter = iter;
-			return;
-			}
 		    }
 		}
 	}   /* return for another iteration */

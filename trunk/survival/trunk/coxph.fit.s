@@ -1,6 +1,6 @@
-#SCCS $Date: 1992-04-14 18:06:28 $ $Id: coxph.fit.s,v 4.3 1992-04-14 18:06:28 grill Exp $
+#SCCS $Date: 1992-08-06 16:26:56 $ $Id: coxph.fit.s,v 4.4 1992-08-06 16:26:56 therneau Exp $
 coxph.fit <- function(x, y, strata, offset, init, iter.max,
-			eps, inf.ratio, method, rownames)
+			eps, method, rownames)
     {
     n <-  nrow(y)
     nvar <- ncol(x)
@@ -58,8 +58,7 @@ coxph.fit <- function(x, y, strata, offset, init, iter.max,
 		       newstrat,
 		       means= double(nvar),
 		       coef= as.double(init),
-		       double(nvar),
-		       rep(log(inf.ratio), nvar),
+		       u = double(nvar),
 		       imat= double(nvar*nvar), loglik=double(2),
 		       flag=integer(1),
 		       mark = integer(n),
@@ -67,15 +66,18 @@ coxph.fit <- function(x, y, strata, offset, init, iter.max,
 		       as.double(eps),
 		       sctest=as.double(method=="efron") )
 
-
-	if (coxfit$flag == 1000 && iter.max>1)
-	    warning("Ran out of iterations and did not converge")
-	if (coxfit$flag < 0)
-	      return(paste("X matrix deemed to be singular; variable",-coxfit$flag))
-	if (coxfit$flag>0 & coxfit$flag<=nvar){
-	      return(paste("Variable ", coxfit$flag,"is becoming infinite:",
-			    coxfit$coef[coxfit$flag]))
-	      }
+	infs <- abs((coxfit$u %*% matrix(coxfit$imat,nvar))/ coxfit$coef)
+	if (iter.max >1) {
+	    if (coxfit$flag == 1000)
+		warning("Ran out of iterations and did not converge")
+	    else if (any(infs > sqrt(eps)))
+		warning(paste("Loglik converged before variable ",
+			  (1:nvar)[(infs>eps)], ", beta may be infinite. ",
+			   collapse=''))
+	    }
+	if (coxfit$flag > 0 && coxfit$flag<1000)
+	      return(paste("X matrix deemed to be singular; variable",
+			    coxfit$flag, "iteration", coxfit$iter))
 
 	names(coxfit$coef) <- dimnames(x)[[2]]
 	lp <- c(x %*% coxfit$coef) + offset - sum(coxfit$coef*coxfit$means)
