@@ -1,4 +1,4 @@
-# SCCS $Id: survfit.turnbull.s,v 1.1 2001-12-31 09:35:47 therneau Exp $
+# SCCS $Id: survfit.turnbull.s,v 1.2 2002-07-11 10:46:52 therneau Exp $
 # Compute the K-M for left/right/interval censored data via Turnbull's
 #      slow EM calculation
 #
@@ -54,28 +54,46 @@ survfit.turnbull <- function(x, y, casewt=rep(1,n),
     if (stype=='left') status <- ifelse(y[,2]==0,2,1)
     if (stype=='right')status <- y[,2]
 
+    # If any exact times were represented as interval censored, e.g. (x,x)
+    #  as the interval for some x, change the code to "uncensored".
+    if (any(status==3)) {
+        who <- (status==3 & y[,1]==y[,2])
+        status[who] <- 1
+        }
 
     # the code below actually does the estimate, one curve at a time
     doit <- function(y,status, wt, ...) {
 	n <- length(status)
 	# Find all of the jump points for the KM in the data set, which are
-	#  the exact times, plus any right-followed-by-left pairs
-	# Interval censoreds count as two obs in this calculation, (right,left)
-        # The variables time2, stat2, n2 are never needed after this point
+	#  the exact times, plus any right-followed-by-left pairs.  
+        # For this computation, an interval censored observation is considered
+        #  to be of the form (a,b], left censored is (-infinity,b] and right
+        #  censored is (a, infinity).  If there are two interval censored
+        #  obs of (10,20] and (20,40], we do NOT want to create a jtimes entry
+        #  at 20.
+        #  
+	# The algorithm puts a [ at t for each exact, a ( at t for each right
+        #  censored, a ] at t for each left censored, and ( and ] at t1/t2 
+        #  for each interval censor.  In ties, order the parens as [, ],  (.
+        #  Then find pairs of left-followed-immediately-by-right.  The stat2
+        #  variable is 0= [ at t, 1= ] at t, 2= ( at t.
+        # The variables time2, stat2 are never needed after jtimes has
+        #  been created.
 	if (any(status==3)) { #interval censored
-	    stat2 <- c(ifelse(status==3, 1,status), rep(2, sum(status==3)))
+            stat2 <- c(c(2,0,1,2)[status+1], rep(1, sum(status==3)))
 	    time2 <- c(y[,1], y[status==3,2])
 	    }
 	else {
-	    stat2 <- status
+	    stat2 <-  c(2,0,1)[status+1]
 	    time2 <- y[,1]
 	    }
+
 	ord <- order(time2, stat2)
 	time2 <- time2[ord]
 	stat2 <- stat2[ord]
 	n2 <- length(time2)
-	pairs <- (stat2[-n2]==0 & stat2[-1]==2)
-	jtimes <- c(time2[stat2==1], .5*(time2[-n2] + time2[-1])[pairs])
+	pairs <- (stat2[-n2]!=1 & stat2[-1]==1)
+	jtimes <- c(time2[stat2==0], .5*(time2[-n2] + time2[-1])[pairs])
 
 	#
 	# If any of the left censored times are < min(jtime), then treat
@@ -122,30 +140,57 @@ survfit.turnbull <- function(x, y, casewt=rep(1,n),
 	eps <- 1
 	old <- tfit$surv
 
-	while (eps > .0001) {
+        iter <- 0
+        aitken1 <- jump1 <- 0 #dummy values for lagging
+	while (eps > .00005) {
+            iter <- iter +1
 	    # partition each left/interval person out over the jumps
-	    jumps <- diff(c(1, tfit$surv[match(jtimes, tfit$time)])) #KM jumps
-	    wt2 <- wtmat %*% diag(-jumps)
+	    jumps <- -diff(c(1, tfit$surv[match(jtimes, tfit$time)])) #KM jumps
+            if (T) { # add Aitken acceleration to speed things up
+                # Given 3 points on a sequence, it guesses ahead.  So we use
+                #  a set of 3 to guess ahead, generate 3 more regular EM,
+                #  guess ahead, 3 regular EM, etc. 
+                # Actually, we go every 5th below instead of every 3rd, to
+                #  give the EM a chance to restabilize the relative
+                #  sizes of elements of "jump".  We also only allow it to
+                #  stop when comparing two "real EM" iterations.
+                aitken2 <- aitken1      
+                aitken1 <- jumps - jump1
+                jsave <- jumps
+                if (iter%%5 ==0) {
+                    jumps <- jump2 - (aitken2)^2/(aitken1 - aitken2)
+                    bad <- (jumps<=0 | jumps >=1 | is.na(jumps))
+                    jumps[bad] <- jsave[bad]  #failsafe
+                    }
+                jump2   <- jump1  # jumps, lagged by 2 iterations
+                jump1   <- jsave  # jumps, lagged by 1 iteration
+                }
+
+	    wt2 <- wtmat %*% diag(jumps)
 	    wt2 <- (lwt/(apply(wt2,1,sum))) * wt2 
 	    wt2 <- apply(wt2, 2, sum)
 	    tfit <- survfit.km(tempx, tempy, casewt=c(wt[status<2], wt2), ...)
+
 	    if (F) {
                 # these lines are in for debugging: change the above to 
                 #  " if (T)" to turn on the printing
+                cat("\n Iteration = ", iter, "\n")
 		cat("survival=",
 		    format(round(tfit$surv[tfit$n.event>0],3)),  "\n")
 		cat(" weights=", format(round(wt2,3)), "\n")
 		}
             stemp <- tfit$surv[match(jtimes, tfit$time)] 
-	    eps <- mean(abs(old-stemp))
+            if (iter%%5<2) eps <- 1  #only check eps for a pair of EM iters
+            else eps <- max(abs(old-stemp))
 	    old <- stemp
 	    }	
+
 	#
 	# Now, fix up the "cheating" I did for any left censoreds which were
 	#  less than the smallest jump time
-	who <- (tfit$time < mintime)
+	who <- (tfit$time < mintime & tfit$n.event >0)
 	if (any(who)) {
-	    indx <- min((1:length(tfit$time))[!who])  #first "real" point
+	    indx <- match(mintime, tfit$time)  # first "real" time
 	    tfit$surv[who] <- tfit$surv[indx]
 	    tfit$n.event[who] <- 0
 	    if (!is.null(tfit$std.err)) {
