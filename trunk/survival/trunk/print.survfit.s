@@ -1,4 +1,4 @@
-#SCCS $Date: 1996-09-27 10:38:57 $ $Id: print.survfit.s,v 4.8 1996-09-27 10:38:57 boos Exp $
+#SCCS $Date: 1997-03-28 12:20:47 $ $Id: print.survfit.s,v 4.9 1997-03-28 12:20:47 therneau Exp $
 print.survfit <- function(fit, scale=1, digits = max(options()$digits - 4, 3), ...) {
 
     if (!is.null(cl<- fit$call)) {
@@ -63,7 +63,7 @@ print.survfit <- function(fit, scale=1, digits = max(options()$digits - 4, 3), .
     surv <- fit$surv
     plab <- c("n", "events", "mean", "se(mean)", "median")
     if (!is.null(fit$conf.int))
-	plab2<- paste(fit$conf.int, c("CI", "CI"), sep='')
+	plab2<- paste(fit$conf.int, c("LCL", "UCL"), sep='')
 
     #Four cases: strata Y/N  by  ncol(surv)>1 Y/N
     #  Repeat the code, with minor variations, for each one
