@@ -4,7 +4,7 @@
 Plot method for survfit.
 .CS
 plot.survfit(survfit, conf.int=<<see below>>, mark.time=T,
- mark=3, col=1, lty=1, lwd=1, cex=1, logy=F, yscale=1, xscale=1, xlab="",
+ mark=3, col=1, lty=1, lwd=1, cex=1, log=F, yscale=1, xscale=1, xlab="",
  ylab="", xaxs='i', ...)
 .RA
 .AG survfit
@@ -30,7 +30,7 @@ vector of line widths. The default value is 1.
 .AG cex
 parameter available to change the size of "mark".
 Not a vector; all marks have the same size.
-.AG logy
+.AG log
 logical value: should the y axis be on a log scale?
 .AG yscale
 will be used to multiply the labels on the y axis.
@@ -55,7 +55,7 @@ on each of the curves.  This may be useful for labeling.
 .SE
 A plot of survival curves is produced, one curve for each strata.
 .EX
-plot.survfit(survfit(pgtime,pgstat,g2group),col=c(3,6),logy=T)
+plot.survfit(survfit(pgtime,pgstat,g2group),col=c(3,6),log=T)
 .KW survival
 .WR
 
