@@ -1,4 +1,4 @@
-#SCCS $Date: 1992-03-04 16:48:22 $ $Id: print.survexp.s,v 4.1 1992-03-04 16:48:22 therneau Exp $
+#SCCS $Date: 1992-03-30 02:45:56 $ $Id: print.survexp.s,v 4.2 1992-03-30 02:45:56 therneau Exp $
 print.surv.exp <- function(object, ...) {
     if (!is.null(cl<- object$call)) {
 	cat("Call:  ")
@@ -6,10 +6,9 @@ print.surv.exp <- function(object, ...) {
 	cat("\n")
 	}
 
-    omit <- attr(object$n, 'omit')
+    omit <- object$na.action
     if (length(omit))
-	cat("  n=", object$n, " (", length(omit), " deleted due to missing)\n",
-				sep="")
+	cat("  n=", object$n, " (", printna(omit), ")\n", sep="")
     else cat("  n=", object$n, "\n")
 
     temp <- as.matrix(object$surv)
