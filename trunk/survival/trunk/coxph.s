@@ -1,4 +1,4 @@
-#SCCS  $Id: coxph.s,v 5.12 2000-06-12 07:48:55 therneau Exp $
+#SCCS  $Id: coxph.s,v 5.13 2001-03-12 08:19:28 therneau Exp $
 # Version with general penalized likelihoods
 setOldClass(c('coxph.penal', 'coxph'))
 
@@ -150,8 +150,9 @@ coxph <- function(formula=formula(data), data=sys.parent(),
 	if (length(fit$coef) && is.null(fit$wald.test)) {  
 	    #not for intercept only models, or if test is already done
 	    nabeta <- !is.na(fit$coef)
+	    # The init vector might be longer than the betas, for a sparse term
 	    if (is.null(init)) temp <- fit$coef[nabeta]
-	    else temp <- (fit$coef - init)[nabeta]
+	    else temp <- (fit$coef - init[1:length(fit$coef)])[nabeta]
 	    fit$wald.test <-  coxph.wtest(fit$var[nabeta,nabeta], temp,
 					  control$toler.chol)$test
 	    }
