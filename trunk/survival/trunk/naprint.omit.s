@@ -1,2 +1,2 @@
 naprint.omit <- function(x)
-    paste(length(x), "deleted due to missing")
+    paste(length(x), "observation deleted due to missing")
