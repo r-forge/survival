@@ -1,15 +1,15 @@
-/* SCCS $Id: coxfit5.c,v 1.1 2000-06-12 07:51:19 therneau Exp $
+/* SCCS $Id: coxfit5.c,v 1.2 2001-01-04 08:51:13 therneau Exp $
 /* A reentrant version of the Coxfit program, for random effects modeling
 **   with reasonable efficiency (I hope).  The important arrays are saved
 **   from call to call so as to speed up the process.  The x-matrix itself
 **   is the most important of these.
 **
-** coxfit4_a: Entry and intial iteration step for beta=initial, theta=0
+** coxfit5_a: Entry and intial iteration step for beta=initial, theta=0
 **              (no frailty)
 **            Most of the same arguments as coxfit2.
 **            Allocate and save arrays in static locations.
-** coxfit4_b: Iterate to convergence given an initial value.
-** coxfit4_c: Compute residuals and release the saved memory.
+** coxfit5_b: Iterate to convergence given an initial value.
+** coxfit5_c: Compute residuals and release the saved memory.
 **
 **     McGilchrist's method for frailty with a fixed theta, but for
 **     space savings I assume that many elements of imat are zero
@@ -185,7 +185,7 @@ S_EVALUATOR
 	    ndead=0;
 	    for (j=i; j<nused; j++) {
 		k = sort[j];
-		if ((time[k] < time[p]) || (j==strata[istrat])) break;
+		if ((time[k] != time[p]) || (j==strata[istrat])) break;
 		ndead += status[p];
 		temp += weights[k];
 		}
@@ -193,9 +193,9 @@ S_EVALUATOR
 	    mark[k] = ndead;
 	    wtave[k] = temp/ndead;
 	    i=j;
-	    if (i==strata[istrat]) istrat++;
 	    }
 	else i++;
+	if (i==strata[istrat]) istrat++;
 	}
 
     /*
