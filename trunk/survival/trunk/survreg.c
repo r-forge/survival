@@ -1,4 +1,4 @@
-/* $Id: survreg.c,v 4.7 1993-03-29 14:47:44 therneau Exp $  */
+/* $Id: survreg.c,v 4.8 1993-03-30 17:29:04 therneau Exp $  */
 /*
 ** Fit one of several censored data distributions
 **
@@ -353,7 +353,7 @@ double  parms[],
 		ddg[person]= funs[3]*sig2 - temp*temp;
 		if (*ncol==6) {
 		    dsig[person] = temp*sigma*z -1;
-		    dsg[person] =  sigma*z*ddg[person] + temp;
+		    dsg[person] =  sigma*z*ddg[person] - temp;
 		    ddsig[person]= sigma*z* dsg[person];
 		    }
 		break;
@@ -365,7 +365,7 @@ double  parms[],
 		ddg[person]= -funs[3]*sig2/funs[1] - temp*temp;
 		if (*ncol==6) {
 		    dsig[person] = temp*sigma*z;
-		    dsg[person] =  sigma*z*ddg[person] + temp;
+		    dsg[person] =  sigma*z*ddg[person] - temp;
 		    ddsig[person]= sigma*z* dsg[person];
 		    }
 		break;
@@ -377,7 +377,7 @@ double  parms[],
 		ddg[person]= funs[3]*sig2/funs[0] - temp*temp;
 		if (*ncol==6) {
 		    dsig[person] = temp*sigma*z;
-		    dsg[person] =  sigma*z*ddg[person] + temp;
+		    dsg[person] =  sigma*z*ddg[person] - temp;
 		    ddsig[person]= sigma*z* dsg[person];
 		    }
 		break;
