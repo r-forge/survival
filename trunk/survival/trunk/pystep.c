@@ -1,4 +1,4 @@
-/* SCCS $Id: pystep.c,v 4.2 1993-12-15 13:30:55 therneau Exp $  */
+/* SCCS $Id: pystep.c,v 4.3 1994-07-11 14:18:15 therneau Exp $  */
 /*
 ** Returns the amount of time that will be spent in the current "cell",
 **  along with the index of the cell (treating a multi-way array as linear).
@@ -68,7 +68,7 @@ double  data[],
 	    else if (j==dtemp){  /*bigger than last cutpoint */
 		if (edge==0) {
 		    temp = cuts[i][j] - data[i];  /* time to upper limit */
-		    if (temp <0) shortfall = step;
+		    if (temp <=0) shortfall = step;
 		    else if (temp < maxtime) maxtime = temp;
 		    }
 		if (fac[i] >1) j = dims[i] -1;   /*back to normal indices */
