@@ -1,5 +1,5 @@
-#SCCS $Date: 1992-03-08 20:16:28 $ $Id: survdiff.s,v 4.3 1992-03-08 20:16:28 therneau Exp $
-surv.diff <- function(formula, rho=0, subset) {
+#SCCS $Date: 1992-03-30 02:53:16 $ $Id: survdiff.s,v 4.4 1992-03-30 02:53:16 therneau Exp $
+surv.diff <- function(formula, data, subset, rho=0) {
     call <- match.call()
     m <- match.call(expand=F)
     m$... <- m$rho <- m$riskwt <- NULL
@@ -16,7 +16,6 @@ surv.diff <- function(formula, rho=0, subset) {
     m[[1]] <- as.name("model.frame")
     m <- eval(m, sys.parent())
     Terms <- attr(m, 'terms')
-    omit <- attr(m, 'omit')
     y <- model.extract(m, response)
     ny <- ncol(y)
     n <- nrow(y)
@@ -79,7 +78,8 @@ surv.diff <- function(formula, rho=0, subset) {
 	chi  <- sum(solve(matrix(xx$var.e, ncol=ngroup-1), temp2) * temp2)
 	}
 
-    if (length(omit)) attr(n, 'omit') <- omit
+    na.action <- attr(m, "na.action")
+    if (length(na.action)) fit$na.action <- na.action
     rval <-list(n= n, obs = observed, exp=expected,
 		    chisq= chi)
     attr(rval, "class") <- 'surv.diff'
