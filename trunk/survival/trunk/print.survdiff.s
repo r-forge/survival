@@ -1,4 +1,4 @@
-#SCCS $Date: 1992-04-14 18:07:29 $ $Id: print.survdiff.s,v 4.4 1992-04-14 18:07:29 grill Exp $
+#SCCS $Date: 1992-04-20 17:24:41 $ $Id: print.survdiff.s,v 4.5 1992-04-20 17:24:41 therneau Exp $
 print.survdiff <- function(diff.list, digits=4, ...) {
 
     fit <- diff.list
@@ -24,7 +24,7 @@ print.survdiff <- function(diff.list, digits=4, ...) {
 				c("N", "Observed", "Expected",  "(O-E)^2/E"))
 	}
     else {
-	df <- length(fit$n) -1
+	df <- 1
 	dimnames(temp) <- list(names(fit$n), c("N", "Observed", "Expected",
 					   "(O-E)^2/E"))
        }
