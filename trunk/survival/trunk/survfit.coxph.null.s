@@ -1,4 +1,4 @@
-#SCCS  $Id: survfit.coxph.null.s,v 4.7 1992-08-25 15:10:43 grill Exp $ % G%
+#SCCS  $Id: survfit.coxph.null.s,v 4.8 1992-10-19 11:27:30 therneau Exp $ % G%
 survfit.coxph.null <-
   function(object, newdata, se.fit=T, conf.int=.95, individual=F,
 	    type=c('tsiatis', 'kaplan-meier'),
@@ -39,7 +39,7 @@ survfit.coxph.null <-
 	}
     else if (type=='right') {
 	ord <- order(strata, y[,1], -y[,2])
-	y <- cbind(0, y)
+	y <- cbind(-1, y)
 	}
     else stop("Cannot handle \"", type, "\" type survival data")
 
