@@ -1,4 +1,4 @@
-/* SCCS $Id: pyears1.c,v 4.1 1993-12-02 21:36:42 therneau Exp $  */
+/* SCCS $Id: pyears1.c,v 4.2 1994-04-21 16:47:31 therneau Exp $  */
 /*
 **  Person-years calculations, in its most general
 **
@@ -122,7 +122,7 @@ double  *sy,
     for (i=0; i<edim; i++) {
 	ecut[i] = secut;
 	if (efac[i]==0)     secut += edims[i];
-	else if(efac[i] >1) secut += (edims[i]*efac[i] * 1 - efac[i]);
+	else if(efac[i] >1) secut += 1 + (efac[i]-1)*edims[i];
 	}
 
     ocut = (double **)S_alloc(odim, sizeof(double *));

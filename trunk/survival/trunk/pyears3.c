@@ -1,4 +1,4 @@
-/* SCCS $Id: pyears3.c,v 4.4 1994-01-10 10:52:21 therneau Exp $  */
+/* SCCS $Id: pyears3.c,v 4.5 1994-04-21 16:48:12 therneau Exp $  */
 /*
 **  Person-years calculations, leading to expected survival for a cohort.
 **    The output table depends only on factors, not on continuous.
@@ -93,7 +93,7 @@ double  *sx,
     for (i=0; i<edim; i++) {
 	ecut[i] = secut;
 	if (efac[i]==0)     secut += edims[i];
-	else if(efac[i] >1) secut += (edims[i]*efac[i] * 1 - efac[i]);
+	else if(efac[i] >1) secut += 1 + (efac[i]-1)*edims[i];
 	}
 
     for (i=0; i<n; i++) {
