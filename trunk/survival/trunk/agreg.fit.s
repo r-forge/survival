@@ -1,4 +1,4 @@
-# SCCS $Id: agreg.fit.s,v 4.20 1999-06-24 15:16:35 therneau Exp $
+# SCCS $Id: agreg.fit.s,v 4.21 1999-08-27 11:39:26 therneau Exp $
 agreg.fit <- function(x, y, strata, offset, init, control,
 			weights, method, rownames)
     {
@@ -61,7 +61,6 @@ agreg.fit <- function(x, y, strata, offset, init, control,
 		imat= double(nvar*nvar), loglik=double(2),
 		flag=integer(1),
 		double(2*nvar*nvar +nvar*3 + n),
-		integer(n),
 		as.double(control$eps),
 		as.double(control$toler.chol),
 		sctest=as.double(method=='efron') )
@@ -95,7 +94,8 @@ agreg.fit <- function(x, y, strata, offset, init, control,
 		as.integer(event),
 		as.integer(length(newstrat)), 
 		as.integer(newstrat),
-		sort.end-1, sort.start-1,
+		as.integer(sort.end-1), 
+		as.integer(sort.start-1),
 		score,
 		as.double(weights),
 		resid=double(n),

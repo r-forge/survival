@@ -1,4 +1,4 @@
-/*  SCCS $Id: agfit3.c,v 1.1 1999-06-24 15:16:47 therneau Exp $
+/*  SCCS $Id: agfit3.c,v 1.2 1999-08-27 11:39:25 therneau Exp $
 /*
 ** Anderson-Gill formulation of the Cox Model, using smart subsets
 **
@@ -57,7 +57,7 @@ void agfit3( long   *maxiter,  long   *nusedx,  long   *nvarx,
 	     long   *nstrat,   long   *strata,  long   *sort1,
 	     long   *sort2,    double *means,   double *beta, 
 	     double *u,        double *imat2,   double loglik[2], 
-	     long   *flag,     double *work,    long   *end,
+	     long   *flag,     double *work,    
 	     double *eps,      double *tol_chol, double *sctest)
 {
     int i,j,k,person;
