@@ -30,7 +30,9 @@ respectively, then `collapse=c(1,1,1, 2, 3,3, 4,4,4,4)' could be used to
 obtain per subject rather than per observation residuals.
 .AG weighted
 if `TRUE' and the model was fit with case weights, then the weighted
-residuals are returned.
+residuals are returned.  
+The default is to return unweighted residuals, except for dfbeta where
+the default is to return weighted residuals.
 .RT
 For martingale and deviance residuals, the returned object is a vector
 with one element for each subject (without `collapse').

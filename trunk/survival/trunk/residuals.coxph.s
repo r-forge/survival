@@ -1,4 +1,4 @@
-#  SCCS $Id: residuals.coxph.s,v 5.2 2000-02-26 12:11:27 therneau Exp $
+#  SCCS $Id: residuals.coxph.s,v 5.3 2000-08-31 14:42:40 therneau Exp $
 residuals.coxph <-
   function(object, type=c("martingale", "deviance", "score", "schoenfeld",
 			  "dfbeta", "dfbetas", "scaledsch"),
@@ -8,13 +8,10 @@ residuals.coxph <-
     otype <- type
     if (type=='dfbeta' || type=='dfbetas') {
 	type <- 'score'
-	weighted <- T      # we know the "right answer" for dfbetas
+	if (missing(weighted) weighted <- T  # different default
 	}
-    if (type=='scaledsch') {
-	type<-'schoenfeld'
-	if (weighted) 
-	   stop("Schoenfeld residuals can be scaled or weighted, but not both")
-	}
+    if (type=='scaledsch') type<-'schoenfeld'
+
     n <- length(object$residuals)
     rr <- object$residual
     y <- object$y
@@ -22,6 +19,7 @@ residuals.coxph <-
     vv <- object$naive.var
     if (is.null(vv)) vv <- object$var
     weights <- object$weights
+    if (is.null(weights)) weights <- rep(1,n)
     strat <- object$strata
     method <- object$method
     if (method=='exact' && (type=='score' || type=='schoenfeld'))
@@ -61,8 +59,6 @@ residuals.coxph <-
 	    x <- x[ord,]
 	    y <- y[ord,]
 	    score <- exp(object$linear.predictor)[ord]
-	    if (is.null(weights)) {weights <- rep(1,n); weighted <- F}
-	    else                  weights <- weights[ord]
 	    }
 	}
 
@@ -78,8 +74,8 @@ residuals.coxph <-
 	temp <- .C("coxscho", n=as.integer(n),
 			    as.integer(nvar),
 			    as.double(y),
-			    resid= x,
-			    score * weights,
+			    resid=  as.double(x),
+			    as.double(score * weights[ord]),
 			    as.integer(newstrat),
 			    as.integer(method=='efron'),
 			    double(3*nvar))
@@ -87,11 +83,8 @@ residuals.coxph <-
 	deaths <- y[,3]==1
 
 	if (nvar==1) rr <- temp$resid[deaths]
-	else rr <- matrix(temp$resid[deaths,], ncol=nvar) #pick rows, and kill attr
-	if (!is.null(weights) & weighted) {
-	    weights[ord] <- weights
-	    rr <- rr * weights[deaths]
-	    }
+	else         rr <- matrix(temp$resid[deaths], ncol=nvar) #pick rows 
+	if (weighted) rr <- rr * weights[deaths]
 
 	if (length(strats)) attr(rr, "strata")  <- table((strat[ord])[deaths])
 	time <- c(y[deaths,2])  # 'c' kills all of the attributes
@@ -116,7 +109,7 @@ residuals.coxph <-
 				x=as.double(x),
 				as.integer(newstrat),
 				as.double(score),
-				as.double(weights),
+				as.double(weights[ord]),
 				as.integer(method=='efron'),
 				resid= double(n*nvar),
 				double(2*nvar))$resid
@@ -129,7 +122,7 @@ residuals.coxph <-
 				as.double(x),
 				as.integer(newstrat),
 				as.double(score),
-				as.double(weights),
+				as.double(weights[ord]),
 				as.integer(method=='efron'),
 				resid=double(n*nvar),
 				double(nvar*6))$resid
@@ -152,12 +145,9 @@ residuals.coxph <-
 	}
 
     #
-    # Multiply up by case weights, if requested
+    # Multiply up by case weights (which will be 1 for unweighted)
     #
-    if (!is.null(weights) & weighted) {
-	weights[ord] <- weights
-	rr <- rr * weights
-	}
+    if (weighted) rr <- rr * weights
 
     #Expand out the missing values in the result
     if (!is.null(object$na.action)) {
