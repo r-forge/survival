@@ -1,4 +1,4 @@
-/* SCCS $Id: agsurv2.c,v 4.1 1992-03-04 16:51:46 therneau Exp $  */
+/* SCCS $Id: agsurv2.c,v 4.2 1992-03-11 14:40:02 therneau Exp $  */
 /*
 ** Fit the survival curve, the special case of an Anderson-Gill style data
 **   This program differs from survfit in several key ways:
@@ -154,7 +154,7 @@ double newx[], newrisk[];
 		    else {           /*find the zero of an equation */
 			guess = .5;
 			inc = .25;
-			for (l=0; l<20; l++) { /* bisect it to death */
+			for (l=0; l<35; l++) { /* bisect it to death */
 			    sumt =0;
 			    for (k=psave; k<person; k++) {
 				if (event[k] ==1)
