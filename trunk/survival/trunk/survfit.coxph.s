@@ -1,4 +1,4 @@
-# SCCS $Id: survfit.coxph.s,v 5.6 2000-07-09 14:49:49 boos Exp $
+# SCCS $Id: survfit.coxph.s,v 5.7 2001-12-31 09:32:51 therneau Exp $
 setOldClass(c('survfit.cox', 'survfit'))
 
 survfit.coxph <-
@@ -7,8 +7,6 @@ survfit.coxph <-
 	    conf.type=c('log', 'log-log', 'plain', 'none'),
 	    call = match.call()) {
 
-    if(!is.null((object$call)$weights))
-	stop("Survfit cannot (yet) compute the result for a weighted model")
     call <- match.call()
     Terms <- terms(object)
     strat <- attr(Terms, "specials")$strata
@@ -42,7 +40,6 @@ survfit.coxph <-
     y <- data$y
     ny <- ncol(y)
     if (nrow(y) != n) stop ("Mismatched lengths: logic error")
-    if (length(strat)) strata.all <- table(data$strata)
 
     # Get the sort index for the data, and add a column to y if
     #  necessary to make it of the "counting process" type  (I only
@@ -123,7 +120,6 @@ survfit.coxph <-
 		#
 		# The case of an agreg, with a multiple line newdata
 		#
-		strata.all <- object$n
 		if (length(strat)) {
 		    strata2 <- factor(x2[,strat], levels=levels(stratum))
 		    x2 <- x2[, -strat, drop=F]
@@ -174,11 +170,13 @@ survfit.coxph <-
 	if (se.fit) temp$std.err <- sqrt(surv$varhaz[ntime])
 	}
     else {
+
 	surv <- .C('agsurv2', as.integer(n),
 			      as.integer(nvar* se.fit),
 			      y = y[ord,],
 			      as.double(score[ord]),
 			      strata = as.integer(newstrat),
+		              wt = as.double(weights),
 			      surv = double(ndead*n2),
 			      varhaz = double(ndead*n2),
 			      as.double(x),
@@ -209,12 +207,12 @@ survfit.coxph <-
 	    temp <- surv$strata[1:(1+surv$strata[1])]
 	    tstrat <- diff(c(0, temp[-1])) #n in each strata
 	    names(tstrat) <- levels(data$strata)
-	    temp _ list(n=n, time=surv$y[ntime,1],
-		     n.risk=surv$y[ntime,2],
-		     n.event=surv$y[ntime,3],
-		     surv=tsurv,
-		     strata= tstrat,
-			strata.all=strata.all,
+	    temp _ list(n=table(data$strata), 
+			time=surv$y[ntime,1],
+			n.risk=surv$y[ntime,2],
+			n.event=surv$y[ntime,3],
+			surv=tsurv,
+			strata= tstrat,
 			type=type)
 	    }
 	if (se.fit) temp$std.err <- sqrt(tvar)

@@ -1,4 +1,4 @@
-# SCCS $Id: survexp.s,v 5.2 1999-02-19 16:33:55 therneau Exp $
+# SCCS $Id: survexp.s,v 5.3 2001-12-31 09:32:23 therneau Exp $
 setOldClass(c('survexp', 'survfit'))
 
 survexp <- function(formula=formula(data), data=sys.parent(),
@@ -142,28 +142,25 @@ survexp <- function(formula=formula(data), data=sys.parent(),
 	else {
 	    if (israte) keep <- match(times, newtime)
 	    else {
-		# taken straight out of summary.survfit....
-		n <- length(temp$times)
-		temp2 <- .C("survindex2", as.integer(n),
-					  as.double(temp$times),
-					  as.integer(rep(1,n)),
-					  as.integer(length(times)),
-					  as.double(times),
-					  as.integer(1),
-					  indx = integer(length(times)),
-					  indx2= integer(length(times)) )
-		keep <- temp2$indx[temp2$indx>0]
+		# The result is from a Cox model, and it's list of
+                #  times won't match the list requested in the user's call
+                # Interpolate the step function, giving survival of 1 and
+                #  se of 0 for requested points that precede the Cox fit's
+                #  first downward step.  The code is like summary.survfit.
+		n <- length(newtime)
+                keep <- approx(c(0, newtime), 0:n, xout=times,
+                               method='constant', f=0, rule=2)$y
 		}
 
 	    if (is.matrix(temp$surv)) {
-		surv <- temp$surv[keep,,drop=F]
-		n.risk <- temp$n[keep,,drop=F]
-		if (se.fit) err <- temp$se[keep,,drop=F]
+		surv <- (rbind(1,temp$surv))[keep+1,,drop=F]
+		n.risk <- temp$n[pmax(1,keep),,drop=F]
+		if (se.fit) err <- (rbind(0,temp$se))[keep+1,,drop=F]
 		}
 	    else {
-		surv <- temp$surv[keep]
-		n.risk <- temp$n[keep]
-		if (se.fit) err <- temp$se[keep]
+		surv <- (c(1,temp$surv))[keep+1]
+		n.risk <- temp$n[pmax(1,keep)]
+		if (se.fit) err <- (c(0,temp$se))[keep+1]
 		}
 	    newtime <- times
 	    }

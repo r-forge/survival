@@ -1,10 +1,13 @@
-#SCCS $Id: survfit.s,v 4.19 2000-09-08 16:10:17 boos Exp $
+#SCCS @(#)survfit.s	4.19 09/08/00
 survfit <- function (formula, data, weights, subset, na.action, ...) {
     call <- match.call()
     # Real tricky -- find out if the first arg is "Surv(...)" without
     #  evaluating it.  If this is so, or it is a survival object, turn it
     #  into a formula
-    # (This allows people to leave off the "~1" from a formula)
+    # (This allows people to leave off the "~1" from a formula.  This
+    # is an option I allowed early on, now wish I never had done it,
+    # and have removed all references to this option from all documentation.
+    # I a couple of more years I'll axe it.)
     if ((mode(call[[2]]) == 'call' &&  call[[2]][[1]] == as.name('Surv'))
 		|| inherits(formula, 'Surv'))  {
 	# The dummy function stops an annoying warning message "Looking for
@@ -45,7 +48,10 @@ survfit <- function (formula, data, weights, subset, na.action, ...) {
 	if (length(ll) == 0) X <- factor(rep(1,n))  # ~1 on the right
 	else X <- strata(m[ll])
 
-	temp <- survfit.km(X, Y, casewt, ...)
+	if (!is.Surv(Y)) stop("y must be a Surv object")
+	if (attr(Y, 'type') != 'right' && attr(Y, 'type') != 'counting')
+		temp <- survfit.turnbull(X, Y, casewt, ...)
+	else    temp <- survfit.km(X, Y, casewt, ...)
 	oldClass(temp) <- "survfit"
 	if (!is.null(attr(m, 'na.action'))) 
 		temp$na.action <- attr(m, 'na.action')
@@ -74,20 +80,19 @@ survfit <- function (formula, data, weights, subset, na.action, ...) {
     else {
 	if (is.null(i)) keep <- seq(along=fit$time)
 	else {
-	    if (is.null(fit$ntimes.strata)) strata.var <- fit$strata
-	    else strata.var <- fit$ntimes.strata
-	    if (is.character(i)) strat <- rep(names(fit$strata), strata.var)
-	    else                 strat <- rep(1:length(fit$strata), strata.var)
+            if (is.character(i)) strat <- rep(names(fit$strata), fit$strata)
+	    else                 strat <- rep(1:length(fit$strata), fit$strata)
 	    keep <- seq(along=strat)[match(strat, i, nomatch=0)>0]
 	    if (length(i) <=1) fit$strata <- NULL
 	    else               fit$strata  <- fit$strata[i]
-	    if (!is.null(fit$ntimes.strata)) {
-		fit$strata.all <- fit$strata.all[i]
-		fit$ntimes.strata <- fit$ntimes.strata[i]
-	        }
+
+	    fit$n       <- fit$n[i]
+	    if (!is.null(fit$n.all)) fit$n.all <- fit$n.all[i]
 	    fit$time    <- fit$time[keep]
 	    fit$n.risk  <- fit$n.risk[keep]
 	    fit$n.event <- fit$n.event[keep]
+	    fit$n.censor<- fit$n.censor[keep]
+	    if (!is.null(fit$n.enter)) fit$n.enter <- fit$n.enter[keep]
 	    }
 	if (is.matrix(fit$surv)) {
 	    if (is.null(j)) {
@@ -106,9 +111,6 @@ survfit <- function (formula, data, weights, subset, na.action, ...) {
 	    }
 	else {
 	    fit$surv <- fit$surv[keep]
-	    if (!is.null(fit$enter)) fit$enter <- fit$enter[keep]
-	    if (!is.null(fit$exit.censored))
-		    fit$exit.censored <- fit$exit.censored[keep]
 	    if (!is.null(fit$std.err)) fit$std.err <- fit$std.err[keep]
 	    if (!is.null(fit$upper)) fit$upper <- fit$upper[keep]
 	    if (!is.null(fit$lower)) fit$lower <- fit$lower[keep]

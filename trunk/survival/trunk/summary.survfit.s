@@ -1,116 +1,33 @@
-#SCCS $Id: summary.survfit.s,v 5.7 2000-07-09 14:33:44 boos Exp $
-summary.survfit <- function(fit, times, censored=F, scale=1, extend=F, ...) {
+#SCCS $Id: summary.survfit.s,v 5.8 2001-12-31 09:32:23 therneau Exp $
+#
+# Version with no C code, using approx() to do the subscript
+#  calculations
+
+summary.survfit <- function(object, times, censored=F, 
+			    scale=1, extend=F, ...) {
+    fit <- object
     if (!inherits(fit, 'survfit'))
 	    stop("Invalid data")
 
-    pfun <- function(nused, stime, min.time, surv, n.risk, n.event, lower,
-		     upper) {
-        #compute the mean, median, se(mean), and ci(median)
-	minmin <- function(y, xx) {
-	    if (any(!is.na(y) & y==.5)) {	
-		if (any(!is.na(y) & y <.5))
-			.5*(min(xx[!is.na(y) & y==.5]) + min(xx[!is.na(y) & y<.5]))
-		else .5*(min(xx[!is.na(y) & y==.5]) + max(xx[!is.na(y) & y==.5]))
-	        }
-	    else min(xx[!is.na(y) & y<=.5])
-	    }
+    table <- survmean(fit, scale=scale)  #for inclusion in the output list
 
-	n <- length(stime)
-	hh <- c(ifelse((n.risk[-n]-n.event[-n])==0, 0, 
-		       n.event[-n]/(n.risk[-n]*(n.risk[-n]-n.event[-n]))),0)
-	ndead<- sum(n.event)
-	dif.time <- c(diff(c(min.time, stime)), 0)
-	if (is.matrix(surv)) {
-	    n <- nrow(surv)
-	    mean <- dif.time * rbind(1, surv)
-	    temp <- (apply(mean[(n+1):2,,drop=F], 2, cumsum))[n:1,,drop=F]
-	    varmean <- c(hh %*% temp^2)
-	    med <- apply(surv, 2, minmin, stime)
-	    nused <- as.list(nused)
-	    names(nused)<-NULL
-	    if (!is.null(upper)) {
-		upper <- apply(upper, 2, minmin, stime)
-		lower <- apply(lower, 2, minmin, stime)
-		cbind(nused, ndead, apply(mean, 2, sum),
-		      sqrt(varmean), med, lower, upper)
-	        }
-	    else cbind(nused, ndead, apply(mean, 2, sum), sqrt(varmean), med)
-	    }
-	else {
-	    mean <- dif.time*c(1, surv)
-	    varmean <- sum(rev(cumsum(rev(mean))^2)[-1] * hh)
-	    med <- minmin(surv, stime)
-	    if (!is.null(upper)) {
-		upper <- minmin(upper, stime)
-		lower <- minmin(lower, stime)
-		c(nused, ndead, sum(mean), sqrt(varmean), med, lower, upper)
-	        }
-	    else c(nused, ndead, sum(mean), sqrt(varmean), med)
-	    }
-        }
-
-    n <- length(fit$time)
-    stime <- fit$time/scale
-
-    min.stime <- min(stime)
-    min.time <- min(0, min.stime)
-    surv <- fit$surv
-    plab <- c("n", "events", "mean", "se(mean)", "median")
-    if (!is.null(fit$conf.int))
-	    plab2<- paste(fit$conf.int, c("LCL", "UCL"), sep='')
-
-    #Four cases: strata Y/N  by  ncol(surv)>1 Y/N
-    #  Repeat the code, with minor variations, for each one
-    if (is.null(fit$strata)) {
-	stemp <- rep(1,n)
-	nstrat <- 1
-	table <- pfun(fit$n, stime, min.time, surv, fit$n.risk, fit$n.event, 
-		      fit$lower, fit$upper)
-	if (is.matrix(table)) {
-	    if (is.null(fit$lower)) dimnames(table) <- list(NULL, plab)
-	    else dimnames(table) <- list(NULL, c(plab, plab2))
-	    }
-	else {
-	    if (is.null(fit$lower)) names(table) <- plab
-	    else names(table) <- c(plab, plab2)
-  	    }
-        }
-    else {  #strata case
-	nstrat <- length(fit$strata)
-        if (is.null(fit$ntimes.strata))
-		stemp <- rep(1:nstrat,fit$strata)
-	else stemp <- rep(1:nstrat,fit$ntimes.strata)
-	table <- NULL
-	if (is.null(fit$strata.all)) strata.var <- fit$strata
-	else strata.var <- fit$strata.all
-	for (i in unique(stemp)) {
-	    who <- (stemp==i)
-	    if (is.matrix(surv)) {
-		temp <- pfun(strata.var[i], stime[who], min.time, 
-			     surv[who,,drop=F],
-			  fit$n.risk[who], fit$n.event[who],
-			  fit$lower[who,,drop=F], fit$upper[who,,drop=F])
-		table <- rbind(table, temp)
-	        }
-	    else  {
-		temp <- pfun(strata.var[i], stime[who], min.time, 
-			     surv[who], fit$n.risk[who], fit$n.event[who], 
-			     fit$lower[who], fit$upper[who])
-		table <- rbind(table, temp)
-	        }
-	    }
-
-	temp <- names(fit$strata)
-	if (nrow(table) > length(temp)) {
-	    nrep <- nrow(table)/length(temp)
-	    temp <- rep(temp, rep(nrep, length(temp)))
-	    }
-
-	if (is.null(fit$lower))	dimnames(table) <- list(temp, plab)
-	else dimnames(table) <- list(temp, c(plab, plab2))
-        }
-
+    # The fit$surv object is sometimes a vector and sometimes a matrix.
+    #  Make a copy of it that is always a matrix, to simplify the number of
+    #  cases for our subscripting work below.  At the end of the routine
+    #  we'll turn it back into a vector if needed.  Similar treatment is
+    #  given to the standard error and confidence limits.
     surv <- as.matrix(fit$surv)
+    if (is.null(fit$strata)) {
+	nstrat <- 1
+	stemp <- rep(1, length(surv))
+        strata.names <- ""
+	}
+    else   {
+	nstrat <- length(fit$strata)
+	stemp <- rep(1:nstrat, fit$strata)
+        strata.names <- names(fit$strata)
+	}
+
     if (is.null(fit$std.err)) std.err <- NULL
     else 		      std.err <- fit$std.err * surv
 
@@ -120,201 +37,162 @@ summary.survfit <- function(fit, times, censored=F, scale=1, extend=F, ...) {
         }
 
     if (missing(times)) {
+	# just pick off the appropriate rows of the output
 	if (censored) {
-	    times <- stime
+	    # No subscripting at all
+	    times <- fit$time
 	    n.risk<- fit$n.risk
 	    n.event <- fit$n.event
-	    n.entered <- fit$enter
-	    n.exit.censored <- fit$exit.censored
+	    n.enter <- fit$n.enter
+	    n.censor  <- fit$n.censor
+	    strata <- factor(stemp, labels=strata.names)
 	    }
 	else {
+	    # select off rows with at least one event
 	    who <- (fit$n.event > 0)
-	    times <- stime[who]
+	    times <- fit$time[who]
 	    n.risk <- fit$n.risk[who]
 	    n.event <- fit$n.event[who]
-	    n.entered <- fit$enter[who]
-	    n.exit.censored <- fit$exit.censored[who]
-	    stemp <- stemp[who]
+	    n.enter <- fit$n.enter[who]
+	    n.censor <- fit$n.censor[who]
 	    surv <- surv[who,,drop=F]
 	    if (!is.null(std.err)) std.err <- std.err[who,,drop=F]
 	    if (!is.null(fit$lower)) {
 		lower <- lower[who,,drop=F]
 		upper <- upper[who,,drop=F]
 	        }
+	    strata <- (factor(stemp, labels=strata.names))[who, drop=T]
 	    }
         }
-    else {  #this case is much harder
-	if (any(times<min.time)) stop("Invalid time point requested")
-        if(any(times > max(stime)) && extend) 
-		warning(paste("Time", list(times[times > max(stime)]), 
-			      "beyond the end of the survival curve - using survival values of last time point", 
-			      max(stime)))
-	if (length(times) > 1) {
-	    if (any(diff(times)<0)) stop("Times must be in increasing order")
+
+    else {  
+	#this case is harder, since it involves "in between" points
+	times <- sort(times)   #just in case the user didn't
+
+	# The one line function below might be opaque (even to me) --
+	# For n.event, we want to know the number since the last chosen
+	#  printout time point.  Start with the curve of cumulative
+	#  events at c(0, stime) (the input time points), which is
+	#  the cumsum below; pluck off the values corresponding to our
+	#  time points, the [x] below; then get the difference since the
+	#  last chosen time point (or from 0, for the first chosen point).
+	cfun <- function(x, data) diff(c(0, cumsum(c(0,data))[x]))
+
+	# Now to work
+	# The basic idea is to process the curves one at a time,
+	#   adding the results for that curve onto a list, so the
+	#   number of events will be n.enter[[1]], n.enter[[2]], etc.
+	# For the survival, stderr, and confidence limits it suffices
+	#   to create a single list 'indx1' containing a subscripting vector
+	indx1 <- n.risk <- n.event <- newtimes <- vector('list', nstrat)
+	if (!is.null(fit$n.enter))  n.enter <- vector('list', nstrat)
+	if (!is.null(fit$n.censor)) n.censor<- vector('list', nstrat)
+	n <- length(stemp)
+	for (i in 1:nstrat) {
+	    who <- (1:n)[stemp==i]
+	    stime <- fit$time[who]
+
+	    # First, toss any printing times that are outside our range
+	    if (is.null(fit$start.time)) mintime <- min(stime, 0)
+	    else                         mintime <- fit$start.time
+	    ptimes <- times[times >= mintime]
+
+	    if (!extend) {
+		maxtime <- max(stime)
+		ptimes <- ptimes[ptimes <= maxtime]
+		}
+
+	    newtimes[[i]] <- ptimes
+
+	    # If we tack a 0 onto the front of the vector of survival
+	    #  times, then indx1 is the subscript for that vector
+	    #  corresponding to the list of "ptimes".  If the input
+	    #  data had stime=c(10,20) and ptimes was c(5,10,15,20),
+	    #  the result would be 1,2,2,3.
+	    # For n.risk we want a slightly different index: 2,2,2,3.
+	    #  The number at risk at time 15 = number at risk at time 10,
+	    #  but the number at risk before time 15 is not 0 (like the
+	    #  survival), it is the number at risk at time 10 - #entered at 10
+	    #
+	    temp1 <- approx(c(mintime, stime), 0:length(stime), xout=ptimes,
+			    method='constant', f=0, rule=2)$y
+	    indx1[[i]] <- ifelse(temp1==0, 1, 1+ who[temp1])
+	    n.event[[i]] <- cfun(temp1+1, fit$n.event[who])
+	    if (!is.null(fit$n.censor))
+		    n.censor[[i]] <- cfun(temp1+1, fit$n.censor[who])
+	    if (is.null(fit$n.enter)) temp2 <- 0
+	    else  {
+		temp2 <- fit$n.enter[who[1]]
+		n.enter[[i]] <- cfun(temp1+1, fit$n.enter[who])
+		}
+
+	    n.risk[[i]] <- ifelse(temp1==0, fit$n.risk[who[1]] - temp2,
+				            fit$n.risk[c(1,who)[temp1+1]])
+            # Why not just "who[temp1]" instead of c(1,who)[temp1+1] in the
+            #  line just above?  When temp1 has zeros, the first expression
+            #  gives a vector that is shorter than temp1, and the ifelse
+            #  doesn't work right due to mismatched lengths.  c(2,who) would
+            #  work just as well, since I don't care what gets filled in.
 	    }
-	ntime <- length(times)
-	times.obs <- ntime * nstrat
 
-	if (!is.null(fit$new.start)) new.start <- fit$new.start
-	else new.start <- stime[1] - 1
-
-	# changing NAs to -1 for C program
-	upper <- ifelse(is.na(fit$upper), -1, fit$upper)
-	lower <- ifelse(is.na(fit$lower), -1, fit$lower)
-	std.err <- ifelse(is.na(std.err), -1, std.err)
-
-	if (extend) num.extend <- 1
-	else num.extend <- 0
-
-	if (extend) {
-	    temp.strata <- rep(ntime,nstrat)
-	    times.strata <- rep(1:nstrat, temp.strata)
+	# Now create the output list
+	times  <- unlist(newtimes)
+	n.risk <-  unlist(n.risk)
+	n.event <- unlist(n.event)
+	if (!is.null(fit$n.enter))  n.enter <- unlist(n.enter)
+	if (!is.null(fit$n.censor)) n.censor<- unlist(n.censor)
+	indx1 <- unlist(indx1)
+	surv <- (rbind(1.,surv))[indx1,,drop=F]
+	if (!is.null(std.err)) std.err <- rbind(0.,std.err)[indx1,,drop=F]
+	if (!is.null(fit$lower)) {
+	    lower <- rbind(1.,lower)[indx1,,drop=F]
+	    upper <- rbind(1.,upper)[indx1,,drop=F]
 	    }
-
-	if (fit$type == 'right' || inherits(fit, 'survfit.cox')) {
-	    temp <- .C("survindex2", 
-		       as.integer(n),
-		       as.double(stime),
-		       as.integer(stemp),
-		       as.integer(ntime),
-		       as.double(times),
-		       as.integer(nstrat),
-		       as.integer(fit$n.risk),
-		       as.integer(fit$n.event),
-		       as.double(fit$surv),
-		       as.double(std.err),
-		       as.double(upper),
-		       as.double(lower),
-		       n.risk=integer(times.obs),
-		       n.event=integer(times.obs),
-		       surv=double(times.obs),
-		       std.err=double(times.obs),
-		       upper=double(times.obs),
-		       lower=double(times.obs),
-		       as.double(new.start),
-		       as.integer(num.extend),
-		       temp.strata=integer(nstrat),
-		       temp.times=double(times.obs))
+	if (!is.null(fit$strata)) {
+	    scount <- unlist(lapply(newtimes, length))
+	    strata <- factor(rep(1:nstrat, scount), labels=names(fit$strata))
 	    }
-	if (fit$type == 'counting') {
-	    temp <- .C("survindex3",
-		       as.integer(n),
-		       as.double(stime),
-		       as.integer(stemp),
-		       as.integer(ntime),
-		       as.double(times),
-		       as.integer(nstrat),
-		       as.integer(fit$n.risk),
-		       as.integer(fit$enter),
-		       as.integer(fit$exit.censored),
-		       as.integer(fit$n.event),
-		       as.double(fit$surv),
-		       as.double(std.err),
-		       as.double(upper),
-		       as.double(lower),
-		       n.risk=integer(times.obs),
-		       n.entered=integer(times.obs),
-		       n.censored=integer(times.obs),
-		       n.event=integer(times.obs),
-		       surv=double(times.obs),
-		       std.err=double(times.obs),
-		       upper=double(times.obs),
-		       lower=double(times.obs),
-		       as.double(new.start),
-		       as.integer(num.extend),
-		       temp.strata=integer(nstrat),
-		       temp.times=double(times.obs))
-	    uncumm.times.strata <- rep(1:nstrat, temp$temp.strata)
-	    if (!extend) 
-		    temp$n.entered <- unlist(tapply(temp$n.entered[1:length(uncumm.times.strata)],
-						    uncumm.times.strata, function(x) diff(c(0,x))))
-	    else 
-		    temp$n.entered <- unlist(tapply(temp$n.entered, times.strata, 
-						    function(x) diff(c(0,x))))
+	}
 
-	    if (!extend)
-		    temp$n.censored <- unlist(tapply(temp$n.censored[1:length(uncumm.times.strata)],
-						     uncumm.times.strata, function(x) diff(c(0,x))))
-	    else
-		    temp$n.censored <- unlist(tapply(temp$n.censored, times.strata, 
-						     function(x) diff(c(0,x))))
-	    }
-	uncumm.times.strata <- rep(1:nstrat, temp$temp.strata)
-	if (!extend)
-		temp$n.event <- unlist(tapply(temp$n.event[1:length(uncumm.times.strata)], 
-					      uncumm.times.strata, function(x) diff(c(0,x))))
-	else
-		temp$n.event <- unlist(tapply(temp$n.event, times.strata, 
-					      function(x) diff(c(0,x))))
-	# if don't want to extend past time points, subset data
-	if (!extend) times.strata <- rep(1:nstrat, temp$temp.strata)
-
-	l1 <- length(times.strata)+1
-	if (!extend) l2 <- length(temp$temp.times)
-	else l2 <- length(times.strata)
-	if (l1 > l2) l2 <- l2 + 1
-	if (!extend) times <- temp$temp.times[-l1:-l2]
-	n.risk <- temp$n.risk[-l1:-l2]
-	n.event <- temp$n.event[-l1:-l2]
-	if (!is.null(temp$n.entered)) n.entered <- temp$n.entered[-l1:-l2]
-	if (!is.null(temp$n.censored)) n.exit.censored <- temp$n.censored[-l1:-l2]
-	surv <- temp$surv[-l1:-l2]
-	surv <- as.matrix(surv)
-
-	# changing -1s back to NAs after C program
-	upper <- temp$upper[-l1:-l2]
-	upper <- ifelse(upper == -1, NA, upper)
-	lower <- temp$lower[-l1:-l2]
-	lower <- ifelse(lower == -1, NA, lower)
-	std.err <- temp$std.err[-l1:-l2]
-	std.err <- ifelse(std.err == -1, NA, std.err)
-
-	std.err <- std.err
-	upper <- as.matrix(upper)
-	lower <- as.matrix(lower)
-        }
-    ncurve <- ncol(surv)
+    #
+    # Final part of the routine: paste the material together into
+    #  the correct output structure
+    #
     if (fit$type == 'right' || inherits(fit, 'survfit.cox')) 
 	    temp <- list(surv=surv, time=times, n.risk=n.risk, n.event=n.event,
 			 conf.int=fit$conf.int, type=fit$type, table=table)
     
     if (fit$type == 'counting')
 	    temp <- list(surv=surv, time=times, n.risk=n.risk, n.event=n.event,
-			 conf.int=fit$conf.int, n.entered=n.entered,
-			 n.exit.censored=n.exit.censored, type=fit$type, 
+			 conf.int=fit$conf.int, n.enter=n.enter,
+			 n.censor=n.censor, type=fit$type, 
 			 table=table)
 
-    if (!is.null(fit$new.start)) temp$new.start <- fit$new.start
-    if (!missing(times) && (!is.null(fit$strata)))
-	    temp$times.strata <- factor(times.strata,
-					labels=
-					names(fit$strata)[sort(unique(times.strata))])
-    if (!is.null(ncurve)) {
-	if (ncurve==1) {
-	    temp$surv <- drop(temp$surv)
-	    if (!is.null(std.err)) temp$std.err <- drop(std.err)
-	    if (!is.null(fit$lower)) {
-		temp$lower <- drop(lower)
-		temp$upper <- drop(upper)
-  	        }
+    if (!is.null(fit$start.time)) temp$start.time <- fit$start.time
+
+    if (ncol(surv)==1) {
+	# Make surve & etc vectors again
+	temp$surv <- drop(temp$surv)
+	if (!is.null(std.err)) temp$std.err <- drop(std.err)
+	if (!is.null(fit$lower)) {
+	    temp$lower <- drop(lower)
+	    temp$upper <- drop(upper)
 	    }
-	else {
-	    if (!is.null(std.err)) temp$std.err <- std.err
-
-	    if (!is.null(fit$lower)) {
-		temp$lower <- lower
-		temp$upper <- upper
-	        }
+	}
+    else {
+	if (!is.null(std.err)) temp$std.err <- std.err
+	if (!is.null(fit$lower)) {
+	    temp$lower <- lower
+	    temp$upper <- upper
 	    }
+	}
 
-	if (!is.null(fit$strata))
-		temp$strata <- factor(stemp,
-				      labels = 
-				      names(fit$strata)[sort(unique(stemp))])
-
-	temp$call <- fit$call
-	if (!is.null(fit$na.action)) temp$na.action <- fit$na.action
-        }
+    if (!is.null(fit$strata)) {
+	temp$strata <- strata
+	}
+    temp$call <- fit$call
+    if (!is.null(fit$na.action)) temp$na.action <- fit$na.action
+  
     oldClass(temp) <- 'summary.survfit'
     temp
     }

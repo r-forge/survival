@@ -1,4 +1,4 @@
-#SCCS $Id: print.summary.survfit.s,v 4.7 2000-07-09 14:27:52 boos Exp $
+#SCCS $Id: print.summary.survfit.s,v 4.8 2001-12-31 09:32:22 therneau Exp $
 print.summary.survfit <- function(x, 
 				  digits = max(options()$digits - 4, 3), ...) {
     savedig <- options(digits=digits)
@@ -19,11 +19,12 @@ print.summary.survfit <- function(x,
         }
 
     else if (x$type == 'counting') {
-	mat <- cbind(x$time, x$n.risk, x$n.event, x$n.entered,
-		     x$n.exit.censored, x$surv)
+	mat <- cbind(x$time, x$n.risk, x$n.event, x$n.enter,
+		     x$n.censor, x$surv)
 	cnames <- c("time", "n.risk", "n.event", 
-		    "n.entered", "n.censored")
+		    "entered", "censored")
         }
+
     if (is.matrix(x$surv)) ncurve <- ncol(x$surv)
     else	           ncurve <- 1
     if (ncurve==1) {                 #only 1 curve
@@ -43,11 +44,11 @@ print.summary.survfit <- function(x,
         }
     else cnames <- c(cnames, paste("survival", seq(ncurve), sep=''))
 
-    if (!is.null(x$new.start)) {
-	mat.keep <- mat[,1] >= x$new.start
+    if (!is.null(x$start.time)) {
+	mat.keep <- mat[,1] >= x$start.time
 	mat <- mat[mat.keep,,drop=F]
 	if (is.null(dim(mat)))
-		stop(paste("No information available using new.start =", x$new.start, "."))
+		stop(paste("No information available using start.time =", x$start.time, "."))
         }
     if (!is.matrix(mat)) mat <- matrix(mat, nrow=1)
     if (!is.null(mat)) {
@@ -55,12 +56,8 @@ print.summary.survfit <- function(x,
 	if (is.null(x$strata))
 		prmatrix(mat, rowlab=rep("", nrow(mat)))
 	else  { #print it out one strata at a time
-	    if (!is.null(x$times.strata))
-		    strata <- x$times.strata
-	    else
-		    strata <- x$strata
-	   
-	    if (!is.null(x$new.start))
+	    strata <- x$strata
+	    if (!is.null(x$start.time))
 		    strata <- strata[mat.keep]
 	    for (i in levels(strata)) {
 		who <- (strata==i)

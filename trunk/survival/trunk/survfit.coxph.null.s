@@ -1,4 +1,4 @@
-# SCCS $Id: survfit.coxph.null.s,v 5.5 2000-07-09 14:49:35 boos Exp $
+# SCCS $Id: survfit.coxph.null.s,v 5.6 2001-12-31 09:32:23 therneau Exp $
 survfit.coxph.null <-
   function(object, newdata, se.fit=T, conf.int=.95, individual=F,
 	    type, vartype,
@@ -35,7 +35,7 @@ survfit.coxph.null <-
 	if (is.null(stratx)) {
 	    temp <- untangle.specials(Terms, 'strata', 1)
 	    stratx <- strata(m[temp$vars])
-	    strata.all <- table(stratx)
+	    n.all <- table(stratx)
 	    }
 	if (is.null(y)) y <- model.extract(m, 'response')
 	}
@@ -57,6 +57,9 @@ survfit.coxph.null <-
 	}
     else stop("Cannot handle \"", type, "\" type survival data")
 
+    if (is.null(object$weights)) weights <- rep(1,n)
+    else                         weights <- object$weights
+
     if (length(strat)) {
 	newstrat <- (as.numeric(stratx))[ord]
 	newstrat <- as.integer(c(1*(diff(newstrat)!=0), 1))
@@ -73,6 +76,7 @@ survfit.coxph.null <-
 			  y = y[ord,],
 			  as.double(score[ord]),
 			  strata = as.integer(newstrat),
+                          as.double(weights),
 			  surv = double(n),
 			  varhaz = double(n),
 			  double(1),
@@ -95,11 +99,11 @@ survfit.coxph.null <-
 	temp <- surv$strata[1:(1+surv$strata[1])]
 	tstrat <- diff(c(0, temp[-1])) #n in each strata
 	names(tstrat) <- levels(stratx)
-	temp _ list(n=n, time=surv$y[ntime,1],
+	temp _ list(n=n.all, time=surv$y[ntime,1],
 		 n.risk=surv$y[ntime,2],
 		 n.event=surv$y[ntime,3],
 		 surv=tsurv,
-		 strata= tstrat, strata.all=strata.all, type=type)
+		 strata= tstrat, type=type)
 	}
     if (se.fit) temp$std.err <- sqrt(tvar)
 
@@ -132,12 +136,3 @@ survfit.coxph.null <-
     oldClass(temp) <- "survfit.cox"
     temp
     }
-
-
-
-
-
-
-
-
-

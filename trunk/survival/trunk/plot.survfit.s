@@ -1,4 +1,4 @@
-#SCCS $Id: plot.survfit.s,v 4.19 2000-07-09 14:21:14 boos Exp $
+#SCCS $Id: plot.survfit.s,v 4.20 2001-12-31 09:32:22 therneau Exp $
 plot.survfit<- function(x, conf.int,  mark.time=T,
 			mark=3,col=1,lty=1, lwd=1, cex=1, log=F,
 			xscale=1, yscale=1, 
@@ -7,13 +7,15 @@ plot.survfit<- function(x, conf.int,  mark.time=T,
 			fun,
 			xlab="", ylab="", xaxs='S', ...) {
 
-    mintime <- min(x$time)
-    firstx <- min(firstx,mintime)
- 
-    if (!is.null(x$new.start))
-	    firstx <- x$new.start
-    
+    if (missing(firstx)) {
+	if (!is.null(x$start.time)) 
+	     firstx <- x$start.time
+	else firstx <- min(0, x$time)
+	}
     firstx <- firstx/xscale
+
+    # The special x axis style only applies when firstx is not given
+    if (missing(xaxs) && firstx!=0) xaxs= par('xaxs')  # use the default
 
     if (is.logical(log)) {
 	logy <- log
@@ -41,7 +43,7 @@ plot.survfit<- function(x, conf.int,  mark.time=T,
         }
     else {
 	nstrat <- length(x$strata)
-	stemp <- rep(1:nstrat,x$ntimes.strata)
+	stemp <- rep(1:nstrat, x$strata)
         }
 
     ssurv <- x$surv
@@ -218,7 +220,7 @@ plot.survfit<- function(x, conf.int,  mark.time=T,
 	xx <- c(firstx, stime[who])
 	nn <- length(xx)
 	if (x$type == 'counting') {
-	    deaths <- c(-1, x$exit.censored[who])
+	    deaths <- c(-1, x$n.censor[who])
 	    zero.one <- 1
 	    }
 	else if (x$type == 'right') {

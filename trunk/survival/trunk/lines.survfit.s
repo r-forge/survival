@@ -1,8 +1,15 @@
-# SCCS $Id: lines.survfit.s,v 4.16 1999-01-14 16:30:33 therneau Exp $
+# SCCS $Id: lines.survfit.s,v 4.17 2001-12-31 09:32:21 therneau Exp $
 lines.survfit <- function(x, type='s', mark=3, col=1, lty=1, lwd=1,
 			  mark.time =T, xscale=1, 
 			  firstx=0, firsty=1, xmax, fun,
 			  conf.int=F, ...) {
+
+    if (missing(firstx)) {
+	if (!is.null(x$start.time)) 
+	     firstx <- x$start.time
+	else firstx <- min(x$time)
+	}
+    firstx <- firstx/xscale
 
     if (inherits(x, 'survexp')) {
 	if (missing(type)) type <- 'l'
@@ -19,7 +26,7 @@ lines.survfit <- function(x, type='s', mark=3, col=1, lty=1, lwd=1,
 	    }
 	else stop("Unrecognized option for conf.int")
 	}
-    else plot.surv <- T
+    else plot.surv <- T  #plot the central curve, not just CI
 
     if (is.numeric(mark.time)) mark.time<- sort(unique(mark.time[mark.time>0]))
 
@@ -169,14 +176,14 @@ lines.survfit <- function(x, type='s', mark=3, col=1, lty=1, lwd=1,
 	    yy <- c(firsty, ssurv[who])
 	    yyu<- c(firsty, supper[who])
 	    yyl<- c(firsty, slower[who])
-	    deaths <- c(-1, ssurv$n.event[who])
+	    deaths <- c(-1, x$n.event[who])
 	    }
 	else {
 	    xx <- time[who]
 	    yy <- ssurv[who]
 	    yyu<- supper[who]
 	    yyl<- slower[who]
-	    deaths <- ssurv$n.event[who]
+	    deaths <- x$n.event[who]
 	    }
 	nn <- length(xx)
 
@@ -194,15 +201,17 @@ lines.survfit <- function(x, type='s', mark=3, col=1, lty=1, lwd=1,
 		      lty=lty[k], lwd=lwd[k], ...)
 	    if (is.numeric(mark.time)) {
 		indx <- mark.time
-		for (k in seq(along=mark.time))
-			indx[k] <- sum(mark.time[k] > xx)
+		for (kk in seq(along=mark.time))
+			indx[kk] <- sum(mark.time[kk] > xx)
 		points(mark.time[indx<nn], yy[indx[indx<nn]],
 		       pch=mark[k],col=col[k], ...)
 		}
 	    else if (mark.time==T) {
-		if ( any(deaths==0))
-			points(xx[deaths==0], yy[deaths==0],
-				   pch=mark[k],col=col[k], ...)
+		if ( any(deaths==0)) {
+		    indx <- (deaths==0 & xx>firstx)
+		    points(xx[indx], yy[indx],
+			   pch=mark[k],col=col[k], ...)
+		    }
 		}
 	    }
 	}
