@@ -1,4 +1,4 @@
-#SCCS  $Id: coxph.s,v 4.7 1992-08-06 17:32:16 therneau Exp $
+#SCCS  $Id: coxph.s,v 4.8 1993-01-12 23:26:01 therneau Exp $
 coxph <- function(formula=formula(data), data=sys.parent(),
 	subset, na.action,
 	eps=.0001, init, iter.max=10,
@@ -77,5 +77,6 @@ coxph <- function(formula=formula(data), data=sys.parent(),
 	}
     fit$formula <- as.vector(attr(Terms, "formula"))
     fit$call <- call
+    fit$method <- method
     fit
     }
