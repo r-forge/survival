@@ -1,3 +1,4 @@
+# SCCS $Id: survreg.distributions.s,v 4.3 1992-11-19 17:37:43 therneau Exp $
 #
 # Create the survreg.distributions object
 #
@@ -84,7 +85,7 @@ gaussian = list(
 			scale <- exp(parms[1])
 			temp <-  ifelse(status==3, (y[,2] - y[,1])/scale, 1)
 			temp2 <- 2*(pnorm(temp/2) -.5)
-			best <- ifelse(status==1, -log(sqrt(pi)*scale),
+			best <- ifelse(status==1, -log(sqrt(2*pi)*scale),
 				ifelse(status==3, temp2, 0))
 			2*(best-loglik)
 			},
