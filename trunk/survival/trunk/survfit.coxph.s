@@ -1,4 +1,4 @@
-#SCCS $Id: survfit.coxph.s,v 4.8 1992-10-12 15:53:19 therneau Exp $
+#SCCS $Id: survfit.coxph.s,v 4.9 1993-03-14 19:31:53 therneau Exp $
 survfit.coxph <-
   function(object, newdata, se.fit=T, conf.int=.95, individual=F,
 	    type=c('tsiatis', 'kaplan-meier'),
@@ -13,6 +13,7 @@ survfit.coxph <-
     nvar <- length(object$coef)
     score <- exp(object$linear.predictor)
     method <- match.arg(type)
+    coxmethod <- object$method
     if (!se.fit) conf.type <- 'none'
     else conf.type <- match.arg(conf.type)
 
@@ -112,9 +113,9 @@ survfit.coxph <-
 			     strata=newstrat,
 			     surv=double(n*n2),
 			     varh=double(n*n2),
-			     nsurv=integer(1),
+			     nsurv=as.integer(coxmethod=='efron'),
 			     x[ord,],
-			     double(2*nvar),
+			     double(3*nvar),
 			     object$var,
 			     y = double(3*n*n2),
 			     as.integer(n2),
@@ -131,6 +132,8 @@ survfit.coxph <-
 	if (se.fit) temp$std.err <- sqrt(surv$varh[ntime])
 	}
     else {
+	temp <- ifelse(method=='kaplan-meier', 1,
+					1+as.integer(coxmethod=='efron'))
 	surv <- .C('agsurv2', as.integer(n),
 			      as.integer(nvar* se.fit),
 			      y = y[ord,],
@@ -140,8 +143,8 @@ survfit.coxph <-
 			      varhaz = double(n*n2),
 			      x[ord,],
 			      object$var,
-			      nsurv = as.integer(method=='kaplan-meier'),
-			      double(2*nvar),
+			      nsurv = as.integer(temp),
+			      double(3*nvar),
 			      as.integer(n2),
 			      x2,
 			      newrisk)

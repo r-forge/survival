@@ -1,4 +1,4 @@
-/* SCCS $Id: agsurv2.c,v 4.4 1992-08-25 13:29:18 grill Exp $  */
+/* SCCS $Id: agsurv2.c,v 4.5 1993-03-14 19:31:52 therneau Exp $  */
 /*
 ** Fit the survival curve, the special case of an Anderson-Gill style data
 **   This program differs from survfit in several key ways:
@@ -12,7 +12,7 @@
 **
 **  Input
 **    n=# of subjects
-**    nvar - number of vars in xmat -- will be zero of se is not desired
+**    nvar - number of vars in xmat -- will be zero if se is not desired
 **             (the calling routine knows that xmat is only needed for the
 **              correct second term of the se)
 **    y - 3 column matrix containing strart, stop, event
@@ -20,7 +20,8 @@
 **    strata[n] - ==1 at the last obs of each strata
 **    xmat   = data matrix that generated the Cox fit
 **    varcov   = variance matrix of the coefs
-**    nsurv    = the method 1=Kalbfleisch/Prentice  2= Tsiatis
+**    nsurv    = the method 1=Kalbfleisch/Prentice  2= Tsiatis/Breslow
+**                              3= Tsiatis, Efron approx
 **
 **    ncurve  = # of curves to produce
 **    newx(nvar, ncurve) =  new subject x matrix
@@ -36,7 +37,7 @@
 **    strata[0]= # of strata, strata[1:n]= last obs strata 1,2, etc
 **
 **  Work
-**    d[2*nvar]
+**    d[3*nvar]
 **
 **  Input must be sorted by (event before censor) within stop time within strata,
 */
@@ -58,12 +59,11 @@ double newx[], newrisk[];
     register int i,j,k,l;
     double hazard, varhaz;
     double *start, *stop, *event;
-    double temp;
     int n, nvar;
     int nsurv, method;
     int kk, psave;
     int deaths;
-    double *a;
+    double *a, *a2;
     int ncurve;
     double **covar,
 	   **imat,
@@ -75,11 +75,15 @@ double newx[], newrisk[];
 	person;
     double time,
 	   weight,
+	   e_denom,
 	   denom;
     double crisk,
 	   guess, inc,
 	   sumt,
 	   km;
+    double temp,
+	   downwt,
+	   d2;
 
     n = *sn;  nvar = *snvar;
     ncurve = *sncurve;
@@ -88,6 +92,7 @@ double newx[], newrisk[];
     stop  = y+n;
     event = y+n+n;
     a = d+nvar;
+    a2 = a+nvar;
     /*
     **  Set up the ragged arrays
     */
@@ -111,9 +116,14 @@ double newx[], newrisk[];
 		** compute the mean and denominator over the risk set
 		*/
 		denom =0;
-		for(i=0; i<nvar; i++) a[i] =0;
+		e_denom=0;
+		for(i=0; i<nvar; i++){
+		    a[i] =0;
+		    a2[i]=0;
+		    }
 		time = stop[person];
 		nrisk =0;
+		deaths=0;
 		for (k=person; k<n; k++) {
 		    if (start[k] < time) {
 			nrisk++;
@@ -123,6 +133,13 @@ double newx[], newrisk[];
 			    a[i] += weight*(covar[i][k]- covar2[i][column]);
 			    }
 			 }
+		    if (stop[k]==time && event[k]==1) {
+			deaths++;
+			e_denom += weight;
+			for (i=0; i<nvar; i++) {
+			    a2[i] += weight*(covar[i][k]- covar2[i][column]);
+			    }
+			}
 		    if (strata[k]==1) break;
 		    }
 
@@ -130,15 +147,17 @@ double newx[], newrisk[];
 		** Add results all events at this time point
 		*/
 		psave = person;  /* for KM case below */
-		deaths=0;
+		temp =0;
 		for (k=person; k<n && stop[k]==time; k++) {
 		    if (event[k]==1) {
 			kk =k ;      /*save for km case */
-			deaths++;
-			hazard += 1/denom;
-			varhaz += 1/(denom*denom);
+			if (method==3) downwt = temp++/deaths;
+			else           downwt =0;
+			d2 = (denom - downwt*e_denom);
+			hazard += 1/d2;
+			varhaz += 1/(d2*d2);
 			for (i=0; i<nvar; i++)
-			    d[i] += a[i]/ (denom*denom);
+			    d[i] += (a[i]- downwt*a2[i])/ (d2*d2);
 			}
 		    person++;
 		    if (strata[k]==1) break;

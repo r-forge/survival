@@ -1,4 +1,4 @@
-/* SCCS $Id: agsurv1.c,v 4.4 1992-08-25 13:27:36 grill Exp $  */
+/* SCCS $Id: agsurv1.c,v 4.5 1993-03-14 19:31:51 therneau Exp $  */
 /*
 ** Fit the survival curve, the special case of an Anderson-Gill style data
 **   This program differs from survfit in several key ways:
@@ -29,6 +29,7 @@
 **    hisxmat= new subject x matrix
 **    hisstrat = new subject strata vector
 **    hisrisk = score vector for the subject
+**    nsurv =  on input, will be ==1 for the Efron method
 **
 ** Output
 **    surv  - the survival
@@ -41,7 +42,7 @@
 **     I have a worst case output of n*n2 lines.
 **
 **  Work
-**    d[2*nvar]
+**    d[3*nvar]
 **  Input must be sorted by (event before censor) within stop time within strata,
 */
 #include <math.h>
@@ -64,12 +65,12 @@ double *yy;
     register int i,j,k,l;
     double hazard, varhaz;
     double *start, *stop, *event;
-    double temp;
     int n, nvar;
+    int method;
     int nsurv;
     int deaths;
     double *hstart , *hstop;
-    double *a;
+    double *a, *a2;
     int hisn;
     double **covar,
 	   **imat,
@@ -80,13 +81,17 @@ double *yy;
     double *ytime,
 	   *yrisk,
 	   *ydeath;
-
+    double e_denom;
+    double temp,
+	   downwt,
+	   d2;
     double time,
 	   weight,
 	   denom;
     double cumtime;
 
     n = *sn;  nvar = *snvar;
+    method = *snsurv;
     hisn = *shisn;
     start =y;
     stop  = y+n;
@@ -94,6 +99,7 @@ double *yy;
     hstart= hisy;
     hstop = hisy + hisn;
     a = d+nvar;
+    a2= a+nvar;
 
     ytime = yy;
     yrisk = yy+ n*hisn;
@@ -140,6 +146,13 @@ double *yy;
 			    a[i] += weight*(covar[i][k]- hisx[i][l]);
 			    }
 			 }
+		    if (stop[k]==time && event[k]==1) {
+			deaths++;
+			e_denom += weight;
+			for (i=0; i<nvar; i++) {
+			    a2[i] += weight*(covar[i][k]- hisx[i][l]);
+			    }
+			}
 		    if (strata[k]==1) break;
 		    }
 
@@ -150,10 +163,13 @@ double *yy;
 		for (k=person; k<n && stop[k]==time; k++) {
 		    if (event[k]==1) {
 			deaths++;
-			hazard += 1/denom;
-			varhaz += 1/(denom*denom);
+			if (method==3) downwt = temp++/deaths;
+			else           downwt =0;
+			d2 = (denom - downwt*e_denom);
+			hazard += 1/d2;
+			varhaz += 1/(d2*d2);
 			for (i=0; i<nvar; i++)
-			    d[i] += a[i]/ (denom*denom);
+			    d[i] += (a[i]- downwt*a2[i])/ (d2*d2);
 			}
 		    person++;
 		    if (strata[k]==1) break;
