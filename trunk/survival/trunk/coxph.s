@@ -1,4 +1,4 @@
-#SCCS  $Id: coxph.s,v 4.15 1994-10-01 11:37:38 therneau Exp $
+#SCCS  $Id: coxph.s,v 4.16 1995-03-14 16:25:58 therneau Exp $
 coxph <- function(formula=formula(data), data=sys.parent(),
 	weights, subset, na.action,
 	eps=.0001, init, iter.max=10,
@@ -10,7 +10,7 @@ coxph <- function(formula=formula(data), data=sys.parent(),
     call <- match.call()
     m <- match.call(expand=F)
     m$method <- m$model <- m$x <- m$y <- m$... <-  NULL
-    m$eps <- m$init <- m$iter.max <- m$n.table <- NULL
+    m$eps <- m$init <- m$iter.max <- m$robust <- NULL
 
     Terms <- if(missing(data)) terms(formula, c('strata', 'cluster'))
 	     else              terms(formula, c('strata', 'cluster'),data=data)
@@ -43,14 +43,14 @@ coxph <- function(formula=formula(data), data=sys.parent(),
 	tempc <- untangle.specials(Terms, 'cluster', 1:10)
 	ord <- attr(Terms, 'order')[tempc$terms]
 	if (any(ord>1)) stop ("Cluster can not be used in an interaction")
-	cluster <- strata(m[tempc$vars], shortlabel=T)  #allow multiples
+	cluster <- strata(m[,tempc$vars], shortlabel=T)  #allow multiples
 	dropx <- tempc$terms
 	}
     if (length(strats)) {
 	temp <- untangle.specials(Terms, 'strata', 1)
 	dropx <- c(dropx, temp$terms)
 	if (length(temp$vars)==1) strata.keep <- m[[temp$vars]]
-	else strata.keep <- strata(m[temp$vars], shortlabel=T)
+	else strata.keep <- strata(m[,temp$vars], shortlabel=T)
 	strats <- as.numeric(strata.keep)
 	}
     if (length(dropx)) X <- model.matrix(Terms[-dropx], m)[,-1,drop=F]
@@ -92,10 +92,12 @@ coxph <- function(formula=formula(data), data=sys.parent(),
 	    # a little sneaky here: by calling resid before adding the
 	    #   na.action method, I avoid having missings re-inserted
 	    # I also make sure that it doesn't have to reconstruct X and Y
-	    if (missing(cluster)) cluster <- F
 	    fit2 <- c(fit, list(x=X, y=Y, method=method))
 	    if (length(strats)) fit2$strata <- strata.keep
-	    temp <- residuals.coxph(fit2, type='dfbeta', collapse=cluster)
+	    if (length(cluster))
+		temp <- residuals.coxph(fit2, type='dfbeta', collapse=cluster)
+	    else
+		temp <- residuals.coxph(fit2, type='dfbeta')
 	    fit$var <- t(temp) %*% temp
 	    }
 	na.action <- attr(m, "na.action")
