@@ -1,3 +1,4 @@
+\." SCCS $Id: coxph.d,v 1.5 1993-06-17 14:33:07 therneau Exp $
 .BG
 .FN coxph
 .TL
@@ -9,8 +10,9 @@ and other extensions are incorporated using the counting process formulation
 of Anderson and Gill.
 .CS
 coxph(formula=formula(data), data=sys.parent(), subset, 
-       na.action, eps=0.0001, init,
+       na.action, weights, eps=0.0001, init,
        iter.max=10, method=c("efron","breslow","exact"),
+       singular.ok=T,
        model=F, x=F, y=T)
 .RA
 .AG formula
@@ -27,6 +29,8 @@ should be used in the fit.
 .AG na.action
 a missing-data filter function, applied to the model.frame, after any
 subset argument has been used.  Default is options()$na.action.
+.AG weights
+case weights.
 .AG eps
 convergence criteria.  Iteration will continue until relative change
 in log-likelihood is less than eps.  Default is .0001.
@@ -46,6 +50,12 @@ computaionally.
 The exact method computes the exact partial likelihood, which is equivalent
 to a conditional logistic model.  If there are a large number of ties the
 computational time will be excessive.
+.AG singular.ok
+If TRUE, the program will automatically skip over columns of the X matrix
+that are linear combinations of earlier columns.  In this case the
+coefficients for such columns will be NA, and the variance matrix will contain
+zeros.  For ancillary calculations, such as the linear predictor, the missing
+coefficients are treated as zeros.
 .AG model,x,y
 flags to control what is returned.  If these are true, then the model
 frame, the model matrix, and/or the response is returned as components
@@ -71,7 +81,7 @@ In certain data cases the actual MLE estimate of a
 coefficient is infinity, e.g., a dichotomous variable where one of the
 groups has no events.  When this happens the associated coefficient
 grows at a steady pace and a race condition will exist in the fitting
-routine, either the log likelihood converges, the information matrix
+routine: either the log likelihood converges, the information matrix
 becomes effectively singular, an argument to exp becomes too large for
 the computer hardware, or the maximum number of interactions is exceeded.
 The routine attempts to detect when this has happened, not always
