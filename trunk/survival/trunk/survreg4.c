@@ -1,4 +1,4 @@
-/* SCCS @(#)survreg4.c	1.4 12/03/98
+/* SCCS $Id: survreg4.c,v 1.6 1999-02-21 15:52:43 therneau Exp $
 /*
 ** The variant of survreg2 for penalized models
 **
