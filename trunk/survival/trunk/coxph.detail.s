@@ -1,4 +1,4 @@
-#SCCS  $Id: coxph.detail.s,v 4.6 1994-04-07 22:36:15 therneau Exp $
+#SCCS  $Id: coxph.detail.s,v 4.7 1994-04-08 15:27:56 therneau Exp $
 coxph.detail <-  function(object) {
     method <- object$method
     if (method!='breslow' && method!='efron')
@@ -6,9 +6,9 @@ coxph.detail <-  function(object) {
 			"method"))
     n <- length(object$residuals)
     rr <- object$residual
-    y <- object$y
-    x <- object$x
     weights <- object$weights
+    x <- object$x
+    y <- object$y
     strat <- object$strata
     Terms <- object$terms
     if (!inherits(Terms, 'terms'))
@@ -16,19 +16,11 @@ coxph.detail <-  function(object) {
     strats <- attr(Terms, "specials")$strata
 
     if (is.null(y)  ||  is.null(x)) {
-	m <- object$model
-	if (is.null(m)) m <- model.frame(object)
-
-	if (is.null(x) ) {
-	    if (length(strats)) {
-		temp <- untangle.specials(Terms, 'strata', 1)
-		x <- model.matrix(Terms[-temp$terms], m)[,-1,drop=F]
-		strat <- as.numeric(strata(m[temp$vars]))
-		}
-	    else x <- model.matrix(Terms, m)[,-1,drop=F]   #remove column of 1's though
-	    }
-	if (is.null(y)) y <- model.extract(m, 'response')
-	weights <- model.extract(m, 'weights')
+	temp <- coxph.getdata(y=T, x=T, strata=T, weight=T)
+	y <- temp$y
+	x <- temp$x
+	if (length(strats)) strat <- temp$strata
+	weights <- temp$weights
 	}
 
     nvar <- ncol(x)
