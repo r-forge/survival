@@ -1,4 +1,4 @@
-# SCCS $Id: survfit.turnbull.s,v 1.2 2002-07-11 10:46:52 therneau Exp $
+# SCCS $Id: survfit.turnbull.s,v 1.3 2004-05-04 15:22:25 therneau Exp $
 # Compute the K-M for left/right/interval censored data via Turnbull's
 #      slow EM calculation
 #
@@ -108,15 +108,12 @@ survfit.turnbull <- function(x, y, casewt=rep(1,n),
 	    jtimes <- c(y[who,1], jtimes)
 	    }
 
-	# The initial "starter" KM is evenly spaced on these times
-	jtimes <- sort(unique(jtimes))
-	njump <- length(jtimes)
-	tfit  <- list(time=jtimes, surv= 1- (1:njump)/njump)
-
 	# The KM is computed on a fake data set with njump points
 	#  standing in for the left and interval censored observations
         # So tempy contains the exact and right censored y data, followed
         #  by the fakes
+	jtimes <- sort(unique(jtimes))
+	njump <- length(jtimes)
 	nreal <- sum(status<2)
 	tempx <- factor(rep(1, njump + nreal))  #dummy x var for survfit.km
 	tempy <- Surv(c(y[status<2, 1], jtimes),
@@ -138,6 +135,11 @@ survfit.turnbull <- function(x, y, casewt=rep(1,n),
 
 	lwt <- wt[indx]  # the input vector of case weights, for these
 	eps <- 1
+
+	# The initial "starter" KM is proportional to the number of intervals
+        #  that overlap each time point
+        temp <- apply(wtmat, 2, sum)
+	tfit  <- list(time=jtimes, surv= 1- cumsum(temp)/sum(temp))
 	old <- tfit$surv
 
         iter <- 0
@@ -158,9 +160,12 @@ survfit.turnbull <- function(x, y, casewt=rep(1,n),
                 aitken1 <- jumps - jump1
                 jsave <- jumps
                 if (iter%%5 ==0) {
+                    oldlik <- sum(log(wtmat %*% jumps))
                     jumps <- jump2 - (aitken2)^2/(aitken1 - aitken2)
                     bad <- (jumps<=0 | jumps >=1 | is.na(jumps))
                     jumps[bad] <- jsave[bad]  #failsafe
+                    newlik <- sum(log(wtmat %*% jumps))
+                    if (newlik < oldlik) jumps <- jsave # aitkin didn't work!
                     }
                 jump2   <- jump1  # jumps, lagged by 2 iterations
                 jump1   <- jsave  # jumps, lagged by 1 iteration
