@@ -1,13 +1,14 @@
-#SCCS  $Id: pyears.s,v 5.9 2003-08-29 13:40:32 therneau Exp $
+#SCCS  $Id: pyears.s,v 5.10 2005-02-08 06:53:45 therneau Exp $
 pyears <- function(formula=formula(data), data=sys.parent(),
 	weights, subset, na.action,
 	ratetable=survexp.us, scale=365.25,  expect=c('event', 'pyears'),
-	model=F, x=F, y=F) {
+	model=F, x=F, y=F, data.frame=F) {
 
     expect <- match.arg(expect)
     call <- match.call()
     m <- match.call(expand=F)
     m$ratetable <- m$model <- m$x <- m$y <- m$scale<- m$expect <- NULL
+    m$data.frame <- NULL
 
     Terms <- if(missing(data)) terms(formula, 'ratetable')
 	     else              terms(formula, 'ratetable',data=data)
@@ -164,7 +165,25 @@ pyears <- function(formula=formula(data), data=sys.parent(),
 			offtable=double(1)) [11:14]
 	}
 
-    if (prod(odims) ==1) {  #don't make it an array
+    if (data.frame) {
+        # Create a data frame as the output, rather than a set of
+        #  rate tables
+        keep <- (temp$pyears >0)  # what rows to keep in the output
+        names(outdname) <- ovars
+        df <- cbind(do.call("expand.grid", outdname)[keep,],
+                    pyears=temp$pyears[keep]/scale,
+                    n = temp$pn[keep])
+        row.names(df) <- 1:nrow(df)
+        if (length(rate)) df$expected <- temp$pexpect[keep]
+        if (expect=='pyears') df$expected <- df$expected/scale
+        if (is.Surv(Y)) df$event <- temp$pcount[keep]
+
+        out <- list(call=call,
+                    data= df)  
+        model <- x <- y <- F
+        }
+
+    else if (prod(odims) ==1) {  #don't make it an array
 	out <- list(call=call, pyears=temp$pyears/scale, n=temp$pn,
 		    offtable=temp$offtable/scale)
 	if (length(rate)) {
