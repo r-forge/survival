@@ -1,5 +1,5 @@
 /*
-**  SCCS @(#)survproto.h	5.2 10/28/98
+**  SCCS $Id: survproto.h,v 5.5 1999-02-21 15:53:02 therneau Exp $
 ** prototypes of all the survival functions
 **  along with a few macros
 */
@@ -162,11 +162,6 @@ void pyears3(long   *sdeath,    long   *sn,    long   *sedim,
 double pystep(int nc,        int  *index,  int  *index2,   double *wt, 
 	      double *data,  long *fac,    long *dims,     double **cuts, 
 	      double step,   int  edge);
-
-int rnewton(int    *maxiter,   int  n,        int  nvar,        double *beta, 
-	    double *u,         double **imat, double loglik[2], double eps,
-	    void (*dolk)(),    void (*doimat)(),  double *tol_chol,
-	    double *newbeta,   double *savediag,  int debug);
 
 void survdiff2(long   *nn,     long   *nngroup,    long   *nstrat, 
 	       double *rho,    double *time,       long   *status, 
