@@ -1,4 +1,4 @@
-# SCCS $Id: agreg.fit.s,v 4.21 1999-08-27 11:39:26 therneau Exp $
+# SCCS $Id: agreg.fit.s,v 4.22 2000-06-12 07:48:55 therneau Exp $
 agreg.fit <- function(x, y, strata, offset, init, control,
 			weights, method, rownames)
     {
