@@ -1,43 +1,39 @@
-#SCCS $Id: survexp.s,v 4.6 1992-03-30 13:21:02 therneau Exp $
-surv.exp <- function(entry, birth, sex, times=round(182.6 * 0:8),
+#SCCS $Id: survexp.s,v 4.7 1992-04-13 22:07:52 therneau Exp $
+surv.exp <- function(entry, birth, sex,
+		      data=sys.parent(), subset, na.action,
+		      times=round(182.6 * 0:8),
 		      type=c("mean", "individual", "matrix"),
-		      expected=surv.exp.uswhite, interp=F,
-		      na.action= na.omit) {
+		      expected=surv.exp.uswhite, interp=F) {
     call <- match.call()
-    if (!inherits(entry, "date")) stop ("'Entry' must be a date")
-    nn <- length(entry)
-    if (length(birth) != nn) stop("Entry and birth not the same length")
-    if (length(sex) != nn) stop ("Entry and sex not the same length")
 
     type <- match.arg(type)
-    if (missing(type)){
-	if (!missing(times) && length(times)==nn) type <-'individual'
-	else type <- 'mean'
-	}
 
-    # Use na.action to deal with missing values
-    if (missing(na.action) &&
-	      !is.null(tj <- options("na.action")[[1]])) na.action <- get(tj)
-    if (type=='individual') {
-	temp <- list(entry, birth, sex, times)
-	names(temp) <- names(call)[1:4]
-	attr(temp, 'row.names') <- 1:nn
-	attr(temp, 'class') <- "data.frame"
-	m <- na.action(temp)
-	times <- m[[4]]
-	}
-    else {
-	if (any(is.na(times))) stop("Missing values not allowed in 'times'")
-	temp <- list(entry, birth, sex)
-	names(temp) <- names(call)[1:3]
-	attr(temp, 'row.names') <- 1:nn
-	attr(temp, 'class') <- "data.frame"
-	m <- na.action(temp)
-	}
+    # Build a formula, in order to get the data frame
+    #      with all the trimmings
+    if (missing(entry)) stop("The entry argument is required")
+    if (missing(birth)) stop("The birth argument is required")
+    if (missing(sex))   stop("The sex argument is required")
+    form <- paste("~", deparse(call[["entry"]]), "+" ,
+		       deparse(call[["birth"]]), "+" ,
+		       deparse(call[["sex"]]))
+    if (type=='individual') form <- paste(form, "+", deparse(call[["times"]]))
+    m <- call
+    m$formula <- as.formula(form)
+    m[[1]] <- as.name("model.frame")
+    m <- m[match(c("", "formula", "data", "subset", "na.action"),
+		     names(m), 0)]
+    m <- eval(m)
     entry <- m[[1]]
     birth <- m[[2]]
     sex   <- m[[3]]
     nused <- length(sex)
+    if (!inherits(entry, "date")) stop ("'Entry' must be a date")
+
+    if (type=='individual')
+	times <- m[[4]]
+    else
+	if (any(is.na(times))) stop("Missing values not allowed in 'times'")
+
 
     if (!inherits(birth, "date")) {
 	# Assume that they gave an age
