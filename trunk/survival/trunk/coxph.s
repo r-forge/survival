@@ -1,8 +1,10 @@
-# SCCS @(#)coxph.s	5.2 09/01/98
-setOldClass(c("coxph.null", "coxph"))
+#SCCS  $Id: coxph.s,v 5.4 1998-10-28 08:44:03 therneau Exp $
+# Version with general penalized likelihoods
+setOldClass(c('coxph.penal', 'coxph'))
+
 coxph <- function(formula=formula(data), data=sys.parent(),
 	weights, subset, na.action,
-	eps=1e-07, init, iter.max=10, toler.chol=eps/1000, 
+	eps=.0000001, init, iter.max=20, toler.chol=eps/1000,
 	method= c("efron", "breslow", "exact"),
 	singular.ok =T, robust=F,
 	model=F, x=F, y=T) {
@@ -10,11 +12,11 @@ coxph <- function(formula=formula(data), data=sys.parent(),
     method <- match.arg(method)
     call <- match.call()
     m <- match.call(expand=F)
-    m$method <- m$model <- m$x <- m$y <- m$... <-  NULL
-    m$eps <- m$init <- m$iter.max <- m$robust <- m$singular.ok <- NULL
-
-    Terms <- if(missing(data)) terms(formula, c('strata', 'cluster'))
-	     else              terms(formula, c('strata', 'cluster'),data=data)
+    temp <- c("", "formula", "data", "weights", "subset", "na.action")
+    m <- m[ match(temp, names(m), nomatch=0)]
+    special <- c("strata", "cluster")
+    Terms <- if(missing(data)) terms(formula, special)
+	     else              terms(formula, special, data=data)
     m$formula <- Terms
     m[[1]] <- as.name("model.frame")
     m <- eval(m, sys.parent())
@@ -54,24 +56,50 @@ coxph <- function(formula=formula(data), data=sys.parent(),
 	else strata.keep <- strata(m[,temp$vars], shortlabel=T)
 	strats <- as.numeric(strata.keep)
 	}
+
     if (length(dropx)) X <- model.matrix(Terms[-dropx], m)[,-1,drop=F]
     else               X <- model.matrix(Terms, m)[,-1,drop=F]
-
+	
     type <- attr(Y, "type")
     if (type!='right' && type!='counting')
 	stop(paste("Cox model doesn't support \"", type,
 			  "\" survival data", sep=''))
-    if( method=="breslow" || method =="efron") {
-	if (type== 'right')  fitter <- get("coxph.fit")
-	else if (type=='counting') fitter <- get("agreg.fit")
-	}
-    else if (method=='exact') fitter <- get("agexact.fit")
-    else stop(paste ("Unknown method", method))
-
     if (missing(init)) init <- NULL
-    fit <- fitter(X, Y, strats, offset, init=init, iter.max=iter.max,
-			eps=eps, toler.chol=toler.chol, weights=weights,
-			method=method, row.names(m))
+
+    # Check for penalized terms
+    pterms <- sapply(m, inherits, 'coxph.penalty')
+    if (any(pterms)) {
+	pattr <- lapply(m[pterms], attributes)
+	# 
+	# the 'order' attribute has the same components as 'term.labels'
+	#   pterms always has 1 more (response), sometimes 2 (offset)
+	# drop the extra parts from pterms
+	temp <- c(attr(Terms, 'response'), attr(Terms, 'offset'))
+	if (length(dropx)) temp <- c(temp, dropx+1)
+	pterms <- pterms[-temp]
+	temp <- match((names(pterms))[pterms], attr(Terms, 'term.labels'))
+	ord <- attr(Terms, 'order')[temp]
+	if (any(ord>1)) stop ('Penalty terms cannot be in an interaction')
+	pcols <- (attr(X, 'assign')[-1])[pterms]  
+  
+        fit <- coxpenal.fit(X, Y, strats, offset, init=init,
+				iter.max=iter.max, eps=eps, 
+			        toler.chol=toler.chol,
+				weights=weights, method=method,
+				row.names(m), pcols, pattr)
+	}
+    else {
+	if( method=="breslow" || method =="efron") {
+	    if (type== 'right')  fitter <- get("coxph.fit")
+	    else                 fitter <- get("agreg.fit")
+	    }
+	else if (method=='exact') fitter <- get("agexact.fit")
+	else stop(paste ("Unknown method", method))
+
+	fit <- fitter(X, Y, strats, offset, init=init, iter.max=iter.max,
+			    eps=eps, toler.chol=toler.chol, weights=weights,
+			    method=method, row.names(m))
+	}
 
     if (is.character(fit)) {
 	fit <- list(fail=fit)
@@ -89,7 +117,7 @@ coxph <- function(formula=formula(data), data=sys.parent(),
 	oldClass(fit) <-  fit$method[1]
 	fit$terms <- Terms
 	fit$assign <- attr(X, 'assign')
-	if (robust & length(fit$coef)) {
+	if (robust) {
 	    fit$naive.var <- fit$var
 	    fit$method    <- method
 	    # a little sneaky here: by calling resid before adding the
@@ -114,24 +142,16 @@ coxph <- function(formula=formula(data), data=sys.parent(),
 	        }
 	    fit$var <- t(temp) %*% temp
 	    u <- apply(as.matrix(temp0), 2, sum)
-	    #fit$rscore <- c(u %*% solve(t(temp0)%*%temp0, u))
-	    tsvd <- svd(temp0)
-	    u <- c(u %*% tsvd$v)
-	    fit$rscore <- sum((u/tsvd$d)^2)
+	    fit$rscore <- coxph.wtest(t(temp0)%*%temp0, u, toler.chol)
 	    }
-
 	#Wald test
-	if (length(fit$coef)) {  #not for intercept only models
+	if (length(fit$coef) && is.null(fit$wald.test)) {  
+	    #not for intercept only models, or if test is already done
 	    nabeta <- !is.na(fit$coef)
 	    if (is.null(init)) temp <- fit$coef[nabeta]
-	    else               temp <- (fit$coef - init)[nabeta]
-	    #
-	    # The solve function has proven to be too inaccurate
-	    #  some data sets not singular in coxfit2 it considers singular
-	    #fit$wald.test <-  sum(temp * solve(fit$var[nabeta,nabeta], temp))
-	    tsvd <- svd(fit$var[nabeta, nabeta])
-	    temp <- c(temp %*% tsvd$u)
-	    fit$wald.test <- sum(temp^2/tsvd$d)
+	    else temp <- (fit$coef - init)[nabeta]
+	    fit$wald.test <-  coxph.wtest(fit$var[nabeta,nabeta], temp,
+					  toler.chol)$test
 	    }
 	na.action <- attr(m, "na.action")
 	if (length(na.action)) fit$na.action <- na.action
