@@ -5,6 +5,7 @@
 #
 "[.coxph.penalty" <- function(x, ..., drop=F) {
     attlist <- attributes(x)
+    attributes(x) <- attlist[c('dim', 'dimnames')] 
     x <- NextMethod('[')  #let the default method do actual subscripting
 
     # Tack back on all of the old attributes except dim and dimnames,
