@@ -1,4 +1,4 @@
-#SCCS $Id: survreg.s,v 4.14 1993-03-29 14:27:25 therneau Exp $
+#SCCS $Id: survreg.s,v 4.15 1995-02-04 12:15:16 therneau Exp $
 survreg <- function(formula=formula(data), data=sys.parent(),
 	subset, na.action,
 	link='log',
@@ -10,7 +10,7 @@ survreg <- function(formula=formula(data), data=sys.parent(),
     call <- match.call()
     m <- match.call(expand=F)
     m$dist <- m$link <- m$model <- m$x <- m$y <- m$... <-  NULL
-    m$start <- m$fixed <- m$control <- NULL
+    m$start <- m$fixed <- m$control <- m$init <- NULL
     m[[1]] <- as.name("model.frame")
     m <- eval(m, sys.parent())
     Terms <- attr(m, 'terms')
