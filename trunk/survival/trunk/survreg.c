@@ -1,4 +1,4 @@
-/* SCCS $Id: survreg.c,v 4.11 1998-08-31 08:04:02 therneau Exp $
+/* SCCS $Id: survreg.c,v 5.1 1998-09-01 09:45:01 therneau Exp $ */
 /*
 ** Fit one of several censored data distributions
 **
@@ -57,22 +57,22 @@
 **                      logist_d as an example
 */
 #include <math.h>
-#include <stdio.h>
-#include <values.h>
+#include <float.h>
+#include "survproto.h"
 #define  PI     3.141592653589793
 #define  SPI    2.506628274631001     /* sqrt(2*pi) */
 #define  ROOT_2 1.414213562373095
 
 static int debug =0;       /* normally set to zero */
 
-double **dmatrix();
-static void exvalue_d();
-static void logistic_d();
-static void gauss_d();
-static void cauchy_d();
+static void exvalue_d(double z, double ans[4], int j);
+static void logistic_d(double z, double ans[4], int j);
+static void gauss_d(double z, double ans[4], int j);
+static void cauchy_d(double z, double ans[4], int j);
 static void (*sreg_gg)();
-void sreg_g();
-void sreg_deriv();
+static void sreg_g(int n, int nvar2, double *beta, double *loglik);
+static void sreg_deriv(int n,     int nvar2, double *beta, double *u, 
+		       double **imat);
 
 static int    nvar, np;
 static double **covar;
@@ -82,26 +82,12 @@ static double *dsig, *ddsig, *dsg;
 static double *offset;
 static double *parms, *pfixed;
 
-void survreg(maxiter, nx, nvarx, y, ny, covar2, offset2,
-		 beta, npx, parmsx, u, imatx, loglik, flag, eps,
-		 deriv, dist)
-long    *nx,
-	*maxiter,
-	*nvarx,
-	*ny,
-	*npx,
-	*flag,
-	*dist;
-double  *covar2,
-	*offset2,
-	*parmsx,
-	*deriv,
-	*imatx;
-double  beta[],
-	*u,
-	*y,
-	loglik[2],
-	*eps;
+void survreg(long   *maxiter,    long   *nx,    long   *nvarx, 
+	     double *y,          long   *ny,    double *covar2, 
+	     double *offset2,    double *beta,  long   *npx, 
+	     double *parmsx,     double *u,     double *imatx, 
+	     double *loglik,     long   *flag,  double *eps,
+	     double *deriv,      long   *dist)
     {
     int n, nvar2, i;
     int maxiter2;
@@ -154,12 +140,9 @@ double  beta[],
     }
 
 
-void sreg_g(n, nvar2, beta, loglik)
-int n, nvar2;
-double beta[];
-double *loglik;
+static void sreg_g(int n, int nvar2, double *beta, double *loglik)
     {
-    register int person, i,j;
+    int person, i,j;
     double  eta,
 	    sigma;
     double  z, zu,
@@ -192,7 +175,7 @@ double *loglik;
 		    **  derivatives to gaussian limits (almost any deriv would
 		    **  do, since the function value triggers step-halving).
 		    */
-		    g[person] = -MAXFLOAT;
+		    g[person] = -FLT_MAX;
 		    dg[person] = -z/sigma;
 		    ddg[person] = -1/sigma;
 		    }
@@ -206,7 +189,7 @@ double *loglik;
 	    case 0:                             /* right censored */
 		(*sreg_gg)(z, funs,2);
 		if (funs[1] <=0) {
-		    g[person] = -MAXFLOAT;
+		    g[person] = -FLT_MAX;
 		    dg[person] = z/sigma;
 		    ddg[person] =0;
 		    }
@@ -221,7 +204,7 @@ double *loglik;
 		(*sreg_gg)(z, funs,2);
 		if (funs[2] <=0) {
 		    /* off the probability scale -- avoid log(0) */
-		    g[person] = -MAXFLOAT;
+		    g[person] = -FLT_MAX;
 		    dg[person] = -z/sigma;
 		    ddg[person] =0;
 		    }
@@ -240,7 +223,7 @@ double *loglik;
 		else      temp = ufun[0] - funs[0];
 		if (temp <=0) {
 		    /* off the probability scale -- avoid log(0) */
-		    g[person] = -MAXFLOAT;
+		    g[person] = -FLT_MAX;
 		    dg[person] = 1; 
 		    ddg[person] =0;
 		    dsig[person] =0; ddsig[person]=0; dsg[person]=0;
@@ -250,6 +233,7 @@ double *loglik;
 		    dg[person]  = -(ufun[2] - funs[2])/(temp*sigma);
 		    ddg[person] = (ufun[3] - funs[3])*sig2/temp -
 						     dg[person]*dg[person];
+		
 		    if (pfixed[0]==0) {
 			dsig[person] = (z*funs[2] - zu*ufun[2])/temp;
 			ddsig[person]= ((zu*zu*ufun[3] - z*z*funs[3])
@@ -270,14 +254,10 @@ double *loglik;
 **  This routine works for all the routines that have ony a scale
 **   parameter as the "extra".
 */
-void sreg_deriv(n, nvar2, beta, u, imat)
-int     n;
-int     nvar2;
-double  beta[],
-	u[],
-	**imat;
+static void sreg_deriv(int n,     int nvar2, double *beta, double *u, 
+		       double **imat)
     {
-    register int i,j, person;
+    int i,j, person;
     double eta,
 	   sz,
 	   sigma;
@@ -328,18 +308,11 @@ double  beta[],
 	}
     }
 
-void survreg_g(nx, y, ny, eta, parms, deriv, ncol, dist)
-long    *nx,
-	*ny,
-	*ncol,
-	*dist;
-double  eta[],
-	*deriv;
-double  parms[],
-	*y;
+void survreg_g(long   *nx,    double *y,     long *ny,   double *eta, 
+		      double *parms, double *deriv, long *ncol, long   *dist)
     {
-    register int n;
-    register int person, j;
+    int n;
+    int person, j;
     double  sigma;
     double  z, zu,
 	    temp;
@@ -449,9 +422,7 @@ double  parms[],
 **  We do both F and 1-F to avoid the error in (1-F) for F near 1
 */
 
-static void logistic_d(z, ans, j)
-double z, ans[4];
-int j;
+static void logistic_d(double z, double ans[4], int j)
     {
     double w, temp;
     int    sign, ii;
@@ -484,9 +455,7 @@ int j;
 	}
     }
 
-static void gauss_d(z, ans, j)
-double z, ans[4];
-int j;
+static void gauss_d(double z, double ans[4], int j)
     {
     double f;
 
@@ -518,9 +487,7 @@ int j;
 ** Probobly, a Taylor series will need to be used for large z.
 */
 
-static void exvalue_d(z, ans, j)
-double z, ans[4];
-int j;
+static void exvalue_d(double z, double ans[4], int j)
     {
     double temp;
     double w;
@@ -539,9 +506,7 @@ int j;
 	}
     }
 
-static void cauchy_d(z, ans, j)
-double z, ans[4];
-int j;
+static void cauchy_d(double z, double ans[4], int j)
     {
     double temp;
 
