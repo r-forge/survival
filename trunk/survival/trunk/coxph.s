@@ -1,4 +1,4 @@
-#SCCS  $Id: coxph.s,v 4.11 1993-09-28 09:22:32 therneau Exp $
+#SCCS  $Id: coxph.s,v 4.12 1994-03-29 17:36:06 therneau Exp $
 coxph <- function(formula=formula(data), data=sys.parent(),
 	weights, subset, na.action,
 	eps=.0001, init, iter.max=10,
@@ -84,7 +84,6 @@ coxph <- function(formula=formula(data), data=sys.parent(),
 	    if (x)  {
 		fit$x <- X
 		if (length(strats)) fit$strata <- strata.keep
-		if (length(weights))fit$weights<- weights
 		}
 	    if (y)     fit$y <- Y
 	    if (!is.null(weights) && any(weights!=1)) fit$weights <- weights
