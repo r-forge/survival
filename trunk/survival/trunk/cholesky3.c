@@ -1,4 +1,4 @@
-/* SCCS $Id: cholesky3.c,v 1.1 1998-10-28 08:42:19 therneau Exp $ */
+/* SCCS $Id: cholesky3.c,v 1.2 1998-11-22 18:00:10 therneau Exp $ */
 /*
 ** subroutine to do Cholesky decompostion on a matrix: C = FDF'
 **   where F is lower triangular with 1's on the diagonal, and D is diagonal
@@ -18,7 +18,8 @@
 **   The upper triangle of the matrix is entirely unused by the process (but
 **   because of the compressed storage, this isn't much space).
 **
-**  Return value:  the rank of the matrix.
+**  Return value:  the rank of the matrix (non-negative definite), or -rank
+**     if not non-negative definite
 **
 **  If a column is deemed to be redundant, then that diagonal is set to zero.
 **
@@ -34,9 +35,11 @@ int cholesky3(double **matrix, int n, int m, double *diag, double toler)
     double eps, pivot;
     int rank;
     int n2;
+    int nonneg;
 
     n2 = n-m;    /* number of full covariates */
    
+    nonneg=1;
     eps =0;
     for (i=0; i<m; i++) if (diag[i] <eps) eps = diag[i];
     for (i=0; i<n2; i++) if (matrix[i][i+m] > eps)  eps = matrix[i][i+m];
@@ -46,7 +49,10 @@ int cholesky3(double **matrix, int n, int m, double *diag, double toler)
     /* pivot out the diagonal elements */
     for (i=0; i<m; i++) {
 	pivot = diag[i];
-	if (pivot < eps) diag[i] =0;
+        if (pivot < eps) {
+            matrix[i][i] =0;
+            if (pivot < -8*eps) nonneg= -1;
+            }
 	else {
 	    rank++;
 	    for (j=0; j<n2; j++) {
@@ -61,7 +67,10 @@ int cholesky3(double **matrix, int n, int m, double *diag, double toler)
     /* Now the rest of the matrix */
     for (i=0; i<n2; i++) {
 	pivot = matrix[i][i+m];
-	if (pivot < eps) matrix[i][i+m] =0;
+	if (pivot < eps) {
+	    matrix[i][i+m] =0;
+            if (pivot < -8*eps) nonneg= -1;
+	    }
 	else  {
 	    rank++;
 	    for (j=(i+1); j<n2; j++) {
@@ -72,5 +81,5 @@ int cholesky3(double **matrix, int n, int m, double *diag, double toler)
 		}
 	    }
 	}
-    return(rank);
+    return(rank * nonneg);
     }
