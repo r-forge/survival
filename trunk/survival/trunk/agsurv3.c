@@ -1,4 +1,4 @@
-/* SCCS $Id: agsurv3.c,v 4.1 1994-04-08 15:44:50 therneau Exp $  */
+/* SCCS $Id: agsurv3.c,v 4.2 1994-04-14 10:27:58 therneau Exp $  */
 /*
 ** Create the cohort survival curve(s) for a set of subjects.
 **
@@ -306,7 +306,6 @@ double haz, var;
     /*
     ** Note that the subjects are sorted in strata order
     */
-printf("   time=%d, haz=%f, vhaz=%f\n", itime, haz, var);
     pstart=0;
     for (ic=0; ic<ncurve; ic++) {
 	nn =0;
@@ -342,10 +341,8 @@ printf("   time=%d, haz=%f, vhaz=%f\n", itime, haz, var);
 				     imat[k][l];
 			 }
 		    tvar[i][j] += (1+ temp) * var;
-printf("%d %d: temp=%f tvar=%f", i,j, temp, tvar[i][j]);
 		    temp = nscore[i]*nscore[j]* tvar[i][j] *
 				 isurv[i] * isurv[j];
-printf(" \tcovar=%f\n", temp);
 		    if (i==j) totvar += temp;
 		    else      totvar += temp + temp;
 		    }
