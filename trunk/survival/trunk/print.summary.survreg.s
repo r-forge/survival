@@ -46,9 +46,7 @@ print.summary.survreg <- function(x, digits = 3, quote = T, prefix = "")
     if (length(omit))
 	cat("  n=", n, " (", naprint(omit), ")\n", sep="")
 
-    cat(paste("\n(Scale Parameter for", names(x$scale),
-	"family taken to be", format(round(x$scale, digits)),
-        ")\n"))
+    cat("\n", x$parms, "\n", sep='')
     int <- attr(x$terms, "intercept")
     if(is.null(int))
         int <- 1
