@@ -1,4 +1,4 @@
-#SCCS  $Id: survexp.s,v 4.17 1994-04-08 15:26:06 therneau Exp $
+#SCCS  $Id: survexp.s,v 4.18 1994-04-14 16:06:32 therneau Exp $
 survexp <- function(formula=formula(data), data=sys.parent(),
 	weights, subset, na.action,
 	times,  cohort=T,  conditional=T,
@@ -133,12 +133,12 @@ survexp <- function(formula=formula(data), data=sys.parent(),
 		}
 
 	    if (is.matrix(temp$surv)) {
-		surv <- surv[keep,,drop=F]
+		surv <- temp$surv[keep,,drop=F]
 		n.risk <- temp$n[keep,,drop=F]
 		if (se.fit) err <- temp$se[keep,,drop=F]
 		}
 	    else {
-		surv <- surv[keep]
+		surv <- temp$surv[keep]
 		n.risk <- temp$n[keep]
 		if (se.fit) err <- temp$se[keep]
 		}
