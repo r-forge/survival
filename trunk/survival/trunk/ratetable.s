@@ -1,4 +1,4 @@
-#SCCS $Id: ratetable.s,v 4.5 1994-01-06 09:51:35 therneau Exp $
+#SCCS $Id: ratetable.s,v 4.6 1994-03-19 14:00:23 therneau Exp $
 #
 # This is a 'specials' function for pyears
 #   it is a stripped down version of as.matrix(data.frame(...))
@@ -32,8 +32,12 @@ ratetable <- function(...) {
     x
     }
 
-# The function below should only be called internally, when missing
+# The two functions below should only be called internally, when missing
 #   values cause model.frame to drop some rows
+is.na.ratetable2 <- function(x) {
+    attributes(x) <- list(dim=dim(x))
+    as.vector((1 * is.na(x)) %*% rep(1, ncol(x)) >0)
+    }
 "[.ratetable2" <- function(x, rows, cols, drop=F) {
     if (!missing(cols)) {
        stop("This should never be called!")
@@ -70,11 +74,11 @@ ratetable <- function(...) {
     if (drop && any(dropped)){
 	if (all(dropped)) as.numeric(y)   #single element
 	else {
+	    #Note that we have to drop the summary function
 	    attributes(y) <- list( dim = dim(y)[!dropped],
 				   dimnames = dimnames(y)[!dropped],
 				   dimid = aa$dimid[!dropped],
 				   factor = aa$factor[!dropped],
-				   summary= aa$summary,
 				   cutpoints =aa$cutpoints[!dropped],
 				   class = aa$class)
 	    y
@@ -86,6 +90,9 @@ ratetable <- function(...) {
 	y
 	}
     }
+
+is.na.ratetable  <- function(x)
+    structure(is.na(as.vector(x)), dim=dim(x), dimnames=dimnames(x))
 
 Math.ratetable <- function(x, ...) {
     attributes(x) <- attributes(x)[c("dim", "dimnames")]
