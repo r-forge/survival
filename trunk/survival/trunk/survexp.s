@@ -1,4 +1,4 @@
-#SCCS  $Id: survexp.s,v 4.22 1997-03-27 06:48:34 therneau Exp $
+#SCCS  $Id: survexp.s,v 4.23 1997-10-16 15:35:01 therneau Exp $
 survexp <- function(formula=formula(data), data=sys.parent(),
 	weights, subset, na.action,
 	times,  cohort=T,  conditional=F,
@@ -36,6 +36,7 @@ survexp <- function(formula=formula(data), data=sys.parent(),
 			  paste( varlist, "=", varlist, collapse = ","), ")"))
 	Terms <- if (missing(data)) terms(formula, "ratetable")
 	         else               terms(formula, "ratetable", data = data)
+	rate <- attr(Terms, "specials")$ratetable
 	}
 
     m$formula <- Terms
