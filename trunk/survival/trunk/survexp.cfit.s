@@ -1,4 +1,4 @@
-# SCCS $Id: survexp.cfit.s,v 4.1 1994-04-08 15:58:05 therneau Exp $
+# SCCS $Id: survexp.cfit.s,v 4.2 1994-04-15 09:28:24 therneau Exp $
 #
 #  Do expected survival based on a Cox model
 #   A fair bit of the setup work is identical to survfit.coxph, i.e.,
@@ -46,7 +46,7 @@ survexp.cfit <- function(x, y, death, cox, se.fit, method) {
     n <- nrow(x)
     ncurve <- length(unique(x[,1]))
     npt <- length(unique(cy[cy[,3]==1,2]))  #unique death times
-    surv <- .C('agsurv3', as.integer(n),
+    xxx  <- .C('agsurv3', as.integer(n),
 			  as.integer(nvar),
 			  as.integer(ncurve),
 			  as.integer(npt),
@@ -65,11 +65,10 @@ survexp.cfit <- function(x, y, death, cox, se.fit, method) {
 			  nrisk  = matrix(0, npt, ncurve),
 			  as.integer(method))
 
-    browser()
-    surv <- apply(surv$surv, 2, cumprod)
+    surv <- apply(xxx$surv, 2, cumprod)
     if (se.fit)
-	list(surv=surv, n=surv$nrisk, times=surv$cy[1:npt],
-			se=sqrt(surv$varhaz)/surv)
+	list(surv=surv, n=xxx$nrisk, times=xxx$cy[1:npt],
+			se=sqrt(xxx$varhaz)/surv)
     else
-	list(surv=surv, n=surv$nrisk, times=surv$cy[1:npt,1] )
+	list(surv=surv, n=xxx$nrisk, times=xxx$cy[1:npt,1] )
     }
