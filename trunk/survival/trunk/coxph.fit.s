@@ -30,50 +30,58 @@ coxph.fit <- function(x, y, strata, offset, init, iter.max,
     if (nvar==0) {
 	# A special case: Null model.
 	#  (This is why I need the rownames arg- can't use x' names)
-	score <- exp(offset[sorted])
-	coxfit <- .C("coxfit_null", as.integer(n),
-				    as.integer(method=='efron'),
-				    stime,
-				    sstat,
-				    exp(offset[sorted]),
-				    as.double(weights),
-				    newstrat,
-				    loglik=double(1),
-				    resid = double(n) )
-	resid <- double(n)
-	resid[sorted] <- coxfit$resid
-	names(resid) <- rownames
-
-	list( loglik = coxfit$loglik,
-	      linear.predictors = offset,
-	      residuals = resid,
-	      method= c('coxph.null', 'coxph') )
+	# Set things up for 0 iterations on a dummy variable
+	x <- as.matrix(rep(1.0, n))
+	nullmodel <- T
+	nvar <- 1
+	init <- 0
+	iter.max <- 0
 	}
-
     else {
+	nullmodel <- F
 	if (!missing(init) && !is.null(init)) {
 	    if (length(init) != nvar) stop("Wrong length for inital values")
 	    }
 	else init <- rep(0,nvar)
+	}
+    coxfit <- .C("coxfit2", iter=as.integer(iter.max),
+		   as.integer(n),
+		   as.integer(nvar), stime,
+		   sstat,
+		   x= x[sorted,] ,
+		   as.double(offset[sorted] - mean(offset)),
+		   as.double(weights),
+		   newstrat,
+		   means= double(nvar),
+		   coef= as.double(init),
+		   u = double(nvar),
+		   imat= double(nvar*nvar), loglik=double(2),
+		   flag=integer(1),
+		   double(2*n + 2*nvar*nvar + 3*nvar),
+		   as.double(eps),
+		   as.double(toler.chol),
+		   sctest=as.double(method=="efron") )
 
-	coxfit <- .C("coxfit2", iter=as.integer(iter.max),
-		       as.integer(n),
-		       as.integer(nvar), stime,
-		       sstat,
-		       x= x[sorted,] ,
-		       as.double(offset[sorted] - mean(offset)),
-		       as.double(weights),
-		       newstrat,
-		       means= double(nvar),
-		       coef= as.double(init),
-		       u = double(nvar),
-		       imat= double(nvar*nvar), loglik=double(2),
-		       flag=integer(1),
-		       double(2*n + 2*nvar*nvar + 3*nvar),
-		       as.double(eps),
-		       as.double(toler.chol),
-		       sctest=as.double(method=="efron") )
+    if (nullmodel) {
+	score <- exp(offset)
+	coxres <- .C("coxmart", as.integer(n),
+				as.integer(method=='efron'),
+				stime,
+				sstat,
+				newstrat,
+				as.double(score),
+				as.double(weights),
+				resid=double(n))
+	resid <- double(n)
+	resid[sorted] <- coxres$resid
+	names(resid) <- rownames
 
+	list( loglik = coxfit$loglik[1],
+	      linear.predictors = offset,
+	      residuals = resid,
+	      method= c('coxph.null', 'coxph') )
+	}
+    else {
 	var <- matrix(coxfit$imat,nvar,nvar)
 	coef <- coxfit$coef
 	if (coxfit$flag < nvar) which.sing <- diag(var)==0
