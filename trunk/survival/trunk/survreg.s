@@ -1,5 +1,5 @@
 #
-# SCCS $Id: survreg.s,v 5.4 1999-02-25 10:04:04 therneau Exp $
+# SCCS $Id: survreg.s,v 5.5 1999-05-07 11:59:26 therneau Exp $
 #  The newest version of survreg, that accepts penalties and strata
 #
 setOldClass(c('survreg.penal', 'survreg'))
@@ -100,6 +100,9 @@ survreg <- function(formula=formula(data), data=sys.parent(),
 	else if (type=='interval' && all(Y[,3]<3)) Y < Y[,c(1,3)]
 	}
 
+    if (is.null(dlist$itrans)) itrans <- function(x) x
+    else itrans <- dlist$itrans
+
     if (!is.null(dlist$scale)) {
 	if (!missing(scale)) warning(paste(dlist$name, 
 			   "has a fixed scale, user specified value ignored"))
@@ -161,6 +164,7 @@ survreg <- function(formula=formula(data), data=sys.parent(),
     na.action <- attr(m, "na.action")
     if (length(na.action)) fit$na.action <- na.action
     fit$df.residual <- n - sum(fit$df)
+    fit$fitted.values <- itrans(fit$linear.predictors)
     fit$terms <- Terms
     fit$formula <- as.vector(attr(Terms, "formula"))
     fit$means <- apply(X,2, mean)
