@@ -54,7 +54,7 @@ coxph <- function(formula=formula(data), data=sys.parent(),
 	fit$n <- nrow(Y)
 	na.action <- attr(m, "na.action")
 	if (length(na.action)) fit$na.action <- na.action
-	attr(fit, "class") <-  c(fit$method, "survreg")
+	attr(fit, "class") <-  fit$method
 	fit$method <- NULL
 	fit$terms <- Terms
 	fit$assign <- attr(X, 'assign')
