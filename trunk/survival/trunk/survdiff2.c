@@ -1,4 +1,4 @@
-/* SCCS  $Id: survdiff2.c,v 1.3 1992-08-31 10:04:52 therneau Exp $      */
+/* SCCS  $Id: survdiff2.c,v 1.4 1994-11-09 10:41:58 therneau Exp $      */
 #include <math.h>
 
 survdiff2(nn, nngroup, rho, time, status, group, obs, exp, var, risk, kaplan)
@@ -32,7 +32,7 @@ double  time[],
 	for (i=0; i<n; ) {
 	    nrisk = n-i;
 	    deaths =status[i];
-	    for (j=i+1; time[j]==time[i] & j<n; j++) {
+	    for (j=i+1; j<n && time[j]==time[i]; j++) {
 		deaths += status[j];
 		}
 	    kaplan[j-1] = km;
@@ -55,7 +55,7 @@ double  time[],
 	deaths = 0;
 	if (*rho ==0) wt=1;
 	else          wt= pow(kaplan[i], *rho);
-	for (j=i; time[j]==time[i] & j>=0; j--) {
+	for (j=i; j>=0 && time[j]==time[i]; j--) {
 	    k = group[j]-1;
 	    deaths += status[j];
 	    risk[k] += 1;
