@@ -1,4 +1,4 @@
-#SCCS $Id: residuals.coxph.s,v 4.11 1993-01-12 23:37:14 therneau Exp $
+#SCCS $Id: residuals.coxph.s,v 4.12 1993-01-13 01:07:26 therneau Exp $
 residuals.coxph <-
   function(object, type=c("martingale", "deviance", "score", "schoenfeld",
 			  "dbeta", "dfbetas", "scaledsch"),
@@ -7,7 +7,7 @@ residuals.coxph <-
     type <- match.arg(type)
     otype <- type
     if (type=='dbeta' || type=='dfbetas') type <- 'score'
-    if (type=='scalesch') type<-'schoenfeld'
+    if (type=='scaledsch') type<-'schoenfeld'
     n <- length(object$residuals)
     rr <- object$residual
     y <- object$y
@@ -131,7 +131,7 @@ residuals.coxph <-
     # Collapse if desired
     if (!missing(collapse)) {
 	if (length(collapse) !=n) stop("Wrong length for 'collapse'")
-	if (ncol(rr)==1)  rr <- tapply(rr, list(collapse), "sum")
+	if (!is.matrix(rr))  rr <- tapply(rr, list(collapse), "sum")
 	else  rr<- tapply(rr, list(collapse[row(rr)], col(rr)), sum)
 	}
 
