@@ -1,0 +1,45 @@
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>print.summary.survfit</s-topic>
+</s-topics>
+<s-title>
+Print Survfit Summary 
+</s-title>
+<s-description>
+Prints the result of <s-expression>summary.survfit</s-expression>. 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+print.summary.survfit(x, digits = max(options() $digits-4, 3), ...) 
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="x">
+an object of class <s-expression>"summary.survfit"</s-expression>, which is the result of the 
+<s-expression>summary.survfit</s-expression> function. 
+</s-arg>
+</s-args-required>
+<s-args-optional>
+<s-arg name="digits">
+the number of digits to use in printing the numbers. 
+</s-arg>
+</s-args-optional>
+<s-value>
+<s-expression>x</s-expression>, with the invisible flag set to prevent printing. 
+</s-value>
+<s-side-effects>
+prints the summary created by <s-expression>summary.survfit</s-expression>. 
+</s-side-effects>
+<s-see>
+<s-function name="options.sgm">options</s-function>,  <s-function name="print.sgm">print</s-function>,  <s-function name="summary.survfit.sgm">summary.survfit</s-function>.   </s-see>
+<s-keywords>
+<s-keyword>print</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>
