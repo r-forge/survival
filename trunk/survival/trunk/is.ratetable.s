@@ -1,4 +1,4 @@
-#SCCS $Id: is.ratetable.s,v 4.2 1995-01-31 15:00:01 therneau Exp $
+#SCCS $Id: is.ratetable.s,v 4.3 1995-10-27 12:17:28 therneau Exp $
 is.ratetable <- function(x) {
     if (!inherits(x, 'ratetable')) return(F)
     att <- attributes(x)
@@ -18,6 +18,7 @@ is.ratetable <- function(x) {
 	if (fac[i]!=1 && length(att$cutpoints[[i]]) != n)  return(F)
 	if (fac[i]!=1 && any(order(att$cutpoints[[i]])!= 1:n)) return(F)
 	if (fac[i]==1 && !is.null(att$cutpoints[[i]]))  return(F)
+	if (fac[i]>1  && i<nd) return(F)
 	}
     T
     }
