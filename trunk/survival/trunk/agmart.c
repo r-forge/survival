@@ -1,4 +1,4 @@
-/* SCCS  @(#)coxmart.c	4.1  1/21/93      */
+/* SCCS  $Id: agmart.c,v 4.2 1993-01-30 19:38:50 therneau Exp $
 /*
 ** Compute the martingale residual for a counting process model
 **
