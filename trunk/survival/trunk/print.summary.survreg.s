@@ -1,4 +1,4 @@
-# SCCS $Id: print.summary.survreg.s,v 4.2 1992-07-13 10:31:15 therneau Exp $
+# SCCS @(#)print.summary.survreg.s	4.2 7/13/92
 print.summary.survreg <- function(x, digits = 3, quote = T, prefix = "")
 {
     nas <- x$nas
@@ -42,7 +42,7 @@ print.summary.survreg <- function(x, digits = 3, quote = T, prefix = "")
         
     else cat("\nCoefficients:\n")
     print(coef, digits = digits)
-    omit <- object$na.action
+    omit <- x$na.action
     if (length(omit))
 	cat("  n=", n, " (", naprint(omit), ")\n", sep="")
 

@@ -1,4 +1,4 @@
-# SCCS $Id: summary.survreg.s,v 4.4 1992-07-10 09:13:32 therneau Exp $
+# SCCS $Id: summary.survreg.s,v 4.5 1992-07-14 00:04:00 therneau Exp $
 summary.survreg<- function(object, correlation = T)
 {
     if (!is.null(object$fail)) {
@@ -6,9 +6,11 @@ summary.survreg<- function(object, correlation = T)
 	return(invisible(object))
 	}
     wt <- object$weights
-    coef <- c(object$coef, "log(Scale)"=log(object$scale))
+    if (length(object$coef) < ncol(object$var))
+	 coef <- c(object$coef, "log(Scale)"=log(object$scale))
+    else coef <- object$coef
     resid <- object$residuals
-    dresid <- residuals(object, "deviance")
+    dresid <- object$dresiduals
     n <- length(resid)
     p <- object$rank
     if(is.null(p))

@@ -1,4 +1,4 @@
-#SCCS $Id: survreg.s,v 4.7 1992-07-10 09:18:12 therneau Exp $
+#SCCS $Id: survreg.s,v 4.8 1992-07-14 00:04:02 therneau Exp $
 survreg <- function(formula=formula(data), data=sys.parent(),
 	subset, na.action,
 	link=c('log', 'identity'),
@@ -51,10 +51,11 @@ survreg <- function(formula=formula(data), data=sys.parent(),
     else if (dist=="logistic")
 	sfit <- survreg.fit(X, Y, offset, init=init, iter.max=iter.max,
 			    eps = eps, fun='logisticfit', scale=scale)
-    else if (dist=="exponential")
+    else if (dist=="exponential") {
+	scale <- 1
 	sfit <- survreg.fit(X, Y, offset, init=init, iter.max=iter.max,
 			    eps = eps, fun='exvalue', scale=1)
-
+	}
     else stop(paste ("Unknown distribution", dist))
 
     if (is.character(sfit))  fit <- list(fail=sfit)  #error message
@@ -63,7 +64,6 @@ survreg <- function(formula=formula(data), data=sys.parent(),
 	#  In order to make it look like IRLS, and get all the components
 	#  that I need for glm inheritance, do one step of weighted least
 	#  squares.
-	if (missing(scale)) scale <- exp(as.vector(sfit$coef[nvar+1]))
 	eta <- c(X %*% sfit$coef[1:nvar]) + offset
 	wt<- -sfit$deriv[,3]
 	fit <- lm.wfit(X, eta + sfit$deriv[,2]/wt, wt, "qr", ...)
@@ -74,13 +74,20 @@ survreg <- function(formula=formula(data), data=sys.parent(),
 	fit$deviance <- sfit$loglik[1]
 	fit$null.deviance <- sfit$null[1]
 	fit$iter <- sfit$iter
-	fit$scale<- scale
 
 	# If singular.ok=T, there may be NA coefs.  The var matrix should
 	#   be an inversion of the "non NA" portion.
-	good <- c(!is.na(fit$coef),T)
-	var <- matrix(0, nvar+1, nvar+1)
+	if (is.null(scale)) {
+	    scale <- exp(as.vector(sfit$coef[nvar+1]))
+	    good <- c(!is.na(fit$coef),T)
+	    var <- matrix(0, nvar+1, nvar+1)
+	    }
+	else {
+	    good <- !is.na(fit$coef)
+	    var <- matrix(0, nvar, nvar)
+	    }
 	var[good,good] <- solve(sfit$imat[good,good])
+	fit$scale<- scale
 	fit$var <- var
 
 	fit$flag <- sfit$flag
