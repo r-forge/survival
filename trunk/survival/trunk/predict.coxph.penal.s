@@ -1,9 +1,8 @@
-# SCCS $Id: predict.coxph.penal.s,v 5.1 1998-11-01 07:54:46 therneau Exp $
+# SCCS $Id: predict.coxph.penal.s,v 5.2 1998-11-03 13:04:58 therneau Exp $
 predict.coxph.penal <- function(object,  newdata, 
 				type=c("lp", "risk", "expected", "terms"),
 				se.fit=F, terms=labels.lm(object), 
 				collapse, safe=F, ...) {
-
     type <- match.arg(type)
     n <- object$n
     Terms <- object$terms
@@ -44,7 +43,7 @@ predict.coxph.penal <- function(object,  newdata,
 		n <- nrow(as.data.frame(newdata))
 		pred <- rep(0,n)
 		}
-	    se <- rep(0,n)
+	    se <- object$fvar[indx]
 	    pred <- object$linear.predictor
 	    if (type=='risk') pred <- exp(pred)
 	    }
@@ -60,15 +59,15 @@ predict.coxph.penal <- function(object,  newdata,
 	    if (type=='terms' && missing(newdata)) {
 		# In this case (only) I add the sparse term back in
 		spterm <- object$frail[indx]
-		ststd  <- sqrt(object$fvar[indx])
+		spstd  <- sqrt(object$fvar[indx])
 		if (nvar==2) {
 		    if (xvar==2) {
 			pred <- cbind(pred, spterm)
-			if (se.fit) se <- cbind(se, ststd)
+			if (se.fit) se <- cbind(se, spstd)
 			}
 		    else {
 			pred <- cbind(spterm, pred)
-			if (se.fit) se <- cbind(ststd, se)
+			if (se.fit) se <- cbind(spstd, se)
 			}
 		    }
 		else {
@@ -76,7 +75,7 @@ predict.coxph.penal <- function(object,  newdata,
 		    secnd <- if (xvar==nvar) 0 else  (xvar+1):nvar
 		    pred  <- cbind(pred[,first], spterm, pred[,secnd])
 		    if (se.fit)
-			    se <- cbind(se[,first], ststd, se[,secnd])
+			    se <- cbind(se[,first], spstd, se[,secnd])
 		    }
 		dimnames(pred) <- list(dimnames(x)[[1]], termname)
 		if (se.fit) dimnames(se) <- dimnames(pred)
