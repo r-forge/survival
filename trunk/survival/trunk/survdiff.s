@@ -1,4 +1,4 @@
-#SCCS $Date: 1992-08-11 08:14:08 $ $Id: survdiff.s,v 4.8 1992-08-11 08:14:08 grill Exp $
+#SCCS $Date: 1996-01-06 21:17:35 $ $Id: survdiff.s,v 4.9 1996-01-06 21:17:35 therneau Exp $
 survdiff <- function(formula, data, subset, rho=0) {
     call <- match.call()
     m <- match.call(expand=F)
@@ -74,11 +74,19 @@ survdiff <- function(formula, data, subset, rho=0) {
 	n <- table(strats)
 	expected <- xx$expected
 	observed <- xx$observed
-	temp2 <- (observed - expected) [-1]
-	chi  <- sum(solve(matrix(xx$var.e, ncol=ngroup-1), temp2) * temp2)
+	var  <- matrix(xx$var.e, ncol=ngroup-1)
+	var  <- cbind(apply(var,1,sum),var)
+	var  <- rbind(apply(var,2,sum),var)
+	df   <- (expected >0)            #remove groups with exp=0
+	if (sum(df) <2) chi <- 0         # No test, actually
+	else {
+	    temp2 <- ((observed-expected)[df])[-1]
+	    vv <- (var[df,df])[-1,-1, drop=F]
+	    chi <- sum(solve(vv, temp2) * temp2)
+	    }
 	}
 
-    rval <-list(n= n, obs = observed, exp=expected,
+    rval <-list(n= n, obs = observed, exp=expected, var=var,
 		    chisq= chi)
     na.action <- attr(m, "na.action")
     if (length(na.action)) rval$na.action <- na.action
