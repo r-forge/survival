@@ -1,4 +1,4 @@
-#SCCS $Date: 1992-04-29 08:50:18 $ $Id: print.survdiff.s,v 4.6 1992-04-29 08:50:18 therneau Exp $
+#SCCS $Date: 1992-06-01 09:54:27 $ $Id: print.survdiff.s,v 4.7 1992-06-01 09:54:27 therneau Exp $
 print.survdiff <- function(diff.list, digits=4, ...) {
 
     fit <- diff.list
@@ -15,7 +15,7 @@ print.survdiff <- function(diff.list, digits=4, ...) {
 
     omit <- diff.list$na.action
     if (length(omit)) cat("n=", sum(fit$n), ", ", naprint(omit),
-					  ".\n\n")
+					  ".\n\n", sep='')
 
     if (length(fit$n)==1)  {
 	z <- sign(fit$exp - fit$obs) * sqrt(fit$chisq)
