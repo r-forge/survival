@@ -1,4 +1,4 @@
-/* SCCS $Id: agsurv1.c,v 4.6 1993-04-20 16:32:25 therneau Exp $ */
+/* SCCS $Id: agsurv1.c,v 4.7 1993-04-21 08:19:46 therneau Exp $ */
 /*
 ** Fit the survival curve, the special case of an Anderson-Gill style data
 **   This program differs from survfit in several key ways:
@@ -135,6 +135,7 @@ double *yy;
 		** compute the mean and denominator over the risk set
 		*/
 		denom =0;
+		e_denom=0;
 		deaths=0;
 		for(i=0; i<nvar; i++) a[i] =0;
 		nrisk =0;
