@@ -1,4 +1,4 @@
-# SCCS $Id: summary.survreg.s,v 4.5 1992-07-14 00:04:00 therneau Exp $
+# SCCS @(#)summary.survreg.s	4.5 7/14/92
 summary.survreg<- function(object, correlation = T)
 {
     if (!is.null(object$fail)) {
@@ -6,9 +6,8 @@ summary.survreg<- function(object, correlation = T)
 	return(invisible(object))
 	}
     wt <- object$weights
-    if (length(object$coef) < ncol(object$var))
-	 coef <- c(object$coef, "log(Scale)"=log(object$scale))
-    else coef <- object$coef
+    fparms <- object$fixed
+    coef <- c(object$coef, object$parms[!fparms])
     resid <- object$residuals
     dresid <- object$dresiduals
     n <- length(resid)
@@ -41,9 +40,7 @@ summary.survreg<- function(object, correlation = T)
         }
     famname <- object$family["name"]
     if(is.null(famname))
-        famname <- "Gaussian"
-    scale <- object$scale
-    names(scale) <- famname
+	famname <- "gaussian"
     nas <- is.na(coef)
     cnames <- names(coef[!nas])
     coef <- matrix(rep(coef[!nas], 4), ncol = 4)
@@ -63,10 +60,12 @@ summary.survreg<- function(object, correlation = T)
 	    ocall <- match.call(get("survreg"), ocall)
         ocall$formula <- form
         }
+    sd <- survreg.distributions[[famname]]
+    pprint<- paste(sd$name, 'distribution:', sd$print(object$parms, fparms))
     structure(list(call = ocall, terms = object$terms, coefficients = coef,
 	scale= scale, df = c(p, rdf), deviance.resid = dresid,
 	var=object$var, correlation = correl, deviance = deviance(object),
 	null.deviance = object$null.deviance, iter = object$iter,
-	nas = nas),
+	nas = nas, parms=pprint),
 	class = "summary.survreg")
     }
