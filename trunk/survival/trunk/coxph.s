@@ -1,4 +1,4 @@
-#SCCS  $Id: coxph.s,v 5.4 1998-10-28 08:44:03 therneau Exp $
+#SCCS  $Id: coxph.s,v 5.5 1998-10-29 22:23:35 therneau Exp $
 # Version with general penalized likelihoods
 setOldClass(c('coxph.penal', 'coxph'))
 
