@@ -1,4 +1,4 @@
-# SCCS $Id: summary.aareg.s,v 1.2 2002-04-29 14:15:12 therneau Exp $
+# SCCS $Id: summary.aareg.s,v 1.3 2002-04-29 15:35:07 therneau Exp $
 # The summary routine for aareg models.
 # A lot of the work below relates to one particular issue: the coeffients
 #  of an aareg model often get "wild" near the end (at the largest times).
@@ -20,26 +20,31 @@ summary.aareg <- function(x, maxtime, test=c('aalen', 'nrisk')) {
     if (!inherits(x, 'aareg')) stop ("Must be an aareg object")
 
     test <- match.arg(test)
+    if (missing(test)) test <- x$test
 
-    # Compute a "slope" for each line, using appropriate weighting
-    #  Since this is a single variable model, no intercept, I
-    #  don't need to call lm.wfit!
     if (!missing(maxtime)) ntime <- sum(x$time <= maxtime)
     else 		   ntime <- nrow(x$coefficient)
     times <- x$time[1:ntime]
 
-    if (missing(test)) test <- x$test
+    if (test=='aalen') {
+        twt <- (as.matrix(x$tweight))[1:ntime,]
+        scale <- apply(twt, 2, sum)
+        }
+    else {
+        twt <-  x$nrisk[1:ntime]
+        scale <- ntime
+        }
 
-    if (test=='aalen') twt <- (as.matrix(x$tweight))[1:ntime,]
-    else	       twt <-  x$nrisk[1:ntime]
+    # Compute a "slope" for each line, using appropriate weighting
+    #  Since this is a single variable model, no intercept, I
+    #  don't need to call lm.wfit!
     tx <- as.matrix(twt * x$coefficient[1:ntime,])
     ctx  <- apply(tx, 2, cumsum)
-
     if (is.matrix(twt) && ncol(twt) >1) tempwt <- apply(twt*times^2, 2, sum)
-    else    			        tempwt <- sum(twt*times^2)
+    else                                tempwt <- sum(twt*times^2)
     if (ncol(ctx) >1)
-	    slope<- apply(ctx* times, 2, sum)/ tempwt
-    else    slope <- sum(ctx*times) / temp2
+            slope<- apply(ctx* times, 2, sum)/ tempwt
+    else    slope <- sum(ctx*times) / tempwt
 
     if (!missing(maxtime) || x$test != test) {
 	# Compute the test statistic
@@ -70,18 +75,18 @@ summary.aareg <- function(x, maxtime, test=c('aalen', 'nrisk')) {
     #  The chisquare test does not include the intercept
     se1 <- sqrt(diag(test.var))
     if (is.null(test.var2)) {
-	mat <- cbind(slope, test.stat, se1, test.stat/se1, 
+	mat <- cbind(slope, test.stat/scale, se1/scale, test.stat/se1, 
 		     2*pnorm(-abs(test.stat/se1)))
 	dimnames(mat) <- list((dimnames(x$coefficient)[[2]]),
-			      c("slope", "test", "se(test)", "z", "p"))
+			      c("slope", "coef", "se(coef)", "z", "p"))
 	chi <- test.stat[-1] %*% solve(test.var[-1,-1],test.stat[-1]) 
 	}
     else {
 	se2 <- sqrt(diag(test.var2))
-	mat <- cbind(slope, test.stat, se1, se2, test.stat/se2, 
-		                    2*pnorm(-abs(test.stat/se2)))
+	mat <- cbind(slope, test.stat/scale, se1/scale, se2/scale, 
+                     test.stat/se2, 2*pnorm(-abs(test.stat/se2)))
 	dimnames(mat) <- list((dimnames(x$coefficient)[[2]]),
-			 c("slope", "test", "se(test)", "robust se", "z", "p"))
+			 c("slope", "coef", "se(coef)", "robust se", "z", "p"))
 	chi <- test.stat[-1] %*% solve(test.var2[-1,-1], test.stat[-1]) 
 	}
 
