@@ -1,4 +1,4 @@
-/* SCCS $Id: survfit2.c,v 4.1 1992-03-04 16:51:53 therneau Exp $  */
+/* SCCS $Id: survfit2.c,v 4.2 1992-03-24 09:23:30 therneau Exp $  */
 /*
 ** Fit the survival curve
 **  Input
@@ -69,7 +69,7 @@ double risksum[];
 	    }
 	}
 
-    mark[0] = j+status[0];
+    mark[0] = j+ status[0]*wt[0];
     risksum[0] = sum + wt[0];
 
     /*
