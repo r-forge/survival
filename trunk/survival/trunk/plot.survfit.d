@@ -38,7 +38,7 @@ A value of 100, for instance, would be used to give a percent scale.
 Only the labels are
 changed, not the actual plot coordinates, so that adding a curve with
 "lines(surv.exp(...))", say, will perform as it did without the yscale arg.
-.AG yscale
+.AG xscale
 will be used in a similar manner for labels on the x axis.  A value of
 365.25 will give labels in years instead of the original days.
 .AG xlab
@@ -55,7 +55,7 @@ on each of the curves.  This may be useful for labeling.
 .SE
 A plot of survival curves is produced, one curve for each strata.
 .EX
-plot.survfit(survfit(pgtime,pgstat,g2group),col=c(3,6),log=T)
+plot.survfit(survfit(Surv(pgtime,pgstat) ~g2group),col=c(3,6),log=T)
 .KW survival
 .WR
 

@@ -6,7 +6,8 @@ Add lines to a survival plot
 Usually used to add the expected survival curve(s) to a Kaplan-Meier plot
 generated with plot.survfit.
 .CS
-lines.survfit(x, type="s", mark=3, col=1, lty=1, lwd=1, mark.time=T, ...)
+lines.survfit(x, type="s", mark=3, col=1, lty=1, lwd=1, mark.time=T,
+xscale=1, yscale=1, ...)
 .RA
 .AG x
 a survival object, generated either from the survfit or survexp functions.
@@ -21,6 +22,12 @@ added curves.
 controls the labeling of the curves.  If False, no labeling is done.  If
 True, then curves are marked at each censoing time.  If mark.time is a numeric
 vector, then curves are marked at the specified time points.
+.AG xscale
+a number used to divide the x values.  If time was originally in days, a
+value of 365.24 would give a plotted scale in years.
+.AG yscale
+a number used to multiply the y values.  A value of 100, for instance, will
+give a y axis in percent.
 .SE
 one or more curves are added to the current plot.
 .SH NOTE

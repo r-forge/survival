@@ -42,11 +42,6 @@ the number of observations used in the fit.
 the vector of case weights, if one was used.
 .AG method
 the computation method used.
-.AG robust.var
-optional component added by the `coxph.rvar' function, containing a sandwich
-estimate of variance.
-.AG rcall
-optional copy of the call to `coxph.rvar'.
 .PP
 The object will also contain the following, for documentation see the `lm'
 object: `terms', `assign', `formula', `call', and, optionally, `x', `y',
