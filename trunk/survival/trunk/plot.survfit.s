@@ -1,4 +1,4 @@
-#SCCS $Id: plot.survfit.s,v 4.20 2001-12-31 09:32:22 therneau Exp $
+#SCCS $Id: plot.survfit.s,v 4.21 2003-11-13 13:57:02 therneau Exp $
 plot.survfit<- function(x, conf.int,  mark.time=T,
 			mark=3,col=1,lty=1, lwd=1, cex=1, log=F,
 			xscale=1, yscale=1, 
@@ -6,16 +6,6 @@ plot.survfit<- function(x, conf.int,  mark.time=T,
 			xmax, ymin=0,
 			fun,
 			xlab="", ylab="", xaxs='S', ...) {
-
-    if (missing(firstx)) {
-	if (!is.null(x$start.time)) 
-	     firstx <- x$start.time
-	else firstx <- min(0, x$time)
-	}
-    firstx <- firstx/xscale
-
-    # The special x axis style only applies when firstx is not given
-    if (missing(xaxs) && firstx!=0) xaxs= par('xaxs')  # use the default
 
     if (is.logical(log)) {
 	logy <- log
@@ -28,6 +18,20 @@ plot.survfit<- function(x, conf.int,  mark.time=T,
 	logx <- (log=='x' || log=='xy')
 	logax  <- log
         }
+
+    if (missing(firstx)) {
+	if (!is.null(x$start.time)) 
+	     firstx <- x$start.time
+	else {
+            if (logx || (!missing(fun) && is.character(fun) && fun=='cloglog'))
+                firstx <- min(x$time[x$time>0])
+            else      firstx <- min(0, x$time)
+            }
+	}
+    firstx <- firstx/xscale
+
+    # The special x axis style only applies when firstx is not given
+    if (missing(xaxs) && firstx!=0) xaxs<- par('xaxs')  # use the default
 
     if (!inherits(x, 'survfit'))
 	    stop("First arg must be the result of survfit")
