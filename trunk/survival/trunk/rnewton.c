@@ -1,4 +1,4 @@
-/*  SCCS $Id: rnewton.c,v 5.1 1998-08-30 14:52:56 therneau Exp $
+/*  SCCS $Id: rnewton.c,v 5.2 1998-10-27 17:37:49 therneau Exp $
 /*
 ** Ridge stabilized Newton iteration
 **
@@ -12,6 +12,7 @@
 **      dolk        pointer to a function that will return the loglik
 **      doimat      pointer to a function that will compute the first
 **                     derivative vector and -1*second deriv
+**      tol_chol    tolerance for Cholesky
 **      debug       if =1, print out lots of messages as I go
 **
 ** Output
@@ -36,15 +37,16 @@
 */
 #include <math.h>
 #include <stdio.h>
+#include "survS.h"
 #include "survproto.h"
 #define POWER 2      /*how fast to increase or decrease the ridge parameter*/
 
 int rnewton(int    *maxiter,   int  n,        int  nvar,        double *beta, 
 	    double *u,         double **imat, double loglik[2], double eps,
-	    void (*dolk)(),    void (*doimat)(), 
+	    void (*dolk)(),    void (*doimat)(),  double *tol_chol,
 	    double *newbeta,   double *savediag,  int debug)
     {
-    register int i,j;
+    int i,j;
     int     ierr, iter;
     double  newlk;
     int     halving;    /*are we doing step halving at the moment? */
@@ -73,7 +75,7 @@ int rnewton(int    *maxiter,   int  n,        int  nvar,        double *beta,
     /*
     ** Update the betas and test for convergence
     */
-    ierr = cholesky2(imat, nvar);
+    ierr = cholesky2(imat, nvar, *tol_chol);
     if (ierr <nvar) {
 	if (*maxiter==0) {   /* Bail out */
 	    for (i=0; i<nvar; i++) {
@@ -89,7 +91,7 @@ int rnewton(int    *maxiter,   int  n,        int  nvar,        double *beta,
 	do {
 	    for (i=0; i<nvar; i++)
 		   imat[i][i] = savediag[i] + fabs(savediag[i]) *tau;
-	    ierr = cholesky2(imat, nvar);
+	    ierr = cholesky2(imat, nvar, *tol_chol);
 	    tau *= POWER;
 	    }  while (ierr <nvar);
 	tau /= POWER;
@@ -155,14 +157,14 @@ int rnewton(int    *maxiter,   int  n,        int  nvar,        double *beta,
 
 	/* Check out the information matrix */
 	if (!levenberg) {
-	    ierr = cholesky2(imat,nvar);
+	    ierr = cholesky2(imat,nvar, *tol_chol);
 	    if (ierr <nvar) levenberg=1;
 	    }
 retry:  if (levenberg) {
 	    do {
 		for (i=0; i<nvar; i++)
 		    imat[i][i] = savediag[i] + fabs(savediag[i])* tau;
-		ierr = cholesky2(imat, nvar);
+		ierr = cholesky2(imat, nvar, *tol_chol);
 		tau *= POWER;
 		if (debug>0 && ierr !=0)
 			fprintf(stderr, "\tBump tau to %f\n", tau);

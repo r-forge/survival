@@ -1,4 +1,4 @@
-/* SCCS $Id: survreg.c,v 5.1 1998-09-01 09:45:01 therneau Exp $ */
+/* SCCS $Id: survreg.c,v 5.2 1998-10-27 17:37:49 therneau Exp $
 /*
 ** Fit one of several censored data distributions
 **
@@ -20,6 +20,7 @@
 **                  parameter is fixed, i.e. not part of the iteration.
 **      eps     - tolerance for convergence.  Iteration continues until the
 **                  relative change in the deviance is <= eps.
+**      tol_chol- tolerance for Cholesky decomposition
 **      dist    -  1=extreme value, 2=logistic, 3=gaussian, 4=cauchy
 **
 **  Output
@@ -58,8 +59,9 @@
 */
 #include <math.h>
 #include <float.h>
+#include "survS.h"
 #include "survproto.h"
-#define  PI     3.141592653589793
+
 #define  SPI    2.506628274631001     /* sqrt(2*pi) */
 #define  ROOT_2 1.414213562373095
 
@@ -87,7 +89,7 @@ void survreg(long   *maxiter,    long   *nx,    long   *nvarx,
 	     double *offset2,    double *beta,  long   *npx, 
 	     double *parmsx,     double *u,     double *imatx, 
 	     double *loglik,     long   *flag,  double *eps,
-	     double *deriv,      long   *dist)
+	     double *tol_chol,   double *deriv, long   *dist)
     {
     int n, nvar2, i;
     int maxiter2;
@@ -135,7 +137,7 @@ void survreg(long   *maxiter,    long   *nx,    long   *nvarx,
 	}
 
     *flag = rnewton(&maxiter2, n, nvar2, beta, u, imat, loglik, *eps,
-		    sreg_g,  sreg_deriv, newbeta, savediag, debug);
+		    sreg_g,  sreg_deriv, tol_chol, newbeta, savediag, debug);
     *maxiter = maxiter2;
     }
 
