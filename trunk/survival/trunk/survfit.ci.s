@@ -1,5 +1,5 @@
 #
-# SCCS $Id: survfit.ci.s,v 1.2 2003-05-08 09:20:31 therneau Exp $
+# SCCS $Id: survfit.ci.s,v 1.3 2003-12-31 16:04:19 therneau Exp $
 #
 # Compute the current incidence curve for a data set
 #   A strata() statement identifies the outcomes
@@ -108,7 +108,8 @@ survfit.ci <- function(formula=formula(data), data=sys.parent(),
         
         # partition out the event type
 	if (is.null(kfit$strata)) {
-	    temp <- table(time, state, status, exclude=NA)[,,2]
+	    temp <- table(time, state, factor(status, levels=0:1), 
+                          exclude=NA)[,,2]
 	    temp <- temp / ifelse(kfit$n.event==0, 1, kfit$n.event)  # percents
 	    jumps <- -diff(c(1, kfit$surv))
 	    newjump <- jumps * temp
@@ -154,7 +155,7 @@ survfit.ci <- function(formula=formula(data), data=sys.parent(),
 	    }
 	time   <- Y[,1]
 	status <- Y[,2]
-		    
+
 	# ensure consistency of the weights
         idlist <- sort(unique(id))  #should be 1,2,3,...
 	firstone <- match(idlist, id) # first obs for each subject
@@ -248,6 +249,7 @@ survfit.ci <- function(formula=formula(data), data=sys.parent(),
 			varhaz[i,] <- varhaz[i-1,]
 			}
 		    }
+
 		# Now, redistribute the weights if those who are censored
 		redo <- (status!=1  & time==xtime)  #censored at this time
 		if (any(redo)) {
