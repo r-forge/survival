@@ -1,4 +1,4 @@
-#SCCS $Date: 1998-03-01 23:40:22 $ $Id: predict.coxph.s,v 4.9 1998-03-01 23:40:22 therneau Exp $
+#SCCS $Date: 1998-08-30 15:25:06 $ $Id: predict.coxph.s,v 4.10 1998-08-30 15:25:06 therneau Exp $
 #What do I need to do predictions --
 #
 #linear predictor:  exists
@@ -43,7 +43,7 @@ function(object, newdata, type=c("lp", "risk", "expected", "terms"),
 	    }
 	else if (type=='expected') {
 	    y <- object$y
-	    if (missing(y)) {
+	    if (is.null(y)) {
 		m <- model.frame(object)
 		y <- model.extract(m, 'response')
 		}
