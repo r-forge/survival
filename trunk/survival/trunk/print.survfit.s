@@ -1,4 +1,4 @@
-#SCCS $Date: 1997-12-29 12:33:45 $ $Id: print.survfit.s,v 4.10 1997-12-29 12:33:45 boos Exp $
+#SCCS $Date: 1999-02-06 23:25:21 $ $Id: print.survfit.s,v 4.11 1999-02-06 23:25:21 therneau Exp $
 print.survfit <- function(x, scale=1, digits = max(options()$digits - 4, 3), ...) {
 
     if (!is.null(cl<- x$call)) {
