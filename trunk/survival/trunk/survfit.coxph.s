@@ -1,4 +1,4 @@
-# SCCS $Id: survfit.coxph.s,v 5.5 2000-03-02 19:23:21 boos Exp $
+# SCCS $Id: survfit.coxph.s,v 5.6 2000-07-09 14:49:49 boos Exp $
 setOldClass(c('survfit.cox', 'survfit'))
 
 survfit.coxph <-
@@ -38,10 +38,11 @@ survfit.coxph <-
     # Recreate a copy of the data
     #  (The coxph.getdata routine never returns cluster() terms).
     data <- coxph.getdata(object, y=T, x=se.fit,
-			           strata=(se.fit || length(strat)))
+			           strata=(length(strat)))
     y <- data$y
     ny <- ncol(y)
     if (nrow(y) != n) stop ("Mismatched lengths: logic error")
+    if (length(strat)) strata.all <- table(data$strata)
 
     # Get the sort index for the data, and add a column to y if
     #  necessary to make it of the "counting process" type  (I only
@@ -122,6 +123,7 @@ survfit.coxph <-
 		#
 		# The case of an agreg, with a multiple line newdata
 		#
+		strata.all <- object$n
 		if (length(strat)) {
 		    strata2 <- factor(x2[,strat], levels=levels(stratum))
 		    x2 <- x2[, -strat, drop=F]
@@ -212,6 +214,7 @@ survfit.coxph <-
 		     n.event=surv$y[ntime,3],
 		     surv=tsurv,
 		     strata= tstrat,
+			strata.all=strata.all,
 			type=type)
 	    }
 	if (se.fit) temp$std.err <- sqrt(tvar)

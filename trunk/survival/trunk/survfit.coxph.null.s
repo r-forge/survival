@@ -1,4 +1,4 @@
-# SCCS $Id: survfit.coxph.null.s,v 5.4 2000-03-02 19:26:08 boos Exp $
+# SCCS $Id: survfit.coxph.null.s,v 5.5 2000-07-09 14:49:35 boos Exp $
 survfit.coxph.null <-
   function(object, newdata, se.fit=T, conf.int=.95, individual=F,
 	    type, vartype,
@@ -35,6 +35,7 @@ survfit.coxph.null <-
 	if (is.null(stratx)) {
 	    temp <- untangle.specials(Terms, 'strata', 1)
 	    stratx <- strata(m[temp$vars])
+	    strata.all <- table(stratx)
 	    }
 	if (is.null(y)) y <- model.extract(m, 'response')
 	}
@@ -98,7 +99,7 @@ survfit.coxph.null <-
 		 n.risk=surv$y[ntime,2],
 		 n.event=surv$y[ntime,3],
 		 surv=tsurv,
-		 strata= tstrat, type=type)
+		 strata= tstrat, strata.all=strata.all, type=type)
 	}
     if (se.fit) temp$std.err <- sqrt(tvar)
 
@@ -131,3 +132,12 @@ survfit.coxph.null <-
     oldClass(temp) <- "survfit.cox"
     temp
     }
+
+
+
+
+
+
+
+
+
