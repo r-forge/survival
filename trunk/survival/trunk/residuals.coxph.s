@@ -1,4 +1,4 @@
-#SCCS $Id: residuals.coxph.s,v 4.6 1992-08-11 08:11:11 grill Exp $
+#SCCS $Id: residuals.coxph.s,v 4.7 1992-08-28 11:58:30 therneau Exp $
 residuals.coxph <-
   function(object, type=c("martingale", "deviance", "score", "schoenfeld"),
 	    collapse)
@@ -51,8 +51,8 @@ residuals.coxph <-
 	    y <- y[ord,]
 	    score <- exp(object$linear.predictor)[ord]
 
-	    if (ny ==3) subs <- paste("agres", 1:2, sep='')
-	    else        subs <- paste("coxres",1:2, sep='')
+	    if (ny ==3) subs <- paste("agres", 1:2, "2", sep='')
+	    else        subs <- paste("coxres",1:2, "2", sep='')
 	    }
 	}
 
