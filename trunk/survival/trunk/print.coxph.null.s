@@ -1,6 +1,6 @@
-#SCCS $Date: 1993-05-31 00:15:24 $ $Id: print.coxph.null.s,v 4.4 1993-05-31 00:15:24 therneau Exp $
+#SCCS $Date: 1996-09-27 10:35:54 $ $Id: print.coxph.null.s,v 4.5 1996-09-27 10:35:54 boos Exp $
 print.coxph.null <-
- function(cox, digits=3, ...)
+ function(cox, digits=max(options()$digits - 4, 3), ...)
     {
     if (!is.null(cl<- cox$call)) {
 	cat("Call:  ")

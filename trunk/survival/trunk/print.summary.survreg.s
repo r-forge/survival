@@ -1,5 +1,5 @@
-# SCCS $Id: print.summary.survreg.s,v 4.7 1992-12-30 14:20:56 therneau Exp $
-print.summary.survreg <- function(x, digits = 3, quote = T, prefix = "")
+# SCCS $Id: print.summary.survreg.s,v 4.8 1996-09-27 10:37:42 boos Exp $
+print.summary.survreg <- function(x, digits = max(options()$digits - 4, 3), quote = T, prefix = "")
 {
     nas <- x$nas
     coef <- x$coef

@@ -1,7 +1,7 @@
-#SCCS $Date: 1996-01-06 21:35:43 $ $Id: summary.coxph.s,v 4.5 1996-01-06 21:35:43 therneau Exp $
+#SCCS $Date: 1996-09-27 10:39:21 $ $Id: summary.coxph.s,v 4.6 1996-09-27 10:39:21 boos Exp $
 summary.coxph <-
  function(cox, table = T, coef = T, conf.int = 0.95, scale = 1,
-			digits = max(options()$digits-4,3) )
+			digits = max(options()$digits - 4, 3))
     {
     if (!is.null(cl<- cox$call)) {
 	cat("Call:\n")

@@ -1,5 +1,5 @@
-#SCCS $Date: 1996-01-07 01:35:51 $ $Id: print.survdiff.s,v 4.9 1996-01-07 01:35:51 therneau Exp $
-print.survdiff <- function(fit, digits=max(options()$digits-4,3), ...) {
+#SCCS $Date: 1996-09-27 10:38:04 $ $Id: print.survdiff.s,v 4.10 1996-09-27 10:38:04 boos Exp $
+print.survdiff <- function(fit, digits = max(options()$digits - 4, 3), ...) {
 
     saveopt <-options(digits=digits)
     on.exit(options(saveopt))

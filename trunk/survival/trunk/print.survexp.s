@@ -1,5 +1,5 @@
-#SCCS $Id: print.survexp.s,v 4.10 1994-05-23 08:01:31 therneau Exp $
-print.survexp <- function(fit, scale=1, digits=3, naprint=F, ...) {
+#SCCS $Id: print.survexp.s,v 4.11 1996-09-27 10:38:30 boos Exp $
+print.survexp <- function(fit, scale=1, digits = max(options()$digits - 4, 3), naprint=F, ...) {
     if (!inherits(fit, 'survexp'))
 	    stop("Invalid data")
     savedig <- options(digits=digits)

@@ -1,5 +1,5 @@
-#SCCS $Date: 1993-04-12 11:06:51 $ $Id: print.survfit.s,v 4.7 1993-04-12 11:06:51 therneau Exp $
-print.survfit <- function(fit, scale=1, digits=3, ...) {
+#SCCS $Date: 1996-09-27 10:38:57 $ $Id: print.survfit.s,v 4.8 1996-09-27 10:38:57 boos Exp $
+print.survfit <- function(fit, scale=1, digits = max(options()$digits - 4, 3), ...) {
 
     if (!is.null(cl<- fit$call)) {
 	cat("Call: ")

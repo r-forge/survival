@@ -1,5 +1,5 @@
-#SCCS $Id: print.summary.survfit.s,v 4.1 1992-09-20 23:26:55 therneau Exp $
-print.summary.survfit <- function(fit, digits=3, ...) {
+#SCCS $Id: print.summary.survfit.s,v 4.2 1996-09-27 10:37:12 boos Exp $
+print.summary.survfit <- function(fit, digits = max(options()$digits - 4, 3), ...) {
     savedig <- options(digits=digits)
     on.exit(options(savedig))
 
