@@ -1,4 +1,4 @@
-# SCCS $Id: lines.survfit.s,v 4.18 2002-08-08 07:54:07 therneau Exp $
+# SCCS $Id: lines.survfit.s,v 4.19 2004-11-05 10:10:11 therneau Exp $
 lines.survfit <- function(x, type='s', mark=3, col=1, lty=1, lwd=1,
 			  mark.time =T, xscale=1, 
 			  firstx=0, firsty=1, xmax, fun,
@@ -7,7 +7,21 @@ lines.survfit <- function(x, type='s', mark=3, col=1, lty=1, lwd=1,
     if (missing(firstx)) {
 	if (!is.null(x$start.time)) 
 	     firstx <- x$start.time
-	else firstx <- min(x$time)
+	else {
+            # Make intellegent guess at firstx/firsty (as best we can)
+            # 1. If this is a survexp object, don't extend the plot
+            #   back to the left at all
+            if (class(x)=='survexp') {
+                firstx <- x$time[1]
+                firsty <- x$surv[1]
+                }
+            else {
+                # We'll use 0/1, unless this is log scale
+                if (par('xaxt')== 'l' ||
+                    (!missing(fun) && is.character(fun) && fun=='cloglog')) 
+                    firstx <- min(x$time)
+                }
+            }
 	}
     firstx <- firstx/xscale
 
