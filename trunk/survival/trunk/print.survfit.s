@@ -1,4 +1,4 @@
-#SCCS $Date: 1992-05-05 10:33:15 $ $Id: print.survfit.s,v 4.5 1992-05-05 10:33:15 therneau Exp $
+#SCCS $Date: 1993-03-26 17:04:56 $ $Id: print.survfit.s,v 4.6 1993-03-26 17:04:56 therneau Exp $
 print.survfit <- function(fit, scale=1, digits=3, ...) {
 
     if (!is.null(cl<- fit$call)) {
@@ -10,16 +10,25 @@ print.survfit <- function(fit, scale=1, digits=3, ...) {
     savedig <- options(digits=digits)
     on.exit(options(savedig))
     pfun <- function(stime, surv, n.risk, n.event, lower, upper) {
-	minmin <- function(y, x)  min(x[!is.na(y) & y<=.5])
+	#compute the mean, median, se(mean), and ci(median)
+	minmin <- function(y, x) {
+	     if (any(!is.na(y) & y==.5)) {
+	       if (any(!is.na(y) & y <.5))
+		 .5*( min(x[!is.na(y) & y==.5]) + min(x[!is.na(y) & y<.5]))
+	       else
+		 .5*( min(x[!is.na(y) & y==.5]) + max(x[!is.na(y) & y==.5]))
+	       }
+	     else  min(x[!is.na(y) & y<=.5])
+	     }
 	n <- length(stime)
-	hh <- n.event[-n]/(n.risk[-n]*(n.risk[-n]-n.event[-n]))
+	hh <- c(n.event[-n]/(n.risk[-n]*(n.risk[-n]-n.event[-n])), 0)
 	nused <- n.risk[1]
 	ndead<- sum(n.event)
-	dif.time <- diff(c(0, stime))
+	dif.time <- c(diff(c(0, stime)), 0)
 	if (is.matrix(surv)) {
 	    n <- nrow(surv)
-	    mean <- dif.time * rbind(1, surv[-n,])
-	    temp <- (apply(mean[n:1,], 2, cumsum))[(n-1):1,]
+	    mean <- dif.time * rbind(1, surv)
+	    temp <- (apply(mean[(n+1):2,,drop=F], 2, cumsum))[n:1,,drop=F]
 	    varmean <- c(hh %*% temp^2)
 	    med <- apply(surv, 2, minmin, stime)
 	    if (!is.null(upper)) {
@@ -34,7 +43,7 @@ print.survfit <- function(fit, scale=1, digits=3, ...) {
 		}
 	    }
 	else {
-	    mean <- dif.time*c(1, surv[-n])
+	    mean <- dif.time*c(1, surv)
 	    varmean <- sum(rev(cumsum(rev(mean))^2)[-1] * hh)
 	    med <- minmin(surv, stime)
 	    if (!is.null(upper)) {
