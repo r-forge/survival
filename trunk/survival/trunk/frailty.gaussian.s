@@ -1,4 +1,4 @@
-# SCCS $Id: frailty.gaussian.s,v 1.3 1999-01-14 09:40:36 therneau Exp $
+# SCCS $Id: frailty.gaussian.s,v 1.4 1999-02-07 22:29:48 therneau Exp $
 # 
 # Defining function for gaussian frailty fits
 #
@@ -87,7 +87,7 @@ frailty.gaussian <- function(x, sparse=(nclass >5), theta, df,
 		     diag =T,
 		     sparse= sparse,
 		     cargs = c("neff", "df", "plik"),	
-		     cparm=list(...),
+		     cparm=list(lower=0, init=c(.1,1), ...),
 		     cfun = frailty.controlaic)
 	}
     else {  #df method
