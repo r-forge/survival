@@ -1,5 +1,5 @@
 # 
-#  SCCS $Id: survpenal.fit.s,v 1.2 1998-11-30 08:33:03 therneau Exp $
+#  SCCS $Id: survpenal.fit.s,v 1.3 1998-12-02 13:34:45 therneau Exp $
 # fit a penalized parametric model
 #
 survpenal.fit<- function(x, y, weights, offset, init, controlvals, dist, 
@@ -133,7 +133,7 @@ survpenal.fit<- function(x, y, weights, offset, init, controlvals, dist,
 	frailx <- 0
 	nfrail <- 0
 	}
-    nvar2 <- nvar + nstrat - 1*(scale >0)
+    nvar2 <- nvar + nstrat2
 
     # Now the non-sparse penalties
     if (sum(!sparse) >0) {
@@ -248,9 +248,9 @@ survpenal.fit<- function(x, y, weights, offset, init, controlvals, dist,
 
     yy <- ifelse(status !=3, y[,1], (y[,1]+y[,2])/2 )
     coef <- sd$init(yy, weights)
-    if (scale >0) coef[2] <- scale
-    variance <- log(coef[2])/2   # init returns \sigma^2, I need log(sigma)
-    coef <- c(coef[1], rep(variance, nstrat2))
+    if (scale >0) vars <- log(scale)
+    else vars <- log(coef[2])/2   # init returns \sigma^2, I need log(sigma)
+    coef <- c(coef[1], rep(vars, nstrat))
     # get a better initial value for the mean using the "glim" trick
     deriv <- .C("survreg3",
 		as.integer(n),
@@ -266,7 +266,7 @@ survpenal.fit<- function(x, y, weights, offset, init, controlvals, dist,
     coef[1] <- coef[1] - sum(weights*deriv[,2])/sum(weights*deriv[,3])
 
     # Now the fit proper (intercept only)
-    temp <- 1 +nstrat
+    temp <- 1 +nstrat2
     fit0 <- .C("survreg2",
 	       iter = as.integer(iter.max),
 	       as.integer(n),
@@ -289,7 +289,8 @@ survpenal.fit<- function(x, y, weights, offset, init, controlvals, dist,
 	       debug = as.integer(floor(debug/2)))
 
     # The "effective n" of the model
-    n.eff <- mean(exp(fit0$coef[-1]))^2 / fit0$var[1,1]
+    temp <-  mean(exp(fit0$coef[-1]))   #overall sd
+    n.eff <- sd$var(temp^2) * (solve(fit0$var))[1,1]
 
     #
     # Fit the model with all covariates
@@ -301,11 +302,12 @@ survpenal.fit<- function(x, y, weights, offset, init, controlvals, dist,
 	    if (length(init) == nvar2) init <- c(rep(0,nfrail), init)
 	    else stop("Wrong length for inital values")
 	    }
+	if (scale >0) init <- c(init, log(scale))
 	}
     else  {
 	# The algebra behind the 'glim' trick just doesn't work here
 	#  Use the intercept fit + zeros
-	# Frailty, intercept, other covariates, sigmas
+	#    coef order = frailty, intercept, other covariates, sigmas
 	init <- c(rep(0, nfrail), fit0$coef[1], rep(0, nvar-1), fit0$coef[-1])
 	}
 
@@ -317,7 +319,7 @@ survpenal.fit<- function(x, y, weights, offset, init, controlvals, dist,
     iter2 <- 0
     iterfail <- NULL
     thetasave <- unlist(thetalist)
-    for (iter in 1:outer.max) {
+    for (iterx in 1:outer.max) {
 	fit <- .C("survreg4",
 		   iter = as.integer(iter.max),
 		   as.integer(n),
@@ -346,14 +348,15 @@ survpenal.fit<- function(x, y, weights, offset, init, controlvals, dist,
 	           fdiag = double(nvar3))
 
 	if (debug>0) browser()
+	iter <- iterx
 	iter2 <- iter2 + fit$iter
 	if (fit$iter >=iter.max) iterfail <- c(iterfail, iter)
 
 	if (nfrail >0) {
 	    fcoef <- fit$coef[1:nfrail]
-	    coef  <- fit$coef[-(1:nfrail)]
+	    coef  <- fit$coef[nfrail + 1:nvar2]
 	    }
-	else coef <- fit$coef
+	else coef <- fit$coef[1:nvar2]
 
 	# If any penalties were infinite, the C code has made fdiag=1 out
 	#  of self-preservation (0 divides).  But such coefs are guarranteed
@@ -446,7 +449,7 @@ survpenal.fit<- function(x, y, weights, offset, init, controlvals, dist,
 
     names(iterlist) <- names(pterms[pterms>0])
     cname <- varnames
-    cname <- c(cname, rep("Log(scale)", nstrat))
+    cname <- c(cname, rep("Log(scale)", nstrat2))
     dimnames(var) <- list(cname, cname)
     names(coef) <- cname
 
@@ -454,21 +457,23 @@ survpenal.fit<- function(x, y, weights, offset, init, controlvals, dist,
 	lp <- offset + fcoef[frailx]
 	lp <- lp + x %*%coef[1:nvar] 
 	list(coefficients  = coef,
-		 var    = var,
-		 var2   = var2,
-		 loglik = c(fit0$loglik, loglik),
-		 iter   = c(iter, iter2),
-		 linear.predictors = as.vector(lp),
-		 frail = fcoef,
-		 fvar  = dftemp$fvar,
-		 df = df, 
-		 penalty= c(penalty0, penalty),
-		 pterms = pterms, assign2=assign,
-		 history= iterlist,
-		 printfun=printfun)
+	     icoef = fit0$coef,
+	     var    = var,
+	     var2   = var2,
+	     loglik = c(fit0$loglik, loglik),
+	     iter   = c(iter, iter2),
+	     linear.predictors = as.vector(lp),
+	     frail = fcoef,
+	     fvar  = dftemp$fvar,
+	     df = df, 
+	     penalty= c(penalty0, penalty),
+	     pterms = pterms, assign2=assign,
+	     history= iterlist,
+	     printfun=printfun)
 	}
     else {  #no sparse terms
 	list(coefficients  = coef,
+	     icoef = fit0$coef,
 	     var    = var,
 	     var2   = var2,
 	     loglik = c(fit0$loglik, loglik),

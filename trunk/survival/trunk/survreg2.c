@@ -1,4 +1,4 @@
-/* SCCS $Id: survreg2.c,v 1.2 1998-11-30 08:25:50 therneau Exp $
+/* SCCS $Id: survreg2.c,v 1.3 1998-12-02 13:34:43 therneau Exp $
 /*
 ** Fit one of several censored data distributions
 **
@@ -71,6 +71,7 @@ static double *time2, *time1, *status;
 static double *offset;
 static double **imat, **JJ;
 static double *u, *wt;
+static double scale;
 
 static int debug;
 void survreg2(long   *maxiter,   long   *nx,    long   *nvarx, 
@@ -103,6 +104,7 @@ void survreg2(long   *maxiter,   long   *nx,    long   *nvarx,
     */
     nstrat = *nstratx;
     nvar2 = nvar + nstrat;   /* number of coefficients */
+    if (nstrat==0) scale = exp(beta[nvar]);
 
     imat = dmatrix(imatx, nvar2, nvar2);
     u = ux;
@@ -307,7 +309,8 @@ static double dolik(int n, double *beta, int whichcase) {
     **   then the derivatives of the loglik (u, imat, JJ)
     */
     strata =0;
-    sigma = exp(beta[nvar]);  
+    if (nstrat ==0) sigma = scale;   /* fixed scale */
+    else            sigma = exp(beta[nvar]);
     sig2  = 1/(sigma*sigma);
     loglik =0;
     for (person=0; person<n; person++) {
@@ -437,10 +440,13 @@ static double dolik(int n, double *beta, int whichcase) {
 	}
 
     if (debug >0) {
-	fprintf(stderr, "U   ");
-	for (i=0; i<nvar2; i++) fprintf(stderr," %f", u[i]);
-	fprintf(stderr, "\ncoef" );
-	for (i=0; i<nvar2; i++) fprintf(stderr," %f", beta[i]);
+	fprintf(stderr, "coef" );
+	if (nvar2=1) j=2; else j=nvar2;
+	for (i=0; i<j; i++) fprintf(stderr," %f", beta[i]);
+	if (whichcase==0) {
+	    fprintf(stderr, "U   ");
+	    for (i=0; i<nvar2; i++) fprintf(stderr," %f", u[i]);
+	    }
 	fprintf(stderr, "\n");
 	}
     if (debug >1) {

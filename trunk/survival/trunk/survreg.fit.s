@@ -1,5 +1,5 @@
 # 
-#  SCCS $Id: survreg.fit.s,v 5.4 1998-11-30 08:34:08 therneau Exp $
+#  SCCS $Id: survreg.fit.s,v 5.5 1998-12-02 13:34:46 therneau Exp $
 #
 survreg.fit<- function(x, y, weights, offset, init, controlvals, dist, 
 		       scale=0, nstrat=1, strata) {
@@ -47,9 +47,9 @@ survreg.fit<- function(x, y, weights, offset, init, controlvals, dist,
     if (!meanonly) {
 	yy <- ifelse(y[,ny]!=3, y[,1], (y[,1]+y[,2])/2 )
 	coef <- sd$init(yy, weights)
-	if (scale >0) coef[2] <- scale
-	variance <- log(coef[2])/2   # init returns \sigma^2, I need log(sigma)
-	coef <- c(coef[1], rep(variance, nstrat))
+	if (scale >0) vars <- log(scale)
+	else vars <- log(coef[2])/2   #init returns \sigma^2, I need log(sigma)
+	coef <- c(coef[1], rep(vars, nstrat))
 	# get a better initial value for the mean using the "glim" trick
 	deriv <- .C("survreg3",
 		    as.integer(n),
@@ -94,14 +94,15 @@ survreg.fit<- function(x, y, weights, offset, init, controlvals, dist,
     nvar2 <- nvar + nstrat2
     if (is.numeric(init)) {
 	if (length(init) != nvar2) stop("Wrong length for initial parameters")
+	if (scale >0) init <- c(init, log(scale))
 	}
     else  {
 	# Do the 'glim' method of finding an initial value of coef
 	if (meanonly) {
 	    yy <- ifelse(y[,ny]!=3, y[,1], (y[,1]+y[,2])/2 )
 	    coef <- sd$init(yy, weights)
-	    if (scale >0) coef[2] <- scale
-	    vars  <- rep(log(coef[2])/2, nstrat)  
+	    if (scale >0) vars <- rep(log(scale), nstrat)
+	    else vars  <- rep(log(coef[2])/2, nstrat)  
 	    }
 	else vars <- fit0$coef[-1]
 	eta <- yy - offset     #what would be true for a 'perfect' model
@@ -146,7 +147,7 @@ survreg.fit<- function(x, y, weights, offset, init, controlvals, dist,
 	           debug = as.integer(debug))
 
     if (debug>0) browser()
-    if (iter.max >1 && fit$flag <nvar) {
+    if (iter.max >1 && fit$flag > nvar2) {
 	if (controlvals$failure==1)
 	       warning("Ran out of iterations and did not converge")
 	else if (controlvals$failure==2)

@@ -1,4 +1,4 @@
-/* SCCS $Id: survreg4.c,v 1.2 1998-11-30 08:25:51 therneau Exp $
+/* SCCS $Id: survreg4.c,v 1.3 1998-12-02 13:34:44 therneau Exp $
 /*
 ** The variant of survreg2 for penalized models
 **
@@ -15,7 +15,7 @@
 **      offset  - offset vector (usually 0)
 **      beta    - initial values for the parameters: frailties, then
 **		    ordinary coefs, then sigmas
-**		     last element contains the scale
+**		     an extra element contains the scale when nstrat=0
 **      nstrat  - an indicator: 0= scale is fixed, 1= estimate scale,
 **		    >1: estimate multiple scales (strata)
 **      strat   - if nstrat>0, contains the strata number for each subject
@@ -85,6 +85,7 @@ static int    nf, ptype, pdiag;
 static double *ipen, *upen, logpen;
 static long   *zflag;
 static double *fdiag, *jdiag;
+static double scale;
 
 static int debug;
 void survreg4(long   *maxiter,   long   *nx,       long   *nvarx, 
@@ -128,6 +129,7 @@ void survreg4(long   *maxiter,   long   *nx,       long   *nvarx,
     nvar0 = nvar;
     nvar  = nvar + nstrat;
     nvar2 = nvar  + nf;
+    if (nstrat==0) scale = exp(beta[nvar]); 
     
     covar = dmatrix(covar2, n, nvar0);
     if (nvar >0) {
@@ -176,6 +178,7 @@ void survreg4(long   *maxiter,   long   *nx,       long   *nvarx,
     if (debug>0) {
 	fprintf(stderr, "\n----------Enter survreg4-----------\n");
 	fprintf(stderr, "nvar=%d, nvar2=%d, nstrat=%d\n", nvar, nvar2, nstrat);
+	if (nstrat==0) fprintf(stderr, "  log(scale)=%f\n", log(scale));
 	}
 
     /*
@@ -415,10 +418,11 @@ static double dolik(int n, double *beta, int whichcase) {
     **   then the derivatives of the loglik (u, jmat, JJ)
     */
     strata =0;
-    sigma = exp(beta[nvar0+nf]);  
+    strata =0;
+    if (nstrat ==0) sigma = scale;   /* fixed scale */
+    else            sigma = exp(beta[nvar0]);
     sig2  = 1/(sigma*sigma);
     for (person=0; person<n; person++) {
-    if (debug >3) fprintf(stderr, "a=%d\n",person); fflush(stderr);
 	if (nstrat>1) {
 	    strata= strat[person] -1; /*S likes to start counting at 1 */
 	    sigma = exp(beta[strata+nvar0+nf]);
@@ -432,6 +436,7 @@ static double dolik(int n, double *beta, int whichcase) {
 	for (i=0; i<nvar0; i++) eta += beta[i+nf] * covar[i][person];
 	sz = (time1[person] - eta);  /*   sigma * z  */
 	z = sz /sigma;
+    if (debug >3) fprintf(stderr, "person=%d, eta=%f",person, eta); 
 
 	j = status[person];       /*convert to integer */
 	switch(j) {
@@ -521,7 +526,11 @@ static double dolik(int n, double *beta, int whichcase) {
 		break;
 	    }
 	loglik += g * wt[person];
-
+	if (debug>3) {
+	    fprintf(stderr," z=%f g=%f, dg=%f, wt=%f\n", z, g, dg, wt[person]);
+	    fflush(stderr);
+	    }
+     
 	/*
 	** Now the derivs wrt loglik
 	**   Sparse frailties are a covariate of "1"
@@ -627,10 +636,10 @@ static double dolik(int n, double *beta, int whichcase) {
 	    }
 	}
     if (debug >0 && whichcase==0) {
-	fprintf(stderr, "U   ");
-	for (i=0; i<nvar2; i++) fprintf(stderr," %f", u[i]);
-	fprintf(stderr, "\ncoef" );
+	fprintf(stderr, "coef" );
 	for (i=0; i<nvar2; i++) fprintf(stderr," %f", beta[i]);
+	fprintf(stderr, "\nU   ");
+	for (i=0; i<nvar2; i++) fprintf(stderr," %f", u[i]);
 	fprintf(stderr, "\n");
 	}
     if (debug >1 && whichcase==0) {
