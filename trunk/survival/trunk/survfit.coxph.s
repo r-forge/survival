@@ -1,16 +1,22 @@
-# SCCS $Id: survfit.coxph.s,v 5.3 1998-11-04 02:03:39 therneau Exp $
+# SCCS $Id: survfit.coxph.s,v 5.4 2000-02-10 07:59:46 therneau Exp $
 setOldClass(c('survfit.cox', 'survfit'))
 
 survfit.coxph <-
   function(object, newdata, se.fit=T, conf.int=.95, individual=F,
 	    type, vartype,
-	    conf.type=c('log', 'log-log', 'plain', 'none')) {
+	    conf.type=c('log', 'log-log', 'plain', 'none'),
+	    call = match.call()) {
 
     if(!is.null((object$call)$weights))
 	stop("Survfit cannot (yet) compute the result for a weighted model")
     call <- match.call()
     Terms <- terms(object)
     strat <- attr(Terms, "specials")$strata
+    cluster<-attr(Terms, "specials")$cluster
+    if (length(cluster)) {
+	temp <- untangle.specials(Terms, 'cluster')
+	Terms <- Terms[-temp$terms]
+	}
     resp <-  attr(Terms, "variables")[attr(Terms, "response")]
     n <- object$n
     nvar <- length(object$coef)
@@ -30,6 +36,7 @@ survfit.coxph <-
     else conf.type <- match.arg(conf.type)
 
     # Recreate a copy of the data
+    #  (The coxph.getdata routine never returns cluster() terms).
     data <- coxph.getdata(object, y=T, x=se.fit,
 			           strata=(se.fit || length(strat)))
     y <- data$y
