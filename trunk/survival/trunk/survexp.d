@@ -8,7 +8,7 @@ individual expected survival for each subject.
 .CS
 survexp(formula, data, weights, subset, na.action,
  times, cohort=T, conditional=T,
- ratetable=survexp.us, scale=1, model=F, x=F, y=F)
+ ratetable=survexp.us, scale=1, se.fit, model=F, x=F, y=F)
 .RA
 .AG formula
 a formula object.  The response variable will be a vector of follow-up times,
@@ -31,7 +31,7 @@ If `y' is missing in the formula, this argument is ignored.  Otherwise it
 is an indicator of whether y includes death times, which leads to conditional
 expected survival, or y includes only the potential censoring times.
 .AG ratetable
-a table of event rates, such as survexp.uswhite.
+a table of event rates, such as survexp.uswhite, or a fitted Cox model.
 .AG scale
 a scaling for the results.  As most rate tables are in units/day, a
 value of 365.24 would cause the output to be reported in years.
@@ -40,6 +40,11 @@ calculate intermediate results at npoints values, evenly spaced on the range
 of `y'.  The usual (exact) calculation is done at each unique 'y' value;
 for very large data sets this may incur too much storage for the scratch
 array.
+For a prediction from a Cox model this arument is ignored.
+.AG se.fit
+compute the standard error of the predicted survival.
+The default is to compute this whenever the routine can, which at this time
+is only for the Ederer method and a Cox model as the rate table.
 .AG model, x, y
 flags to control what is returned.  If any of these is true, then the
 model frame, the model matrix, and/or the vector of response times will be
@@ -79,7 +84,9 @@ In the "exact method" of Ederer the cohort is not censored; this corresponds
 to having no response variable in the formula.  Hakulinen recommends censoring
 the cohort at the anticipated censoring time of each patient, and Verhuel
 recommends censoring the cohort at the actual observation time of each
-patient.  These are obtained by using the respective time values as the
+patient.
+The last of these is the conditional method.
+These are obtained by using the respective time values as the
 follow-up time or response in the formula.
 .SH REFERENCES
 G. Berry.  The analysis of mortality by the subject-years method.
