@@ -1,8 +1,8 @@
-# SCCS $Id: coxph.s,v 5.2 1998-09-01 12:09:51 therneau Exp $
+# SCCS @(#)coxph.s	5.2 09/01/98
 setOldClass(c("coxph.null", "coxph"))
 coxph <- function(formula=formula(data), data=sys.parent(),
 	weights, subset, na.action,
-	eps=1e-07, init, iter.max=10,
+	eps=1e-07, init, iter.max=10, toler.chol=eps/1000, 
 	method= c("efron", "breslow", "exact"),
 	singular.ok =T, robust=F,
 	model=F, x=F, y=T) {
@@ -70,7 +70,7 @@ coxph <- function(formula=formula(data), data=sys.parent(),
 
     if (missing(init)) init <- NULL
     fit <- fitter(X, Y, strats, offset, init=init, iter.max=iter.max,
-			eps=eps, weights=weights,
+			eps=eps, toler.chol=toler.chol, weights=weights,
 			method=method, row.names(m))
 
     if (is.character(fit)) {
