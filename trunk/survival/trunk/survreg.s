@@ -1,119 +1,167 @@
-# SCCS $Id: survreg.s,v 5.1 1998-08-30 16:00:16 therneau Exp $
-setOldClass(c('survreg', 'glm', 'lm'))
+#
+# SCCS $Id: survreg.s,v 5.2 1998-11-30 08:33:36 therneau Exp $
+#  The newest version of survreg, that accepts penalties and strata
+#
+setOldClass(c('survreg.penal', 'survreg'))
 
 survreg <- function(formula=formula(data), data=sys.parent(),
-	subset, na.action,
-	link='log',
-	dist=c("extreme", "logistic", "gaussian", "exponential",
-	       "rayleigh"),
-	init=NULL,  fixed=list(), control,
+	subset, na.action, dist='weibull', 
+	init=NULL,  scale=0, control,
 	model=F, x=F, y=T, ...) {
 
     call <- match.call()
     m <- match.call(expand=F)
-    m$dist <- m$link <- m$model <- m$x <- m$y <- m$... <-  NULL
-    m$start <- m$fixed <- m$control <- m$init <- NULL
+    temp <- c("", "formula", "data", "weights", "subset", "na.action")
+    m <- m[ match(temp, names(m), nomatch=0)]
     m[[1]] <- as.name("model.frame")
+    special <- c("strata", "cluster")
+    Terms <- if(missing(data)) terms(formula, special)
+             else              terms(formula, special, data=data)
+    m$formula <- Terms
     m <- eval(m, sys.parent())
     Terms <- attr(m, 'terms')
 
-    dist <- match.arg(dist)
-    lnames <- dimnames(glm.links)[[2]]
-    link <- pmatch(link, lnames, 0)
-    if (link==0) stop("Invalid link function")
-    else link <- lnames[link]
-
+    weights <- model.extract(m, 'weights')
     Y <- model.extract(m, "response")
     if (!inherits(Y, "Surv")) stop("Response must be a survival object")
-    X <- model.matrix(Terms, m)
+
+    strats <- attr(Terms, "specials")$strata
+    cluster<- attr(Terms, "specials")$cluster
+    dropx <- NULL
+    if (length(cluster)) {
+        if (missing(robust)) robust <- T
+        tempc <- untangle.specials(Terms, 'cluster', 1:10)
+        ord <- attr(Terms, 'order')[tempc$terms]
+        if (any(ord>1)) stop ("Cluster can not be used in an interaction")
+        cluster <- strata(m[,tempc$vars], shortlabel=T)  #allow multiples
+        dropx <- tempc$terms
+        }
+    if (length(strats)) {
+        temp <- untangle.specials(Terms, 'strata', 1)
+        dropx <- c(dropx, temp$terms)
+        if (length(temp$vars)==1) strata.keep <- m[[temp$vars]]
+        else strata.keep <- strata(m[,temp$vars], shortlabel=T)
+        strata <- as.numeric(strata.keep)
+	nstrata <- max(strata)
+        }
+    else {
+	nstrata <- 1
+	strata <- 0
+	}
+
+    if (length(dropx)) X <- model.matrix(Terms[-dropx], m)
+    else               X <- model.matrix(Terms, m)
     n <- nrow(X)
     nvar <- ncol(X)
+
     offset<- attr(Terms, "offset")
     if (!is.null(offset)) offset <- as.numeric(m[[offset]])
     else                  offset <- rep(0, n)
 
-    type <- attr(Y, "type")
-    linkfun <- glm.links["link", link][[1]]
-    if (type== 'counting') stop ("Invalid survival type")
-    else if (type=='interval') {
-	if (any(Y[,3]==3))
-	     Y <- cbind(linkfun(Y[,1:2]), Y[,3])
-	else Y <- cbind(linkfun(Y[,1]), Y[,3])
+    if (is.character(dist)) {
+	dlist <- survreg.distributions[[dist]]
+	if (is.null(dlist)) stop(paste(dist, ": distribution not found"))
 	}
-    else if (type=='left')
-	     Y <- cbind(linkfun(Y[,1]), 2-Y[,2])
-    else     Y <- cbind(linkfun(Y[,1]), Y[,2])
-
-    controlvals <- survreg.control()
-    if (!missing(control)) 
-	controlvals[names(control)] <- control
-
-    if( dist=="exponential") {
-	fixed$scale <- 1
-	dist <- 'extreme'
+    else if (is.list(dist)) dlist <- dist
+    else stop("Invalid distribution object")
+    if (is.null(dlist$dist)) {
+	if (is.character(dlist$name) && is.function(dlist$init) &&
+	    is.function(dlist$deviance)) {}
+	else stop("Invalid distribution object")
 	}
-    else if (dist=="rayleigh") {
-	fixed$scale <- .5
-	dist <- 'extreme'
-	}
-
-    sd <- survreg.distributions[[dist]]
-    if (length(fixed)>0) {
-	ifix <- match(names(fixed), names(sd$parms), nomatch=0)
-	if (any(ifix==0))
-	    stop (paste("Parameter(s)", paste(names(fixed)[ifix==0]),
-			"in the fixed list not valid for this dist"))
-	}
-    if (is.list(init) && length(init)>0) {
-	ifix <- match(names(init), c('eta',names(sd$parms)), nomatch=0)
-	if (any(ifix==0))
-	    stop (paste("Parameter(s)", paste(names(init)[ifix==0]),
-			"in the init list not valid for this dist"))
-	}
-
-
-    sfit <- survreg.fit(X, Y, offset, init=init, controlvals=controlvals,
-			dist= dist, fixed=fixed)
-    if (is.character(sfit))  fit <- list(fail=sfit)  #error message
     else {
-	# There may be more clever ways to do this, but ....
-	#  In order to make it look like IRLS, and get all the components
-	#  that I need for glm inheritance, do one step of weighted least
-	#  squares.
-	eta <- c(X %*% sfit$coef[1:nvar]) + offset
-	wt<- -sfit$deriv[,3]
-	fit <- lm.wfit(X, eta + sfit$deriv[,2]/wt, wt, "qr", ...)
+	if (!is.character(dlist$name) || !is.character(dlist$dist) ||
+	    !is.function(dlist$trans) || !is.function(dlist$dtrans))
+		stop("Invalid distribution object")
+	}	
 
-	ifun <- glm.links['inverse',link][[1]]
-	fit$fitted.values <- ifun(fit$fitted.values)
-	fit$family <- c(name=dist, link=link, "")
-	fit$linear.predictors <- eta
-	fit$iter <- sfit$iter
-	fit$parms <- sfit$parms
-	fit$df.residual <- fit$df.residual - sum(!sfit$fixed)
+    type <- attr(Y, "type")
+    if (type== 'counting') stop ("Invalid survival type")
+    
+    logcorrect <- 0   #correction to the loglik due to transformations
+    if (!is.null(dlist$trans)) {
+	tranfun <- dlist$trans
+	exactsurv <- Y[,ncol(Y)] ==1
+	if (any(exactsurv)) logcorrect <-sum(log(dlist$dtrans(Y[exactsurv,1])))
+	
+	if (type=='interval') {
+	    if (any(Y[,3]==3))
+		    Y <- cbind(tranfun(Y[,1:2]), Y[,3])
+	    else Y <- cbind(tranfun(Y[,1]), Y[,3])
+	    }
+	else if (type=='left')
+	     Y <- cbind(tranfun(Y[,1]), 2-Y[,2])
+	else     Y <- cbind(tranfun(Y[,1]), Y[,2])
+	}
 
-	# If singular.ok=T, there may be NA coefs.  The var matrix should
-	#   be an inversion of the "non NA" portion.
-	var <- 0*sfit$imat
-	good <- c(!is.na(fit$coef), rep(T, ncol(var)-nvar))
-	var[good,good] <- solve(qr(sfit$imat[good,good], tol=1e-12))
-	fit$var <- var
-	fit$fixed <- sfit$fixed
-	dev <- sd$deviance(Y, fit$parms, sfit$deriv[,1])
-	fit$dresiduals <- sign(fit$residuals)*sqrt(dev)
-	fit$deviance <- sum(dev)
-	fit$null.deviance <- fit$deviance +2*(sfit$loglik[2]- sfit$ndev[2])
-	fit$loglik <- c(sfit$ndev[2], sfit$loglik[2])
+    if (!is.null(dlist$scale)) {
+	if (!missing(scale)) warning(paste(dlist$name, 
+			   "has a fixed scale, user specified value ignored"))
+	scale <- dlist$scale
+	}
+    if (!is.null(dlist$dist)) dlist <- survreg.distributions[[dlist$dist]]
+
+    if (missing(control)) controlvals <- survreg.control(...)
+    else  controlvals <- survreg.control(c(unlist(control), ...))
+
+    if (scale < 0) stop("Invalid scale value")
+    if (scale >0 && nstrata >1) 
+	    stop("Cannot have multiple strata with a fixed scale")
+
+    # Check for penalized terms
+    pterms <- sapply(m, inherits, 'coxph.penalty')
+    if (any(pterms)) {
+	pattr <- lapply(m[pterms], attributes)
+	# 
+	# the 'order' attribute has the same components as 'term.labels'
+	#   pterms always has 1 more (response), sometimes 2 (offset)
+	# drop the extra parts from pterms
+	temp <- c(attr(Terms, 'response'), attr(Terms, 'offset'))
+	if (length(dropx)) temp <- c(temp, dropx+1)
+	pterms <- pterms[-temp]
+	temp <- match((names(pterms))[pterms], attr(Terms, 'term.labels'))
+	ord <- attr(Terms, 'order')[temp]
+	if (any(ord>1)) stop ('Penalty terms cannot be in an interaction')
+	pcols <- (attr(X, 'assign')[-1])[pterms]  
+  
+        fit <- survpenal.fit(X, Y, weights, offset, init=init,
+				controlvals = controlvals,
+			        dist= dlist, scale=scale,
+			        strata=strata, nstrat=nstrata,
+				pcols, pattr)
+	}
+    else fit <- survreg.fit(X, Y, weights, offset, 
+			    init=init, controlvals=controlvals,
+			    dist= dlist, scale=scale, nstrat=nstrata, strata)
+
+    if (is.character(fit))  fit <- list(fail=fit)  #error message
+    else {
+	if (scale==0) {
+	    nvar <- length(fit$coef) - nstrata
+	    fit$scale <- exp(fit$coef[-(1:nvar)])
+	    if (nstrata==1) names(fit$scale) <- NULL
+	    else names(fit$scale) <- levels(strata.keep)
+	    fit$coefficients  <- fit$coefficients[1:nvar]
+	    fit$idf  <- 1 + nstrata
+	    }
+	else {
+	    fit$scale <- scale
+	    fit$idf  <- 1
+	    }
+	fit$loglik <- fit$loglik + logcorrect
 	}
 
     na.action <- attr(m, "na.action")
     if (length(na.action)) fit$na.action <- na.action
-    oldClass(fit) <-  "survreg"
     fit$terms <- Terms
     fit$formula <- as.vector(attr(Terms, "formula"))
+    fit$means <- apply(X,2, mean)
     fit$call <- call
+    fit$dist <- dist
     if (model) fit$model <- m
     if (x)     fit$x <- X
     if (y)     fit$y <- Y
+    if (any(pterms)) oldClass(fit) <- 'survreg.penal'
+    else	     oldClass(fit) <- 'survreg'
     fit
     }
