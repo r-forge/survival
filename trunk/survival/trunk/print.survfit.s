@@ -1,26 +1,26 @@
-#SCCS $Date: 1997-03-28 12:20:47 $ $Id: print.survfit.s,v 4.9 1997-03-28 12:20:47 therneau Exp $
-print.survfit <- function(fit, scale=1, digits = max(options()$digits - 4, 3), ...) {
+#SCCS $Date: 1997-12-29 12:33:45 $ $Id: print.survfit.s,v 4.10 1997-12-29 12:33:45 boos Exp $
+print.survfit <- function(x, scale=1, digits = max(options()$digits - 4, 3), ...) {
 
-    if (!is.null(cl<- fit$call)) {
+    if (!is.null(cl<- x$call)) {
 	cat("Call: ")
 	dput(cl)
 	cat("\n")
 	}
-    omit <- fit$na.action
+    omit <- x$na.action
     if (length(omit)) cat("  ", naprint(omit), "\n")
 
     savedig <- options(digits=digits)
     on.exit(options(savedig))
     pfun <- function(stime, surv, n.risk, n.event, lower, upper) {
 	#compute the mean, median, se(mean), and ci(median)
-	minmin <- function(y, x) {
+	minmin <- function(y, xx) {
 	     if (any(!is.na(y) & y==.5)) {
 	       if (any(!is.na(y) & y <.5))
-		 .5*( min(x[!is.na(y) & y==.5]) + min(x[!is.na(y) & y<.5]))
+		 .5*( min(xx[!is.na(y) & y==.5]) + min(xx[!is.na(y) & y<.5]))
 	       else
-		 .5*( min(x[!is.na(y) & y==.5]) + max(x[!is.na(y) & y==.5]))
+		 .5*( min(xx[!is.na(y) & y==.5]) + max(xx[!is.na(y) & y==.5]))
 	       }
-	     else  min(x[!is.na(y) & y<=.5])
+	     else  min(xx[!is.na(y) & y<=.5])
 	     }
 	n <- length(stime)
 	hh <- c(n.event[-n]/(n.risk[-n]*(n.risk[-n]-n.event[-n])), 0)
@@ -59,52 +59,52 @@ print.survfit <- function(fit, scale=1, digits = max(options()$digits - 4, 3), .
 	    }
 	}
 
-    stime <- fit$time/scale
-    surv <- fit$surv
+    stime <- x$time/scale
+    surv <- x$surv
     plab <- c("n", "events", "mean", "se(mean)", "median")
-    if (!is.null(fit$conf.int))
-	plab2<- paste(fit$conf.int, c("LCL", "UCL"), sep='')
+    if (!is.null(x$conf.int))
+	plab2<- paste(x$conf.int, c("LCL", "UCL"), sep='')
 
     #Four cases: strata Y/N  by  ncol(surv)>1 Y/N
     #  Repeat the code, with minor variations, for each one
-    if (is.null(fit$strata)) {
-	x <- pfun(stime, surv, fit$n.risk, fit$n.event, fit$lower, fit$upper)
-	if (is.matrix(x)) {
-	    if (is.null(fit$lower)) dimnames(x) <- list(NULL, plab)
-	    else                    dimnames(x) <- list(NULL, c(plab, plab2))
+    if (is.null(x$strata)) {
+	x1 <- pfun(stime, surv, x$n.risk, x$n.event, x$lower, x$upper)
+	if (is.matrix(x1)) {
+	    if (is.null(x$lower)) dimnames(x1) <- list(NULL, plab)
+	    else                    dimnames(x1) <- list(NULL, c(plab, plab2))
 	    }
 	else {
-	    if (is.null(fit$lower)) names(x) <- plab
-	    else                    names(x) <- c(plab, plab2)
+	    if (is.null(x$lower)) names(x1) <- plab
+	    else                    names(x1) <- c(plab, plab2)
 	    }
-	print(x)
+	print(x1)
 	}
     else {   #strata case
-	nstrat <- length(fit$strata)
-	stemp <- rep(1:nstrat,fit$strata)
-	x <- NULL
+	nstrat <- length(x$strata)
+	stemp <- rep(1:nstrat,x$strata)
+	x1 <- NULL
 	for (i in unique(stemp)) {
 	    who <- (stemp==i)
 	    if (is.matrix(surv)) {
 		temp <- pfun(stime[who], surv[who,,drop=F],
-			  fit$n.risk[who], fit$n.event[who],
-			  fit$lower[who,,drop=F], fit$upper[who,,drop=F])
-		x <- rbind(x, temp)
+			  x$n.risk[who], x$n.event[who],
+			  x$lower[who,,drop=F], x$upper[who,,drop=F])
+		x1 <- rbind(x1, temp)
 		}
 	    else  {
-		temp <- pfun(stime[who], surv[who], fit$n.risk[who],
-			  fit$n.event[who], fit$lower[who], fit$upper[who])
-		x <- rbind(x, temp)
+		temp <- pfun(stime[who], surv[who], x$n.risk[who],
+			  x$n.event[who], x$lower[who], x$upper[who])
+		x1 <- rbind(x1, temp)
 		}
 	    }
-	temp <- names(fit$strata)
-	if (nrow(x) > length(temp)) {
-	    nrep <- nrow(x)/length(temp)
+	temp <- names(x$strata)
+	if (nrow(x1) > length(temp)) {
+	    nrep <- nrow(x1)/length(temp)
 	    temp <- rep(temp, rep(nrep, length(temp)))
 	    }
-	if (is.null(fit$lower)) dimnames(x) <- list(temp, plab)
-	else                    dimnames(x) <- list(temp, c(plab, plab2))
-	print(x)
+	if (is.null(x$lower)) dimnames(x1) <- list(temp, plab)
+	else                    dimnames(x1) <- list(temp, c(plab, plab2))
+	print(x1)
 	}
-    invisible(fit)
+    invisible(x)
     }

@@ -1,32 +1,32 @@
-# SCCS $Id: print.coxph.s,v 4.8 1996-07-10 12:00:16 therneau Exp $
+# SCCS $Id: print.coxph.s,v 4.9 1997-12-29 12:31:44 boos Exp $
 print.coxph <-
- function(cox, digits=max(options()$digits - 4, 3), ...)
+ function(x, digits=max(options()$digits - 4, 3), ...)
     {
-    if (!is.null(cl<- cox$call)) {
+    if (!is.null(cl<- x$call)) {
 	cat("Call:\n")
 	dput(cl)
 	cat("\n")
 	}
-    if (!is.null(cox$fail)) {
-	cat(" Coxph failed.", cox$fail, "\n")
+    if (!is.null(x$fail)) {
+	cat(" Coxph failed.", x$fail, "\n")
 	return()
 	}
     savedig <- options(digits = digits)
     on.exit(options(savedig))
 
-    coef <- cox$coef
-    se <- sqrt(diag(cox$var))
+    coef <- x$coef
+    se <- sqrt(diag(x$var))
     if(is.null(coef) | is.null(se))
         stop("Input is not valid")
 
-    if (is.null(cox$naive.var)) {
+    if (is.null(x$naive.var)) {
 	tmp <- cbind(coef, exp(coef), se, coef/se,
 	       signif(1 - pchisq((coef/ se)^2, 1), digits -1))
 	dimnames(tmp) <- list(names(coef), c("coef", "exp(coef)",
 	    "se(coef)", "z", "p"))
 	}
     else {
-	nse <- sqrt(diag(cox$naive.var))
+	nse <- sqrt(diag(x$naive.var))
 	tmp <- cbind(coef, exp(coef), nse, se, coef/se,
 	       signif(1 - pchisq((coef/se)^2, 1), digits -1))
 	dimnames(tmp) <- list(names(coef), c("coef", "exp(coef)",
@@ -35,17 +35,17 @@ print.coxph <-
     cat("\n")
     prmatrix(tmp)
 
-    logtest <- -2 * (cox$loglik[1] - cox$loglik[2])
+    logtest <- -2 * (x$loglik[1] - x$loglik[2])
     df <- sum(!is.na(coef))
     cat("\n")
     cat("Likelihood ratio test=", format(round(logtest, 2)), "  on ",
 	df, " df,", " p=", format(1 - pchisq(logtest, df)),  sep="")
-    omit <- cox$na.action
+    omit <- x$na.action
     if (length(omit))
-	cat("  n=", cox$n, " (", naprint(omit), ")\n", sep="")
-    else cat("  n=", cox$n, "\n")
-    if (length(cox$icc))
-	cat("   number of clusters=", cox$icc[1],
-	    "    ICC=", format(cox$icc[2:3]), "\n")
+	cat("  n=", x$n, " (", naprint(omit), ")\n", sep="")
+    else cat("  n=", x$n, "\n")
+    if (length(x$icc))
+	cat("   number of clusters=", x$icc[1],
+	    "    ICC=", format(x$icc[2:3]), "\n")
     invisible()
     }

@@ -1,17 +1,17 @@
-#SCCS $Date: 1996-09-27 11:02:48 $ $Id: print.coxph.null.s,v 4.6 1996-09-27 11:02:48 boos Exp $
+#SCCS $Date: 1997-12-29 12:31:23 $ $Id: print.coxph.null.s,v 4.7 1997-12-29 12:31:23 boos Exp $
 print.coxph.null <-
- function(cox, digits=max(options()$digits - 4, 3), ...)
+ function(x, digits=max(options()$digits - 4, 3), ...)
     {
-    if (!is.null(cl<- cox$call)) {
+    if (!is.null(cl<- x$call)) {
 	cat("Call:  ")
 	dput(cl)
 	cat("\n")
 	}
 
-    cat("Null model\n  log likelihood=", format(cox$loglik), "\n")
-    omit <- cox$na.action
+    cat("Null model\n  log likelihood=", format(x$loglik), "\n")
+    omit <- x$na.action
     if (length(omit))
-	cat("  n=", cox$n, " (", naprint(omit), ")\n",
+	cat("  n=", x$n, " (", naprint(omit), ")\n",
 				sep="")
-    else cat("  n=", cox$n, "\n")
+    else cat("  n=", x$n, "\n")
     }

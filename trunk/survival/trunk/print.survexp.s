@@ -1,52 +1,52 @@
-#SCCS $Id: print.survexp.s,v 4.11 1996-09-27 10:38:30 boos Exp $
-print.survexp <- function(fit, scale=1, digits = max(options()$digits - 4, 3), naprint=F, ...) {
-    if (!inherits(fit, 'survexp'))
+#SCCS $Id: print.survexp.s,v 4.12 1997-12-29 12:32:43 boos Exp $
+print.survexp <- function(x, scale=1, digits = max(options()$digits - 4, 3), naprint=F, ...) {
+    if (!inherits(x, 'survexp'))
 	    stop("Invalid data")
     savedig <- options(digits=digits)
     on.exit(options(savedig))
 
-    if (!is.null(cl<- fit$call)) {
+    if (!is.null(cl<- x$call)) {
 	cat("Call:\n")
 	dput(cl)
 	cat("\n")
 	}
 
-    if (!is.null(fit$summ)) cat(fit$summ)
-    omit <- fit$na.action
+    if (!is.null(x$summ)) cat(x$summ)
+    omit <- x$na.action
     if (length(omit))
 	cat(naprint(omit), "\n")
     else cat("\n")
 
-    if (is.null(fit$strata))  { #print it as a matrix
-	mat <- cbind(fit$time/scale, fit$n.risk, fit$surv, fit$std.err)
+    if (is.null(x$strata))  { #print it as a matrix
+	mat <- cbind(x$time/scale, x$n.risk, x$surv, x$std.err)
 	if (!naprint) {
 	    miss <- (is.na(mat)) %*% rep(1,ncol(mat))
 	    mat <- mat[miss<(ncol(mat)-2),,drop=F]
 	    }
-	if (is.matrix(fit$surv)) cname <- dimnames(fit$surv)[[2]]
+	if (is.matrix(x$surv)) cname <- dimnames(x$surv)[[2]]
 	else                     cname <- "survival"
-	if (!is.null(fit$std.err))
+	if (!is.null(x$std.err))
 	      cname <- c(cname, paste("se(", cname, ")", sep=''))
 	prmatrix(mat, rowlab=rep("", nrow(mat)),
 		   collab=c("Time", "n.risk", cname))
 	}
     else  { #print it out one strata at a time, since n's differ
-	if (is.null(fit$std.err)) tname <- 'survival'
+	if (is.null(x$std.err)) tname <- 'survival'
 	else                      tname <- c('survival', 'se(surv)')
-	nstrat <- length(fit$strata)
-	levs <- names(fit$strata)
-	if (nrow(fit$surv)==1) {
-	    mat <- cbind(c(fit$n.risk), c(fit$surv), c(fit$std.err*fit$surv))
+	nstrat <- length(x$strata)
+	levs <- names(x$strata)
+	if (nrow(x$surv)==1) {
+	    mat <- cbind(c(x$n.risk), c(x$surv), c(x$std.err*x$surv))
 	    dimnames(mat) <- list(levs, c("n.risk", tname))
-	    cat(" Survival at time", fit$time, "\n")
+	    cat(" Survival at time", x$time, "\n")
 	    prmatrix(mat)
 	    }
 	else {
 	    for (i in 1:nstrat) {
 		cat("       ", levs[i], "\n")
-		mat <- cbind(fit$time/scale, fit$n.risk[,i], fit$surv[,i])
-		if (!is.null(fit$std.err)) mat<- cbind(mat,
-			   fit$std.err[,i] * fit$surv[,i])
+		mat <- cbind(x$time/scale, x$n.risk[,i], x$surv[,i])
+		if (!is.null(x$std.err)) mat<- cbind(mat,
+			   x$std.err[,i] * x$surv[,i])
 		if (!naprint) mat <- mat[!is.na(mat[,3]),,drop=F]
 		prmatrix(mat, rowlab=rep("",nrow(mat)),
 				collab=c("Time", "n.risk", tname))
@@ -54,5 +54,5 @@ print.survexp <- function(fit, scale=1, digits = max(options()$digits - 4, 3), n
 		}
 	    }
 	}
-    invisible(fit)
+    invisible(x)
     }
