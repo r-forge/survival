@@ -1,4 +1,4 @@
-#SCCS  $Id: pyears.s,v 5.4 1999-02-19 16:46:55 therneau Exp $
+#SCCS  $Id: pyears.s,v 5.5 2001-05-10 11:31:03 therneau Exp $
 pyears <- function(formula=formula(data), data=sys.parent(),
 	weights, subset, na.action,
 	ratetable=survexp.us, scale=365.25,  expect=c('event', 'pyears'),
@@ -27,6 +27,7 @@ pyears <- function(formula=formula(data), data=sys.parent(),
 	    stop("stop time must be > start time")
 	}
     n <- nrow(Y)
+    if (is.null(n) || n==0) stop("Data set has 0 observations")
 
     weights <- model.extract(m, 'weights')
 
