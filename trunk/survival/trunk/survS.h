@@ -1,4 +1,4 @@
-/* $Id: survS.h,v 5.5 2004-03-05 07:33:12 therneau Exp $ */
+/* SCCS $Id: survS.h,v 5.6 2004-03-05 07:34:27 therneau Exp $
 /*
 **   The S.h file defines a few things that I need, and hundreds that I don't.
 ** In particular, on some architectures, it defines a variable "time"
