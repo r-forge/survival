@@ -2,7 +2,7 @@
 <!entity % S-OLD "INCLUDE">
 ]
 >
-<!-- SCCS $Id: plot.survfit.sgml,v 1.2 2003-11-13 13:57:02 therneau Exp $ -->
+<!-- SCCS $Id: plot.survfit.sgml,v 1.3 2004-11-05 11:26:20 therneau Exp $ -->
 <s-function-doc>
 <s-topics>
    <s-topic>plot.survfit</s-topic>
@@ -60,7 +60,12 @@ a vector of numeric values for line widths. The default value is 1.
 
 <s-arg name="cex">
 a numeric value specifying the size of the marks. 
-Not a vector; all marks have the same size. 
+This is not treated as a vector; all marks have the same size.
+Unlike most plot functions, changing <s-expression>cex</s-expression>
+will not change the size of the axis labels.
+In the rare case that you wish this, one way is to invoke
+<s-expression>par(cex=1.5)</s-expression> before doing the plot,
+and then reset the default to 1 after the plot.
 </s-arg>
 
 <s-arg name="log">
