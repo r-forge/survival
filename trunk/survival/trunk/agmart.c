@@ -1,4 +1,4 @@
-/* SCCS  $Id: agmart.c,v 4.2 1993-01-30 19:38:50 therneau Exp $
+/* SCCS  $Id: agmart.c,v 4.3 1993-06-17 12:27:05 therneau Exp $
 /*
 ** Compute the martingale residual for a counting process model
 **
@@ -9,6 +9,7 @@
 **      stop    vector of (start, stop] times for the subjects
 **      event   vector of status values
 **      score   the vector of subject scores, i.e., exp(beta*z)
+**      weight  case weights
 **      strata  is =1 for the last obs of a strata
 **
 ** Output
@@ -20,9 +21,10 @@
 */
 #include <stdio.h>
 
-void agmart(n, method, start, stop, event, score, strata, resid)
+void agmart(n, method, start, stop, event, score, wt, strata, resid)
 double  score[],
 	resid[],
+	wt[],
 	start[],
 	stop[];
 long    n[1],
@@ -35,6 +37,7 @@ long    n[1],
     double deaths, denom, e_denom;
     double hazard, e_hazard;
     double temp, time;
+    double wtsum;
     int nused;
     int person;
 
@@ -47,14 +50,16 @@ long    n[1],
 	else {
 	    denom =0;
 	    e_denom =0;
+	    wtsum =0;
 	    time = stop[person];
 	    deaths=0;
 	    for (k=person; k<nused; k++) {
 		if (start[k] < time) {
-		    denom += score[k];
+		    denom += score[k]*wt[k];
 		    if (stop[k]==time && event[k]==1) {
 			deaths++;
-			e_denom += score[k];
+			wtsum += wt[k];
+			e_denom += score[k]*wt[k];
 			}
 		     }
 		if (strata[k]==1) break;
@@ -65,10 +70,11 @@ long    n[1],
 	    */
 	    hazard =0;
 	    e_hazard=0;
+	    wtsum /=deaths;
 	    for (k=0; k<deaths; k++) {
 		temp = *method *(k/deaths);
-		hazard += 1/(denom - temp*e_denom);
-		e_hazard += (1-temp)/(denom - temp*e_denom);
+		hazard += wtsum/(denom - temp*e_denom);
+		e_hazard += wtsum*(1-temp)/(denom - temp*e_denom);
 		}
 	    for (k=person; k<nused; k++) {
 		if (start[k] < time) {

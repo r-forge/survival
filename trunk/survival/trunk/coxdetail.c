@@ -1,4 +1,4 @@
-/* SCCS $Id: coxdetail.c,v 4.3 1993-03-14 19:32:54 therneau Exp $
+/* SCCS $Id: coxdetail.c,v 4.4 1993-06-17 12:27:04 therneau Exp $
 /*
 ** Return all of the internal peices of a cox model
 **
@@ -15,6 +15,7 @@
 **                       vector can be identically zero, since the nth person's
 **                       value is always assumed to be = to 1.
 **       score(n)     :the risk score for the subject
+**       weights(n)   :case weights
 **       means        :first element contains the method
 **
 **  returned parameters
@@ -47,7 +48,7 @@
 double **dmatrix();
 
 void coxdetail(nusedx, nvarx, ndeadx, y, covar2, strata,  score,
-		  means2, u2, var, work)
+		  weights, means2, u2, var, work)
 
 long    *nusedx,
 	*nvarx,
@@ -59,6 +60,7 @@ double  *covar2,
 	*var;
 double  *work,
 	*score,
+	*weights,
 	*y;
 {
     register int i,j,k,person;
@@ -70,14 +72,16 @@ double  *work,
     double *a;
     double *a2, **cmat2;
     double *wmeans;
-    double  denom, weight;
+    double  denom;
     double  time;
     double  temp, temp2, temp3;
     double     method;
     double  hazard;
     int     itemp, deaths;
     int     ideath;
-    double efron_wt, d2;
+    double  efron_wt, d2;
+    double risk;
+    double  meanwt;
     double  *start,
 	    *stop,
 	    *event;
@@ -134,6 +138,7 @@ double  *work,
 	    */
 	    denom =0;
 	    efron_wt =0;
+	    meanwt =0;
 	    for (i=0; i<nvar; i++) {
 		a[i] =0;
 		a2[i]=0;
@@ -148,20 +153,21 @@ double  *work,
 	    for (k=person; k<nused; k++) {
 		if (start[k] < time) {
 		    nrisk++;
-		    weight = score[k];
-		    denom += weight;
+		    risk = score[k] * weights[k];
+		    denom += risk;
 		    for (i=0; i<nvar; i++) {
-			a[i] += weight*covar[i][k];
+			a[i] += risk*covar[i][k];
 			for (j=0; j<=i; j++)
-			    cmat[i][j] += weight*covar[i][k]*covar[j][k];
+			    cmat[i][j] += risk*covar[i][k]*covar[j][k];
 			}
 		    if (stop[k]==time && event[k]==1) {
 			deaths += 1;
-			efron_wt += weight*event[k];
+			efron_wt += risk*event[k];
+			meanwt += weights[k];
 			for (i=0; i<nvar; i++) {
-			    a2[i]+= weight*covar[i][k];
+			    a2[i]+= risk*covar[i][k];
 			    for (j=0; j<=i; j++)
-				cmat2[i][j] += weight*covar[i][k]*covar[j][k];
+				cmat2[i][j] += risk*covar[i][k]*covar[j][k];
 			    }
 			}
 		     }
@@ -173,19 +179,21 @@ double  *work,
 	    */
 	    itemp = -1;
 	    hazard =0;
+	    meanwt /= deaths;
 	    for (k=person; k<nused && stop[k]==time; k++) {
 		if (event[k]==1) {
 		    itemp++;
 		    temp = itemp*method/deaths;
 		    d2 = denom - temp*efron_wt;
-		    hazard += 1/d2;
+		    hazard += meanwt/d2;
 		    for (i=0; i<nvar; i++) {
 			temp2 = (a[i] - temp*a2[i])/d2;
 			means[i][ideath] += (wmeans[i] +temp2)/deaths;
-			u[i][ideath] += covar[i][k] - temp2;
+			u[i][ideath] += weights[k]*covar[i][k] - meanwt*temp2;
 			for (j=0; j<=i; j++) {
-			    temp3 = (cmat[i][j] - temp*cmat2[i][j])/d2-
-					       temp2*(a[j]-temp*a2[j])/d2;
+			    temp3 =((cmat[i][j] - temp*cmat2[i][j]) -
+					       temp2*(a[j]-temp*a2[j]))/d2;
+			    temp3 *= meanwt;
 			    var[i + j*nvar + ideath*nvar*nvar] +=temp3;
 			    if (j<i)
 				var[j + i*nvar + ideath*nvar*nvar] +=temp3;

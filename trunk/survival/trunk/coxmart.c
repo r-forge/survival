@@ -1,4 +1,4 @@
-/* SCCS  $Id: coxmart.c,v 4.2 1993-04-20 16:29:34 therneau Exp $     */
+/* SCCS  $Id: coxmart.c,v 4.3 1993-06-17 12:27:06 therneau Exp $     */
 /*
 ** Compute the martingale residual for a Cox model
 **
@@ -19,11 +19,12 @@
 */
 #include <stdio.h>
 
-void coxmart(n, method, time, status, strata, score, expect)
+void coxmart(sn, method, time, status, strata, score, wt, expect)
 double  score[],
+	wt[],
 	expect[],
 	time[];
-long    n[1],
+long    sn[1],
 	method[1],
 	status[],
 	strata[];
@@ -31,17 +32,19 @@ long    n[1],
     {
     register int i,j;
     int lastone;
+    int n;
     double deaths, denom, e_denom;
     double hazard;
-    double temp;
+    double temp, wtsum;
     double downwt;
 
-    strata[*n-1] =1;  /* Failsafe */
+    n = *sn;
+    strata[n-1] =1;  /* Failsafe */
 
     /* Pass 1-- store the risk denominator in 'expect' */
-    for (i= *n -1; i>=0; i--) {
+    for (i= n -1; i>=0; i--) {
 	if (strata[i]==1) denom =0;
-	denom += score[i];
+	denom += score[i]*wt[i];
 	if (i==0 || strata[i-1]==1 ||  time[i-1]!=time[i])
 		expect[i] = denom;
 	else    expect[i] =0;
@@ -49,28 +52,31 @@ long    n[1],
 
     /* Pass 2-- now do the work */
     deaths=0;
+    wtsum =0;
     e_denom=0;
     hazard =0;
     lastone = 0;
-    for (i= 0; i<*n; i++) {
+    for (i= 0; i<n; i++) {
 	if (expect[i]!=0) denom = expect[i];
 	expect[i] = status[i];
 	deaths += status[i];
-	e_denom += score[i]*status[i];
+	wtsum += status[i]*wt[i];
+	e_denom += score[i]*status[i] *wt[i];
 	if (strata[i]==1 ||  time[i+1]!=time[i]) {
 	    /*last subject of a set of tied times */
 	    if (deaths<2 || *method==0) {
-		hazard += deaths/denom;
+		hazard += wtsum/denom;
 		for (j=lastone; j<=i; j++) {
 		    expect[j] -= score[j]*hazard;
 		    }
 		}
 	    else {
 		temp = hazard;
+		wtsum /=deaths;
 		for (j=0; j<deaths; j++) {
 		    downwt = j /deaths;
-		    hazard +=  1/(denom - e_denom* downwt);
-		    temp   +=  (1-downwt)/(denom - e_denom* downwt);
+		    hazard +=  wtsum/(denom - e_denom* downwt);
+		    temp   +=  wtsum*(1-downwt)/(denom - e_denom* downwt);
 		    }
 		for (j=lastone; j<=i; j++) {
 		    if (status[j]==0) expect[j] = -score[j]*hazard;
@@ -79,8 +85,11 @@ long    n[1],
 		}
 	    lastone =i +1;
 	    deaths =0;
+	    wtsum=0;
 	    e_denom =0;
 	    }
 	if (strata[i]==1) hazard =0;
 	}
+
+    for (j=lastone; j<n; j++)  expect[j] -= score[j] * hazard;
     }

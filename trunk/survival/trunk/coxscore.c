@@ -1,4 +1,4 @@
-/* SCCS  $Id: coxscore.c,v 4.2 1993-04-25 19:01:32 therneau Exp $
+/* SCCS  $Id: coxscore.c,v 4.3 1993-06-17 12:27:07 therneau Exp $
 /*
 ** Compute the score residuals for a Cox model
 **
@@ -10,6 +10,7 @@
 **      covar2  the matrix of covariates, rows=variables, columns=subjects
 **                (the S executive stores matrices in the Fortran ordering)
 **      score   the vector of subject scores, i.e., exp(beta*z)
+**      weights case weight
 **      method  ==1 for efron method
 **
 ** Output
@@ -17,11 +18,15 @@
 **
 ** Scratch
 **      scratch,  from which a and a2 are carved
+**
+** Data must be sorted by strata, ascending time within strata, death before
+**                      censor within time.
 */
 #include <stdio.h>
 extern double **dmatrix();
 
-void coxscore(nx, nvarx, y, covar2, strata, score, method, resid2, scratch)
+void coxscore(nx, nvarx, y, covar2, strata, score, weights,
+		 method, resid2, scratch)
 long    nx[1],
 	nvarx[1],
 	*method,
@@ -30,6 +35,7 @@ double  y[],
 	*covar2,
 	*scratch,
 	*resid2,
+	weights[],
 	score[];
 
     {
@@ -41,9 +47,10 @@ double  y[],
     double *time, *status;
     double *a, *a2;
     double denom, e_denom;
+    double risk;
     double **covar;
     double **resid;
-    double hazard;
+    double hazard, meanwt;
     double downwt, temp2;
     double mean;
 
@@ -61,6 +68,7 @@ double  y[],
 
     e_denom=0;
     deaths=0;
+    meanwt=0;
     for (i=0; i<nvar; i++) a2[i] =0;
     strata[n-1] =1;  /*failsafe */
     for (i=n-1; i >=0; i--) {
@@ -69,21 +77,23 @@ double  y[],
 	    for (j=0; j<nvar; j++) a[j] =0;
 	    }
 
-	denom += score[i];
+	risk = score[i] * weights[i];
+	denom += risk;
 	if (status[i]==1) {
 	    deaths++;
-	    e_denom += score[i];
-	    for (j=0; j<nvar; j++) a2[j] += score[i]*covar[j][i];
+	    e_denom += risk;
+	    meanwt += weights[i];
+	    for (j=0; j<nvar; j++) a2[j] += risk*covar[j][i];
 	    }
 	for (j=0; j<nvar; j++) {
-	    a[j] += score[i] * covar[j][i];
+	    a[j] += risk * covar[j][i];
 	    resid[j][i] =0;
 	    }
 
 	if (deaths>0 && (i==0 || strata[i-1]==1 || time[i]!=time[i-1])){
 	    /* last obs of a set of tied death times */
 	    if (deaths <2 || *method==0) {
-		hazard = deaths/denom;
+		hazard = meanwt/denom;
 		for (j=0; j<nvar; j++)  {
 		    temp = (a[j]/denom);     /* xbar */
 		    for (k=i; k<n; k++) {
@@ -96,10 +106,11 @@ double  y[],
 		    }
 		}
 	    else {  /* the harder case */
+		meanwt /= deaths;
 		for (dd=0; dd<deaths; dd++) {
 		    downwt = dd/deaths;
 		    temp = denom - downwt* e_denom;
-		    hazard = 1/temp;
+		    hazard = meanwt/temp;
 		    for (j=0; j<nvar; j++) {
 			mean = (a[j] - downwt*a2[j])/ temp;
 			for (k=i; k<n; k++) {
@@ -117,6 +128,7 @@ double  y[],
 		}
 	    e_denom =0;
 	    deaths =0;
+	    meanwt =0;
 	    for (j=0; j<nvar; j++)  a2[j] =0;
 	    }
 	}

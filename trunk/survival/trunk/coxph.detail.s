@@ -1,4 +1,4 @@
-#SCCS  $Id: coxph.detail.s,v 4.3 1993-03-02 15:05:32 therneau Exp $
+#SCCS  $Id: coxph.detail.s,v 4.4 1993-06-17 12:27:05 therneau Exp $
 coxph.detail <-  function(object) {
     method <- object$method
     if (method!='breslow' && method!='efron')
@@ -8,6 +8,7 @@ coxph.detail <-  function(object) {
     rr <- object$residual
     y <- object$y
     x <- object$x
+    weights <- object$weights
     strat <- object$strata
     Terms <- object$terms
     if (!inherits(Terms, 'terms'))
@@ -27,6 +28,7 @@ coxph.detail <-  function(object) {
 	    else x <- model.matrix(Terms, m)[,-1,drop=F]   #remove column of 1's though
 	    }
 	if (is.null(y)) y <- model.extract(m, 'response')
+	weights <- model.extract(m, 'weights')
 	}
 
     nvar <- ncol(x)
@@ -46,6 +48,8 @@ coxph.detail <-  function(object) {
     y <- y[ord,]
     storage.mode(y) <- 'double'
     score <- exp(object$linear.predictor)[ord]
+    if (is.null(weights)) weights <- rep(1,n)
+    else                  weights <- weights[ord]
 
     ndeath <- sum(y[,3])
     ff <- .C("coxdetail", as.integer(n),
@@ -55,6 +59,7 @@ coxph.detail <-  function(object) {
 			  as.double(x),
 			  as.integer(newstrat),
 			  index =as.double(score),
+			  as.double(weights),
 			  means= c(method=='efron', double(ndeath*nvar)),
 			  u = double(ndeath*nvar),
 			  i = double(ndeath*nvar*nvar),
@@ -79,8 +84,9 @@ coxph.detail <-  function(object) {
 
     dimnames(ff$y) <- NULL
     temp <- list(time = time, means=means, nevent=ff$y[keep,1],
-	 nrisk = ff$y[keep,2], hazard= ff$y[,3], score= score,  imat=var,
+	 nrisk = ff$y[keep,2], hazard= ff$y[keep,3], score= score,  imat=var,
 	 y=y, x=x)
     if (length(strats)) temp$strata <- strat[keep]
+    if (!all(weights==1)) temp$weights=weights)
     temp
     }
