@@ -1,4 +1,4 @@
-#SCCS  $Id: print.survfit.s,v 4.20 2001-12-31 09:32:22 therneau Exp $
+#SCCS  $Id: print.survfit.s,v 4.21 2003-04-13 16:51:21 therneau Exp $
 print.survfit <- function(x, scale=1, 
 			  digits = max(options()$digits - 4, 3), ...) {
 
@@ -61,19 +61,22 @@ survmean <- function(x, scale=1) {
 	if (!is.null(upper)) {
 	    upper <- minmin(upper, time)
 	    lower <- minmin(lower, time)
-	    c(nused, sum(n.event), sum(mean), sqrt(varmean), med, lower, upper)
+	    c(nused, max(n.risk), n.risk[1], 
+              sum(n.event), sum(mean), sqrt(varmean), med, lower, upper)
 	    }
 	else
-		c(nused, sum(n.event), sum(mean), sqrt(varmean), med)
+		c(nused, max(n.risk), n.risk[1], sum(n.event), 
+                  sum(mean), sqrt(varmean), med)
 	}
 
     stime <- x$time/scale
     surv <- x$surv
-    plab <- c("n", "events", "mean", "se(mean)", "median")  #col labels
-    ncols <- 5     #number of columns in the output
+    plab <- c("n.obs", "n.max", "n.first", "events", 
+              "mean", "se(mean)", "median")  #col labels
+    ncols <- 7     #number of columns in the output
     if (!is.null(x$conf.int)) {
 	plab <- c(plab, paste(x$conf.int, c("LCL", "UCL"), sep=''))
-	ncols <- 7
+	ncols <- 9
 	}
 
     #Four cases: strata Y/N  by  ncol(surv)>1 Y/N
