@@ -1,11 +1,10 @@
-#SCCS $Date: 1992-06-26 23:27:46 $ $Id: survreg.fit.s,v 4.1 1992-06-26 23:27:46 therneau Exp $
+#SCCS $Date: 1992-06-27 02:15:00 $ $Id: survreg.fit.s,v 4.2 1992-06-27 02:15:00 therneau Exp $
 #
 # This handles the one parameter distributions-- extreme, logistic, and
 #       gaussian
 survreg.fit<- function(x, y, offset, init, iter.max,
 			eps, fun, scale, singular.ok=F)
     {
-    debug<-1
     if (!is.matrix(x)) stop("Invalid formula for fitting function")
     n <- nrow(x)
     nvar <- ncol(x)
@@ -30,7 +29,7 @@ survreg.fit<- function(x, y, offset, init, iter.max,
     #
     # Fit the null model --- only an intercept and sigma
     #
-    nfit <- CC(fun, iter= as.integer(iter.max),
+    nfit <- .C(fun, iter= as.integer(iter.max),
 		   as.integer(n),
 		   as.integer(1),
 		   y,
@@ -45,73 +44,13 @@ survreg.fit<- function(x, y, offset, init, iter.max,
 		   flag=integer(1),
 		   as.double(eps),
 		   deriv = matrix(double(3*n),ncol=3),
-		   as.integer(debug),
-		   as.integer(1))
-    # If necessary, get starting values for the regression
-    #   It seems to be more stable if I leave sigma out of the iteration
-    #
-    if (missing(init) || is.null(init) ) {
-	if (scale==0) sigma <- nfit$coef[2]
-	else          sigma <- scale
-	fit <- .C(fun, iter=as.integer(1),
-		       as.integer(n),
-		       as.integer(nvar),
-		       y,
-		       as.integer(ny),
-		       x,
-		       as.double(offset),
-		       coef= as.double(rep(0,nvar)),
-		       as.double(sigma),
-		       double(3*(nvar) + 2*n),
-		       imat= matrix(0, nvar, nvar),
-		       loglik=double(2),
-		       flag=integer(1),
-		       as.double(eps),
-		       deriv = matrix(double(3*n),ncol=3),
-		       as.integer(debug),
-		       as.integer(0))
-#       xfit <- .C(fun, iter=as.integer(0),
-#                      as.integer(n),
-#                      as.integer(nvar),
-#                      y,
-#                      as.integer(ny),
-#                      x,
-#                      as.double(offset),
-#                      coef= as.double(rep(0,nvar)),
-#                      as.double(1),
-#                      double(3*(nvar) + 2*n),
-#                      imat= matrix(0, nvar, nvar),
-#                      loglik=double(2),
-#                      flag=integer(1),
-#                      as.double(eps),
-#                      deriv = matrix(double(3*n),ncol=3),
-#                      as.integer(debug))
-#       xlm <- lm.wfit(x, xfit$deriv[,2]/xfit$deriv[,3], -xfit$deriv[,3], "qr")
-#       yfit <- .C(fun, iter=as.integer(0),
-#                      as.integer(n),
-#                      as.integer(nvar),
-#                      y,
-#                      as.integer(ny),
-#                      x,
-#                      as.double(offset),
-#                      coef= as.double(rep(0,nvar)),
-#                      as.double(sigma),
-#                      double(3*(nvar) + 2*n),
-#                      imat= matrix(0, nvar, nvar),
-#                      loglik=double(2),
-#                      flag=integer(1),
-#                      as.double(eps),
-#                      deriv = matrix(double(3*n),ncol=3),
-#                      as.integer(debug))
-#       ylm <- lm.wfit(x, yfit$deriv[,2]/yfit$deriv[,3], -yfit$deriv[,3], "qr")
-#
-#       browser()
-	if (scale==0) {
-	    #Estimate sigma from the residuals  - I'm a little fuzzy on this
-	    init <- c(fit$coef, sigma)
-	    }
-	else init <- fit$coef
+		   as.integer(2))
+
+    if (missing(init) || is.null(init)) {
+	init <- c(rep(0,nvar), nfit$coef[2])
+	doinit <- 1
 	}
+    else doinit <- 0
 
     fit <- .C(fun, iter=as.integer(iter.max),
 		   as.integer(n),
@@ -128,8 +67,7 @@ survreg.fit<- function(x, y, offset, init, iter.max,
 		   flag=integer(1),
 		   as.double(eps),
 		   deriv = matrix(double(3*n),ncol=3),
-		   as.integer(debug),
-		   as.integer(1))
+		   as.integer(doinit))
 browser()
     c(fit[c("iter", "coef", "imat", "loglik", "flag", "deriv")],
 		list(null=nfit$loglik))

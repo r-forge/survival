@@ -1,4 +1,4 @@
-#SCCS $Date: 1992-06-26 23:27:25 $ $Id: survreg.s,v 4.5 1992-06-26 23:27:25 therneau Exp $
+#SCCS $Date: 1992-06-27 02:15:00 $ $Id: survreg.s,v 4.6 1992-06-27 02:15:00 therneau Exp $
 survreg <- function(formula=formula(data), data=sys.parent(),
 	subset, na.action,
 	link=c('log', 'identity'), dist=c("extreme", "logistic", "exp"),
@@ -10,6 +10,7 @@ survreg <- function(formula=formula(data), data=sys.parent(),
     m <- match.call(expand=F)
     m$dist <- m$link <- m$model <- m$x <- m$y <- m$... <-  NULL
     m$eps <- m$inf.ratio <- m$init <- m$iter.max <- m$n.table <- NULL
+    m$scale <- NULL
 
     Terms <- if(missing(data)) terms(formula, 'strata')
 	     else              terms(formula, 'strata',data=data)
@@ -43,13 +44,13 @@ survreg <- function(formula=formula(data), data=sys.parent(),
 
     if( dist=="extreme")
 	sfit <- survreg.fit(X, Y, offset, init=init, iter.max=iter.max,
-			    eps = eps, fun='exvalue', scale=scale, ...)
+			    eps = eps, fun='exvalue', scale=scale)
     else if (dist=="logistic")
 	sfit <- survreg.fit(X, Y, offset, init=init, iter.max=iter.max,
-			    eps = eps, fun='logisticfit', scale=scale, ...)
+			    eps = eps, fun='logisticfit', scale=scale)
     else if (dist=="exp")
 	sfit <- survreg.fit(X, Y, offset, init=init, iter.max=iter.max,
-			    eps = eps, fun='exvalue', scale=1, ...)
+			    eps = eps, fun='exvalue', scale=1)
 
     else stop(paste ("Unknown method", dist))
 
@@ -61,8 +62,8 @@ survreg <- function(formula=formula(data), data=sys.parent(),
 	#  squares.
 	if (missing(scale)) scale <- sfit$coef[nvar+1]
 	eta <- c(X %*% sfit$coef[1:nvar]) + offset
-	wt<- -sfit$deriv[,3]/scale^2
-	fit <- lm.wfit(X, eta + sfit$deriv[,2]/(scale*wt), wt, "qr", ...)
+	wt<- -sfit$deriv[,3]
+	fit <- lm.wfit(X, eta + sfit$deriv[,2]/wt, wt, "qr", ...)
 
 	na.action <- attr(m, "na.action")
 	if (length(na.action)) fit$na.action <- na.action
@@ -72,6 +73,7 @@ survreg <- function(formula=formula(data), data=sys.parent(),
 	fit$deviance <- -2*sfit$loglik[1]
 	fit$null.deviance <- -2*sfit$null[1]
 	fit$iter <- sfit$iter
+	fit$scale<- scale
 	fit$var  <- solve(sfit$imat)
 	fit$flag <- sfit$flag
 	fit$dresiduals <- sign(fit$residuals)*sqrt(-2*sfit$deriv[,1])

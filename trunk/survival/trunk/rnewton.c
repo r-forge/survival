@@ -1,4 +1,4 @@
-/* SCCS $Id: rnewton.c,v 4.1 1992-06-26 23:23:27 therneau Exp $  */
+/* SCCS $Id: rnewton.c,v 4.2 1992-06-27 02:14:59 therneau Exp $  */
 /*
 ** Ridge stabilized Newton iteration
 **
@@ -124,8 +124,8 @@ void    (*dolk)(),
 	(*dolk)(n, nvar, newbeta, &newlk);
 	if (debug>0) {
 	    fprintf(stderr, "Iter %d: LL=%f, tau=%f, coef= ",
-				    iter, newlk, tau);
-	    for (i=0; i<nvar; i++) fprintf(stderr, "%f ", beta[i]);
+				    iter, newlk, tau*levenberg);
+	    for (i=0; i<nvar; i++) fprintf(stderr, "%f ", newbeta[i]);
 	    fprintf(stderr, "\n");
 	    }
 
@@ -145,8 +145,8 @@ void    (*dolk)(),
 
 	    if (debug>0) {
 		fprintf(stderr, "Halving! LL=%f, tau=%f, coef= ",
-					iter, newlk, tau);
-		for (i=0; i<nvar; i++) fprintf(stderr, "%f ", beta[i]);
+					 newlk, tau*levenberg);
+		for (i=0; i<nvar; i++) fprintf(stderr, "%f ", newbeta[i]);
 		fprintf(stderr, "\n");
 		}
 	    } while ( (eps + newlk) <= loglik[1]) ;
