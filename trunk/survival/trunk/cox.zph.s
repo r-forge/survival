@@ -1,4 +1,4 @@
-# SCCS $Id: cox.zph.s,v 1.11 1993-04-06 15:52:58 therneau Exp $
+# SCCS $Id: cox.zph.s,v 1.12 1993-04-12 11:57:52 therneau Exp $
 #  Test proportional hazards
 #
 cox.zph <- function(fit, transform='km', global=T) {
@@ -26,7 +26,10 @@ cox.zph <- function(fit, transform='km', global=T) {
 				# A nuisance to do left cont KM
 				t1 <- temp$surv[temp$n.event>0]
 				t2 <- temp$n.event[temp$n.event>0]
-				1- rep(c(1,t1), c(t2,0))
+				km <- rep(c(1,t1), c(t2,0))
+				if (is.null(attr(sresid, 'strata')))
+				    1-km
+				else (1- km[sort.list(sort.list(times))])
 				},
 			   stop("Unrecognized transform"))
 	}
