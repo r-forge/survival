@@ -1,4 +1,4 @@
-# SCCS $Id: survreg.distributions.s,v 4.5 1998-11-30 08:34:09 therneau Exp $
+# SCCS $Id: survreg.distributions.s,v 4.6 1998-12-22 08:14:44 therneau Exp $
 #
 # Create the survreg.distributions object
 #
@@ -129,7 +129,7 @@ loglogistic = list(
 
 t = list(
     name  = "Student-t",
-    variance <- function(df) df/(df-2),
+    variance = function(df) df/(df-2),
     parms = list(df=4),
     init  = function(x, weights, df) {
 	if (df <=2) stop ("Invalid degrees of freedom for the t-distribution")
