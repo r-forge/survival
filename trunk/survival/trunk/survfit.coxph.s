@@ -1,4 +1,4 @@
-#SCCS $Id: survfit.coxph.s,v 4.10 1993-03-19 15:24:55 therneau Exp $
+#SCCS $Id: survfit.coxph.s,v 4.11 1993-03-26 17:03:31 therneau Exp $
 survfit.coxph <-
   function(object, newdata, se.fit=T, conf.int=.95, individual=F,
 	    type=c('tsiatis', 'kaplan-meier'),
@@ -16,6 +16,7 @@ survfit.coxph <-
     coxmethod <- object$method
     if (!se.fit) conf.type <- 'none'
     else conf.type <- match.arg(conf.type)
+    if (length(strat)) temp <- untangle.specials(Terms, 'strata', 1)
 
     x <- object$x
     y <- object$y
@@ -24,7 +25,6 @@ survfit.coxph <-
 	m <- model.frame(object)
 	if (is.null(x)) {   #Both strata and X will be null, or neither
 	    if (length(strat)) {
-		temp <- untangle.specials(Terms, 'strata', 1)
 		x <- model.matrix(Terms[-temp$terms], m)[,-1,drop=F]
 		stratum <- strata(m[temp$vars])
 		}
@@ -41,7 +41,8 @@ survfit.coxph <-
 	    m <- model.frame(object)
 	    y <- model.extract(m, 'response')
 	    }
-	stratum <- rep(1,n)
+	if (length(strat)) stratum <- object$strata
+	else               stratum <- rep(1,n)
 	}
 
     ny <- ncol(y)
