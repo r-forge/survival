@@ -1,4 +1,4 @@
-# SCCS @(#)coxph.wtest.s        1.3 03/26/98
+# SCCS $Id: coxph.wtest.s,v 1.2 1998-10-28 08:53:34 therneau Exp $
 #
 # A Wald test routine, used by the Cox model
 #  Why not just do  sum(b * solve(var, b))? -- because the solve
