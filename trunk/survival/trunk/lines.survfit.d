@@ -7,7 +7,7 @@ Usually used to add the expected survival curve(s) to a Kaplan-Meier plot
 generated with plot.survfit.
 .CS
 lines.survfit(x, type="s", mark=3, col=1, lty=1, lwd=1, mark.time=T,
-xscale=1, yscale=1, ...)
+ type=c('surv', 'event', 'cumhaz'), xscale=1, yscale=1, ...)
 .RA
 .AG x
 a survival object, generated either from the survfit or survexp functions.
@@ -22,6 +22,10 @@ added curves.
 controls the labeling of the curves.  If False, no labeling is done.  If
 True, then curves are marked at each censoing time.  If mark.time is a numeric
 vector, then curves are marked at the specified time points.
+.AG type
+the type of curve to be drawn, either a survival curve, the probability
+of having an event by time t (1-survival) or the cumulative hazard
+(-log(survival)).
 .AG xscale
 a number used to divide the x values.  If time was originally in days, a
 value of 365.24 would give a plotted scale in years.

@@ -1,37 +1,55 @@
-# SCCS $Id: lines.survfit.s,v 4.9 1997-03-28 12:18:24 therneau Exp $
+# SCCS $Id: lines.survfit.s,v 4.10 1997-04-23 16:29:03 therneau Exp $
 lines.survfit <- function(x, type='s', mark=3, col=1, lty=1, lwd=1,
-		       mark.time =T, xscale=1, yscale=1,  ...) {
+		       mark.time =T, xscale=1, yscale=1, 
+		        ptype=c('surv', 'event', 'cumhaz'),  ...) {
+
+    ptype <- match.arg(ptype)
     if (inherits(x, 'survexp')) {
 	if (missing(type)) type <- 'l'
 	if (!is.numeric(mark.time)) mark.time <- F
 	}
-    if (is.numeric(mark.time)) mark.time <- sort(unique(mark.time[mark.time>0]))
+   
+    if (is.numeric(mark.time)) mark.time<- sort(unique(mark.time[mark.time>0]))
+
+    if (is.matrix(x$surv)) {
+	ncol.per.strat <- ncol(x$surv)
+	ncurve <- ncol(x$surv)
+	coffset <- nrow(x$surv)*(1:ncurve -1)     #within matrix offset
+	strata <- nrow(x$surv)                    #length of a curve
+        }
+    else {
+	ncol.per.strat <- 1
+	ncurve <- 1
+	coffset <- 0
+	strata <- length(x$time)
+        }
 
     if (is.null(x$strata)) {
-	if (is.matrix(x$surv)) ncurve <- ncol(x$surv)
-	else ncurve <- 1
 	nstrat <- 1
-	strata <- length(x$surv)/nstrat
+	soffset <- 0
 	}
     else {
-	strata <- x$strata
+	strata <- x$strata			#actual length of curves
 	nstrat <- length(strata)
-	ncurve <- nstrat * length(x$surv)/ sum(strata)
+	ncurve <- ncurve * nstrat
+	soffset<- ncol.per.strat * c(0, cumsum(strata))
 	}
 
     mark <- rep(mark, length=ncurve)
     col  <- rep(col , length=ncurve)
     lty  <- rep(lty , length=ncurve)
     lwd  <- rep(lwd , length=ncurve)
-    time <- rep(x$time, length=length(x$surv))
-    j <- 1
-    for (i in 1:ncurve) {
-	n <- strata[1+(i-1)%%nstrat]
-	who <- seq(from=j, length=n)
-	j <-  j+n
+    time <- rep(x$time, ncol.per.strat)
+
+    for (i in 1:nstrat) {
+      for (j in 1:ncol.per.strat) {
+	who <- seq(soffset[i]+ coffset[j]+1, length=strata[i])  
 	xx <- c(0, time[who])/xscale
-	yy <- c(1, x$surv[who])*yscale
 	nn <- length(xx)
+
+	if (ptype=='event')   yy <- c(0, 1-x$surv[who]) * yscale
+	else if(ptype=='surv') yy <- c(1, x$surv[who])*yscale
+	else                   yy <- c(0, -log(x$surv[who])) *yscale     
 	#
 	# This 'whom' addition is to replace verbose horizonal sequences
 	#  like (1, .2), (1.4, .2), (1.8, .2), (2.3, .2), (2.9, .2), (3, .1)
@@ -56,5 +74,6 @@ lines.survfit <- function(x, type='s', mark=3, col=1, lty=1, lwd=1,
 			      pch=mark[i],col=col[i], ...)
 	    }
 	}
+      }
     invisible()
     }
