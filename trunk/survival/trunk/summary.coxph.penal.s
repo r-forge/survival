@@ -1,4 +1,4 @@
-#SCCS $Id: summary.coxph.penal.s,v 1.1 1998-10-28 08:54:13 therneau Exp $
+#SCCS $Id: summary.coxph.penal.s,v 1.2 1999-01-14 16:35:00 therneau Exp $
 summary.coxph.penal <-
  function(object, conf.int = 0.95, scale = 1, terms=F, maxlabel=25,
 			digits = max(options()$digits - 4, 3)) {
@@ -98,7 +98,7 @@ summary.coxph.penal <-
 			     c("coef","se(coef)", "se2", "Chisq","DF","p"))
     prmatrix(temp, quote=F)
 
-    if(conf.int) {
+    if(conf.int & length(coef) >0 ) {
         z <- qnorm((1 + conf.int)/2, 0, 1)
         coef <- coef * scale
         se <- se * scale
@@ -113,7 +113,6 @@ summary.coxph.penal <-
         }
     logtest <- -2 * (object$loglik[1] - object$loglik[2])
     sctest <- object$score
-    df <- length(coef2)
 
     cat("\nIterations:", object$iter[1], "outer,", object$iter[2], 
         "Newton-Raphson\n")
@@ -129,9 +128,10 @@ summary.coxph.penal <-
     cat("Likelihood ratio test= ", format(round(logtest, 2)), "  on ",
 	df, " df,", "   p=", format(1 - pchisq(logtest, df)),
 	"\n", sep = "")
-    cat("Wald test            = ", format(round(object$wald.test, 2)), "  on ",
-	df, " df,", "   p=", format(1 - pchisq(object$wald.test, df)),
-	sep = "")
+    if (!is.null(object$wald.test))
+        cat("Wald test            = ", format(round(object$wald.test, 2)), 
+	    "  on ", df, " df,   p=",
+	    format(1 - pchisq(object$wald.test, df)), sep = "")
     if (!is.null(object$score))
         cat("\nScore (logrank) test = ", format(round(sctest, 2)), "  on ", df,
             " df,", "   p=", format(1 - pchisq(sctest, df)), sep ="") 
