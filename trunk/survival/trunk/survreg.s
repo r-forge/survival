@@ -1,11 +1,11 @@
 #
-# SCCS $Id: survreg.s,v 5.5 1999-05-07 11:59:26 therneau Exp $
+# SCCS $Id: survreg.s,v 5.6 1999-05-25 10:20:51 therneau Exp $
 #  The newest version of survreg, that accepts penalties and strata
 #
 setOldClass(c('survreg.penal', 'survreg'))
 
 survreg <- function(formula=formula(data), data=sys.parent(),
-	subset, na.action, dist='weibull', 
+	weights, subset, na.action, dist='weibull', 
 	init=NULL,  scale=0, control, parms=NULL, 
 	model=F, x=F, y=T, ...) {
 
@@ -164,7 +164,7 @@ survreg <- function(formula=formula(data), data=sys.parent(),
     na.action <- attr(m, "na.action")
     if (length(na.action)) fit$na.action <- na.action
     fit$df.residual <- n - sum(fit$df)
-    fit$fitted.values <- itrans(fit$linear.predictors)
+#   fit$fitted.values <- itrans(fit$linear.predictors)
     fit$terms <- Terms
     fit$formula <- as.vector(attr(Terms, "formula"))
     fit$means <- apply(X,2, mean)

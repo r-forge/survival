@@ -15,6 +15,8 @@ See the documentation for `lm' and `formula' for details.
 .AG data
 optional data frame in which to interpret the variables occurring in the
 formula.
+.AG weights
+case weights for the observations.
 .AG subset
 subset of the observations to be used in the fit.
 .AG na.action
