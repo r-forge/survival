@@ -1,9 +1,9 @@
-# SCCS $Id: format.Surv.s,v 4.3 1995-05-30 16:47:04 therneau Exp $
+# SCCS $Id: format.Surv.s,v 4.4 1996-07-10 11:59:46 therneau Exp $
 #
 # These two functions operate with the newer data.frame code, found on statlib
 #   (Eventually part of S, I assume)
 #
-format.Surv <- function(x) format(as.character.Surv(x))
+format.Surv <- function(x, ...) format(as.character.Surv(x), ...)
 
 # The better definition for this is
 #   "as.data.frame.Surv <- as.data.frame.model.matrix"
