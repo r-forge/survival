@@ -1,5 +1,4 @@
-/* SCCS $Id: aghaz2.c,v 4.2 1992-08-10 13:16:36 grill Exp $  */
-/* SCCS: @(#)aghaz.c	2.1  6/12/91
+/* SCCS $Id: aghaz2.c,v 4.3 1992-09-23 16:23:40 therneau Exp $  */
 /*
 ** Compute the hazard and cumulative hazard functions.
 **
