@@ -1,4 +1,4 @@
-/*    SCCS $Id: survindex2.c,v 5.5 2000-07-09 14:42:02 boos Exp $
+/*    SCCS $Id: survindex2.c,v 5.6 2000-09-08 16:11:06 boos Exp $
 ** A subroutine for summary.survfit
 **
 ** Input --
@@ -107,13 +107,23 @@ void survindex2(long   *n,          double *stime,      long   *strata,
 	    lower[nn] = o_lower[i];
 	    } /* end else 3 */
 	  } /* end if 2 */
+	/* fixed n_risk on output to reflect everyone starts */
+	/* at time zero - cmb 8/25/2000 */
 	  else if (j == 0) {
 	    n_event[nn] = 0;
-	    n_risk[nn] = 0;
+	    n_risk[nn] = o_n_risk[i]; /* changed - cmb 8/25/2000 */
 	    surv[nn] = 1;
 	    std_err[nn] = 0;
 	    upper[nn] = 1;
 	    lower[nn] = 1;
+	    }
+	    else { /* added - cmb 8/25/2000 */
+	      n_event[nn] = n_event[nn-1];
+	      n_risk[nn] = n_risk[nn-1];
+	      surv[nn] = surv[nn-1];
+	      std_err[nn] = std_err[nn-1];
+	      upper[nn] = upper[nn-1];
+	      lower[nn] = lower[nn-1];
 	    }
 	nn++; cc++;
         } /* end for j 1 */
@@ -151,22 +161,6 @@ void survindex2(long   *n,          double *stime,      long   *strata,
     } /* end for i 1 */
     times_strata[strata_count] = sum_times;
   }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
