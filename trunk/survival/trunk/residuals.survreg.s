@@ -1,3 +1,4 @@
+#SCCS $Id: residuals.survreg.s,v 4.7 1998-08-30 15:39:18 therneau Exp $
 residuals.survreg <-
 function(object, type = c("deviance", "pearson", "working", "matrix"))
 {
