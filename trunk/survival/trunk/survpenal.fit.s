@@ -1,5 +1,5 @@
 # 
-#  SCCS $Id: survpenal.fit.s,v 1.4 1999-02-06 23:40:16 therneau Exp $
+#  SCCS $Id: survpenal.fit.s,v 1.5 1999-02-07 22:05:00 therneau Exp $
 # fit a penalized parametric model
 #
 survpenal.fit<- function(x, y, weights, offset, init, controlvals, dist, 
@@ -296,11 +296,11 @@ survpenal.fit<- function(x, y, weights, offset, init, controlvals, dist,
 
     yy <- ifelse(status !=3, y[,1], (y[,1]+y[,2])/2 )
     coef <- sd$init(yy, weights,parms)
-    if (scale >0) vars <- log(scale)
-    else vars <- log(coef[2])/2   # init returns \sigma^2, I need log(sigma)
     # We sometimes get into trouble with a small estimate of sigma,
     #  (the surface isn't SPD), but never with a large one.  Double it.
-    coef <- c(coef[1], rep(vars + .7, nstrat))
+    if (scale >0) vars <- log(scale)
+    else vars <- log(coef[2])/2 +.7  # init returns \sigma^2, I need log(sigma)
+    coef <- c(coef[1], rep(vars, nstrat))
     # get a better initial value for the mean using the "glim" trick
     deriv <- derfun(y, yy, exp(vars), sd$density, parms)
     coef[1] <- sum(weights* (deriv$dg + deriv$ddg*(yy -offset))) /
