@@ -1,6 +1,6 @@
-# SCCS $Id: print.summary.survreg.s,v 4.13 1999-01-06 07:21:40 therneau Exp $
-print.summary.survreg <- function(x, digits = max(options()$digits - 4, 3), 
-				  quote = T, prefix = "") {
+# SCCS $Id: print.summary.survreg.s,v 4.14 1999-02-11 10:00:16 therneau Exp $
+print.summary.survreg <- function(x, digits = max(options()$digits - 4, 3),
+				  ...) {
     correl <- x$correl
     n <- x$n
 
