@@ -1,4 +1,4 @@
-#SCCS $Date: 1992-03-25 01:15:26 $ $Id: Surv.s,v 4.2 1992-03-25 01:15:26 therneau Exp $
+#SCCS $Date: 1992-03-25 01:18:14 $ $Id: Surv.s,v 4.3 1992-03-25 01:18:14 therneau Exp $
 # Package up surivival type data as a structure
 #  Eventually allow lots of censored data types
 #
@@ -94,4 +94,4 @@ is.na.Surv <- function(x) {
 
 Math.Surv <- function(...)  stop("Invalid operation on a survival time")
 Ops.Surv  <- function(...)  stop("Invalid operation on a survival time")
-Summary.Surv<-function(...) stop("Invalid operation on a survival time"
+Summary.Surv<-function(...) stop("Invalid operation on a survival time")
