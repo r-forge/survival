@@ -1,8 +1,9 @@
-# SCCS $Id: predict.coxph.penal.s,v 5.2 1998-11-03 13:04:58 therneau Exp $
+# SCCS $Id: predict.coxph.penal.s,v 5.3 1998-11-25 20:52:45 therneau Exp $
 predict.coxph.penal <- function(object,  newdata, 
 				type=c("lp", "risk", "expected", "terms"),
 				se.fit=F, terms=labels.lm(object), 
 				collapse, safe=F, ...) {
+
     type <- match.arg(type)
     n <- object$n
     Terms <- object$terms
@@ -43,7 +44,7 @@ predict.coxph.penal <- function(object,  newdata,
 		n <- nrow(as.data.frame(newdata))
 		pred <- rep(0,n)
 		}
-	    se <- object$fvar[indx]
+	    se <- sqrt(object$fvar[indx])
 	    pred <- object$linear.predictor
 	    if (type=='risk') pred <- exp(pred)
 	    }
