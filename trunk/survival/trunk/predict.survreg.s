@@ -1,4 +1,4 @@
-#SCCS $Date: 1992-03-04 16:48:14 $ $Id: predict.survreg.s,v 4.1 1992-03-04 16:48:14 therneau Exp $
+# SCCS $Id: predict.survreg.s,v 4.2 1992-03-24 22:09:16 therneau Exp $
 #What do I need to do predictions --
 #
 #linear predictor:  exists
@@ -13,85 +13,92 @@
 #                        new offset, new strata
 #
 #terms -- : X matrix and the means
-#    +se  : I matrix
-#   +new  : new X matrix and the old means
+#    +se  :  ""  + I matrix
+#   +new  : new X matrix and the old means + I matrix
 predict.surv.reg <-
 function(object, newdata, type=c("lp", "risk", "expected", "terms"),
 		se.fit=F,
-		terms=labels(object), miss.expand=T, collapse, ...)
+		terms=labels(object), miss.expand=T, collapse, safe=F, ...)
 
     {
     type <- match.arg(type)
     n <- object$n
     omit <- attr(n, 'omit')
+    Terms <- object$terms
+    strata <- attr(Terms, 'specials')$strata
+    if (length(strata)) Terms2 <- Terms[-strata]
+    else  Terms2 <- Terms
+    offset <- attr(Terms, "offset")
+    resp <- attr(Terms, "variables")[attr(Terms, "response")]
 
-
-    # Toss out some simple cases
-    if (!se.fit && missing(newdata)) {
-	if (type=='lp') return(object$linear.predictors)
-	if (type=='risk') return(exp(object$linear.predictors))
-	}
-
-    if (type=='expected') {
-	if (missing(newdata)) {
-	    y <- object$y
-	    if (is.null(y)) {
-		y <- eval(attr(Terms, "variables")[attr(Terms, "response")])
-		if (!is.null(omit)) y <- y[omit,]
-		}
-	    pred <- y[,ncol(y)] - object$residual
-	    se   <- sqrt(pred)
-	    }
-	else {
-	    pred <- coxreg(object, newdata, se.fit=F, at.failtime=T)
-	    se <- sqrt(pred)
-	    }
-	}
-
-    else {
-	# Ok, its going to be harder
-	Terms <- object$terms
-	if (!inherits(Terms, 'terms'))
-	    stop("Invalid terms component for object")
-	offset <- attr(Terms, 'offset')
-
-	if (!missing(newdata)) {
-	    m <- model.newframe(object, newdata)
-	    x <- model.matrix(Terms, m)
-	    if (!is.null(offset))  riskwt <- m[[riskwt]]
-	    else riskwt <- 0
-	    }
-	else {
+    if (missing(newdata)) {
+	if (type=='terms' || (se.fit && (type=='lp' || type=='risk'))) {
 	    x <- object$x
 	    if (is.null(x)) {
-		x <- model.matrix(Terms, model.frame(object))
+		x <- model.matrix(Terms2, model.frame(object))
+		}
+	    x <- sweep(x, 2, object$means)
+	    }
+	else if (type=='expected') {
+	    y <- object$y
+	    if (missing(y)) {
+		m <- model.frame(object)
+		y <- model.extract(m, 'response')
 		}
 	    }
+	}
+    else {
+	if (type=='expected')
+	     m <- model.newframe(Terms, newdata, response=T)
+	else m <- model.newframe(Terms2, newdata)
+
+	x <- model.matrix(Terms2, m)
 	x <- sweep(x, 2, object$means)
-
-	if (type == 'terms') {
-	    attr(x, "constant") <- rep(0, ncol(x))
-	    asgn <- object$assign
-	    terms <- match.arg(terms, labels(object))
-	    asgn <- asgn[terms]
-	    if (se.fit) {
-		temp <- Build.terms(x, object$coef, object$var, asgn, F)
-		pred <- temp$fit
-		se   <- temp$se.fit
-		}
-	    else pred<- Build.terms(x, object$coef, NULL, asgn, F)
-	    }
-
-	else {
-	    if (length(offset)) offset <- m[[offset]]
-	    else                offset <- 0
-	    pred <- x %*% object$coef
-	    se   <- diag(x %*% object$var %*% t(x))
-	    if (type=='risk') {
-		pred <- exp(pred)
-		se  <- se * pred
+	if (length(offset)) {
+	    if (type=='expected') offset <- as.numeric(m[[offset]])
+	    else {
+		offset <- attr(Terms2, 'offset')
+		offset <- as.numeric(m[[offset]])
 		}
 	    }
+	else offset <- 0
+	}
+
+    #
+    # Now, lay out the code one case at a time.
+    #  There is some repetition this way, but otherwise the code just gets
+    #    too complicated.
+    if (type=='lp' || type=='risk') {
+	if (missing(newdata)) {
+	    pred <- object$linear.predictors
+	    names(pred) <- names(object$residuals)
+	    }
+	else                  pred <- x %*% object$coef  + offset
+	if (se.fit) se <- sqrt(diag(x %*% object$var %*% t(x)))
+
+	if (type=='risk') {
+	    pred <- exp(pred)
+	    if (se.fit) se <- se * sqrt(pred)
+	    }
+	}
+
+    else if (type=='expected') {
+	if (missing(newdata)) pred <- y[,ncol(y)] - object$residual
+	else  stop("Method not yet finished")
+	se   <- sqrt(pred)
+	}
+
+    else {  #terms
+	attr(x, "constant") <- rep(0, ncol(x))
+	asgn <- object$assign
+	terms <- match.arg(terms, labels(object))
+	asgn <- asgn[terms]
+	if (se.fit) {
+	    temp <- Build.terms(x, object$coef, object$var, asgn, F)
+	    pred <- temp$fit
+	    se   <- temp$se.fit
+	    }
+	else pred<- Build.terms(x, object$coef, NULL, asgn, F)
 	}
 
     if (se.fit) se <- drop(se)

@@ -1,4 +1,3 @@
-#SCCS $Date: 1992-03-04 16:48:26 $ $Id: residuals.coxph.s,v 4.1 1992-03-04 16:48:26 therneau Exp $
 residuals.coxreg <-
   function(object, type=c("martingale", "deviance", "score", "schoenfeld"),
 	    miss.expand=T, collapse)
@@ -9,32 +8,43 @@ residuals.coxreg <-
     n <- length(object$residuals)
     rr <- object$residual
 
-    #Get y
     y <- object$y
-    ny <- ncol(y)
-    status <- y[,ny,drop=T]
+    x <- object$x
+    strat <- object$strata
 
-    # I need the X matrix, score, and strata
+    # I need Y, the X matrix, score, and strata
     Terms <- object$terms
     if (!inherits(Terms, 'terms'))
 	    stop("invalid terms component of object")
-    x <- object$x
     strata <- attr(Terms, "specials")$strata
-    if (length(strata)) {
-	m <- model.frame(object)
-	if (is.null(x)) x <- model.matrix(Terms[-strata], m)
-	if (length(strata)>1) stop("Only one strata() expression allowed")
-	strata <- m[[(as.character(Terms))[strata]]]
-	ord <- order(strata, y[,ny-1], -status)
-	newstrat <- c(diff(as.numeric(strata[ord]))!=0 ,1)
+    if (is.null(x) || is.null(y)) {
+	m <- object$model
+	if (is.null(m)) m <- model.frame(object)
+
+	if (is.null(x)) {
+	    if (length(strata)) {
+		x <- model.matrix(Terms[-strata], m)
+		if (length(strata)>1) stop("Only one strata() expression allowed")
+		strat <- m[[(as.character(Terms))[strata]]]
+		}
+	    else x <- model.matrix(Terms, m)
+	    }
+	if (is.null(y)) y <- model.extract(m, 'response')
 	}
-    else {
-	if (is.null(x)) x<- model.matrix(Terms, model.frame(object))
+
+    ny <- ncol(y)
+    nvar <- ncol(x)
+    status <- y[,ny,drop=T]
+
+    if (is.null(strat)) {
 	ord <- order(y[,ny-1], -status)
 	newstrat <- rep(0,n)
 	}
+    else {
+	ord <- order(strat, y[,ny-1], -status)
+	newstrat <- c(diff(as.numeric(strat[ord]))!=0 ,1)
+	}
     newstrat[n] <- 1
-    nvar <- ncol(x)
 
     # sort the data
     x <- x[ord,]
