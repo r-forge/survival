@@ -1,4 +1,4 @@
-# SCCS $Id: match.ratetable.s,v 4.3 1994-04-08 15:42:00 therneau Exp $
+# SCCS $Id: match.ratetable.s,v 4.4 1994-05-31 12:37:51 therneau Exp $
 # Do a set of error checks on whether the ratetable() vars match the
 #   actual ratetable
 # This is called by pyears and survexp, but not by users
@@ -12,9 +12,9 @@ match.ratetable <- function(R, ratetable) {
     dimid <- attr(ratetable, 'dimid')
     ord <- match(attR$dimnames[[2]], dimid)
     if (any(is.na(ord)))
-       stop(paste("Argument '", (dimnames(R)[[2]])[is.na(ord)],
-	    " in ratetable()",
-	    "' does not match the given table of event rates", sep=''))
+       stop(paste("Argument '", (attR$dimnames[[2]])[is.na(ord)],
+	    "' in ratetable()",
+	    " does not match the given table of event rates", sep=''))
     nd <- length(ord)
     if (nd != length(dimid))
 	stop("The ratetable() call has the wrong number of arguments")
