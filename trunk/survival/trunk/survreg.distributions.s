@@ -1,4 +1,4 @@
-# SCCS $Id: survreg.distributions.s,v 4.3 1992-11-19 17:37:43 therneau Exp $
+# SCCS $Id: survreg.distributions.s,v 4.4 1998-11-04 02:04:55 therneau Exp $
 #
 # Create the survreg.distributions object
 #
@@ -52,7 +52,6 @@ logistic = list(
 			scale <- exp(parms[1])
 			if (any(status==3)) {
 			    temp <- ifelse(status==3,(y[,2] - y[,1])/scale,1)
-			    temp <- (y[,2] - y[,1])/scale
 			    temp2 <- exp(temp/2)
 			    temp3 <- log((temp2-1)/(temp2+1))
 			    best <- ifelse(status==1, -log(4*scale),
