@@ -1,37 +1,35 @@
-# SCCS $Id: print.survreg.s,v 4.4 1992-06-17 13:58:40 sicks Exp $
-print.survreg <-
- function(cox, digits=3, ...)
-    {
-    if (!is.null(cl<- cox$call)) {
-	cat("Call:\n")
-	dput(cl)
-	cat("\n")
+#SCCS %#% $Date: 1992-07-10 09:13:31 $
+print.survreg <- function(x, ...)
+{
+    if(!is.null(cl <- x$call)) {
+        cat("Call:\n")
+        dput(cl)
+        }
+    if (!is.null(x$fail)) {
+	cat(" Survreg failed.", x$fail, "\n")
+	return(invisible(x))
 	}
-    if (!is.null(cox$fail)) {
-	cat(" Coxreg failed.", cox$fail, "\n")
-	return()
-	}
-    savedig <- options(digits = digits)
-    on.exit(options(savedig))
-
-    coef <- cox$coef
-    se <- sqrt(diag(cox$var))
-    if(is.null(coef) | is.null(se))
-        stop("Input is not valid")
-    tmp <- cbind(coef, exp(coef), se, coef/se, 1 - pchisq((coef/
-	se)^2, 1))
-    dimnames(tmp) <- list(names(coef), c("coef", "exp(coef)",
-	"se(coef)", "z", "p"))
-    prmatrix(tmp)
-
-    logtest <- -2 * (cox$loglik[1] - cox$loglik[2])
-    df <- length(coef)
-    cat("\n")
-    cat("Likelihood ratio test=", format(round(logtest, 2)), "  on ",
-	df, " df,", " p=", format(1 - pchisq(logtest, df)),  sep="")
-    omit <- cox$na.action
+    coef <- x$coef
+    if(any(nas <- is.na(coef))) {
+        if(is.null(names(coef))) names(coef) <- paste("b", 1:length(
+                coef), sep = "")        #               coef <- coef[!nas]
+        cat("\nCoefficients: (", sum(nas), 
+            " not defined because of singularities)\n", sep = "")
+        }
+    else cat("\nCoefficients:\n")
+    print(coef, ...)
+    rank <- x$rank
+    if(is.null(rank))
+        rank <- sum(!nas)
+    nobs <- length(x$residuals)
+    rdf <- x$df.resid
+    if(is.null(rdf))
+        rdf <- nobs - rank
+    omit <- x$na.action
     if (length(omit))
-	cat("  n=", cox$n, " (", naprint(omit), ")\n", sep="")
-    else cat("  n=", cox$n, "\n")
-    invisible()
+	cat("  n=", nobs, " (", naprint(omit), ")\n", sep="")
+    cat("\nScale estimate:", x$scale, "\n")
+    cat("Degrees of Freedom:", nobs, "Total;", rdf, "Residual\n")
+    cat("Residual Deviance:", format(x$deviance), "\n")
+    invisible(x)
     }
