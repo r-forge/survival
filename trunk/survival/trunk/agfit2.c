@@ -1,4 +1,4 @@
-/* SCCS $Id: agfit2.c,v 4.5 1992-08-31 08:07:22 sicks Exp $  */
+/* SCCS $Id: agfit2.c,v 4.6 1993-01-06 09:23:46 therneau Exp $  */
 /*
 ** Anderson-Gill formulation of the cox Model
 **
@@ -120,6 +120,7 @@ double  *eps;
 	for (person=0; person<nused; person++) temp += covar[i][person];
 	temp /= nused;
 	means[i] = temp;
+	for (person=0; person<nused; person++) covar[i][person] -=temp;
 	}
 
     /*

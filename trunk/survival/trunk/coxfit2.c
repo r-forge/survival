@@ -1,4 +1,4 @@
-/* SCCS $Id: coxfit2.c,v 4.5 1992-08-31 08:08:12 sicks Exp $  */
+/* SCCS $Id: coxfit2.c,v 4.6 1993-01-06 09:23:45 therneau Exp $  */
 /*
 ** here is a cox regression program, written in c
 **     uses Efron's approximation for ties
@@ -130,6 +130,7 @@ double  *eps;
 	for (person=0; person<nused; person++) temp += covar[i][person];
 	temp /= nused;
 	means[i] = temp;
+	for (person=0; person<nused; person++) covar[i][person] -=temp;
 	}
 
     /*
