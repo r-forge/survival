@@ -1,4 +1,4 @@
-#SCCS $Date: 1992-07-14 00:01:23 $ $Id: predict.coxph.s,v 4.5 1992-07-14 00:01:23 therneau Exp $
+#SCCS $Date: 1993-05-28 08:21:24 $ $Id: predict.coxph.s,v 4.6 1993-05-28 08:21:24 therneau Exp $
 #What do I need to do predictions --
 #
 #linear predictor:  exists
@@ -70,12 +70,13 @@ function(object, newdata, type=c("lp", "risk", "expected", "terms"),
     # Now, lay out the code one case at a time.
     #  There is some repetition this way, but otherwise the code just gets
     #    too complicated.
+    coef <- ifelse(is.na(object$coef), 0, coef)
     if (type=='lp' || type=='risk') {
 	if (missing(newdata)) {
 	    pred <- object$linear.predictors
 	    names(pred) <- names(object$residuals)
 	    }
-	else                  pred <- x %*% object$coef  + offset
+	else                  pred <- x %*% coef  + offset
 	if (se.fit) se <- sqrt(diag(x %*% object$var %*% t(x)))
 
 	if (type=='risk') {
@@ -96,11 +97,11 @@ function(object, newdata, type=c("lp", "risk", "expected", "terms"),
 	terms <- match.arg(Terms2, labels.lm(object))
 	asgn <- asgn[terms]
 	if (se.fit) {
-	    temp <- Build.terms(x, object$coef, object$var, asgn, F)
+	    temp <- Build.terms(x, coef, object$var, asgn, F)
 	    pred <- temp$fit
 	    se   <- temp$se.fit
 	    }
-	else pred<- Build.terms(x, object$coef, NULL, asgn, F)
+	else pred<- Build.terms(x, coef, NULL, asgn, F)
 	}
 
     if (se.fit) se <- drop(se)

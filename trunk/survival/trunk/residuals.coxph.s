@@ -1,4 +1,4 @@
-#SCCS $Id: residuals.coxph.s,v 4.15 1993-04-12 11:12:37 therneau Exp $
+#SCCS $Id: residuals.coxph.s,v 4.16 1993-05-28 08:21:25 therneau Exp $
 residuals.coxph <-
   function(object, type=c("martingale", "deviance", "score", "schoenfeld",
 			  "dbeta", "dfbetas", "scaledsch"),
@@ -85,9 +85,9 @@ residuals.coxph <-
 	else               names(rr) <- time
 
 	if (otype=='scaledsch') {
-	    if (nvar==1) rr <- rr*object$var + object$coef
-	    else         rr <- rr %*%object$var + outer(rep(1,nrow(rr)),
-							     object$coef)
+	    coef <- ifelse(is.na(object$coef), 0, object$coef)
+	    if (nvar==1) rr <- rr*object$var + coef
+	    else         rr <- rr %*%object$var + outer(rep(1,nrow(rr)),coef)
 	    }
 	return(rr)
 	}

@@ -1,4 +1,4 @@
-#SCCS $Id: survfit.coxph.s,v 4.13 1993-05-21 15:45:05 therneau Exp $
+#SCCS $Id: survfit.coxph.s,v 4.14 1993-05-28 08:21:26 therneau Exp $
 survfit.coxph <-
   function(object, newdata, se.fit=T, conf.int=.95, individual=F,
 	    type=c('tsiatis', 'kaplan-meier'),
@@ -104,7 +104,8 @@ survfit.coxph <-
 	}
     else x2 <- matrix(object$means, nrow=1)
     n2 <- nrow(x2)
-    newrisk <- exp(c(x2 %*% object$coef) + offset2 - sum(object$coef*object$means))
+    coef <- ifelse(is.na(object$coef), 0, object$coef)
+    newrisk <- exp(c(x2 %*% coef) + offset2 - sum(coef*object$means))
 
     dimnames(y) <- NULL   #I only use part of Y, so names become invalid
     if (stype==1) {
