@@ -2,6 +2,7 @@
 <!entity % S-OLD "INCLUDE">
 ]
 >
+<!-- SCCS $Id: aareg.sgml,v 1.3 2002-05-01 13:10:51 therneau Exp $ -->
 <s-function-doc>
 <s-topics>
 <s-topic> aareg </s-topic>
@@ -18,7 +19,9 @@ represents an Aalen model.
 aareg(formula, data=&lt;&lt;see below&gt;&gt;,
 weights=&lt;&lt;see below&gt;&gt;,  
     subset=&lt;&lt;see below&gt;&gt;, na.action, 
-   qrtol=1e-07, nmin)
+   qrtol=1e-07, nmin, dfbeta=F,
+   test = c('aalen', 'nrisk'),
+    model=F, x=F, y=F) {
 </s-old-style-usage>
 </s-usage>
 <s-args-required>
@@ -28,6 +31,9 @@ a formula object, with the response on the left of a `~' operator and
 the terms,
  separated by <s-expression>+</s-expression> operators, on the right. 
 The response must be a <s-expression>Surv</s-expression> object.
+Due to a particular computational approach that is used, the model
+MUST include an intercept term.  If "-1" is used in the model
+formula the program will ignore it.
 </s-arg>
 </s-args-required>
 <s-args-optional>
@@ -80,6 +86,25 @@ tolerance for detection of singularity in the QR decomposition
 minimum number of observations for an estimate; defaults to 3 times the
 number of covariates.
 </s-arg>
+
+<s-arg name=" dfbeta ">
+should the array of dfbeta residuals be computed.  This implies computation
+of the sandwich variance estimate.
+The residuals will always be computed if there is a
+<s-expression>cluster</s-expression> term in the model formula.
+</s-arg>
+
+<s-arg name=" test ">
+selects the weighting to be used, for computing an overall ``average''
+coefficient vector over time and the subsequent test for equality to zero.
+</s-arg>
+
+<s-arg name=" model, x, y ">
+should copies of the model frame, the x matrix of predictors, or the
+response vector y be included in the saved result.
+</s-arg>
+
+</s-arg>
 </s-args-optional>
 
 <s-value>
@@ -119,17 +144,36 @@ print.aareg, summary.aareg, plot.aareg
 Call:
 aareg(formula = Surv(time, status) ~ age + sex + ph.ecog, data = lung)
 
-135 out of 138 unique death times used
+  n=227 (1 observations deleted due to missing values)
+    136 out of 138 unique event times used
 
-              slope    test se(test)       z      p 
-Intercept  1.80e-03  0.0535    1.910  0.0281 0.9780
-      age  2.44e-05  2.4900    2.220  1.1200 0.2610
-      sex -1.16e-03 -0.0638    0.141 -0.4520 0.6510
-  ph.ecog  1.00e-03  0.3730    0.163  2.3000 0.0217
+              slope      coef se(coef)      z        p 
+Intercept  5.05e-03  5.87e-03 4.74e-03  1.240 0.216000
+      age  4.01e-05  7.15e-05 7.23e-05  0.989 0.323000
+      sex -3.16e-03 -4.03e-03 1.22e-03 -3.310 0.000935
+  ph.ecog  3.01e-03  3.67e-03 1.02e-03  3.610 0.000303
 
-Chisq= 36.32 on 4 df, p= 2.5e-07 
+Chisq=26.18 on 3 df, p=8.7e-06; test weights=aalen
 
 > plot(lfit[4])  # Draw a plot of the function for ph.ecog
+</s-example>
+<s-example>
+# A fit to the mulitple-infection data set of children with
+# Chronic Granuomatous Disease.  See section 8.5 of Therneau and Grambsch.
+> fita2 <- aareg(Surv(tstart, tstop, status) ~ rx + age + inherit +
+                         steroids + cluster(id), data=cgd1)
+> fit2a
+  n= 203 
+    69 out of 70 unique event times used
+
+              slope      coef se(coef) robust se     z        p 
+Intercept  0.012800  0.040600 0.021300  0.019600  2.08 0.037800
+       rx -0.002520 -0.010100 0.002290  0.003020 -3.36 0.000787
+      age -0.000101 -0.000317 0.000115  0.000117 -2.70 0.006840
+  inherit  0.001330  0.003830 0.002800  0.002420  1.58 0.114000
+ steroids -0.004620 -0.013200 0.010600  0.009700 -1.36 0.173000
+
+Chisq=16.74 on 4 df, p=0.0022; test weights=aalen
 </s-example>
 </s-examples>
 <s-keywords>
