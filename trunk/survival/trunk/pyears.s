@@ -1,4 +1,4 @@
-#SCCS  $Id: pyears.s,v 4.3 1996-07-29 21:37:47 therneau Exp $
+#SCCS  $Id: pyears.s,v 4.4 1996-07-29 21:41:22 therneau Exp $
 pyears <- function(formula=formula(data), data=sys.parent(),
 	weights, subset, na.action,
 	ratetable=survexp.us, scale=365.25,  expected=c('event', 'pyears'),
@@ -150,7 +150,7 @@ pyears <- function(formula=formula(data), data=sys.parent(),
     if (length(rate)) {
         out$expected <- array(temp$pexpect, dim=odims, dimnames=outdname)
 	if (expect=='pyears') out$expected <- out$expected/scale
-	if (!is.null(rtemp$summ)) out$summ <- rtemp$summ
+	if (!is.null(rtemp$summ)) out$summary <- rtemp$summ
 	}
     if (is.Surv(Y))
 	out$event    <- array(temp$pcount, dim=odims, dimnames=outdname)
