@@ -27,14 +27,10 @@ a vector of length 2 containing the log-likelihood with the initial values and
 with the final values of the coefficients.
 .AG score
 value of the efficient score test, at the initial value of the coefficients.
+.AG rscore
+the robust log-rank statistic, if a robust variance was requested.
 .AG iter
 number of iterations used.
-.AG icc
-the intra-class correlation coefficient.  This is only present if a
-`cluster' term appeared in the model and the number of subjects per cluster
-was >1.  It is a vector containing the number of clusters, the intra-class
-correlation of the martingale residuals, and the icc of the ranked residuals.
-Because the residuals are skewed, the latter may differ from the ordinary icc.
 .AG linear.predictors
 the vector of linear predictors, one per subject.
 .AG residuals

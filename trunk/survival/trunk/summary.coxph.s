@@ -1,4 +1,4 @@
-#SCCS $Date: 1996-09-27 10:39:21 $ $Id: summary.coxph.s,v 4.6 1996-09-27 10:39:21 boos Exp $
+#SCCS $Date: 1997-03-19 13:42:34 $ $Id: summary.coxph.s,v 4.7 1997-03-19 13:42:34 therneau Exp $
 summary.coxph <-
  function(cox, table = T, coef = T, conf.int = 0.95, scale = 1,
 			digits = max(options()$digits - 4, 3))
@@ -83,11 +83,15 @@ summary.coxph <-
     cat("Wald test            = ", format(round(wald.test, 2)), "  on ",
 	df, " df,", "   p=", format(1 - pchisq(wald.test, df)),
 	"\n", sep = "")
-    cat("Efficient score test = ", format(round(sctest, 2)), "  on ", df,
-        " df,", "   p=", format(1 - pchisq(sctest, df)), "\n\n", sep = 
-        "")
+    cat("Score (logrank) test = ", format(round(sctest, 2)), "  on ", df,
+        " df,", "   p=", format(1 - pchisq(sctest, df)), sep ="") 
+    if (is.null(cox$rscore)) cat("\n\n")
+    else cat(",   Robust = ", format(round(cox$rscore, 2)), 
+	   "  p=", format(1 - pchisq(cox$rscore, df)), "\n\n", sep="")   
+
     if (!is.null(cox$naive.var))
-      cat("   (Note: the likelihood ratio and efficient score tests",
-	  " assume independence of the observations).\n")
+	cat("  (Note: the likelihood ratio and score tests",
+	  "assume independence of\n     observations within a cluster,",
+	    "the Wald and robust score tests do not).\n")
     invisible()
     }
