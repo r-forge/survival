@@ -1,4 +1,4 @@
-#SCCS $Id: plot.survfit.s,v 4.2 1992-03-08 20:10:54 therneau Exp $
+#SCCS $Id: plot.survfit.s,v 4.3 1992-03-24 09:33:42 therneau Exp $
 plot.surv.fit<- function(surv, conf.int,  mark.time=T,
 		 mark=3,col=1,lty=1, lwd=1, cex=1,log=F,yscale=1,
 		 xlab="", ylab="", xaxs='i', ...) {
@@ -54,7 +54,7 @@ plot.surv.fit<- function(surv, conf.int,  mark.time=T,
 	drops _ (surv$n.event>0 | surv$time==max(surv$time[who]))
 	xx _ c(0,surv$time[who & drops])
 	yy _ c(1,surv$surv[who &drops])
-	lines(stepfun(xx,yy), lty=lty[i], col=col[i], lwd=lwd[i])
+	lines(xx, yy, lty=lty[i], col=col[i], lwd=lwd[i], type='s')
 
 	if (is.numeric(mark.time)) {
 	    nn <- length(xx)
@@ -74,9 +74,9 @@ plot.surv.fit<- function(surv, conf.int,  mark.time=T,
 	if (conf.int==T && !is.null(surv$upper)) {
 	    if (nstrat==1) lty[i] <- lty[i] +1
 	    yy _ c(1,surv$upper[who &drops])
-	    lines(stepfun(xx,yy), lty=lty[i], col=col[i], lwd=lwd[i])
+	    lines(xx,yy, lty=lty[i], col=col[i], lwd=lwd[i], type='s')
 	    yy _ c(1,surv$lower[who &drops])
-	    lines(stepfun(xx,yy), lty=lty[i], col=col[i], lwd=lwd[i])
+	    lines(xx,yy, lty=lty[i], col=col[i], lwd=lwd[i], type='s')
 	    }
 
 	}
