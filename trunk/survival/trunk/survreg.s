@@ -1,4 +1,4 @@
-#SCCS $Date: 1992-03-30 02:57:57 $ $Id: survreg.s,v 4.2 1992-03-30 02:57:57 therneau Exp $
+#SCCS $Date: 1992-04-13 23:05:51 $ $Id: survreg.s,v 4.3 1992-04-13 23:05:51 therneau Exp $
 surv.reg <- function(formula=formula(data), data=sys.parent(),
 	subset, na.action,
 	eps=.0001, init, iter.max=10,
@@ -30,6 +30,7 @@ surv.reg <- function(formula=formula(data), data=sys.parent(),
     if( method=="weibull") fitter <- weibull.fit
     else stop(paste ("Unknown method", method))
 
+    casewt <- rep(1,ncol(X))
     if (missing(init)) init <- NULL
     fit <- fitter(Y, X, casewt, offset, iter.max=iter.max,
 			eps=eps, init=init, ...)
