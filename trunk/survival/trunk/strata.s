@@ -1,4 +1,4 @@
-# $Id: strata.s,v 4.5 1992-07-13 21:05:08 therneau Exp $
+# $Id: strata.s,v 4.6 1992-11-18 14:04:45 therneau Exp $
 # Create a strata variable, possibly from many objects
 #
 strata <- function(..., na.group=F) {
@@ -21,7 +21,7 @@ strata <- function(..., na.group=F) {
 	}
     labs <- paste(words[nterms], wlab, sep='=')
     for (i in (1:nterms)[-nterms]) {
-	what <- allf[[i]]
+	what <- allf[[nterms-i]]
 	if(is.null(levels(what)))
 		what <- factor(what)
 	wlab <- levels(what)
@@ -35,7 +35,7 @@ strata <- function(..., na.group=F) {
 	labs <- as.vector(outer(wlab, labs, paste, sep = ", "))
 	}
     levs <- levs + 1
-    ulevs <- unique(levs[!is.na(levs)])
+    ulevs <- sort(unique(levs[!is.na(levs)]))
     levs <- match(levs, ulevs)
     labs <- labs[ulevs]
     levels(levs) <- labs
