@@ -1,4 +1,4 @@
-# SCCS $Id: predict.survreg.s,v 4.11 1999-02-06 23:39:02 therneau Exp $
+# SCCS $Id: predict.survreg.s,v 4.12 2002-06-17 10:55:34 therneau Exp $
 predict.survreg <-
     function(object, newdata, type=c('response', "link", 'lp', 'linear',
 				     'terms', 'quantile','uquantile'),
@@ -97,7 +97,8 @@ predict.survreg <-
     if (is.character(object$dist)) dd <- survreg.distributions[[object$dist]]
     else dd <- object$dist
     if (is.null(dd$itrans)) {
-	itrans <- dtrans <-function(x)x
+	itrans <- function(x) x  # identity transformation
+        dtrans <- function(x) 1  # derivative of the transformation
 	}
     else {
 	itrans <- dd$itrans
