@@ -151,15 +151,5 @@ plot(fit)
 #predicted survival curve
 fit <- coxph( Surv(admlfuhr, dead) ~ gcs.12, rochadm)
 plot( survfit( fit))
-.KW ~keyword
+.KW survival
 .WR
-
-
-
-
-
-
-
-
-
-
