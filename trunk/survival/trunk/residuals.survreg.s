@@ -1,7 +1,8 @@
-# SCCS $Id: residuals.survreg.s,v 4.9 1998-12-22 22:48:48 therneau Exp $
+# SCCS $Id: residuals.survreg.s,v 4.10 1999-01-23 21:49:19 therneau Exp $
 # 
 #  Residuals for survreg objects
-residuals.survreg <- function(object, type=c('response', 'deviance',
+#residuals.survreg <- function(object, type=c('response', 'deviance',
+tfun <- function(object, type=c('response', 'deviance',
 		      'dfbeta', 'dfbetas', 'working', 'ldcase',
 		      'ldresp', 'ldshape', 'matrix'), 
 		      rsigma =T, collapse=F, weighted=F) {
@@ -79,49 +80,64 @@ residuals.survreg <- function(object, type=c('response', 'deviance',
 	}
     if (!is.null(dd$dist))  dd <- survreg.distributions[[dd$dist]]
     deviance <- dd$deviance
-    dnum <- match(dd$name, c("Extreme value", "Logistic", "Gaussian"))
-    if (is.na(dnum)) {
-	stop("Not finished")
-	}
+    dens <- dd$density
 
     nvar <- length(object$coef)
     if (rsigma) vv <- object$var
     else        vv <- object$var[1:nvar, 1:nvar]
+
+    # Create the matrix of derivatives
+    #  The "density" function returns F, 1-F, f, f'/f, and f''/f
+    if (type != 'response') {
+	status <- y[,ncol(y)]
+	eta <- object$linear.predictor
+	z <- (y[,1] - eta)/sigma
+	dmat <- dens(z)
+	dtemp<- dmat[,3] * dmat[,4]    #f'
+	if (any(status==3)) {
+	    z2 <- (y[,2] - eta)/sigma
+	    dmat2 <- dens(z2)
+	    }
+	else {
+	    dmat2 <- dmat   #dummy values
+	    z2 <- 0
+	    }
+	deriv <- matrix(n,6)
+	tdenom <- ((status==0) * dmat[,2]) +
+		  ((status==1) * 1 )       +
+		  ((status==2) * dmat[,1]) +
+		  ((status==3) * ifelse(z>0, dmat[,2]-dmat2[,2], 
+		                             dmat2[,1] - dmat[,1]))
+	g <- log(ifelse(status==1, dmat[,3]/sigma, tdenom))
+	tdenom <- 1/(tdenom* sigma)
+	dg <- -tdenom   *(((status==0) * (0-dmat[,3])) +
+			  ((status==1) * dmat[,4]) + 
+			  ((status==2) * dmat[,3]) +
+			  ((status==3) * (dmat2[,3]- dmat[,3])))
+
+	ddg <- (tdenom/sigma)*(((status==0) * (0- dtemp)) +
+			       ((status==1) * dmat[,5]) +
+			       ((status==2) * dtemp) +
+			       ((status==3) * (dmat2[,3]*dmat2[,4] - dtemp))) 
+	td2 <- tdenom * sigma
+	ds  <- ifelse(status<3, dg * sigma * z,
+		                td2*(z2*dmat2[,3] - z*dmat[,3]))
+	dds <- ifelse(status<3, ddg* (sigma*z)^2,
+		                td2*(z2*z2*dmat2[,3]*dmat2[,4] -
+				     z * z*dmat[,3] * dmat[,4]))
+	dsg <- ifelse(status<3, ddg* sigma*z,
+		      td2 *(z2*dmat2[,3]*dmat2[,4] - z*dtemp))
+	deriv <- cbind(g, dg, ddg=ddg- dg^2, 
+		       ds = ifelse(status==1, ds-1, ds), 
+		       dds=dds - ds*(1+ds), 
+		       dsg=dsg - dg*(1+ds))
+	}
 
     #
     # Now, lay out the code one case at a time.
     #  There is some repetition this way, but otherwise the code gets
     #    too complicated.
     #
-    if (type != 'response') {
-	if (type=='ldshape' || type=='matrix' || rsigma) {
-	    deriv <- .C("survreg3",
-			as.integer(n),
-			as.double(y),
-			as.integer(ncol(y)),
-			as.double(object$linear.predictors),
-			nstrat = as.integer(nstrata),
-			strata = as.integer(strata),
-			vars= as.double(log(object$scale)),
-			deriv = matrix(double(n * 6),nrow=n),
-			as.integer(6),
-			as.integer(dnum))$deriv
-	    }
-	else {
-	    deriv <- .C("survreg3",
-			as.integer(n),
-			as.double(y),
-			as.integer(ncol(y)),
-			as.double(object$linear.predictors),
-			nstrat = as.integer(nstrata),
-			strata = as.integer(strata),
-			vars= as.double(log(object$scale)),
-			deriv = matrix(double(n * 3),nrow=n),
-			as.integer(3),
-			as.integer(dnum))$deriv
-	    }
-	}
-    
     if (type=='response') {
 	yhat0 <- deviance(y, object$scale[strata], object$parms)
 	rr <-  itrans(yhat0$center) - itrans(object$linear.predictor)
@@ -134,7 +150,7 @@ residuals.survreg <- function(object, type=c('response', 'deviance',
 	}
     
     else if (type=='dfbeta' || type== 'dfbetas') {
-	score <- x %*% deriv[,2]  # score residuals
+	score <- deriv[,2] %*% x  # score residuals
 	if (rsigma) score <- cbind(score, deriv[,4])
 	rr <-    score %*% vv
 	if (type=='dfbetas') rr <- rr %*% diag(1/sqrt(diag(vv)))
