@@ -1,4 +1,4 @@
-#SCCS  $Id: pyears.s,v 4.7 1997-11-18 14:16:03 therneau Exp $
+#SCCS  $Id: pyears.s,v 5.1 1998-08-30 15:36:02 therneau Exp $
 pyears <- function(formula=formula(data), data=sys.parent(),
 	weights, subset, na.action,
 	ratetable=survexp.us, scale=365.25,  expect=c('event', 'pyears'),
@@ -59,7 +59,7 @@ pyears <- function(formula=formula(data), data=sys.parent(),
 	outdname <- vector("list", odim)
 	for (i in 1:odim) {
 	    temp <- m[[ovars[i]]]
-	    ctemp <- class(temp)
+	    ctemp <- oldClass(temp)
 	    if (!is.null(ctemp) && ctemp=='tcut') {
 		X[,i] <- temp
 		temp2 <- attr(temp, 'cutpoints')
@@ -173,7 +173,7 @@ pyears <- function(formula=formula(data), data=sys.parent(),
 	if (x) out$x <- cbind(X, R)
 	if (y) out$y <- Y
 	}
-    class(out) <- 'pyears'
+    oldClass(out) <- 'pyears'
     out
     }
 
