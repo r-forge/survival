@@ -1,4 +1,4 @@
-/*  SCCS $Id: agexact.c,v 5.1 1998-08-30 14:51:19 therneau Exp $
+/*  SCCS $Id: agexact.c,v 5.2 1998-10-27 17:25:22 therneau Exp $
 /*
 ** Anderson-Gill formulation of the cox Model
 **   Do an exact calculation of the partial likelihood. (CPU city!)
@@ -20,6 +20,7 @@
 **       offset(n)    :linear offset
 **       eps          :tolerance for convergence.  Iteration continues until
 **                       the percent change in loglikelihood is <= eps.
+**       tol_chol     : tolerance for the Cholesky routine
 **
 **  returned parameters
 **       means(nv)    :column means of the X matrix
@@ -48,18 +49,16 @@
 **          living within tied times.
 */
 #include <math.h>
+#include "survS.h"
 #include "survproto.h"
-
-double **dmatrix();
-void  init_doloop();
 
 void agexact(long *maxiter,  long *nusedx,   long *nvarx,   double *start, 
 	     double *stop,   long *event,    double *covar2,double *offset, 
 	     long   *strata, double *means,  double *beta,  double *u, 
 	     double *imat2,  double loglik[2], long *flag,  double *work, 
-	     long   *work2,  double *eps,     double *sctest)
+	     long   *work2,  double *eps,    double *tol_chol, double *sctest)
 {
-    register int i,j,k, l, person;
+    int i,j,k, l, person;
     int     iter;
     int     n, nvar;
 
@@ -210,7 +209,7 @@ void agexact(long *maxiter,  long *nusedx,   long *nvarx,   double *start,
     for (i=0; i<nvar; i++) /*use 'a' as a temp to save u0, for the score test*/
 	a[i] = u[i];
 
-    *flag= cholesky2(imat, nvar);
+    *flag= cholesky2(imat, nvar, *tol_chol);
     chsolve2(imat,nvar,a);        /* a replaced by  a *inverse(i) */
 
     *sctest=0;
@@ -338,7 +337,7 @@ void agexact(long *maxiter,  long *nusedx,   long *nvarx,   double *start,
 	/* am I done?
 	**   update the betas and test for convergence
 	*/
-	*flag = cholesky2(imat, nvar);
+	*flag = cholesky2(imat, nvar, *tol_chol);
 
 	if (fabs(1-(loglik[1]/newlk))<=*eps ) { /* all done */
 	    loglik[1] = newlk;

@@ -1,4 +1,4 @@
-/*  SCCS $Id: agfit2.c,v 5.1 1998-08-30 14:51:50 therneau Exp $
+/*  SCCS $Id: agfit2.c,v 5.2 1998-10-27 17:25:31 therneau Exp $
 /*
 ** Anderson-Gill formulation of the cox Model
 **
@@ -20,6 +20,7 @@
 **       weights(n)   :case weights
 **       eps          :tolerance for convergence.  Iteration continues until
 **                       the percent change in loglikelihood is <= eps.
+**       tol_chol     : tolerance for the Cholesky routine
 **
 **  returned parameters
 **       means(nv)    :column means of the X matrix
@@ -51,6 +52,7 @@
 **          living within tied times.
 */
 #include <math.h>
+#include "survS.h"
 #include "survproto.h"
 
 void agfit2( long   *maxiter,  long   *nusedx,  long   *nvarx, 
@@ -59,9 +61,9 @@ void agfit2( long   *maxiter,  long   *nusedx,  long   *nvarx,
 	     long   *strata,   double *means,   double *beta, 
 	     double *u,        double *imat2,   double loglik[2], 
 	     long   *flag,     double *work,    long   *end,
-	     double *eps,      double *sctest)
+	     double *eps,      double *tol_chol, double *sctest)
 {
-    register int i,j,k,person;
+    int i,j,k,person;
     int     iter;
     int     nused, nvar;
     int     endp;
@@ -202,7 +204,7 @@ void agfit2( long   *maxiter,  long   *nusedx,  long   *nvarx,
     for (i=0; i<nvar; i++) /*use 'a' as a temp to save u0, for the score test*/
 	a[i] = u[i];
 
-    *flag = cholesky2(imat, nvar);
+    *flag = cholesky2(imat, nvar, *tol_chol);
     chsolve2(imat,nvar,a);        /* a replaced by  a *inverse(i) */
 
     *sctest=0;
@@ -310,7 +312,7 @@ void agfit2( long   *maxiter,  long   *nusedx,  long   *nvarx,
 	/* am I done?
 	**   update the betas and test for convergence
 	*/
-	*flag = cholesky2(imat, nvar);
+	*flag = cholesky2(imat, nvar, *tol_chol);
 
 	if (fabs(1-(loglik[1]/newlk))<=*eps ) { /* all done */
 	    loglik[1] = newlk;
