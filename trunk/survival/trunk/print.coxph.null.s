@@ -1,4 +1,4 @@
-#SCCS $Date: 1996-09-27 10:35:54 $ $Id: print.coxph.null.s,v 4.5 1996-09-27 10:35:54 boos Exp $
+#SCCS $Date: 1996-09-27 11:02:48 $ $Id: print.coxph.null.s,v 4.6 1996-09-27 11:02:48 boos Exp $
 print.coxph.null <-
  function(cox, digits=max(options()$digits - 4, 3), ...)
     {
