@@ -1,4 +1,4 @@
-#SCCS $Id: Surv.s,v 5.9 2001-08-03 14:59:08 therneau Exp $
+#SCCS $Id: Surv.s,v 5.10 2001-12-30 17:03:38 therneau Exp $
 # Package up surivival type data as a structure
 #
 Surv <- function(time, time2, event,
@@ -8,8 +8,8 @@ Surv <- function(time, time2, event,
     if (missing(time)) stop ("Must have a time argument")
     if (!is.numeric(time)) stop ("Time variable is not numeric")
     nn <- length(time)
-    if (length(origin)!=1 && length(origin)!=nn) 
-	    stop("Wrong length for origin")
+#    if (length(origin)!=1 && length(origin)!=nn) 
+#	    stop("Wrong length for origin")
 
     ng <- 1 + (!missing(time2)) + (!missing(event))  #of first 3 present
     # The logic below uses "ng" throughout; why not use "missing(time2)"
@@ -32,7 +32,7 @@ Surv <- function(time, time2, event,
 	ss <- cbind(time=time-origin, status=1)
 	}
     else if (type=='right' || type=='left') {
-	if (length(time2) != nn) stop ("Time and status are different lengths")
+#	if (length(time2) != nn) stop ("Time and status are different lengths")
 	if (is.logical(time2)) status <- as.numeric(time2)
 	else  if (is.numeric(time2)) {
 	    who2 <- !is.na(time2)
@@ -47,8 +47,8 @@ Surv <- function(time, time2, event,
 	ss <- cbind(time=time-origin, status=status)
 	}
     else  if (type=='counting') {
-	if (length(time2) !=nn) stop ("Start and stop are different lengths")
-	if (length(event)!=nn) stop ("Start and event are different lengths")
+#	if (length(time2) !=nn) stop ("Start and stop are different lengths")
+#	if (length(event)!=nn) stop ("Start and event are different lengths")
 	if (!is.numeric(time2)) stop("Stop time is not numeric")
 	who3 <- !(is.na(time) | is.na(time2))
 	if (any (time[who3]>= time2[who3])) {
@@ -73,8 +73,8 @@ Surv <- function(time, time2, event,
 	if (type=='interval2') {
 	    # convert to "interval" type, infer the event code
 	    if (!is.numeric(time2)) stop("Time2 must be numeric")
-	    if (length(time2) !=nn) 
-		    stop ("Time1 and time2 are different lengths")
+#	    if (length(time2) !=nn) 
+#		    stop ("Time1 and time2 are different lengths")
 	    status <- ifelse(is.na(time), 2,
 		      ifelse(is.na(time2),0,
 		      ifelse(time==time2, 1,3)))
@@ -82,8 +82,8 @@ Surv <- function(time, time2, event,
 	    type <- 'interval'
 	    }
 	else {  #check legality of event code
-	    if (length(event)!=nn) 
-		    stop("Time and status are different lengths")
+#	    if (length(event)!=nn) 
+#		    stop("Time and status are different lengths")
 	    if (is.logical(event)) status <- as.numeric(event)
 	    else {
 		if (!is.numeric(event)) 
@@ -95,8 +95,8 @@ Surv <- function(time, time2, event,
 		}
 	    if (any(event==3)) {
 		if (!is.numeric(time2)) stop("Time2 must be numeric")
-		if (length(time2) !=nn) 
-		    stop ("Time1 and time2 are different lengths")
+#		if (length(time2) !=nn) 
+#		    stop ("Time1 and time2 are different lengths")
 		}
 	    else time2 <- 1  #dummy value, time2 is never used
 	    }
@@ -165,7 +165,7 @@ as.character.Surv <- function(xx) {
 	cl <- oldClass(x)
 	type <- attr(x, "type")
 	oldClass(x) <- NULL
-	attr(x, "type") <- NULL
+#	attr(x, "type") <- NULL
 	x <- x[..1,, drop=F]
 	attr(x, "type") <- type
 	oldClass(x) <- cl
@@ -173,7 +173,7 @@ as.character.Surv <- function(xx) {
 	}
     else { # return  a matrix or vector
 	oldClass(x) <- NULL
-	attr(x, "type") <- NULL
+#	attr(x, "type") <- NULL
 	NextMethod("[")
 	}
     }
