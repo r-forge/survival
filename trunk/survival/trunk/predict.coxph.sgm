@@ -1,0 +1,75 @@
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>predict.coxph</s-topic>
+</s-topics>
+<s-title>
+Make predictions from a fitted coxph object. 
+</s-title>
+<s-description>
+Creates predicted values from a coxph fit. 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+predict.coxph(object, newdata, type=c("lp", "risk", "expected", "terms"),  
+se.fit=F, terms=labels.lm(object), collapse) 
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="object">
+the results of a coxph fit. 
+</s-arg>
+</s-args-required>
+<s-args-optional>
+<s-arg name="newdata">
+data for prediction.  If absent predictions are for the 
+subjects used in the original fit. 
+</s-arg>
+<s-arg name="type">
+the type of predicted value. 
+Choices are the linear predictor (lp), the risk score exp(lp) (risk), 
+the expected number of events given the covariates and follow-up time 
+(expected), and the terms of the linear predictor (terms). 
+</s-arg>
+<s-arg name="se.fit">
+if TRUE, pointwise standard errors are produced for the predictions. 
+</s-arg>
+<s-arg name="terms">
+if type="terms", this argument can be used to specify which terms should be 
+included; the default is all. 
+</s-arg>
+<s-arg name="collapse">
+optional vector of subject identifiers.  
+If specified, the output will contain one entry per subject rather than one 
+entry per observation. 
+</s-arg>
+</s-args-optional>
+<s-value>
+a vector or matrix of predictions, or a list containing the predictions 
+(element "fit") and their standard errors (element "se.fit") if the se.fit 
+option is TRUE. 
+</s-value>
+<s-details>
+This function is a method for the generic function <s-expression>predict</s-expression> for class 
+<s-expression>coxph</s-expression>.  It can be invoked by calling <s-expression>predict</s-expression> for an object of the 
+appropriate class, or by calling predict.coxph directly. 
+</s-details>
+<s-see>
+coxph, residuals.coxph  </s-see>
+<s-examples>
+<s-example type = text>
+&gt; options(na.action='na.omit') 
+&gt; fit &lt;- coxph(Surv(time, status) ~ age + ph.ecog + strata(inst), lung) 
+&gt; mresid &lt;- lung$status - predict(fit, type='expected') #Martingale resid 
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>survival</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

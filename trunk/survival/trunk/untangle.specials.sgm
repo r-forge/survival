@@ -1,0 +1,69 @@
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>untangle.specials</s-topic>
+</s-topics>
+<s-title>
+Process the <s-expression>specials</s-expression> Argument of the Terms Function 
+</s-title>
+<s-description>
+Given a terms structure and a desired special name, this returns an index 
+appropriate for subscripting the terms structure and another appropriate for 
+the data frame. 
+This function is used by the survival functions. 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+untangle.specials(tt, special, order=1) 
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="tt">
+a <s-expression>terms</s-expression> object. 
+</s-arg>
+<s-arg name="special">
+the name of a special function, presumably used in the terms object. 
+</s-arg>
+</s-args-required>
+<s-args-optional>
+<s-arg name="order">
+the order of the desired terms. 
+If set to 2, interactions with the special function will be included. 
+</s-arg>
+</s-args-optional>
+<s-value>
+a list with two components: 
+<s-return-component name="vars">
+a vector of variable names, as would be found in the data frame, of the 
+specials. 
+</s-return-component>
+<s-return-component name="terms">
+a numeric vector, suitable for subscripting the terms structure, that indexes 
+the terms in the expanded model formula which involve the special. 
+</s-return-component>
+</s-value>
+<s-examples>
+<s-example type = text>
+# This is code from within the coxph program, m is the data frame and TT 
+# the terms structure for the formula.  We wish to exclude first order 
+# strata() terms from the final X matrix, and also to extract these terms 
+# to a second data frame 
+TT &lt;- terms(formula, specials='strata') 
+temp &lt;- untangle.specials(TT, 'strata') 
+if (length(temp$vars)) { 
+    X &lt;- model.matrix( TT[-temp$terms], m) 
+    m.strat &lt;- m[temp$vars] 
+    } 
+else X &lt;- model.matrix(TT, m) 
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>survival4</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

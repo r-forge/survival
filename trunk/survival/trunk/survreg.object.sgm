@@ -1,0 +1,88 @@
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>survreg.object</s-topic>
+</s-topics>
+<s-title>
+Parametric Survival Model Object 
+</s-title>
+<s-description>
+Classes of objects that result from fitting a parametric survival model. 
+</s-description>
+<s-section name=" GENERATION">
+
+This class of objects is returned by the <s-expression>survreg</s-expression> function 
+to represent a fitted parametric survival model. 
+Class <s-expression>survreg</s-expression> inherits from class <s-expression>glm</s-expression>, since it is fit by iterative 
+reweighted least squares; the object returned has all the components of a 
+weighted least squares object. 
+</s-section>
+<s-section name=" METHODS">
+
+Objects of this class have methods for the functions <s-expression>print</s-expression>, 
+<s-expression>summary</s-expression>, <s-expression>predict</s-expression>, and <s-expression>residuals</s-expression>. 
+</s-section>
+<s-section name=" STRUCTURE">
+
+The following components must be included in a legitimate <s-expression>survreg</s-expression> object. 
+The residuals, fitted values, coefficients and effects should be extracted 
+by the generic functions of the same name, rather than 
+by the <s-expression>"$"</s-expression> operator.  
+</s-section>
+<s-args>
+<s-arg name="coefficients">
+the coefficients of the <s-expression>linear.predictors</s-expression>, which multiply  the 
+columns of the model matrix.  It does not include the estimate of error  
+(sigma).  The names of the coefficients are the names of the 
+single-degree-of-freedom effects (the columns of the model matrix). 
+If the model is over-determined there will be missing values in the  
+coefficients corresponding to nonestimable coefficients. 
+</s-arg>
+<s-arg name="family">
+a 2 element character vector giving the name of the family and 
+the link; mainly for printing purposes. 
+</s-arg>
+<s-arg name="parms">
+the parameters of the model that are not coefficients of the model matrix. 
+The first of these will always be <s-expression>log(sigma)</s-expression>. 
+</s-arg>
+<s-arg name="fixed">
+a vector the same length as <s-expression>parms</s-expression>, where 1 indicates a parameter that 
+was fixed at its starting value and was not part of the iteration. 
+</s-arg>
+<s-arg name="var">
+the final variance matrix, including both coefficients and free parameters. 
+</s-arg>
+<s-arg name="dresiduals">
+the deviance residuals. 
+</s-arg>
+<s-arg name="deviance">
+minus twice the difference between the maximized log-likelihood under the 
+fitted model and a saturated model. Similar to the residual sum of squares. 
+</s-arg>
+<s-arg name="null.deviance">
+the deviance corresponding to the model with only an intercept term, and 
+with <s-expression>parms</s-expression> fixed at their final values. 
+</s-arg>
+<s-arg name="loglik">
+the log-likelihood for the final model. 
+<br><br>
+The object will also have the components of a <s-expression>glm</s-expression> object not mentioned 
+above: <s-expression>linear predictors</s-expression>, <s-expression>fitted.values</s-expression>, <s-expression>residuals</s-expression>, <s-expression>effects</s-expression>, <s-expression>R</s-expression>,  
+<s-expression>rank</s-expression>, <s-expression>assign</s-expression>, <s-expression>df.residual</s-expression>, <s-expression>weights</s-expression>, <s-expression>call</s-expression>, <s-expression>iter</s-expression>, <s-expression>contrasts</s-expression>,  
+<s-expression>terms</s-expression> and <s-expression>formula</s-expression>.  See <s-expression>glm.object</s-expression>. 
+</s-arg>
+</s-args>
+<s-see>
+<s-function name="glm.object.sgm">glm.object</s-function>,  <s-function name="lm.object.sgm">lm.object</s-function>,  <s-function name="survreg.sgm">survreg</s-function>.   </s-see>
+<s-keywords>
+<s-keyword>regression</s-keyword>
+<s-keyword>survival4</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

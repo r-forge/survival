@@ -1,0 +1,197 @@
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>coxph</s-topic>
+</s-topics>
+<s-title>
+Fit Proportional Hazards Regression Model 
+</s-title>
+<s-description>
+Fits a Cox proportional hazards regression model. 
+Time dependent variables, time dependent strata, multiple events per subject, 
+and other extensions are incorporated using the counting process formulation 
+of Andersen and Gill. 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+coxph(formula, data=sys.parent(), weights, subset, 
+      na.action, eps = 1e-07, init, iter.max=10,  
+      method=c("efron","breslow","exact"), 
+      singular.ok=T, robust=F, 
+      model=F, x=F, y=T) 
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="formula">
+a formula object, with the response on the left of a `~' operator, and 
+the terms on the right.  The response must be a survival object as 
+returned by the <s-expression>Surv</s-expression> function. 
+</s-arg>
+</s-args-required>
+<s-args-optional>
+<s-arg name="data">
+a <s-expression>data.frame</s-expression> in which to interpret the variables named in 
+the <s-expression>formula</s-expression>, or in the <s-expression>subset</s-expression> and the <s-expression>weights</s-expression> argument. 
+</s-arg>
+<s-arg name="weights">
+vector of case weights.  If <s-expression>weights</s-expression> is a vector of integers, then the 
+estimated coefficients are equivalent to estimating the model from data 
+with the individual cases replicated as many times as indicated by 
+<s-expression>weights</s-expression>. 
+</s-arg>
+<s-arg name="subset">
+expression indicating which subset of the rows of data should be used in 
+the fit.  This can be a logical vector (which is replicated to have 
+length equal to the number of observations), a numeric vector indicating 
+which observation numbers are to be included (or excluded if negative), 
+or a character vector of row names to be included.  All observations are 
+included by default. 
+</s-arg>
+<s-arg name="na.action">
+a missing-data filter function.  This is applied to the <s-expression>model.frame</s-expression> after any 
+subset argument has been used.  Default is <s-expression>options()$na.action</s-expression>. 
+</s-arg>
+<s-arg name="eps">
+convergence threshold.  Iteration will continue until the relative change 
+in the log-likelihood is less than <s-expression>eps</s-expression>.  Default is 1e-07. 
+</s-arg>
+<s-arg name="init">
+vector of initial values of the iteration.  Default initial 
+value is zero for all variables. 
+</s-arg>
+<s-arg name="iter.max">
+maximum number of iterations to perform.  Default is 10. 
+</s-arg>
+<s-arg name="method">
+a character string specifying the method for tie handling.  If there  
+are no tied death times all the methods are equivalent. 
+Nearly all Cox regression programs use the Breslow method by default, 
+but 
+not this one. 
+The Efron approximation is used as the default here, as it is much more 
+accurate when dealing with tied death times, and is as efficient 
+computationally. 
+The exact method computes the exact partial likelihood, which is 
+equivalent 
+to a conditional logistic model.  If there are a large number of ties 
+the 
+computational time will be excessive. 
+</s-arg>
+<s-arg name="singular.ok">
+logical value indicating how to handle collinearity in the model matrix. 
+If <s-expression>TRUE</s-expression>, the program will automatically skip over columns of the X 
+matrix that are linear combinations of earlier columns.  In this case the 
+coefficients for such columns will be NA, and the variance matrix will 
+contain zeros. For ancillary calculations, such as the linear predictor, the 
+missing coefficients are treated as zeros. 
+</s-arg>
+<s-arg name="robust">
+if <s-expression>TRUE</s-expression> a robust variance estimate is returned.  Default is <s-expression>TRUE</s-expression> if the 
+model includes a <s-expression>cluster</s-expression> operative, <s-expression>FALSE</s-expression> otherwise. 
+</s-arg>
+<s-arg name="model">
+logical value: if <s-expression>TRUE</s-expression>, the model frame is returned in component model 
+</s-arg>
+<s-arg name="x">
+logical value: if <s-expression>TRUE</s-expression>, the model frame is returned in component <s-expression>x</s-expression>. 
+</s-arg>
+<s-arg name="y">
+logical value: if <s-expression>TRUE</s-expression>, the model frame is returned in component <s-expression>y</s-expression>. 
+</s-arg>
+</s-args-optional>
+<s-value>
+an object of class <s-expression>"coxph"</s-expression> representing the fit. 
+See <s-expression>coxph.object</s-expression> for details.  
+</s-value>
+<s-side-effects>
+Depending on the call, the <s-expression>predict</s-expression>, <s-expression>residuals</s-expression>, and <s-expression>survfit</s-expression> routines may 
+need to reconstruct the x matrix created by <s-expression>coxph</s-expression>.  Differences in the 
+environment, such as which data frames are attached or the value of 
+<s-expression>options()$contrasts</s-expression>, may cause this computation to fail or worse, to be 
+incorrect.  See the survival overview document for details. 
+</s-side-effects>
+<s-details>
+The proportional hazards model is usually expressed in terms of a 
+single survival time value for each person, with possible censoring. 
+Andersen and Gill reformulated the same problem as a counting process; 
+as time marches onward we observe the events for a subject, rather 
+like watching a Geiger counter. 
+The data for a subject is presented as multiple rows or "observations", 
+each 
+of which applies to an interval of observation (start, stop]. 
+</s-details>
+<s-section name=" SPECIAL TERMS">
+
+There are two special terms that may be used in the model equation. 
+A <s-expression>strata</s-expression> term identifies a stratified Cox model; separate baseline 
+hazard 
+functions are fit for each strata. 
+The <s-expression>cluster</s-expression> term is used to compute a robust variance for the model. 
+The term <s-expression>+ cluster(id)</s-expression>, where <s-expression>id == unique(id)</s-expression>, is equivalent to 
+specifying the <s-expression>robust=T</s-expression> argument, and produces an approximate 
+jackknife estimate of the variance.  If the <s-expression>id</s-expression> variable were not 
+unique, but instead 
+identifies clusters of correlated observations, then the variance 
+estimate 
+is based on a grouped jackknife. 
+</s-section>
+<s-section name=" CONVERGENCE">
+
+In certain data cases the actual MLE estimate of a 
+coefficient is infinity, e.g., a dichotomous variable where one of the 
+groups has no events.  When this happens the associated coefficient 
+grows at a steady pace and a race condition will exist in the fitting 
+routine: either the log likelihood converges, the information matrix 
+becomes effectively singular, an argument to exp becomes too large for 
+the computer hardware, or the maximum number of interactions is exceeded. 
+The routine attempts to detect when this has happened, not always successfully. 
+</s-section>
+<s-section name=" REFERENCES">
+
+Andersen, P. and Gill, R. (1982). 
+Cox's regression model for counting processes, a large sample study. 
+<it>Annals of Statistics</it>
+<bf>10</bf>, 1100-1120. 
+<br><br>
+Therneau, T., Grambsch, P., and Fleming. T. (1990). 
+Martingale based residuals for survival models. 
+<it>Biometrika</it>
+<bf>77</bf>, 147-160. 
+</s-section>
+<s-see>
+<s-function name="cluster.sgm">cluster</s-function>,  <s-function name="strata.sgm">strata</s-function>,  <s-function name="Surv.sgm">Surv</s-function>,  <s-function name="survfit.sgm">survfit</s-function>.   </s-see>
+<s-examples>
+<s-example type = text>
+# Create the simplest test data set 
+test1 &lt;- list(time=c(4,3,1,1,2,2,3), 
+              status=c(1,1,1,0,1,1,0), 
+              x=c(0,2,1,1,1,0,0), 
+              sex=c(0,0,0,0,1,1,1)) 
+# Fit a stratified model 
+coxph(Surv(time, status) ~ x + strata(sex), test1) 
+# Create a simple data set for a time-dependent model 
+test2 &lt;- list(start=c(1,2,5,2,1,7,3,4,8,8), 
+              stop=c(2,3,6,7,8,9,9,9,14,17), 
+              event=c(1,1,1,1,1,1,1,0,0,0), 
+              x=c(1,0,0,1,0,1,1,1,0,0)) 
+summary(coxph(Surv(start, stop, event) ~ x, test2)) 
+# Fit a stratified model, clustered on patients 
+bladder1 &lt;- bladder 
+bladder1$start &lt;- NULL 
+bladder1 &lt;- bladder1[bladder1$enum &lt; 5, ] 
+coxph(Surv(stop, event) ~ (rx + size + number) * strata(enum) + 
+      cluster(id), bladder1, method='breslow') 
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>models</s-keyword>
+<s-keyword>regression</s-keyword>
+<s-keyword>survival4</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

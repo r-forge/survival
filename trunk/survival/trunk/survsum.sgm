@@ -1,0 +1,151 @@
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>survsum</s-topic>
+</s-topics>
+<s-title>
+Kaplan-Meier Survival Curve and Percentages at Selected Times 
+</s-title>
+<s-description>
+Calculates Kaplan-Meier survival percentages, standard error, and number  
+at risk at specified times for defined groups.  Test for difference between 
+survival curves. 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+survsum(formula, data=sys.parent(), sptms=NULL, xlim,  
+tlines=T, log=F, xscale=1,yscale=100, mark.time=F, mark=3,  
+cex=1, xlab="Time", ylab="Survival (%)", lgd="bl", 
+ttl="K-M Survival",...) 
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="formula">
+a formula expression as for other survival models, of the  form 
+`Surv(time,  status) ~ predictors'.  Same formula expression as used  
+in <s-expression>survfit</s-expression>. See help file for survfit.  Maximum of 6 groups. 
+</s-arg>
+</s-args-required>
+<s-args-optional>
+<s-arg name="data">
+a data.frame in which to interpret the variables named in the formula. 
+</s-arg>
+<s-arg name="sptms">
+a specified vector of positive times at which to compute the survival  
+percentages, standard errors, and numbers at risk.  A maximum of four  
+times can be specified. 
+</s-arg>
+<s-arg name="xlim">
+a vector of the form: <s-expression>c(x1,x2)</s-expression>.  The approximate minimum and maximum values  
+to  be  put  on  x-axis.  Default sets x1=0 and x2=maximum time value. 
+</s-arg>
+<s-arg name="tlines">
+a logical value indicating whether vertical lines and labels should be drawn 
+on the plot at the specified times. 
+</s-arg>
+<s-arg name="log">
+logical value: should the y axis be on a log scale? 
+</s-arg>
+<s-arg name="xscale">
+a scalar to be used to divide the x axis.  A value of 365, for instance, would 
+be used to convert from days to years. 
+</s-arg>
+<s-arg name="yscale">
+a scalar to be used to multiply the y axis.  The default value of 100 is used 
+to get a percent scale.  <s-expression>yscale=1</s-expression> would set the y axis from 0 to 1. 
+</s-arg>
+<s-arg name="mark.time">
+controls the labeling of the curves.  If set to True then curves are  
+marked at each censoring time.  If <s-expression>mark.time</s-expression> is a numeric vector, then curves 
+are marked at these specified time points. 
+</s-arg>
+<s-arg name="mark">
+vector of mark parameters, which will be used to  label the  curves.  The 
+<s-expression>lines</s-expression> help file contains examples of the possible marks.  The  
+vector is reused cyclically if it  is shorter than the number of curves. 
+</s-arg>
+<s-arg name="cex">
+parameter available to change the size of <s-expression>mark</s-expression>.   Not a vector; all marks 
+have the same size. 
+</s-arg>
+<s-arg name="xlab">
+character string label for the x axis. 
+</s-arg>
+<s-arg name="ylab">
+character string label for the y axis. 
+</s-arg>
+<s-arg name="lgd">
+legend placement.  <s-expression>"tr"</s-expression>=top right corner of the plot, 
+<s-expression>"under"</s-expression>=under the plot, <s-expression>"n"</s-expression> omits the legend.  The default is: 
+<s-expression>"bl"</s-expression>=bottom left corner of the plot. 
+</s-arg>
+<s-arg name="ttl">
+title to be printed in the center top. 
+</s-arg>
+<s-arg name="...">
+In addition, the high-level graphics arguments described under par and the 
+arguments to title may be supplied to this function. 
+</s-arg>
+</s-args-optional>
+<s-value>
+A list of class <s-expression>"htest"</s-expression>, containing the following components: 
+<br><br>
+<s-return-component name="no.pts">
+the total number of data points in each group. 
+</s-return-component>
+<s-return-component name="no.events">
+the total number of events in each group. 
+</s-return-component>
+<s-return-component name="chisq">
+the chisquare statistic for the test of a difference between survival curves. 
+</s-return-component>
+<s-return-component name="p">
+the p-value for the above test. 
+</s-return-component>
+<s-return-component name="t1">
+a matrix containing the survival percentages, standard errors, and numbers at 
+risk for all groups at time t1. 
+</s-return-component>
+<s-return-component name="t2,t3,t4">
+see above. 
+</s-return-component>
+</s-value>
+<s-side-effects>
+A plot with multiple survival curves is drawn (one for each group). This plot 
+includes: overall group statistics and group statistics at each specified  
+time point and a test for a difference between survival curves. 
+</s-side-effects>
+<s-details>
+The total number of points and events is reported for each group.  For each  
+specified time point, group survival percentages (followed by standard error 
+and number left at risk) are computed. 
+<br><br>
+The test for a difference between survival curves uses the chisquare 
+statistic from the <s-expression>survdiff</s-expression> function with <s-expression>rho=0</s-expression>.  This is the 
+log-rank test. 
+</s-details>
+<s-section name=" AUTHOR">
+
+Mark Dietrich, Mayo Clinic Section of Medical Research Statistics 
+summer student 1992. 
+</s-section>
+<s-see>
+<s-function name="Surv.sgm">Surv</s-function>,  <s-function name="survdiff.sgm">survdiff</s-function>,  <s-function name="survexp.sgm">survexp</s-function>,  <s-function name="survfit.sgm">survfit</s-function>   </s-see>
+<s-examples>
+<s-example type = text>
+survsum (Surv (futime,dead)~sex+dose,data=blood.Dat,sptms=c(20,30,45), 
+xlim=c(0,50)) 
+##groups are all combinations of 'sex' and 'dose', specified times are 20, 30, 
+and 45.   
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>survival</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>
