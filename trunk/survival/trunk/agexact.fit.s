@@ -74,7 +74,7 @@ agexact.fit <- function(x, y, strata, offset, iter.max,
     names(agfit$coef) <- dimnames(x)[[2]]
     lp  <- x %*% agfit$coef + offset - sum(agfit$coef *agfit$means)
     score <- as.double(exp(lp[sorted]))
-    aghaz <- .C("aghaz",
+    aghaz <- .C("aghaz2",
 		   as.integer(n),
 		   sstart, sstop,
 		   sstat,
