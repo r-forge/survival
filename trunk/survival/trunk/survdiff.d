@@ -6,7 +6,7 @@ Test Survival Curve Differences
 Tests if there is a difference between two or more survival curves using
 the G-rho family of tests, or for a single curve against a known alternative.
 .CS
-surv.diff(formula, rho=0, subset)
+surv.diff(formula, data,  rho=0, subset)
 .RA
 .AG formula
 a formula expression as for other survival models, of the form
@@ -18,6 +18,9 @@ To cause missing values in the predictors to be treated as a separate
 group, rather than being omitted, use the `strata' function with its
 `na.group=T' argument.
 .OA
+.AG data
+an optional data frame in which to interpret the variables occurring in the
+formula.
 .AG rho
 a parameter that controls the type of test.
 .AG subset
@@ -39,6 +42,9 @@ where S is the Kaplan-Meier estimate of survival.
 When `rho = 0' this is the log-rank or Mantel-Haenszel test,
 and when `rho = 1' it is equivalent to the Peto & Peto modification
 of the Gehan-Wilcoxon test.
+.PP
+If the right hand side of the formula consists only of an offset term,
+then a one sample test is done.
 .SH REFERENCE
 Harrington, D. P. and Fleming, T. R. (1982).
 A class of rank test procedures for censored survival data.
