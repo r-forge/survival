@@ -1,4 +1,4 @@
-# SCCS $Id: survexp.usr.s,v 5.6 1999-01-29 15:52:22 therneau Exp $
+# SCCS $Id: survexp.usr.s,v 5.7 2000-06-12 10:06:44 boos Exp $
 #
 # Create the US total hazards table, by race
 #   The raw numbers below are q* 10^5.  Note that there are 24 leap years/100
@@ -323,7 +323,7 @@ attributes(survexp.usr) <- list (
 	               mdy.date(1,1, (194:200)*10)),
 	summary = function(R) {
 		     x <- c(format(round(min(R[,1]) /365.24, 1)),
-			    format(round(max(R[,1]) /355.24, 1)),
+			    format(round(max(R[,1]) /365.24, 1)),
 			    sum(R[,2]==1), sum(R[,2]==2),
 			    sum(R[,3]==1), sum(R[,3]==2), sum(R[,3]==3))
 		     x2<-as.character(as.date(c(min(R[,4]), max(R[,4]))))

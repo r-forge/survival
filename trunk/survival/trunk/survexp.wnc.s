@@ -1,4 +1,4 @@
-# SCCS $Id: survexp.wnc.s,v 4.4 1998-12-17 17:49:49 therneau Exp $
+# SCCS $Id: survexp.wnc.s,v 4.5 2000-06-12 10:06:59 boos Exp $
 #
 # Create the WNC hazards table
 #   The raw numbers below are q* 10^5.  Note that there are 24 leap years/100
@@ -155,7 +155,7 @@ survexp.wnc  <- {
 	cutpoints=list(c(0,.5,1:109)* 365.24, NULL, mdy.date(1,1, 191:200*10)),
 	summary = function(R) {
 		     x <- c(format(round(min(R[,1]) /365.24, 1)),
-			    format(round(max(R[,1]) /355.24, 1)),
+			    format(round(max(R[,1]) /365.24, 1)),
 			    sum(R[,2]==1), sum(R[,2]==2))
 		     x2<- as.character(as.date(c(min(R[,3]), max(R[,3]))))
 
