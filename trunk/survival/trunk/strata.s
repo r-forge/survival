@@ -1,8 +1,9 @@
-#SCCS $Date: 1992-03-24 23:29:56 $ $Id: strata.s,v 4.2 1992-03-24 23:29:56 therneau Exp $
+#SCCS $Date: 1992-04-13 20:49:19 $ $Id: strata.s,v 4.3 1992-04-13 20:49:19 therneau Exp $
 # Create a strata variable, possibly from many objects
 #
 strata <- function(..., na.group=F) {
-    words <- (match.call())[-1]
+    words <- as.character((match.call())[-1])
+    if (!missing(na.group)) words <- words[-1]
     allf <- list(...)
     if(length(allf) == 1 && is.list(ttt <- unclass(allf[[1]])))
 	    allf <- ttt
