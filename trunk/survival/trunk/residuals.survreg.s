@@ -1,8 +1,7 @@
-# SCCS $Id: residuals.survreg.s,v 4.10 1999-01-23 21:49:19 therneau Exp $
+# SCCS $Id: residuals.survreg.s,v 4.11 1999-01-29 15:28:58 therneau Exp $
 # 
 #  Residuals for survreg objects
-#residuals.survreg <- function(object, type=c('response', 'deviance',
-tfun <- function(object, type=c('response', 'deviance',
+residuals.survreg <- function(object, type=c('response', 'deviance',
 		      'dfbeta', 'dfbetas', 'working', 'ldcase',
 		      'ldresp', 'ldshape', 'matrix'), 
 		      rsigma =T, collapse=F, weighted=F) {
