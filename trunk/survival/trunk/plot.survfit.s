@@ -1,4 +1,4 @@
-#SCCS $Date: 1998-03-21 16:06:55 $ $Id: plot.survfit.s,v 4.14 1998-03-21 16:06:55 therneau Exp $
+#SCCS $Date: 1999-01-06 07:12:30 $ $Id: plot.survfit.s,v 4.15 1999-01-06 07:12:30 therneau Exp $
 plot.survfit<- function(x, conf.int,  mark.time=T,
 		 mark=3,col=1,lty=1, lwd=1, cex=1, log=F,
 		 xscale=1, yscale=1, 
@@ -181,17 +181,20 @@ plot.survfit<- function(x, conf.int,  mark.time=T,
 	    y <- y[-1]
 	    }
 	n <- length(x)
-	# replace verbose horizonal sequences like
-	# (1, .2), (1.4, .2), (1.8, .2), (2.3, .2), (2.9, .2), (3, .1)
-        # with (1, .2), (3, .1).  They are slow, and can smear the looks
-	# of the line type.
-	dupy <- c(T, diff(y[-n]) !=0, T)
-	n2 <- sum(dupy)
+	if (n > 1) {
+	    # replace verbose horizonal sequences like
+	    # (1, .2), (1.4, .2), (1.8, .2), (2.3, .2), (2.9, .2), (3, .1)
+	    # with (1, .2), (3, .1).  They are slow, and can smear the looks
+	    # of the line type.
+	    dupy <- c(T, diff(y[-n]) !=0, T)
+	    n2 <- sum(dupy)
 
-	#create a step function
-	xrep <- rep(x[dupy], c(1, rep(2, n2-1)))
-	yrep <- rep(y[dupy], c(rep(2, n2-1), 1))
-	list(x=xrep, y=yrep)
+	    #create a step function
+	    xrep <- rep(x[dupy], c(1, rep(2, n2-1)))
+	    yrep <- rep(y[dupy], c(rep(2, n2-1), 1))
+	    list(x=xrep, y=yrep)
+	    }
+	else list(x=x, y=y)
 	}
 
     i <- 0
