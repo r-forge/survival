@@ -35,7 +35,7 @@ a vector of numeric values for line widths. The default value is 1.
 a numeric value specifying the size of the marks.
 Not a vector; all marks have the same size.
 .AG log
-a logical value, if TRUE the y axis wll be on a log scale.
+a logical value, if `TRUE' the y axis wll be on a log scale.
 Alternately, one of the standard character strings "x", "y", or "xy"
 can be given to specific logarithmic horizontal and/or vertical axes.
 .AG xscale

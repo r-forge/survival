@@ -38,11 +38,11 @@ estimated.
 .AG control
 a list of control values, in the format producted by `survreg.control'.
 .AG model
-if TRUE, the model frame is returned.
+if `TRUE', the model frame is returned.
 .AG x
-if TRUE, then the X matrix is returned.
+if `TRUE', then the X matrix is returned.
 .AG y
-if TRUE, then the y vector (or survival times) is returned.
+if `TRUE', then the y vector (or survival times) is returned.
 .AG ...
 other arguments which will be passed to `survreg.control'.
 .RT

@@ -14,10 +14,10 @@ rowsum(x, group, reorder=T)
 Missing values are not allowed.
 .OA
 .AG reorder
-if True, then the result will be in order of sort(unique(group)),
-if False, it will be in the order that rows were encountered (and
+if `TRUE', then the result will be in order of sort(unique(group)),
+if `FALSE', it will be in the order that rows were encountered (and
 may run faster for large matrices).
-The default is to reorder the data, so as to agree with tapply (see
+The default is to reorder the data, so as to agree with `tapply' (see
 example below).
 .RT
 a matrix containing the sums.  There will be one row per unique value

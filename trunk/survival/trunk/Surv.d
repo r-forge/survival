@@ -19,7 +19,7 @@ first argument is the starting time for the interval.
 any S-PLUS object.
 .OA
 .AG event
-The status indicator, normally 0=alive, 1=dead.  Other choices are T/F
+The status indicator, normally 0=alive, 1=dead.  Other choices are `T/F'
 (TRUE = death) or 1/2 (2=death).
 For interval censored data, the status indicator is 0=right censored,
 1= event at `time', 2=left censored, 3=interval censored.
@@ -54,11 +54,12 @@ class `"Surv"', otherwise an `F'.
 In theory it is possible to represent interval censored data without a
 third column containing the explicit status.  Exact, right censored,
 left censored and interval censored observation would be represented as
-intervals of (a,a), (a, infinity), (-infinity,b), and (a,b) respectively;
-each specifying the interval within which the event is known to have occurred.
+intervals of `[a,a]', `[a, infinity)', `(-infinity,b]', and `[a,b)' 
+respectively; each specifying the interval within which the event is 
+known to have occurred.
 .PP
 If `type = "interval2"' then the representation given above is
-assumed, with NA taking the place of infinity.  If `type="interval"
+assumed, with `NA' taking the place of infinity.  If `type="interval"'
 `event' must be given.  If `event' is `0', `1', or `2', the relevant
 information is assumed to be contained in `time', the value in `time2'
 is ignored, and the second column of the result will contain a

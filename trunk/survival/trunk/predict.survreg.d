@@ -25,7 +25,7 @@ a quantile on the linear predictor scale (uquantile),
 or the matrix of terms for the linear predictor (terms).
 At this time `"link"' and linear predictor (`"lp"') are identical.
 .AG se.fit
-if TRUE, include the standard errors of the prediction in the result.
+if `TRUE', include the standard errors of the prediction in the result.
 .AG terms
 subset of terms.  The default for residual type`terms' is a matrix with
 one column for every term (excluding the intercept) in the model.

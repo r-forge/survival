@@ -58,7 +58,7 @@ coefficients for such columns will be NA, and the variance matrix will contain
 zeros.  For ancillary calculations, such as the linear predictor, the missing
 coefficients are treated as zeros.
 .AG robust
-if TRUE a robust variance estimate is returned.  Default is `TRUE' if the
+if `TRUE' a robust variance estimate is returned.  Default is `TRUE' if the
 model includes a `cluster()' operative, `FALSE' otherwise.
 .AG model, x, y
 flags to control what is returned.  If these are true, then the model

@@ -45,8 +45,8 @@ covariates correspond to the values in `newdata'.
 Default is the mean of the covariates used in the `coxph' fit.
 .AG individual
 a logical value indicating whether the data frame represents different
-time epochs for only one individual (T), or whether multiple rows indicate
-multiple individuals (F, the default).  If the former only one curve
+time epochs for only one individual (`TRUE'), or whether multiple rows indicate
+multiple individuals (`FALSE', the default).  If the former only one curve
 will be produced; if the latter there will be one curve per row in `newdata'.
 .AG conf.int
 the level for a two-sided confidence interval on  the survival curve(s).
