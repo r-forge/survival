@@ -1,15 +1,14 @@
 /*
-**  SCCS $Id: survproto.h,v 5.1 1998-08-30 14:46:43 therneau Exp $
+**  SCCS $Id: survproto.h,v 5.2 1998-10-28 08:40:13 therneau Exp $
 ** prototypes of all the survival functions
 **  along with a few macros
 */
-
 
 void agexact(long *maxiter,  long *nusedx,   long *nvarx,   double *start, 
 	     double *stop,   long *event,    double *covar2,double *offset, 
 	     long   *strata, double *means,  double *beta,  double *u, 
 	     double *imat2,  double loglik[2], long *flag,  double *work, 
-	     long   *work2,  double *eps,     double *sctest);
+	     long   *work2,  double *eps,    double *tol_chol, double *sctest);
 
 void agfit2( long   *maxiter,  long   *nusedx,  long   *nvarx, 
 	     double *start,    double *stop,    long   *event, 
@@ -17,7 +16,21 @@ void agfit2( long   *maxiter,  long   *nusedx,  long   *nvarx,
 	     long   *strata,   double *means,   double *beta, 
 	     double *u,        double *imat2,   double loglik[2], 
 	     long   *flag,     double *work,    long   *end,
-	     double *eps,      double *sctest);
+	     double *eps,      double *tol_chol,double *sctest);
+
+void agfit4_a(long *nusedx, long *nvarx, double *yy, 
+	       double *covar2, double *offset2,
+	       double *weights2, long *strata2,
+	       double *means, double *beta, double *u, 
+	       double *loglik, 
+	       long *methodx, long *ptype2, long *pdiag2,
+	       long *nfrail,  long *frail2);
+
+void agfit4_b(long *maxiter, long *nusedx, long *nvarx, 
+	       double *beta, double *u,
+	       double *imat2,  double *jmat2, double *loglik, 
+	       long *flag,  double *eps, double *tolerch, long *methodx, 
+	       long *nfrail, double *fbeta, double *fdiag);
 
 void agfit_null(long   *n,      long   *method,   double *start, double *stop, 
 		long   *event,  double * offset,  double *weights,
@@ -58,8 +71,11 @@ void agsurv3(long   *sn,    long   *snvar,    long   *sncurve,
 	     double *varh,  double *sused,    long   *smethod);
 
 void chinv2  (double **matrix, int n);
-int cholesky2(double **matrix, int n);
+int cholesky2(double **matrix, int n, double toler);
 void chsolve2(double **matrix, int n, double *y);
+void chinv3(double **matrix , int n, int m, double *fdiag);
+int cholesky3(double **matrix, int n, int m, double *diag, double toler);
+void chsolve3(double **matrix, int n, int m, double *diag, double *y);
 
 void coxdetail(long   *nusedx,   long   *nvarx,    long   *ndeadx, 
 	       double *y,        double *covar2,   long   *strata,  
@@ -71,7 +87,24 @@ void coxfit2(long   *maxiter,   long   *nusedx,    long   *nvarx,
 	     double *offset,	double *weights,   long   *strata,
 	     double *means,     double *beta,      double *u, 
 	     double *imat2,     double loglik[2],  long   *flag, 
-	     double *work,	double *eps,       double *sctest);
+	     double *work,	double *eps,       double *tol_chol,
+	     double *sctest);
+
+void coxfit4_a(long *nusedx, long *nvarx, double *yy, 
+               double *covar2, double *offset2,
+               double *weights2, long *strata2,
+               double *means, double *beta, double *u, 
+               double *loglik, 
+               long *methodx, long *ptype2, long *pdiag2,
+               long *nfrail,  long *frail2);
+
+void coxfit4_b(long *maxiter, long *nusedx, long *nvarx, 
+               double *beta, double *u,
+               double *imat2,  double *jmat2, double *loglik, 
+               long *flag,  double *eps, double *tolerch, long *methodx, 
+               long *nfrail, double *fbeta, double *fdiag);
+
+void coxfit4_c (long *nusedx, long *nvar, long *methodx, double *expect);
 
 void coxfit_null(long   *nusedx,    long   *method,   double *time, 
 		 long   *status,    double *score,    double *weights, 
@@ -84,9 +117,8 @@ void coxmart(long   *sn,     long   *method,    double *time,
 	     long   *status, long   * strata,   double *score, 
 	     double *wt,     double *expect);
 
-void coxres12(long   *nx,     long   *nvarx,    double *y, 
-	      double *covar2, long   *strata,   double *score, 
-	      long   *method, double *scratch);
+void coxph_wtest(long *nvar2, long *ntest, double *var, double *b,
+                 double *scratch, double *tolerch);
 
 void coxscho(long   *nusedx,    long   *nvarx,    double *y, 
 	     double *covar2,    double *score,    long   *strata,  
@@ -101,6 +133,11 @@ double **dmatrix(double *array, int ncol, int nrow);
 
 void init_doloop(int min, int max);
 int doloop      (int nloops, int *index);
+
+void init_coxcall1(long *ptr1, s_object **ptr2);
+void init_coxcall2(long *ptr1, s_object **ptr2);
+void cox_callback (int which, double *coef, double *first, 
+                   double *second, double *penalty, long *flag);
 
 void pyears1(long   *sn,      long   *sny,      long   *sdoevent, 
 	     double *sy,      long   *sedim,    long   *efac, 
@@ -128,7 +165,7 @@ double pystep(int nc,        int  *index,  int  *index2,   double *wt,
 
 int rnewton(int    *maxiter,   int  n,        int  nvar,        double *beta, 
 	    double *u,         double **imat, double loglik[2], double eps,
-	    void (*dolk)(),    void (*doimat)(), 
+	    void (*dolk)(),    void (*doimat)(),  double *tol_chol,
 	    double *newbeta,   double *savediag,  int debug);
 
 void survdiff2(long   *nn,     long   *nngroup,    long   *nstrat, 
@@ -151,4 +188,4 @@ void survreg(long   *maxiter,    long   *nx,    long   *nvarx,
 	     double *offset2,    double *beta,  long   *npx, 
 	     double *parmsx,     double *u,     double *imatx, 
 	     double *loglik,     long   *flag,  double *eps,
-	     double *deriv,      long   *dist);
+	     double *tol_chol,   double *deriv, long   *dist);
