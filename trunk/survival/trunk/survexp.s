@@ -1,4 +1,4 @@
-# SCCS $Id: survexp.s,v 5.1 1998-08-30 15:51:20 therneau Exp $
+# SCCS $Id: survexp.s,v 5.2 1999-02-19 16:33:55 therneau Exp $
 setOldClass(c('survexp', 'survfit'))
 
 survexp <- function(formula=formula(data), data=sys.parent(),
@@ -38,6 +38,7 @@ survexp <- function(formula=formula(data), data=sys.parent(),
 			  paste( varlist, "=", varlist, collapse = ","), ")"))
 	Terms <- if (missing(data)) terms(formula, "ratetable")
 	         else               terms(formula, "ratetable", data = data)
+	rate <- attr(Terms, "specials")$ratetable
 	}
 
     m$formula <- Terms
@@ -72,7 +73,7 @@ survexp <- function(formula=formula(data), data=sys.parent(),
 
     if (no.Y) ovars <- attr(Terms, 'term.labels')[-rate]
     else      ovars <- attr(Terms, 'term.labels')[-(rate-1)]
-
+	
     if (is.ratetable(ratetable)) {
 	israte <- T
 	if (no.Y) {
