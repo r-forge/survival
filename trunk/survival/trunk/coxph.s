@@ -1,13 +1,12 @@
-#SCCS  $Id: coxph.s,v 5.8 1998-12-14 09:45:18 therneau Exp $
+#SCCS  $Id: coxph.s,v 5.9 1999-06-18 15:50:07 therneau Exp $
 # Version with general penalized likelihoods
 setOldClass(c('coxph.penal', 'coxph'))
 
 coxph <- function(formula=formula(data), data=sys.parent(),
 	weights, subset, na.action,
-	eps=.0001, init, iter.max=10, toler.chol=1e-9,
-	method= c("efron", "breslow", "exact"),
-	singular.ok =T, robust=F, outer.max=10,
-	model=F, x=F, y=T) {
+	control, method= c("efron", "breslow", "exact"),
+	singular.ok =T, robust=F,
+	model=F, x=F, y=T, ...) {
 
     method <- match.arg(method)
     call <- match.call()
@@ -21,6 +20,7 @@ coxph <- function(formula=formula(data), data=sys.parent(),
     m[[1]] <- as.name("model.frame")
     m <- eval(m, sys.parent())
 
+    if (missing(control)) control <- coxph.control(...)
     Y <- model.extract(m, "response")
     if (!inherits(Y, "Surv")) stop("Response must be a survival object")
     weights <- model.extract(m, 'weights')
@@ -85,8 +85,7 @@ coxph <- function(formula=formula(data), data=sys.parent(),
 	if (missing(eps)) eps <- 1e-7
 	if (missing(iter.max)) iter.max <- 20  #penalized are hard sometimes
         fit <- coxpenal.fit(X, Y, strats, offset, init=init,
-				iter.max=iter.max, outer.max=outer.max, 
-			        eps=eps, toler.chol=toler.chol,
+				control,
 				weights=weights, method=method,
 				row.names(m), pcols, pattr)
 	}
@@ -98,8 +97,7 @@ coxph <- function(formula=formula(data), data=sys.parent(),
 	else if (method=='exact') fitter <- get("agexact.fit")
 	else stop(paste ("Unknown method", method))
 
-	fit <- fitter(X, Y, strats, offset, init=init, iter.max=iter.max,
-			    eps=eps, toler.chol=toler.chol, weights=weights,
+	fit <- fitter(X, Y, strats, offset, control, weights=weights,
 			    method=method, row.names(m))
 	}
 

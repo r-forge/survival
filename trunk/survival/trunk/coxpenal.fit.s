@@ -1,9 +1,9 @@
-# SCCS $Id: coxpenal.fit.s,v 1.4 1998-11-30 12:06:11 therneau Exp $
+# SCCS $Id: coxpenal.fit.s,v 1.5 1999-06-18 15:50:06 therneau Exp $
 #
 # General penalized likelihood
 #
-coxpenal.fit <- function(x, y, strata, offset, init, iter.max, outer.max,
-			eps,  toler.chol, weights, method, rownames, 
+coxpenal.fit <- function(x, y, strata, offset, init, control,
+			weights, method, rownames, 
 			pcols, pattr, assign)
     {
     n <-  nrow(y)
@@ -288,9 +288,9 @@ coxpenal.fit <- function(x, y, strata, offset, init, iter.max, outer.max,
     iter2 <- 0
     iterfail <- NULL
     thetasave <- unlist(thetalist)
-    for (outer in 1:outer.max) {
+    for (outer in 1:control$outer.max) {
         coxfit <- .C(routines[2], 
-		        iter=as.integer(iter.max),
+		        iter=as.integer(control$iter.max),
 			as.integer(n),
 			as.integer(nvar),
 			coef = as.double(init),
@@ -299,8 +299,8 @@ coxpenal.fit <- function(x, y, strata, offset, init, iter.max, outer.max,
 			hinv = double(nvar*(nvar+nfrail)),
 			loglik = double(1),
 			flag = integer(1),
-			as.double(eps),
-		        as.double(toler.chol),
+			as.double(control$eps),
+		        as.double(control$toler.chol),
 			as.integer(method=='efron'),
 			as.integer(nfrail),
 		        fcoef = as.double(finit),
@@ -365,7 +365,8 @@ coxpenal.fit <- function(x, y, strata, offset, init, iter.max, outer.max,
 	    thetasave <- cbind(thetasave, unlist(thetalist))
 	    }
 	else {
-	    temp <- unlist(thetalist)
+	    # the "as.vector" removes names, dodging a bug in Splus5.1
+	    temp <- as.vector(unlist(thetalist))
 	    coefsave <- cbind(coefsave, coxfit$coef)
 	    fsave    <- cbind(fsave, coxfit$fcoef)
 	    # temp = next guess for theta

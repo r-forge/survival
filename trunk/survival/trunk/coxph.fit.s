@@ -1,6 +1,6 @@
-# SCCS  $Id: coxph.fit.s,v 5.6 1999-02-21 16:16:04 therneau Exp $
-coxph.fit <- function(x, y, strata, offset, init, iter.max,
-			eps, toler.chol, weights, method, rownames)
+# SCCS  $Id: coxph.fit.s,v 5.7 1999-06-18 15:50:07 therneau Exp $
+coxph.fit <- function(x, y, strata, offset, init, control,
+			weights, method, rownames)
     {
     n <-  nrow(y)
     if (is.matrix(x)) nvar <- ncol(x)
@@ -44,7 +44,7 @@ coxph.fit <- function(x, y, strata, offset, init, iter.max,
 	    }
 	else init <- rep(0,nvar)
 	}
-    coxfit <- .C("coxfit2", iter=as.integer(iter.max),
+    coxfit <- .C("coxfit2", iter=as.integer(control$iter.max),
 		   as.integer(n),
 		   as.integer(nvar), stime,
 		   sstat,
@@ -58,8 +58,8 @@ coxph.fit <- function(x, y, strata, offset, init, iter.max,
 		   imat= double(nvar*nvar), loglik=double(2),
 		   flag=integer(1),
 		   double(2*n + 2*nvar*nvar + 3*nvar),
-		   as.double(eps),
-		   as.double(toler.chol),
+		   as.double(control$eps),
+		   as.double(control$toler.chol),
 		   sctest=as.double(method=="efron") )
 
     if (nullmodel) {
@@ -91,10 +91,14 @@ coxph.fit <- function(x, y, strata, offset, init, iter.max,
 	if (iter.max >1) {
 	    if (coxfit$flag == 1000)
 		   warning("Ran out of iterations and did not converge")
-	    else if (any((infs > eps) & (infs > sqrt(eps)*abs(coef))))
+	    else {
+		infs <- ((infs > control$eps) & 
+			 infs > control$toler.inf*abs(coef))
+		if (any(infs))
 		warning(paste("Loglik converged before variable ",
-			  paste((1:nvar)[(infs>eps)],collapse=" ,"),
-			  "; beta may be infinite. ", sep=''))
+			  paste((1:nvar)[infs],collapse=","),
+			  "; beta may be infinite. "))
+		}
 	    }
 
 	names(coef) <- dimnames(x)[[2]]

@@ -1,6 +1,6 @@
-#SCCS $Id: agreg.fit.s,v 4.18 1998-12-22 13:17:53 therneau Exp $
-agreg.fit <- function(x, y, strata, offset, init, iter.max,
-			eps, toler.chol, weights, method, rownames)
+#SCCS $Id: agreg.fit.s,v 4.19 1999-06-18 15:50:06 therneau Exp $
+agreg.fit <- function(x, y, strata, offset, init, control,
+			weights, method, rownames)
     {
     n <- nrow(y)
     nvar <- ncol(x)
@@ -67,7 +67,7 @@ agreg.fit <- function(x, y, strata, offset, init, iter.max,
 	    }
 	else init <- rep(0,nvar)
 
-	agfit <- .C("agfit2", iter= as.integer(iter.max),
+	agfit <- .C("agfit2", iter= as.integer(control$iter.max),
 		       as.integer(n),
 		       as.integer(nvar), sstart, sstop,
 		       sstat,
@@ -82,8 +82,8 @@ agreg.fit <- function(x, y, strata, offset, init, iter.max,
 		       flag=integer(1),
 		       double(2*nvar*nvar +nvar*3 + n),
 		       integer(n),
-		       as.double(eps),
-		       as.double(toler.chol),
+		       as.double(control$eps),
+		       as.double(control$toler.chol),
 		       sctest=as.double(method=='efron') )
 
 	var <- matrix(agfit$imat,nvar,nvar)
@@ -95,10 +95,14 @@ agreg.fit <- function(x, y, strata, offset, init, iter.max,
 	if (iter.max >1) {
 	    if (agfit$flag == 1000)
 		   warning("Ran out of iterations and did not converge")
-	    else if (any((infs > eps) & (infs > sqrt(eps)*abs(coef))))
+	    else {
+		infs <- ((infs > control$eps) & 
+			 infs > control$toler.inf*abs(coef))
+		if (any(infs))
 		warning(paste("Loglik converged before variable ",
-			  paste((1:nvar)[(infs>eps)],collapse=","),
+			  paste((1:nvar)[infs],collapse=","),
 			  "; beta may be infinite. "))
+		}
 	    }
 
 	names(coef) <- dimnames(x)[[2]]
