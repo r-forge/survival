@@ -1,4 +1,4 @@
-# SCCS $Id: survexp.flr.s,v 4.2 1994-11-22 21:56:26 therneau Exp $
+# SCCS $Id: survexp.flr.s,v 4.3 1995-01-23 17:51:46 therneau Exp $
 #
 # Create the Florida hazards table, by race
 #   The raw numbers below are q* 10^5.  Note that there are 24 leap years/100
@@ -85,8 +85,8 @@ survexp.flr  <- {
     # Add in the extrapolated data for 1990 and 2000
     temp <- array(0, c(110,2, 4, 3))
     temp[,,1:2,] <- temp3
-    fix  <- c(.00061*(0:109) - .1271, rep(-.00015*(0:109) - .0979, 2),
-	      .00041*(0:109) - .1770, rep(.00050*(0:109) - .1448, 2))
+    fix  <- c(.00061*(0:109) - .1271, .00041*(0:109) - .1770,
+	       rep(c(-.00015*(0:109) - .0979, .00050*(0:109) - .1448), 2))
     temp[,,3,]   <- exp(log(temp[,,2,]) + fix)
     temp[,,4,]   <- exp(log(temp[,,3,]) + fix)
 
