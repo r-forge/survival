@@ -1,4 +1,4 @@
-#SCCS $Id: residuals.coxph.s,v 4.23 1994-11-09 09:41:24 therneau Exp $
+#SCCS $Id: residuals.coxph.s,v 4.24 1995-03-14 16:24:01 therneau Exp $
 residuals.coxph <-
   function(object, type=c("martingale", "deviance", "score", "schoenfeld",
 			  "dfbeta", "dfbetas", "scaledsch"),
@@ -12,6 +12,8 @@ residuals.coxph <-
     rr <- object$residual
     y <- object$y
     x <- object$x
+    vv <- object$naive.var
+    if (is.null(vv)) vv <- object$var
     weights <- object$weights
     strat <- object$strata
     method <- object$method
@@ -83,8 +85,8 @@ residuals.coxph <-
 	if (otype=='scaledsch') {
 	    ndead <- sum(deaths)
 	    coef <- ifelse(is.na(object$coef), 0, object$coef)
-	    if (nvar==1) rr <- rr*object$var *ndead + coef
-	    else         rr <- rr %*%object$var * ndead +
+	    if (nvar==1) rr <- rr*vv *ndead + coef
+	    else         rr <- rr %*%vv * ndead +
 						outer(rep(1,nrow(rr)),coef)
 	    }
 	return(rr)
@@ -143,7 +145,13 @@ residuals.coxph <-
 	rr <- sign(rr) *sqrt(-2* (rr+
 			      ifelse(status==0, 0, status*log(status-rr))))
 
-    if      (otype=='dfbeta') rr %*% object$var
-    else if (otype=='dfbetas') (rr %*% object$var) %*% diag(sqrt(1/diag(object$var)))
+    if      (otype=='dfbeta') {
+	if (is.matrix(rr)) rr %*% vv
+	else               rr * vv
+	}
+    else if (otype=='dfbetas') {
+	if (is.matrix(rr)) (rr %*% vv) %*% diag(sqrt(1/diag(vv)))
+	else                rr * sqrt(vv)
+	}
     else  rr
     }
