@@ -1,3 +1,3 @@
-# SCCS $Id: print.cox.zph.s,v 4.2 1993-04-06 15:53:00 therneau Exp $
+# SCCS $Id: print.cox.zph.s,v 4.3 1993-10-01 15:55:49 therneau Exp $
 print.cox.zph <- function(x, digits = .Options$digits - 3)
-    print(x$table, digits=digits)
+    invisible(print(x$table, digits=digits))
