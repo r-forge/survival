@@ -1,4 +1,4 @@
-#SCCS $Id: survexp.s,v 4.10 1992-05-28 21:46:33 therneau Exp $
+#SCCS $Id: survexp.s,v 4.11 1992-07-13 21:41:11 therneau Exp $
 survexp <- function(entry, birth, sex,
 		      times=round(182.6 * 0:8),
 		      data=sys.parent(), subset, na.action,
@@ -19,12 +19,15 @@ survexp <- function(entry, birth, sex,
 	if (any(is.na(times))) stop("Missing values not allowed in 'times'")
 	}
     temp2 <- NULL
-    for (i in temp) temp2 <- c(temp2, deparse(call[[i]]))
+    for (i in temp)
+	 if (mode(call[[i]]) =='numeric')
+		temp2 <- c(temp2, paste("I(", deparse(call[[i]]), ")"))
+	 else   temp2 <- c(temp2, deparse(call[[i]]))
     m$formula <- formula(paste("~", paste(temp2, collapse="+")))
     m[[1]] <- as.name("model.frame")
     m <- m[match(c("", "formula", "subset", "na.action", "data"),
 		     names(m), 0)]
-    m <- eval(m)
+    m <- eval(m, sys.parent())
 
     entry <- m[[1]]
     birth <- m[[2]]
