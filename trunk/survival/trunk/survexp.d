@@ -6,7 +6,9 @@ Compute expected survival
 Computes the expected survival post study entry for a cohort of subjects,
 based on their age and sex composition.
 .CS
-surv.exp(entry, birth, sex, times=round(182.6 * 0:8),
+surv.exp(entry, birth, sex,
+data, subset, na.action,
+times=round(182.6 * 0:8),
 type=c("mean", "individual", "matrix"), expected=surv.exp.uswhite, interp=F)
 .RA
 .AG entry
@@ -19,6 +21,11 @@ subtracting round(365.25*age) from the entry date.
 this indexes the second dimension of the expected array. For the example
 provided-- US white-- the values are 1=male, 2=female.
 .OA
+.AG data
+frame in which to find the variables.
+.AG subset, na.action
+the subset of observations to be used in the calculation, and the function
+to be used to handle any NAs in the data.
 .AG times
 vector of time points at which an expected survival is desired.  If surv.exp
 is used for plotting purposes, then this can be a fairly coarse grid, since
@@ -31,14 +38,13 @@ entry and birth date, and the return value contains the expected survival
 of each individual at his/her respective time.
 This form is most often used with the one sample log-rank test, see surv.diff.
 If type=='matrix', then one column is returned per subject.
-.PP
-If `type' is not given, `time' is given, and length(time)=length(entry),
-then type=='individual' is assumed, otherwise the default is 'mean'.
 .AG expected
 a 2 or 3 dimensional array, age by sex by calendar year, containing the
 expected survival data.
 The second dimension can be of any size >1.  For instance, a table containing
 both sex and 4 catorizations of race would have second dimension 8.
+The `sex' argument is understood to be an index into this dimension of the
+table.
 .AG interp
 if T, then the `expected' matrix is filled out to contain one entry per year,
 by linear interpolation.
