@@ -1,4 +1,4 @@
-# SCCS $Id: residuals.survreg.s,v 4.8 1998-11-30 08:30:56 therneau Exp $
+# SCCS $Id: residuals.survreg.s,v 4.9 1998-12-22 22:48:48 therneau Exp $
 # 
 #  Residuals for survreg objects
 residuals.survreg <- function(object, type=c('response', 'deviance',
@@ -128,6 +128,7 @@ residuals.survreg <- function(object, type=c('response', 'deviance',
 	}
 
     else if (type=='deviance') {
+	yhat0 <- deviance(y, object$scale[strata], object$parms)
 	rr <- (-1)*deriv[,2]/deriv[,3]  #working residuals
 	rr <- sign(rr)* sqrt(2*(yhat0$loglik - deriv[,1]))
 	}
