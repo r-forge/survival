@@ -12,7 +12,8 @@ survfit( object, data=sys.parent(), weights, subset, na.action,
           newdata, individual=F, conf.int=.95, se.fit=T, 
 	  type=c("kaplan-meier","flemington-harrington", "fh2"),
           error=c("greenwood","tsiatis"),
-          conf.type=c("log","log-log","plain","none"))
+	  conf.type=c("log","log-log","plain","none"),
+	  conf.lower=c("usual", "peto", "modified")
 .RA
 .AG object 
 A formula object or a coxph object.
@@ -72,16 +73,19 @@ conf.int.  The log option calculates intervals based on the
 cumulative hazard or log(survival). The last option bases
 intervals on the log hazard or log(-log(survival)).  These
 last will never extend past 0 or 1.
-.PP
-If the letter "m" is added to the type, e.g. "logm", then a modified
-confidence interval is computed.  The upper limit is unchanged, but
-the lower one is based on an ``effective n'' argument.  The confidence
+.AG conf.lower
+controls modified lower limits to the curve,
+the upper limit remains unchanged.  The modified lower limit
+is based on an ``effective n'' argument.  The confidence
 bands will agree with the usual calculation at each death time, but unlike
 the usual bands the confidence interval becomes wider at each censored
-observation.
+observation.  The extra width is obtained by multiplying the usual
+variance by a factor m/n, where n is the number currently at risk and
+m is the number at risk at the last death time.  (The bands thus agree
+with the un-modified bands at each death time.)
 This is especially useful for survival curves with a long flat tail.
-If the letter "p" is added as a suffix, then the Peto version of a lower
-limit is computed.  This is based on the same effective n argument as the
+.PP
+The Peto lower limit is based on the same effective n argument as the
 modified limit, but also replaces the usual Greenwood variance term with
 a simple approximation.  It is known to be conservative.
 .RT
