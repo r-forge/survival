@@ -1,6 +1,6 @@
-# SCCS $Id: print.coxph.s,v 4.11 1998-10-28 08:57:27 therneau Exp $
+# SCCS $Id: print.coxph.s,v 4.12 1998-10-29 19:11:53 therneau Exp $
 print.coxph <-
- function(cox, digits=max(options()$digits - 4, 3), ...)
+ function(x, digits=max(options()$digits - 4, 3), ...)
     {
     if (!is.null(cl<- x$call)) {
 	cat("Call:\n")
