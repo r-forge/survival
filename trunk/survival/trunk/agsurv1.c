@@ -1,4 +1,4 @@
-/* SCCS $Id: agsurv1.c,v 4.1 1992-03-04 16:51:45 therneau Exp $  */
+/* SCCS $Id: agsurv1.c,v 4.2 1992-03-30 09:08:54 therneau Exp $  */
 /*
 ** Fit the survival curve, the special case of an Anderson-Gill style data
 **   This program differs from survfit in several key ways:
@@ -37,6 +37,8 @@
 **    yy[,1] - contains the survival times
 **    yy[2,] - the number of subjects at risk at that survival time
 **    yy[3,] - the number of events at that time
+**  Because each line of "new data" could span the entire set of old data,
+**     I have a worst case output of n*n2 lines.
 **
 **  Work
 **    d[2*nvar]
@@ -82,6 +84,7 @@ double *yy;
     double time,
 	   weight,
 	   denom;
+    double cumtime;
 
     n = *sn;  nvar = *snvar;
     hisn = *shisn;
@@ -102,9 +105,14 @@ double *yy;
     covar= dmatrix(xmat, n, nvar);
     imat = dmatrix(varcov,  nvar, nvar);
     hisx = dmatrix(hisxmat, hisn, nvar);
+
+    /*
+    **  Go to it
+    */
     hazard  =0;
     varhaz  =0;
     nsurv =0;
+    cumtime=0;
     for (i=0; i<nvar; i++) d[i] =0;
     for (l=0; l<hisn; l++) {
 	current_strata =1;
@@ -157,13 +165,14 @@ double *yy;
 			temp += d[i]*d[j]*imat[i][j];
 		varh[nsurv] = varhaz + temp;
 
-		ytime[nsurv] = time;
+		ytime[nsurv] = cumtime + time- hstart[l];
 		yrisk[nsurv] = nrisk;
 		ydeath[nsurv]= deaths;
 		current_strata += strata[person-1];
 		nsurv++;
 		}
 	    }
+	cumtime += hstop[l] - hstart[l];
 	}   /* end  of accumulation loop */
     *snsurv = nsurv;
     }
