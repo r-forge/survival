@@ -1,4 +1,4 @@
-#SCCS $Id: Surv.s,v 5.7 2001-07-11 15:04:05 therneau Exp $
+#SCCS $Id: Surv.s,v 5.8 2001-07-20 15:53:43 therneau Exp $
 # Package up surivival type data as a structure
 #
 Surv <- function(time, time2, event,
@@ -103,7 +103,7 @@ Surv <- function(time, time2, event,
 	    }
 
 	ss <- cbind(time1=time-origin, 
-		    time2=ifelse(!is.na(status) & status==3, time2-origin, 0),
+		    time2=ifelse(!is.na(status) & status==3, time2-origin, 1),
 		    status=status)
 	}
 
