@@ -1,4 +1,4 @@
-#SCCS  $Id: coxph.detail.s,v 4.2 1993-01-12 23:24:54 therneau Exp $
+#SCCS  $Id: coxph.detail.s,v 4.3 1993-03-02 15:05:32 therneau Exp $
 coxph.detail <-  function(object) {
     method <- object$method
     if (method!='breslow' && method!='efron')
@@ -62,10 +62,11 @@ coxph.detail <-  function(object) {
     keep <- 1:ff$ndeath
     vname<- dimnames(x)[[2]]
     time <- y[ff$index[keep],2]
+    names(time) <- NULL
     means<- (matrix(ff$means,ndeath, nvar))[keep,]
     score<-  matrix(ff$u, ndeath, nvar)[keep,]
     var <- array(ff$i, c(nvar, nvar, ndeath))[,,keep]
-    if (nvar>0) {
+    if (nvar>1) {
 	dimnames(means) <- list(time, vname)
 	dimnames(score) <- list(time, vname)
 	dimnames(var) <- list(vname, vname, time)
@@ -78,7 +79,8 @@ coxph.detail <-  function(object) {
 
     dimnames(ff$y) <- NULL
     temp <- list(time = time, means=means, nevent=ff$y[keep,1],
-	 nrisk = ff$y[keep,2], sumrisk= ff$y[,3], score= score,  imat=var)
+	 nrisk = ff$y[keep,2], hazard= ff$y[,3], score= score,  imat=var,
+	 y=y, x=x)
     if (length(strats)) temp$strata <- strat[keep]
     temp
     }
