@@ -1,4 +1,4 @@
-/* SCCS $Id: agexact.c,v 4.2 1992-08-06 16:26:53 therneau Exp $  */
+/* SCCS $Id: agexact.c,v 4.3 1992-08-10 12:51:42 grill Exp $  */
 /*
 ** Anderson-Gill formulation of the cox Model
 **   Do an exact calculation of the partial likelihood. (CPU city!)
@@ -55,7 +55,7 @@
 
 double **dmatrix();
 
-void agexact(maxiter, nusedx, nvarx, start, stop, event, covar2, offset, strata,
+void agexact2(maxiter, nusedx, nvarx, start, stop, event, covar2, offset, strata,
 		 means, beta,  u, imat2, loglik, flag, work, work2,
 		 eps, sctest)
 
