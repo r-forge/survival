@@ -1,4 +1,4 @@
-#SCCS $Date: 1992-03-04 16:48:07 $ $Id: model.newframe.s,v 4.1 1992-03-04 16:48:07 therneau Exp $
+#SCCS $Date: 1992-03-24 22:11:32 $ $Id: model.newframe.s,v 4.2 1992-03-24 22:11:32 therneau Exp $
 # This function is called if you want to get a new data frame,
 #   usually for prediction.  It's main problem is to "glue" any
 #   transform specific information back onto the formula, so that
@@ -20,7 +20,7 @@ model.newframe <- function(object, newdata, safe=F, response=F, ...) {
     offset <- attr(Terms, 'offset')
 
     # First, is newdata just a list of numbers?
-    if (is.atomic(newdata)) {
+    if (is.numeric(newdata)) {
 	nvar <- length(Terms) + length(offset)
 	if (length(newdata)>1  || newdata!=floor(newdata)  || newdata<0){ #It's not just a frame number
 	    if (is.matrix(newdata) && ncol(newdata) == nvar)
