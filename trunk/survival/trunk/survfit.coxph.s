@@ -1,4 +1,4 @@
-#SCCS $Id: survfit.coxph.s,v 4.12 1993-04-20 16:32:27 therneau Exp $
+#SCCS $Id: survfit.coxph.s,v 4.13 1993-05-21 15:45:05 therneau Exp $
 survfit.coxph <-
   function(object, newdata, se.fit=T, conf.int=.95, individual=F,
 	    type=c('tsiatis', 'kaplan-meier'),
@@ -44,6 +44,7 @@ survfit.coxph <-
 	if (length(strat)) stratum <- object$strata
 	else               stratum <- rep(1,n)
 	}
+    if (is.null(x)) x <- matrix(0,n,nvar)
 
     ny <- ncol(y)
     if (nrow(y) != n) stop ("Mismatched lengths: logic error")
