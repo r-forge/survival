@@ -1,4 +1,4 @@
-/* SCCS: $Id: chsolve2.c,v 2.3 1992-08-31 08:06:42 splus Exp $ */
+/* SCCS $Id: chsolve2.c,v 2.4 1993-06-10 10:12:19 therneau Exp $  */
 /*
 ** Solve the equation Ab = y, where the cholesky decomposition of A and y
 **   are the inputs.
@@ -12,7 +12,7 @@
 **  Terry Therneau
 */
 
-chsolve (matrix, n, y)
+chsolve2(matrix, n, y)
 int  n;
 double **matrix, y[];
      {
@@ -32,9 +32,12 @@ double **matrix, y[];
      ** solve DF'z =b
      */
      for (i=(n-1); i>=0; i--) {
-	  temp = y[i]/matrix[i][i];
-	  for (j= i+1; j<n; j++)
-	       temp -= y[j]*matrix[j][i];
-	  y[i] = temp;
+	  if (matrix[i][i]==0)  y[i] =0;
+	  else {
+	      temp = y[i]/matrix[i][i];
+	      for (j= i+1; j<n; j++)
+		   temp -= y[j]*matrix[j][i];
+	      y[i] = temp;
+	      }
 	  }
      }

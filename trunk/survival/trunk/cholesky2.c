@@ -1,4 +1,4 @@
-/* SCCS $Id: cholesky2.c,v 4.2 1992-08-10 13:31:54 grill Exp $  */
+/* SCCS $Id: cholesky2.c,v 4.3 1993-06-10 10:12:19 therneau Exp $  */
 /*
 ** subroutine to do Cholesky decompostion on a matrix: C = FDF'
 **   where F is lower triangular with 1's on the diagonal, and D is diagonal
@@ -8,35 +8,46 @@
 **     **matrix  a ragged array containing an n by n submatrix to be factored
 **
 **  The factorization is returned in the lower triangle, D occupies the
-**    diagonal and the upper triangle is left undisturbed.  The original
-**    contents of the lower triangle are ignored, and could be zeros.
+**    diagonal and the upper triangle is left undisturbed.
+**    The lower triangle need not be filled in at the start.
 **
-**  0 is returned upon successful factorization, the index of the
-**    offending column is returned upon failure
+**  Return value:  the rank of the matrix.
+**
+**  If a column is deemed to be redundant, then that diagonal is set to zero.
 **
 **   Terry Therneau
 */
+#define EPSILON .000000001     /* <= EPS is considered a zero */
 
 cholesky2(matrix, n)
 double **matrix;
 int n;
-     {
-     register double temp;
-     register int  i,j,k;
+    {
+    register double temp;
+    register int  i,j,k;
+    double eps, pivot;
+    int rank;
 
-     for (i=0; i<n; i++) {
-	  for (j=0; j<i; j++) {
-	       temp =0;
-	       for (k=0; k<j; k++)
-		    temp += matrix[j][k] *matrix[i][k]*matrix[k][k]  ;
-	       matrix[i][j] = (matrix[j][i] -temp) / matrix[j][j];
-	       }
+    eps =0;
+    for (i=0; i<n; i++) {
+	if (matrix[i][i] > eps)  eps = matrix[i][i];
+	for (j=(i+1); j<n; j++)  matrix[j][i] = matrix[i][j];
+	}
+    eps *= EPSILON;
 
-	  temp =0;
-	  for (k=0; k<i; k++)
-	       temp += matrix[i][k]*matrix[i][k]*matrix[k][k];
-	  matrix[i][i] -= temp;
-	  if ( matrix[i][i] <= 0.0)   return(i+1);
-	  }
-     return(0);
-     }
+    rank =0;
+    for (i=0; i<n; i++) {
+	pivot = matrix[i][i];
+	if (pivot < eps) matrix[i][i] =0;
+	else  {
+	    rank++;
+	    for (j=(i+1); j<n; j++) {
+		temp = matrix[j][i]/pivot;
+		matrix[j][i] = temp;
+		matrix[j][j] -= temp*temp*pivot;
+		for (k=(j+1); k<n; k++) matrix[k][j] -= temp*matrix[k][i];
+		}
+	    }
+	}
+    return(rank);
+    }
