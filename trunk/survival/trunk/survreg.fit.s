@@ -1,4 +1,4 @@
-#SCCS $Id: survreg.fit.s,v 4.3 1992-07-10 09:18:14 therneau Exp $
+#SCCS $Id: survreg.fit.s,v 4.4 1992-08-11 08:22:25 grill Exp $
 #
 # This handles the one parameter distributions-- extreme, logistic, and
 #       gaussian
