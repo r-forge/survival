@@ -1,7 +1,7 @@
 .BG D
 .FN survfit.object
 .TL
-Parametric Survival Model Object
+Survival Curve Object
 .PP
 This class of objects is returned by the `survfit' class of functions
 to represent a fitted survival curve.
