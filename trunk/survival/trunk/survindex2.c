@@ -1,4 +1,4 @@
-/*    SCCS $Id: survindex2.c,v 1.2 1991-06-12 16:47:15 therneau Exp $
+/*    SCCS $Id: survindex2.c,v 2.1 1991-06-12 16:58:08 therneau Exp $
 ** A subroutine for surv.fit.print
 **
 ** Input --

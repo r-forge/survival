@@ -1,4 +1,4 @@
-/* SCCS: $Id: chinv2.c,v 1.3 1991-06-12 16:47:18 therneau Exp $ */
+/* SCCS: $Id: chinv2.c,v 2.1 1991-06-12 16:58:17 therneau Exp $ */
 /*
 ** matrix inversion, given the cholesky decomposition
 **
