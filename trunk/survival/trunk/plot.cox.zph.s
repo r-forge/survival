@@ -1,5 +1,5 @@
-#SCCS $Id: plot.cox.zph.s,v 4.5 1995-06-08 15:55:42 therneau Exp $
-plot.cox.zph <- function(x, resid=T, se=T, df=4, nsmo=40, var) {
+#SCCS $Id: plot.cox.zph.s,v 4.6 1996-08-13 15:48:23 therneau Exp $
+plot.cox.zph <- function(x, resid=T, se=T, df=4, nsmo=40, var, ...) {
     xx <- x$x
     yy <- x$y
     d <- nrow(yy)
@@ -58,11 +58,12 @@ plot.cox.zph <- function(x, resid=T, se=T, df=4, nsmo=40, var) {
 	    }
 
 	if (x$transform=='identity')
-	    plot(range(xx), yr, type='n', xlab="Time", ylab=ylab[i])
+	    plot(range(xx), yr, type='n', xlab="Time", ylab=ylab[i], ...)
 	else if (x$transform=='log')
-	    plot(range(xx), yr, type='n', xlab="Time", ylab=ylab[i], log='x')
+	    plot(range(xx), yr, type='n', xlab="Time", ylab=ylab[i], log='x',
+			...)
 	else {
-	    plot(range(xx), yr, type='n', xlab="Time", ylab=ylab[i], axes=F)
+	    plot(range(xx), yr, type='n', xlab="Time", ylab=ylab[i], axes=F,...)
 	    axis(1, xaxisval, xaxislab)
 	    axis(2)
 	    box()
