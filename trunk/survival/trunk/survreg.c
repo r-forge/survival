@@ -1,4 +1,4 @@
-/* $Id: survreg.c,v 4.6 1993-03-29 14:24:41 therneau Exp $  */
+/* $Id: survreg.c,v 4.7 1993-03-29 14:47:44 therneau Exp $  */
 /*
 ** Fit one of several censored data distributions
 **
@@ -280,7 +280,6 @@ double  beta[],
 		imat[nvar][nvar] +=  dsig[person]*dsig[person];
 		}
 	    else {
-		temp = sz*dg[person];
 		if (status[person]==1) u[nvar] += sz*dg[person] -1;
 		else                   u[nvar] += sz*dg[person];
 		for (i=0; i<nvar; i++) {
@@ -354,7 +353,7 @@ double  parms[],
 		ddg[person]= funs[3]*sig2 - temp*temp;
 		if (*ncol==6) {
 		    dsig[person] = temp*sigma*z -1;
-		    dsg[person] =  simga*z*ddg[person] + temp;
+		    dsg[person] =  sigma*z*ddg[person] + temp;
 		    ddsig[person]= sigma*z* dsg[person];
 		    }
 		break;
@@ -366,7 +365,7 @@ double  parms[],
 		ddg[person]= -funs[3]*sig2/funs[1] - temp*temp;
 		if (*ncol==6) {
 		    dsig[person] = temp*sigma*z;
-		    dsg[person] =  simga*z*ddg[person] + temp;
+		    dsg[person] =  sigma*z*ddg[person] + temp;
 		    ddsig[person]= sigma*z* dsg[person];
 		    }
 		break;
@@ -378,7 +377,7 @@ double  parms[],
 		ddg[person]= funs[3]*sig2/funs[0] - temp*temp;
 		if (*ncol==6) {
 		    dsig[person] = temp*sigma*z;
-		    dsg[person] =  simga*z*ddg[person] + temp;
+		    dsg[person] =  sigma*z*ddg[person] + temp;
 		    ddsig[person]= sigma*z* dsg[person];
 		    }
 		break;
