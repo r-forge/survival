@@ -1,4 +1,4 @@
-# SCCS $Id: survexp.az.s,v 4.4 2000-06-12 09:40:42 boos Exp $
+# SCCS $Id: survexp.az.s,v 4.5 2001-12-28 13:09:10 therneau Exp $
 #
 # Create the Arizona total hazards table
 #   The raw numbers below are q* 10^5.  Note that there are 24 leap years/100
@@ -62,12 +62,12 @@ survexp.az  <- {
 	dimnames =list(0:109, c("male", "female"), 10*(197:200)),
 	dimid    =c("age", "sex", "year"),
 	factor   =c(0,1,10),
-	cutpoints=list(0:109 * 365.24, NULL, mdy.date(1,1, 197:200*10)),
+	cutpoints=list(0:109 * 365.24, NULL, julian(1,1, 197:200*10)),
 	summary = function(R) {
 		     x <- c(format(round(min(R[,1]) /365.24, 1)),
 			    format(round(max(R[,1]) /365.24, 1)),
 			    sum(R[,2]==1), sum(R[,2]==2))
-		     x2<- as.character(as.date(c(min(R[,3]), max(R[,3]))))
+		     x2<- format(dates(c(min(R[,3]), max(R[,3]))))
 
 		     paste("  age ranges from", x[1], "to", x[2], "years\n",
 			   " male:", x[3], " female:", x[4], "\n",

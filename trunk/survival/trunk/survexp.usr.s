@@ -1,4 +1,4 @@
-# SCCS $Id: survexp.usr.s,v 5.7 2000-06-12 10:06:44 boos Exp $
+# SCCS $Id: survexp.usr.s,v 5.8 2001-12-28 13:09:12 therneau Exp $
 #
 # Create the US total hazards table, by race
 #   The raw numbers below are q* 10^5.  Note that there are 24 leap years/100
@@ -320,13 +320,13 @@ attributes(survexp.usr) <- list (
 	dimid    =c("age", "sex", "race", "year"),
 	factor   =c(0,1,1,10),
 	cutpoints=list(c(0,1,7,28,1:109 * 365.24), NULL, NULL,
-	               mdy.date(1,1, (194:200)*10)),
+	               julian(1,1, (194:200)*10)),
 	summary = function(R) {
 		     x <- c(format(round(min(R[,1]) /365.24, 1)),
 			    format(round(max(R[,1]) /365.24, 1)),
 			    sum(R[,2]==1), sum(R[,2]==2),
 			    sum(R[,3]==1), sum(R[,3]==2), sum(R[,3]==3))
-		     x2<-as.character(as.date(c(min(R[,4]), max(R[,4]))))
+		     x2<- format(dates(c(min(R[,4]), max(R[,4]))))
 
 		     paste("  age ranges from", x[1], "to", x[2], "years\n",
 			   " male:", x[3], " female:", x[4], "\n",
