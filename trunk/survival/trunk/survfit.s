@@ -1,4 +1,4 @@
-#SCCS $Date: 1997-03-26 10:24:33 $ $Id: survfit.s,v 4.9 1997-03-26 10:24:33 therneau Exp $
+#SCCS $Date: 1998-09-01 11:51:58 $ $Id: survfit.s,v 4.10 1998-09-01 11:51:58 therneau Exp $
 survfit <- function (formula, data, weights, subset, na.action, ...) {
     call <- match.call()
     # Real tricky -- find out if the first arg is "Surv(...)" without
@@ -79,10 +79,11 @@ survfit <- function (formula, data, weights, subset, na.action, ...) {
 	    }
 	if (is.matrix(fit$surv)) {
 	    if (missing(j)) {
-		fit$surv <- fit$surv[keep,drop=drop]
-		if (!is.null(fit$std.err)) fit$std.err <- fit$std.err[keep,drop=drop]
-		if (!is.null(fit$upper)) fit$upper <- fit$upper[keep,drop=drop]
-		if (!is.null(fit$lower)) fit$lower <- fit$lower[keep,drop=drop]
+		fit$surv <- fit$surv[keep,,drop=drop]
+		if (!is.null(fit$std.err)) 
+			fit$std.err <- fit$std.err[keep,,drop=drop]
+		if (!is.null(fit$upper)) fit$upper <-fit$upper[keep,,drop=drop]
+		if (!is.null(fit$lower)) fit$lower <-fit$lower[keep,,drop=drop]
 		}
 	    else {
 		fit$surv <- fit$surv[keep,j]
