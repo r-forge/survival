@@ -1,4 +1,4 @@
-#SCCS $Id: plot.survfit.s,v 4.6 1992-05-07 16:41:51 therneau Exp $
+#SCCS $Id: plot.survfit.s,v 4.7 1992-07-22 10:03:21 therneau Exp $
 plot.survfit<- function(surv, conf.int,  mark.time=T,
 		 mark=3,col=1,lty=1, lwd=1, cex=1,log=F,yscale=1,
 		 xscale=1,
@@ -20,6 +20,7 @@ plot.survfit<- function(surv, conf.int,  mark.time=T,
 	nstrat <- length(surv$strata)
 	stemp <- rep(1:nstrat,surv$strata)
 	}
+    if (is.null(surv$n.event)) mark.time <- F   #expected survival curve
 
     # set default values for missing parameters
     mark <- rep(mark, length=nstrat)
@@ -52,10 +53,8 @@ plot.survfit<- function(surv, conf.int,  mark.time=T,
     for (j in unique(stemp)) {
 	i _ i+1
 	who _ (stemp==j)
-	# next line identifies all of the 'step downs' or 'last point'
-	drops _ (surv$n.event>0 | stime==max(stime[who]))
-	xx _ c(0,stime[who & drops])
-	yy _ c(1,surv$surv[who &drops])
+	xx _ c(0,stime[who])
+	yy _ c(1,surv$surv[who])
 	lines(xx, yy, lty=lty[i], col=col[i], lwd=lwd[i], type='s')
 
 	if (is.numeric(mark.time)) {
@@ -66,7 +65,7 @@ plot.survfit<- function(surv, conf.int,  mark.time=T,
 	    points(mark.time[indx<nn], yy[indx[indx<nn]],
 		   pch=mark[i],col=col[i],cex=cex)
 	    }
-	else if (mark.time==T & any(surv$n.event[who]==0))
+	else if (mark.time==T && any(surv$n.event[who]==0))
 	    points(stime[who & surv$n.event==0],
 		   surv$surv[who & surv$n.event==0],
 		   pch=mark[i],col=col[i],cex=cex)
