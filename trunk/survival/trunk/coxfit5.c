@@ -1,4 +1,4 @@
-/* SCCS $Id: coxfit5.c,v 1.2 2001-01-04 08:51:13 therneau Exp $
+/* SCCS $Id: coxfit5.c,v 1.3 2001-11-26 07:23:20 therneau Exp $
 /* A reentrant version of the Coxfit program, for random effects modeling
 **   with reasonable efficiency (I hope).  The important arrays are saved
 **   from call to call so as to speed up the process.  The x-matrix itself
@@ -502,7 +502,7 @@ S_EVALUATOR
 
 		j=0;
 		for (i=0; i<nvar; i++) {
-		    oldbeta[i] = beta[i];
+		    oldbeta[i+nf] = beta[i];
 		    beta[i] += u[i+nf];
 		    }
 		for (i=0; i<nf; i++) {

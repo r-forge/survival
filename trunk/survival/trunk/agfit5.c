@@ -581,7 +581,7 @@ S_EVALUATOR
 
 	    j=0;
 	    for (i=0; i<nvar; i++) {
-		oldbeta[i] = beta[i];
+		oldbeta[i+nf] = beta[i];
 		beta[i] += u[i+nf];
 		}
 	    for (i=0; i<nf; i++) {
