@@ -6,10 +6,11 @@ Regression for a parametric survival model
 survreg(formula, data=sys.parent(), subset, na.action,
 link=c("log", "identity"),
 dist=c("extreme", "logistic", "gaussian", "exponential"),
-scale, eps=0.0001, init, iter.max=10, model=F, x=F, y=F, ...)
+fixed, eps=0.0001, init, iter.max=10, model=F, x=F, y=F, ...)
 .AG formula
 a formula expression as for other regression models.
 See the documentation for `lm' and `formula' for details.
+.OA
 .AG data
 optional data frame in which to interpret the variables occuring in the
 formula.
@@ -21,8 +22,9 @@ function to be used to handle any NAs in the data.
 transformation to be used on the y variable.
 .AG dist
 assumed distribution for the transformed y variable.
-.AG scale
-optional; gives a fixed value for the scale parameter.
+.AG fixed
+a list of fixed parameters, most often just the scale.
+(When I implement the t-dist, it will include the degrees of freedom).
 .AG eps
 convergence criteria for the computation.  Iteration continues until the
 relative change in log likelihood is less than eps.
@@ -47,6 +49,6 @@ solve().  This can sometimes be solved by subtracting the mean from all
 continuous covariates.
 .EX
 survreg(Surv(futime, fustat) ~ ecog.ps + rx, fleming, dist='extreme',
-		link='log', scale=1)   #Fit an exponential
+		link='log', fixed=list(scale=1))   #Fit an exponential
 .KW survival
 .WR
