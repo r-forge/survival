@@ -1,4 +1,4 @@
-# SCCS $Id: pspline.s,v 1.1 1998-10-28 08:54:14 therneau Exp $
+# SCCS $Id: pspline.s,v 1.2 1998-11-30 08:32:20 therneau Exp $
 #
 # the p-spline function for a Cox model
 #
