@@ -1,4 +1,4 @@
-/* SCCS $Id: survreg.c,v 4.10 1998-08-17 10:26:01 therneau Exp $
+/* SCCS $Id: survreg.c,v 4.11 1998-08-31 08:04:02 therneau Exp $
 /*
 ** Fit one of several censored data distributions
 **
@@ -247,9 +247,9 @@ double *loglik;
 		    }
 		else {
 		    g[person] = log(temp);
-		    dg[person]  = 0;
-		    ddg[person] = 0;
-		
+		    dg[person]  = -(ufun[2] - funs[2])/(temp*sigma);
+		    ddg[person] = (ufun[3] - funs[3])*sig2/temp -
+						     dg[person]*dg[person];
 		    if (pfixed[0]==0) {
 			dsig[person] = (z*funs[2] - zu*ufun[2])/temp;
 			ddsig[person]= ((zu*zu*ufun[3] - z*z*funs[3])
