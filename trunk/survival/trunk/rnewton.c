@@ -1,4 +1,4 @@
-/* SCCS @(#)rnewton.c	1.1 7/1/92  */
+/* SCCS $Id: rnewton.c,v 4.7 1992-09-20 23:27:59 therneau Exp $ */
 /*
 ** Ridge stabilized Newton iteration
 **
@@ -18,6 +18,7 @@
 **      beta        the coef vector
 **      u           first derivative vector
 **      imat        the information matrix at beta
+**      imat2       alternate estimate of imat, unused at this time
 **      loglik(2)   loglik at beta=start and beta=final
 **      maxiter     actual # of iterations used
 **
@@ -38,7 +39,7 @@
 #include <stdio.h>
 #define POWER 2      /*how fast to increase or decrease the ridge parameter*/
 
-int rnewton(maxiter, n, nvar, beta, u, imat, loglik, eps,
+int rnewton(maxiter, n, nvar, beta, u, imat, imat2, loglik, eps,
 		    dolk, doimat, newbeta, savediag, debug)
 int     *maxiter,
 	n,
@@ -51,6 +52,7 @@ double  u[],
 	savediag[],
 	eps;
 double  **imat;
+double  **imat2;
 
 void    (*dolk)(),
 	(*doimat)();
@@ -59,6 +61,7 @@ void    (*dolk)(),
     int     ierr, iter;
     double  newlk;
     int     halving;    /*are we doing step halving at the moment? */
+    int     numhalf;    /* number of step halvings done so far  */
     int     levenberg;  /*is ridge stabilization turned on? */
     double  tau;        /*amount of ridge */
 
@@ -76,7 +79,7 @@ void    (*dolk)(),
 	fflush(stderr);
 	}
 
-    (*doimat)(n, nvar, beta, u, imat);
+    (*doimat)(n, nvar, beta, u, imat, imat2);
     for (i=0; i<nvar; i++) savediag[i] = imat[i][i];
     tau =1;
 
@@ -125,6 +128,7 @@ void    (*dolk)(),
     /*
     ** here is the main loop
     */
+    numhalf =0;
     for (iter=1; iter<=*maxiter; iter++) {
 	halving=0;
 	(*dolk)(n, nvar, newbeta, &newlk);
@@ -138,6 +142,7 @@ void    (*dolk)(),
 
 	if ((eps + newlk) <= loglik[1]) do {   /* step halving */
 	    halving++;
+	    if (numhalf++ > 20) {levenberg=1; tau *=POWER;}
 	    if (halving > 20) {    /*stop an infinite loop */
 		for (i=0; i<nvar; i++) newbeta[i] = beta[i];
 		levenberg=1;
@@ -158,7 +163,7 @@ void    (*dolk)(),
 	    } while ( (eps + newlk) <= loglik[1]) ;
 	tau /= 2*POWER;
 
-	(*doimat)(n, nvar, newbeta, u, imat);
+	(*doimat)(n, nvar, newbeta, u, imat, imat2);
 	for (i=0; i<nvar; i++)  savediag[i] = imat[i][i];
 
 	/* Check out the information matrix */

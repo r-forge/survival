@@ -1,9 +1,12 @@
-#SCCS $Id: survreg.fit.s,v 4.4 1992-08-11 08:22:25 grill Exp $
+#SCCS $Id: survreg.fit.s,v 4.5 1992-09-20 23:27:58 therneau Exp $
 #
-# This handles the one parameter distributions-- extreme, logistic, and
-#       gaussian
+# This handles the one parameter distributions-- extreme, logistic,
+#       gaussian, and cauchy.
+# The parent routine survreg can't allow Cauchy.  It gives negative weights
+#   when we try to fit it into the IRLS model.
+#
 survreg.fit<- function(x, y, offset, init, iter.max,
-			eps, fun, scale, singular.ok=F)
+			eps, dist, scale, singular.ok=F)
     {
     if (!is.matrix(x)) stop("Invalid formula for fitting function")
     n <- nrow(x)
@@ -32,10 +35,14 @@ survreg.fit<- function(x, y, offset, init, iter.max,
 
     if (scale==0 && any(y[,ny]==3)) ncol.deriv <- 6
     else                            ncol.deriv <- 3
+
+    dnum <- match(dist, c("extreme", "logistic", "gaussian", "cauchy"))
+    if (is.na(dnum)) stop ("Unknown distribution given")
+
     #
     # Fit the null model --- only an intercept and sigma
     #
-    nfit <- .C(fun, iter= as.integer(iter.max),
+    nfit <- .C("survreg", iter= as.integer(iter.max),
 		   as.integer(n),
 		   as.integer(1),
 		   y,
@@ -46,11 +53,13 @@ survreg.fit<- function(x, y, offset, init, iter.max,
 		   as.double(scale),
 		   double(6),
 		   imat= matrix(0, 2,2),
+		   jmat= matrix(0, 2,2),
 		   loglik=double(2),
 		   flag=integer(1),
 		   as.double(eps),
 		   deriv = double(n * ncol.deriv),
-		   as.integer(1))
+		   as.integer(1),
+		   as.integer(dnum))
 
     if (missing(init) || is.null(init)) {
 	init <- c(rep(0,nvar), nfit$coef[2])[1:nvar2]
@@ -58,7 +67,7 @@ survreg.fit<- function(x, y, offset, init, iter.max,
 	}
     else doinit <- 0
 
-    fit <- .C(fun, iter=as.integer(iter.max),
+    fit <- .C("survreg", iter=as.integer(iter.max),
 		   as.integer(n),
 		   as.integer(nvar),
 		   y,
@@ -69,12 +78,16 @@ survreg.fit<- function(x, y, offset, init, iter.max,
 		   as.double(scale),
 		   double(3*(nvar2) + 2*n),
 		   imat= matrix(0, nvar2, nvar2),
+		   jmat= matrix(0, nvar2, nvar2),
 		   loglik=double(2),
 		   flag=integer(1),
 		   as.double(eps),
 		   deriv = matrix(double(ncol.deriv*n),ncol=ncol.deriv),
-		   as.integer(doinit))
+		   as.integer(doinit),
+		   as.integer(dnum))
 
+    if (iter.max >1 && fit$flag== -1)
+	       warning("Ran out of iterations and did not converge")
     temp <- dimnames(x)[[2]]
     if (is.null(temp)) temp <- paste("x", 1:ncol(x))
     if (scale==0)  temp <- c(temp, "log(scale)")

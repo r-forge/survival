@@ -1,10 +1,11 @@
-#SCCS $Id: survreg.s,v 4.9 1992-08-06 16:33:01 therneau Exp $
+#SCCS $Id: survreg.s,v 4.10 1992-09-20 23:27:57 therneau Exp $
 survreg <- function(formula=formula(data), data=sys.parent(),
 	subset, na.action,
 	link=c('log', 'identity'),
-	dist=c("extreme", "logistic", "gaussian", "exponential"),
+	dist=c("extreme", "logistic", "gaussian", "exponential",
+	       "rayleigh"),
 	scale,
-	eps=.0001, init, iter.max=10,
+	eps=.0001, init, iter.max=20,
 	model=F, x=F, y=F, ...) {
 
     call <- match.call()
@@ -45,18 +46,19 @@ survreg <- function(formula=formula(data), data=sys.parent(),
     if (missing(init)) init <- NULL
     if (missing(scale)) scale <- NULL
 
-    if( dist=="extreme")
-	sfit <- survreg.fit(X, Y, offset, init=init, iter.max=iter.max,
-			    eps = eps, fun='exvalue', scale=scale)
-    else if (dist=="logistic")
-	sfit <- survreg.fit(X, Y, offset, init=init, iter.max=iter.max,
-			    eps = eps, fun='logisticfit', scale=scale)
-    else if (dist=="exponential") {
+    if( dist=="exponential") {
 	scale <- 1
 	sfit <- survreg.fit(X, Y, offset, init=init, iter.max=iter.max,
-			    eps = eps, fun='exvalue', scale=1)
+			    eps = eps, dist='extreme', scale=1)
 	}
-    else stop(paste ("Unknown distribution", dist))
+    else if (dist=="rayleigh") {
+	scale <- .5
+	sfit <- survreg.fit(X, Y, offset, init=init, iter.max=iter.max,
+			    eps = eps, dist='extreme', scale=.5)
+	}
+    else
+	sfit <- survreg.fit(X, Y, offset, init=init, iter.max=iter.max,
+			    eps = eps, dist= dist, scale=scale)
 
     if (is.character(sfit))  fit <- list(fail=sfit)  #error message
     else {
