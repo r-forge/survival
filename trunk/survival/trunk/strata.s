@@ -1,4 +1,4 @@
-# $Id: strata.s,v 4.8 1993-04-12 11:11:04 therneau Exp $
+# $Id: strata.s,v 4.9 1993-07-21 10:41:30 therneau Exp $
 # Create a strata variable, possibly from many objects
 #
 strata <- function(..., na.group=F, shortlabel=F) {
@@ -10,7 +10,7 @@ strata <- function(..., na.group=F, shortlabel=F) {
 	    words <- names(ttt)
 	    }
     nterms <- length(allf)
-    what <- allf[[nterms]]
+    what <- allf[[1]]
     if(is.null(levels(what)))
 	    what <- factor(what)
     levs <- unclass(what) - 1
@@ -20,9 +20,9 @@ strata <- function(..., na.group=F, shortlabel=F) {
 	wlab <- c(wlab, "NA")
 	}
     if (shortlabel) labs <- wlab
-    else            labs <- paste(words[nterms], wlab, sep='=')
-    for (i in (1:nterms)[-nterms]) {
-	what <- allf[[nterms-i]]
+    else            labs <- paste(words[1], wlab, sep='=')
+    for (i in (1:nterms)[-1]) {
+	what <- allf[[i]]
 	if(is.null(levels(what)))
 		what <- factor(what)
 	wlab <- levels(what)
@@ -32,8 +32,9 @@ strata <- function(..., na.group=F, shortlabel=F) {
 	    wlab <- c(wlab, "NA")
 	    }
 	if (!shortlabel) wlab <- format(paste(words[i], wlab, sep='='))
-	levs <- levs * length(wlab) + wlev
-	labs <- as.vector(outer(wlab, labs, paste, sep = ", "))
+	levs <- wlev + levs*(length(wlab))
+	labs <- paste(rep(labs, rep(length(wlab), length(labs))),
+		      rep(wlab, length(labs)), sep=', ')
 	}
     levs <- levs + 1
     ulevs <- sort(unique(levs[!is.na(levs)]))
