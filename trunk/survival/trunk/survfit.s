@@ -1,4 +1,4 @@
-#SCCS $Date: 1994-05-23 07:51:38 $ $Id: survfit.s,v 4.6 1994-05-23 07:51:38 therneau Exp $
+#SCCS $Date: 1995-05-23 14:49:54 $ $Id: survfit.s,v 4.7 1995-05-23 14:49:54 therneau Exp $
 survfit <- function (formula, data, weights, subset, na.action, ...) {
     call <- match.call()
     # Real tricky -- find out if the first arg is "Surv(...)" without
@@ -55,3 +55,52 @@ survfit <- function (formula, data, weights, subset, na.action, ...) {
     temp$call <- call
     temp
     }
+
+# The subscript function is bundled in here, although used most
+#  often in plotting
+
+"[.survfit" <- function(fit,i,j, drop=F) {
+    if (is.null(fit$strata)) {
+	if (is.matrix(fit$surv)) {
+	    fit$surv <- fit$surv[,i,drop=drop]
+	    if (!is.null(fit$std.err)) fit$std.err <- fit$std.err[,i,drop=drop]
+	    if (!is.null(fit$upper)) fit$upper <- fit$upper[,i,drop=drop]
+	    if (!is.null(fit$lower)) fit$lower <- fit$lower[,i,drop=drop]
+	    }
+	else warning("Survfit object has only a single survival curve")
+	}
+    else {
+	if (missing(i)) keep <- seq(along=fit$time)
+	else {
+	    if (is.character(i)) strat <- rep(names(fit$strata), fit$strata)
+	    else                 strat <- rep(1:length(fit$strata), fit$strata)
+	    keep <- seq(along=strat)[match(strat, i, nomatch=0)>0]
+	    fit$strata  <- fit$strata[i]
+	    fit$time    <- fit$time[keep]
+	    fit$n.risk  <- fit$n.risk[keep]
+	    fit$n.event <- fit$n.event[keep]
+	    }
+	if (is.matrix(fit$surv)) {
+	    if (missing(j)) {
+		fit$surv <- fit$surv[keep,drop=drop]
+		if (!is.null(fit$std.err)) fit$std.err <- fit$std.err[keep,drop=drop]
+		if (!is.null(fit$upper)) fit$upper <- fit$upper[keep,drop=drop]
+		if (!is.null(fit$lower)) fit$lower <- fit$lower[keep,drop=drop]
+		}
+	    else {
+		fit$surv <- fit$surv[keep,j]
+		if (!is.null(fit$std.err)) fit$std.err <- fit$std.err[keep,j]
+		if (!is.null(fit$upper)) fit$upper <- fit$upper[keep,j]
+		if (!is.null(fit$lower)) fit$lower <- fit$lower[keep,j]
+		}
+	    }
+	else {
+	    fit$surv <- fit$surv[keep]
+	    if (!is.null(fit$std.err)) fit$std.err <- fit$std.err[keep]
+	    if (!is.null(fit$upper)) fit$upper <- fit$upper[keep]
+	    if (!is.null(fit$lower)) fit$lower <- fit$lower[keep]
+	    }
+	}
+    fit
+    }
+
