@@ -4,7 +4,8 @@
 Predicted values for a `survreg' object
 .CS
 predict.survreg(object, newdata, 
-type=c("link", "lp", "response", "terms", "quantile", "uquantile"), 
+type=c("response", "link", "linear", "response", "terms", "quantile", 
+	"uquantile"), 
 se.fit=F, terms=labels.lm(object), p=c(0.1, 0.9), ripley=F)
 .RA
 .AG object
@@ -14,13 +15,15 @@ result of a model fit using the `survreg' function.
 data for prediction.  If absent predictions are for the
 subjects used in the original fit.
 .AG type
-the type of predicted value.  
+the type of predicted value. 
+This can be on the original scale of the data (response),
+the linear predictor (linear, with lp as an allowed abbreviation),
+a predicted quantile on the original scale of the data (quantile),
+a quantile on the linear predictor scale (uquantile),
+or the matrix of terms for the linear predictor (terms).
 At this time "link" and linear predictor ("lp") are identical.
-Both names are retained for similarity with both coxph and glm.
-The uquantile residuals are untransformed quantiles.
 .AG se.fit
 if TRUE, include the standard errors of the prediction in the result.
-Not available for `quantile' predictions.
 .AG terms
 subset of terms.  The default for residual type`terms' is a matrix with
 one column for every term (excluding the intercept) in the model.

@@ -1,7 +1,7 @@
-# SCCS $Id: predict.survreg.s,v 4.9 1999-01-19 22:59:36 therneau Exp $
+# SCCS $Id: predict.survreg.s,v 4.10 1999-01-20 08:55:53 therneau Exp $
 predict.survreg <-
-    function(object, newdata, 
-	     type=c("link", 'lp', 'response', 'terms', 'quantile','uquantile'),
+    function(object, newdata, type=c('response', "link", 'lp', 'linear',
+				     'terms', 'quantile','uquantile'),
 				se.fit=F,  terms=labels.lm(object),
 	                        p=c(.1, .9), ripley=F)
     {
@@ -20,7 +20,8 @@ predict.survreg <-
 #	   newdata: new X
 #
     type <-match.arg(type)
-    if (type=='link') type= 'lp'  #true until their are link functions
+    if (type=='link') type<- 'lp'  #true until their are link functions
+    if (type=='linear') type<- 'lp'
     n <- length(object$linear.predictors)
     Terms <- object$terms
     if(!inherits(Terms, "terms"))
