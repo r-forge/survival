@@ -1,4 +1,4 @@
-#SCCS  $Id: survexp.s,v 4.19 1994-11-25 16:49:45 therneau Exp $
+#SCCS  $Id: survexp.s,v 4.20 1995-01-27 15:53:40 therneau Exp $
 survexp <- function(formula=formula(data), data=sys.parent(),
 	weights, subset, na.action,
 	times,  cohort=T,  conditional=T,
@@ -29,7 +29,7 @@ survexp <- function(formula=formula(data), data=sys.parent(),
     no.Y <- is.null(Y)
     if (!no.Y) {
 	if (is.matrix(Y)) {
-	    if (is.Surv(Y) && attributes(Y, 'type')=='right') Y <- Y[,1]
+	    if (is.Surv(Y) && attr(Y, 'type')=='right') Y <- Y[,1]
 	    else stop("Illegal response value")
 	    }
 	if (any(Y<0)) stop ("Negative follow up time")
