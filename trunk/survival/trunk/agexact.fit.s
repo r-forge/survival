@@ -1,6 +1,6 @@
-#SCCS $Date: 1992-03-04 16:48:02 $ $Id: agexact.fit.s,v 4.1 1992-03-04 16:48:02 therneau Exp $
-agexact.fit <- function(y, x, strata, casewt, offset, init, iter.max,
-			eps, inf.ratio, method, inter)
+#SCCS $Date: 1992-03-30 02:21:08 $ $Id: agexact.fit.s,v 4.2 1992-03-30 02:21:08 therneau Exp $
+agexact.fit <- function(x, y, strata, offset, iter.max,
+			eps, inf.ratio, init, method, rownames)
     {
     if (!is.matrix(x)) stop("Invalid formula for cox fitting function")
     n <- nrow(x)
@@ -27,23 +27,20 @@ agexact.fit <- function(y, x, strata, casewt, offset, init, iter.max,
 	newstrat <- as.integer(c(1*(diff(strata)!=0), 1))
 	}
     if (is.null(offset)) offset <- rep(0,n)
-    if (is.null(casewt)) casewt <- rep(1,n)
 
     sstart <- as.double(start[sorted])
     sstop <- as.double(stopp[sorted])
     sstat <- as.integer(event[sorted])
 
-    if (ncol(x)==1 && inter==1) {
+    if (is.null(nvar)) {
 	# A special case: Null model.  Not worth coding up
 	stop("Cannot handle a null model + exact calculation (yet)")
 	}
 
-    nvar <- nvar - inter
     if (!is.null(init)) {
 	if (length(init) != nvar) stop("Wrong length for inital values")
 	}
     else init <- rep(0,nvar)
-    if (inter==1) x <- x[, -1, drop=F]
 
     agfit <- .C("agexact", iter= as.integer(iter.max),
 		   as.integer(n),
@@ -83,7 +80,7 @@ agexact.fit <- function(y, x, strata, casewt, offset, init, iter.max,
 
     resid _ double(n)
     resid[sorted] <- sstat - score*aghaz$cumhaz
-    names(resid) <- dimnames(x)[[1]]
+    names(resid) <- rownames
 
     list(coefficients  = agfit$coef,
 		var    = matrix(agfit$imat, ncol=nvar),
