@@ -1,4 +1,4 @@
-#SCCS $Date: 1992-08-06 16:26:55 $ $Id: agreg.fit.s,v 4.4 1992-08-06 16:26:55 therneau Exp $
+#SCCS $Date: 1992-08-06 16:49:25 $ $Id: agreg.fit.s,v 4.5 1992-08-06 16:49:25 therneau Exp $
 agreg.fit <- function(x, y, strata, offset, init, iter.max,
 			eps, method, rownames)
     {
@@ -76,11 +76,11 @@ agreg.fit <- function(x, y, strata, offset, init, iter.max,
 		       as.double(eps),
 		       sctest=as.double(method=='efron') )
 
-	infs <- abs((agfit$u %*% matrix(agfit$imat,nvar))/ agfit$coef)
+	infs <- abs(agfit$u %*% matrix(agfit$imat,nvar))
 	if (iter.max >1) {
 	    if (agfit$flag == 1000)
 		   warning("Ran out of iterations and did not converge")
-	    else if (any(infs > sqrt(eps)))
+	    else if (any((infs > eps) & (infs > eps*abs(agfit$coef))))
 		warning(paste("Loglik converged before variable ",
 			  (1:nvar)[(infs>eps)], ", beta may be infinite. ",
 			   collapse=''))
