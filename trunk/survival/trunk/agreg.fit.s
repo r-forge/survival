@@ -1,4 +1,4 @@
-# SCCS $Id: agreg.fit.s,v 4.22 2000-06-12 07:48:55 therneau Exp $
+# SCCS $Id: agreg.fit.s,v 4.23 2001-07-11 15:04:05 therneau Exp $
 agreg.fit <- function(x, y, strata, offset, init, control,
 			weights, method, rownames)
     {
@@ -24,7 +24,7 @@ agreg.fit <- function(x, y, strata, offset, init, control,
     if (missing(weights)|| is.null(weights))weights<- rep(1.0, n)
     else if (any(weights<=0)) stop("Invalid weights, must be >0")
 
-    if (is.null(nvar)) {
+    if (is.null(nvar) || nvar==0) {
 	# A special case: Null model.  Just return obvious stuff
         #  To keep the C code to a small set, we call the usual routines, but
 	#  with a dummy X matrix and 0 iterations

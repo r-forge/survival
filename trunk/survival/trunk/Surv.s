@@ -1,4 +1,4 @@
-#SCCS $Id: Surv.s,v 5.6 2001-06-12 08:53:57 therneau Exp $
+#SCCS $Id: Surv.s,v 5.7 2001-07-11 15:04:05 therneau Exp $
 # Package up surivival type data as a structure
 #
 Surv <- function(time, time2, event,
@@ -16,7 +16,6 @@ Surv <- function(time, time2, event,
     # and missing(status) instead?  Because we want to assume that 
     # "Surv(a,b)" has the variable b matched to status rather than time2.
     #
-
     if (missing(type)) {
 	if (ng==1 || ng==2) type <- 'right'
 	else if (ng==3)     type <- 'counting'
@@ -34,15 +33,17 @@ Surv <- function(time, time2, event,
 	}
     else if (type=='right' || type=='left') {
 	if (length(time2) != nn) stop ("Time and status are different lengths")
-	if (is.logical(time2)) status <- 1*time2
+	if (is.logical(time2)) status <- as.numeric(time2)
 	else  if (is.numeric(time2)) {
 	    who2 <- !is.na(time2)
 	    if (max(time2[who2]) ==2) status <- time2 -1
 	    else status <- time2
-	    if (any(status[who2] !=0  & status[who2]!=1))
-				stop ("Invalid status value")
+	    temp <- (status==0 | status==1)
+	    status <- ifelse(temp, status, NA)
+	    if (!all(temp[who2], na.rm=T))
+		    warning("Invalid status value, converted to NA")
 	    }
-	else stop("Invalid status value")
+	else stop("Invalid status value, must be logical or numeric")
 	ss <- cbind(time=time-origin, status=status)
 	}
     else  if (type=='counting') {
@@ -50,42 +51,63 @@ Surv <- function(time, time2, event,
 	if (length(event)!=nn) stop ("Start and event are different lengths")
 	if (!is.numeric(time2)) stop("Stop time is not numeric")
 	who3 <- !(is.na(time) | is.na(time2))
-	if (any (time[who3]>= time2[who3]))stop("Stop time must be > start time")
-	if (is.logical(event)) status <- 1*event
+	if (any (time[who3]>= time2[who3])) {
+	    time[time[who3]>= time2[who3]] <- NA
+	    warning("Stop time must be > start time, NA created")
+	    }
+	if (is.logical(event)) status <- as.numeric(event)
 	    else  if (is.numeric(event)) {
 		who2 <- !is.na(event)
 		if (max(event[who2])==2) status <- event - 1
 		else status <- event
-		if (any(status[who2] !=0  & status[who2]!=1))
-				stop("Invalid status value")
+		temp <- (status==0 | status==1)
+		status <- ifelse(temp, status, NA)
+		if (!all(temp[who2], na.rm=T))
+		    warning("Invalid status value, converted to NA")
 		}
-	    else stop("Invalid status value")
+	    else stop("Invalid status value, must be logical or numeric")
 	ss <- cbind(start=time-origin, stop=time2-origin, status)
 	}
 
     else {  #interval censored data
+	if (length(time2) !=nn) stop ("Start and stop are different lengths")
+	if (!is.numeric(time2)) stop("Stop time is not numeric")
+
 	if (type=='interval2') {
+	    # convert to "interval" type, infer the event code
 	    if (!is.numeric(time2)) stop("Time2 must be numeric")
-	    event <- ifelse(is.na(time), 2,
-		     ifelse(is.na(time2),0,
-		     ifelse(time==time2, 1,3)))
-	    if (any(time[event==3] > time2[event==3]))
-		stop("Invalid interval: start > stop")
-	    time <- ifelse(event!=2, time, time2)
+	    status <- ifelse(is.na(time), 2,
+		      ifelse(is.na(time2),0,
+		      ifelse(time==time2, 1,3)))
+	    time <- ifelse(status!=2, time, time2)
 	    type <- 'interval'
 	    }
-	else {
-	    temp <- event[!is.na(event)]
-	    if (!is.numeric(temp)) stop("Status indicator must be numeric")
-	    if (length(temp)>0 && any(temp!= floor(temp) | temp<0 | temp>3))
-		stop("Status indicator must be 0, 1, 2 or 3")
+	else {  #check legality of event code
+	    if (length(event)!=nn) 
+		    stop("Time and status are different lengths")
+	    if (is.logical(event)) status <- as.numeric(event)
+	    else {
+		if (!is.numeric(event)) 
+		   stop("Invalid status value, must be logical or numeric")
+		temp <- (event==0 | event==1| event==2 | event==3)
+		status <- ifelse(temp, event, NA)
+		if (!all(temp, na.rm=T))
+			warning("Status must be 0, 1, 2 or 3; converted to NA")
+		}
 	    }
-	status <- event
+
+	temp <- (time[status==3] > time2[status==3])
+	if (any(temp & !is.na(temp))) {
+	    time[temp] <- NA
+	    warning("Invalid interval: start > stop, NA created")
+	    }
+
 	ss <- cbind(time1=time-origin, 
-		    time2=ifelse(!is.na(event) & event==3, time2-origin, 0),
+		    time2=ifelse(!is.na(status) & status==3, time2-origin, 0),
 		    status=status)
 	}
 
+    dimnames(ss)[[1]] <- character(0)  # kill any tag-along row names
     attr(ss, "type")  <- type
     oldClass(ss) <- 'Surv'
     ss
@@ -126,19 +148,27 @@ as.character.Surv <- function(xx) {
     }
 
 "[.Surv" <- function(x, ..., drop=F) {
-    # If only 1 subscript is given, the result will still be a Surv object
-    #  If the second is given extract the relevant columns as a matrix
-    if (missing(..2)) {
-	temp <- oldClass(x)
+    # If only 1 subscript is given, the result will still be a Surv object,
+    #   and the drop argument is ignored.
+    # Or, if drop=F and subscript 2 is not present, return a Surv object.
+    # I would argue that x[3:4,,drop=F] should return a matrix, since
+    #  the user has implicitly specified that they want a matrix.
+    #  However, [.dataframe calls [.Surv with the extra comma; it's
+    #  behavior drives the choice of default.
+    if ((nDotArgs(...)==1) ||
+	(!drop && (missing(..2) || mode(..2)=='missing'))) {
+	cl <- oldClass(x)
 	type <- attr(x, "type")
 	oldClass(x) <- NULL
-	x <- x[..., drop=F]
-	oldClass(x) <- temp
+	attr(x, "type") <- NULL
+	x <- x[..1,, drop=F]
 	attr(x, "type") <- type
+	oldClass(x) <- cl
 	x
 	}
-    else {
+    else { # return  a matrix or vector
 	oldClass(x) <- NULL
+	attr(x, "type") <- NULL
 	NextMethod("[")
 	}
     }
