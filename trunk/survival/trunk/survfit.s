@@ -1,18 +1,18 @@
-#SCCS $Date: 1992-04-14 18:08:16 $ $Id: survfit.s,v 4.2 1992-04-14 18:08:16 grill Exp $
+#SCCS $Date: 1992-04-17 17:35:26 $ $Id: survfit.s,v 4.3 1992-04-17 17:35:26 therneau Exp $
 survfit <- function (formula, data, weights, subset, na.action, ...) {
     call <- match.call()
     # Real tricky -- find out if the first arg is "Surv(...)" without
     #  evaluating it.  If this is so, or it is a survival object, turn it
     #  into a formula
     if ((mode(call[[2]]) == 'call' &&  call[[2]][[1]] == as.name('Surv'))
-		|| attr(formula, 'class') == 'Surv') {
+		|| inherits(formula, 'Surv'))  {
 	# The dummy function stops an annoying warning message "Looking for
 	#  'formula' of mode function, ignored one of mode ..."
 	xx <- function(x) formula(x)
 	formula <- xx(paste(deparse(call[[2]]), 1, sep="~"))
 	}
 
-    if (!inherits(formula, 'formula')) temp <- NextMethod("survfit")
+    if (!inherits(formula, 'formula')) temp <- UseMethod("survfit")
     else {
 	m <- match.call(expand=F)
 	m$... <- NULL
