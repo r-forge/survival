@@ -1,4 +1,4 @@
-#SCCS $Id: untangle.specials.s,v 4.1 1992-07-10 16:36:24 therneau Exp $
+#SCCS $Id: untangle.specials.s,v 4.2 1997-03-28 09:49:12 therneau Exp $
 untangle.specials <- function(tt, special, order=1) {
     #
     # There was a change in the specials, so action depends on your release
@@ -6,7 +6,7 @@ untangle.specials <- function(tt, special, order=1) {
     #
     spc <- attr(tt, 'specials')[[special]]
     if (length(spc)==0)
-	return(vars=character(0), terms=numeric(0))
+	return(list(vars=character(0), terms=numeric(0)))
 
     facs <- attr(tt, 'factor')
     fname <- dimnames(facs)
