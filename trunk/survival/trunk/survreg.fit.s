@@ -1,4 +1,4 @@
-#SCCS @(#)survreg.fit.s	4.8 12/29/92
+#SCCS $Id: survreg.fit.s,v 4.11 1998-07-22 08:41:02 therneau Exp $
 #
 # This handles the one parameter distributions-- extreme, logistic,
 #       gaussian, and cauchy.
@@ -42,7 +42,7 @@ survreg.fit<- function(x, y, offset, init, controlvals, dist, fixed,
 		       y,
 		       as.integer(ny),
 		       as.double(eta + offset),
-		       coef= as.double(c(0,tfix[,1])),
+		       parms = as.double(tfix),
 		       deriv = matrix(double(n * 3),nrow=n),
 		       as.integer(3),
 		       as.integer(dnum))$deriv
