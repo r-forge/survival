@@ -1,4 +1,4 @@
-/* SCCS $Id: agfit2.c,v 4.1 1992-03-04 16:51:42 therneau Exp $  */
+/* SCCS $Id: agfit2.c,v 4.2 1992-03-30 02:21:55 therneau Exp $  */
 /*
 ** Anderson-Gill formulation of the cox Model
 **
@@ -155,6 +155,7 @@ double  *eps;
 	    ** compute the mean and covariance over the risk set (a and c)
 	    */
 	    denom =0;
+	    efron_wt =0;
 	    for (i=0; i<nvar; i++) {
 		a[i] =0;
 		a2[i]=0;
@@ -169,15 +170,18 @@ double  *eps;
 		if (start[k] < time) {
 		    weight = score[k];
 		    denom += weight;
-		    efron_wt += weight*event[k];
-		    deaths += event[k];
 		    for (i=0; i<nvar; i++) {
 			a[i] += weight*covar[i][k];
-			a2[i]+= weight*covar[i][k]*event[k];
-			for (j=0; j<=i; j++){
+			for (j=0; j<=i; j++)
 			    cmat[i][j] += weight*covar[i][k]*covar[j][k];
-			    cmat2[i][j] += weight*covar[i][k]*covar[j][k]*
-						event[k];
+			}
+		    if (stop[k]==time && event[k]==1) {
+			deaths += event[k];
+			efron_wt += weight*event[k];
+			for (i=0; i<nvar; i++) {
+			    a2[i]+= weight*covar[i][k];
+			    for (j=0; j<=i; j++)
+				cmat2[i][j] += weight*covar[i][k]*covar[j][k];
 			    }
 			}
 		     }
@@ -191,11 +195,11 @@ double  *eps;
 	    for (k=person; k<nused && stop[k]==time; k++) {
 		if (event[k]==1) {
 		    itemp++;
-		    temp = method*itemp/deaths;
+		    temp = itemp*method/deaths;
 		    d2 = denom - temp*efron_wt;
 		    loglik[1] +=  log(score[k]/d2);
 		    for (i=0; i<nvar; i++) {
-			temp2 = (a[i] - temp*a2[i])/denom;
+			temp2 = (a[i] - temp*a2[i])/d2;
 			u[i] += covar[i][k] - temp2;
 			for (j=0; j<=i; j++)
 			    imat[j][i] += (cmat[i][j] - temp*cmat2[i][j])/d2-
@@ -270,6 +274,7 @@ double  *eps;
 		/*
 		** compute the mean and covariance over the risk set (a and c)
 		*/
+		efron_wt =0;
 		denom =0;
 		for (i=0; i<nvar; i++) {
 		    a[i] =0;
@@ -285,18 +290,21 @@ double  *eps;
 		    if (start[k] < time) {
 			weight = score[k];
 			denom += weight;
-			efron_wt += weight*event[k];
-			deaths += event[k];
 			for (i=0; i<nvar; i++) {
 			    a[i] += weight*covar[i][k];
-			    a2[i]+= weight*covar[i][k]*event[k];
-			    for (j=0; j<=i; j++){
+			    for (j=0; j<=i; j++)
 				cmat[i][j] += weight*covar[i][k]*covar[j][k];
-				cmat2[i][j] += weight*covar[i][k]*covar[j][k]*
-						    event[k];
+			    }
+			if (stop[k]==time && event[k]==1) {
+			    deaths += event[k];
+			    efron_wt += weight*event[k];
+			    for (i=0; i<nvar; i++) {
+				a2[i]+= weight*covar[i][k];
+				for (j=0; j<=i; j++)
+				    cmat2[i][j] += weight*covar[i][k]*covar[j][k];
 				}
 			    }
-			 }
+			}
 		    if (strata[k]==1) break;
 		    }
 
@@ -304,11 +312,11 @@ double  *eps;
 		for (k=person; k<nused && stop[k]==time; k++) {
 		    if (event[k]==1) {
 			itemp++;
-			temp = method*itemp/deaths;
+			temp = itemp*method/deaths;
 			d2 = denom - temp*efron_wt;
 			newlk +=  log(score[k]/d2);
 			for (i=0; i<nvar; i++) {
-			    temp2 = (a[i] - temp*a2[i])/denom;
+			    temp2 = (a[i] - temp*a2[i])/d2;
 			    u[i] += covar[i][k] - temp2;
 			    for (j=0; j<=i; j++)
 				imat[j][i] += (cmat[i][j] - temp*cmat2[i][j])/d2-
