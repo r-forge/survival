@@ -1,4 +1,4 @@
-/*  SCCS $Id: agfit3.c,v 1.3 2000-06-12 07:48:10 therneau Exp $
+/*  SCCS $Id: agfit3.c,v 1.4 2004-10-12 10:16:17 therneau Exp $
 /*
 ** Anderson-Gill formulation of the Cox Model, using smart subsets
 **
@@ -299,6 +299,32 @@ void agfit3( long   *maxiter,  long   *nusedx,  long   *nvarx,
 	    for (i=0; i<nvar; i++)
 		zbeta += newbeta[i]*covar[i][person];
 	    score[person] = zbeta + offset[person];
+	    if (zbeta > 20) {
+		/*
+		** If the above happens, then 
+		**   1. There is a real chance for catastrophic cancellation
+		**       in the computation of "denom", which leads to
+		**       numeric failure via log(neg number) -> inf loglik
+		**   2. A risk score for one person of exp(20) > 400 million
+		**       is either an infinite beta, in which case any
+		**       reasonable coefficient will do, or a big overreach
+		**       in the Newton-Raphson step.
+		** In either case, a good solution is step halving.
+		** 
+		** Why 20?  Most machines have about 16 digits of precision,
+		**   and this preserves approx 7 digits in the subtraction
+		**   when a high risk score person leaves the risk set.
+		**   (Because of centering, the average risk score is about 0).
+		**   Second, if eps is small and beta is infinite, we rarely
+		**   get a value above 16.  So a 20 is usually a NR overreach.
+		** A data set with zbeta=54 on iter 1 led to this fix, the
+		**   true final solution had max values of 4.47.    
+		*/
+		halving=1;
+		for (i=0; i<nvar; i++)
+		    newbeta[i] = (newbeta[i] + beta[i])/2.1;
+		person = -1;  /* force the loop to start over */
+		}
 	    }
 
 	istrat=0;
@@ -387,6 +413,7 @@ void agfit3( long   *maxiter,  long   *nusedx,  long   *nvarx,
 			temp = itemp*method/deaths;
 			d2 = denom - temp*efron_wt;
 			newlk +=  weights[p]*score[p] -meanwt *log(d2);
+
 			for (i=0; i<nvar; i++) {
 			    temp2 = (a[i] - temp*a2[i])/d2;
 			    u[i] += weights[p]*covar[i][p] - meanwt*temp2;
@@ -431,7 +458,7 @@ void agfit3( long   *maxiter,  long   *nusedx,  long   *nvarx,
 
 	if (iter==*maxiter) break;  /*skip the step halving and etc */
 
-	if (newlk < loglik[1])   {    /*it is not converging ! */
+	if (newlk < loglik[1] || newlk>0)   {    /*it is not converging ! */
 		halving =1;
 		for (i=0; i<nvar; i++)
 		    newbeta[i] = (newbeta[i] + beta[i]) /2; /*half of old increment */

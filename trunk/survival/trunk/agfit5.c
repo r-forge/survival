@@ -1,5 +1,5 @@
-/* SCCS   $Id: agfit5.c,v 1.3 2001-11-26 07:25:39 therneau Exp $ */
-/* A reentrant version of the agfit program, for random effects modeling
+/* SCCS   $Id: agfit5.c,v 1.4 2004-10-12 10:16:17 therneau Exp $ */
+/* A reentrant version of the agfit program, for penalized effects modeling
 **   with reasonable efficiency (I hope).  The important arrays are saved
 **   from call to call so as to speed up the process.  The x-matrix itself
 **   is the most important of these.
@@ -357,6 +357,34 @@ S_EVALUATOR
 	    for (i=0; i<nvar; i++)
 		zbeta += beta[i]*covar[i][person];
 	    score[person] = zbeta;
+	    if (zbeta > 20) {
+		/*
+		** If the above happens, then 
+		**   1. There is a real chance for catastrophic cancellation
+		**       in the computation of "denom", which leads to
+		**       numeric failure via log(neg number) -> inf loglik
+		**   2. A risk score for one person of exp(20) > 400 million
+		**       is either an infinite beta, in which case any
+		**       reasonable coefficient will do, or a big overreach
+		**       in the Newton-Raphson step.
+		** In either case, a good solution is step halving.
+		** 
+		** Why 20?  Most machines have about 16 digits of precision,
+		**   and this preserves approx 7 digits in the subtraction
+		**   when a high risk score person leaves the risk set.
+		**   (Because of centering, the average risk score is about 0).
+		**   Second, if eps is small and beta is infinite, we rarely
+		**   get a value above 16.  So a 20 is usually a NR overshoot.
+		** A data set with zbeta=54 on iter 1 led to this fix, the
+		**   true final solution had max values of 4.47.    
+		*/
+		halving=1;
+		for (i=0; i<nvar; i++)
+		    beta[i] = (oldbeta[i+nf] + beta[i]) /2; 
+		for (i=0; i<nf; i++)
+		    fbeta[i] = (oldbeta[i] + fbeta[i])/2;
+		person = -1;  /* force the loop to start over */
+		}
 	    }
   
         istrat=0;
