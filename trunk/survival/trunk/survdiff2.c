@@ -1,6 +1,4 @@
-/*
-**  SCCS @(#)survdiff.c	2.1 6/12/91
-*/
+/* SCCS  $Id: survdiff2.c,v 1.3 1992-08-31 10:04:52 therneau Exp $      */
 #include <math.h>
 
 survdiff2(nn, nngroup, rho, time, status, group, obs, exp, var, risk, kaplan)

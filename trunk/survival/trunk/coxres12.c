@@ -1,4 +1,4 @@
-/* SCCS: @(#)coxres1.c	2.1  6/12/91 */
+/* SCCS  $Id: coxres12.c,v 4.3 1992-08-31 10:04:51 therneau Exp $      */
 /*
 ** Do the score residuals
 **

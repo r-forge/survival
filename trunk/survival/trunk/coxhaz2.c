@@ -1,4 +1,4 @@
-/* SCCS: @(#)coxhaz.c	2.1  6/12/91 */
+/* SCCS  $Id: coxhaz2.c,v 1.3 1992-08-31 10:04:49 therneau Exp $      */
 /*
 ** Compute the hazard and cumulative hazard functions.
 **
