@@ -1,4 +1,4 @@
-# SCCS $Id: frailty.gamma.s,v 1.4 2000-06-10 22:16:50 therneau Exp $
+# SCCS $Id: frailty.gamma.s,v 1.5 2001-03-12 07:46:10 therneau Exp $
 # 
 # Defining function for gamma frailty fits
 #
@@ -75,7 +75,7 @@ frailty.gamma <- function(x, sparse=(nclass >5), theta, df, eps= 1e-5,
 		     sparse= sparse,
 		     cargs = c("x", "status", "loglik"),		 
 		     cfun = frailty.controlgam,
-		     cparm= c(list(eps=eps), ...))
+		     cparm= list(eps=eps, ...))
 	}
     
     else if (method=='aic') {
