@@ -1,4 +1,4 @@
-# SCCS @(#)print.summary.survreg.s	4.8 09/27/96
+# SCCS $Id: print.summary.survreg.s,v 4.11 1998-10-27 17:46:59 therneau Exp $
 print.summary.survreg <- function(x, digits = max(options()$digits - 4, 3), quote = T, prefix = "")
 {
     nas <- x$nas
