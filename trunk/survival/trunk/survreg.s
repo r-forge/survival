@@ -1,27 +1,26 @@
-#SCCS $Id: survreg.s,v 4.10 1992-09-20 23:27:57 therneau Exp $
+#SCCS @(#)survreg.s	4.10 9/20/92
 survreg <- function(formula=formula(data), data=sys.parent(),
 	subset, na.action,
-	link=c('log', 'identity'),
+	link='log',
 	dist=c("extreme", "logistic", "gaussian", "exponential",
 	       "rayleigh"),
-	scale,
-	eps=.0001, init, iter.max=20,
+	init=NULL,  fixed=list(), control,
 	model=F, x=F, y=F, ...) {
 
     call <- match.call()
     m <- match.call(expand=F)
     m$dist <- m$link <- m$model <- m$x <- m$y <- m$... <-  NULL
-    m$eps <- m$init <- m$iter.max <- NULL
-    m$scale <- NULL
-
-    Terms <- if(missing(data)) terms(formula, 'strata')
-	     else              terms(formula, 'strata',data=data)
-    m$formula <- Terms
+    m$start <- m$fixed <- m$control <- NULL
     m[[1]] <- as.name("model.frame")
     m <- eval(m, sys.parent())
+    Terms <- attr(m, 'terms')
 
     dist <- match.arg(dist)
-    link <- match.arg(link)
+    lnames <- dimnames(glm.links)[[2]]
+    link <- pmatch(link, lnames, 0)
+    if (link==0) stop("Invalid link function")
+    else link <- lnames[link]
+
     Y <- model.extract(m, "response")
     if (!inherits(Y, "Surv")) stop("Response must be a survival object")
     X <- model.matrix(Terms, m)
@@ -43,23 +42,36 @@ survreg <- function(formula=formula(data), data=sys.parent(),
 	     Y <- cbind(linkfun(Y[,1]), 2-Y[,2])
     else     Y <- cbind(linkfun(Y[,1]), Y[,2])
 
-    if (missing(init)) init <- NULL
-    if (missing(scale)) scale <- NULL
+    controlvals <- ms.control()
+    if (!missing(control)) 
+	controlvals[names(control)] <- control
 
     if( dist=="exponential") {
-	scale <- 1
-	sfit <- survreg.fit(X, Y, offset, init=init, iter.max=iter.max,
-			    eps = eps, dist='extreme', scale=1)
+	fixed$scale <- 1
+	dist <- 'extreme'
 	}
     else if (dist=="rayleigh") {
-	scale <- .5
-	sfit <- survreg.fit(X, Y, offset, init=init, iter.max=iter.max,
-			    eps = eps, dist='extreme', scale=.5)
+	fixed$scale <- .5
+	dist <- 'extreme'
 	}
-    else
-	sfit <- survreg.fit(X, Y, offset, init=init, iter.max=iter.max,
-			    eps = eps, dist= dist, scale=scale)
 
+    sd <- survreg.distributions[[dist]]
+    if (length(fixed)>0) {
+	ifix <- match(names(fixed), names(sd$parms), nomatch=0)
+	if (any(ifix==0))
+	    stop (paste("Parameter(s)", paste(names(fixed)[ifix==0]),
+			"in the fixed list not valid for this dist"))
+	}
+    if (is.list(init) && length(init)>0) {
+	ifix <- match(names(init), c('eta',names(sd$parms)), nomatch=0)
+	if (any(ifix==0))
+	    stop (paste("Parameter(s)", paste(names(init)[ifix==0]),
+			"in the init list not valid for this dist"))
+	}
+
+
+    sfit <- survreg.fit(X, Y, offset, init=init, controlvals=controlvals,
+			dist= dist, fixed=fixed)
     if (is.character(sfit))  fit <- list(fail=sfit)  #error message
     else {
 	# There may be more clever ways to do this, but ....
@@ -70,30 +82,25 @@ survreg <- function(formula=formula(data), data=sys.parent(),
 	wt<- -sfit$deriv[,3]
 	fit <- lm.wfit(X, eta + sfit$deriv[,2]/wt, wt, "qr", ...)
 
-	if (link=='log') fit$fitted.values <- exp(fit$fitted.values)
+	ifun <- glm.links['inverse',link][[1]]
+	fit$fitted.values <- ifun(fit$fitted.values)
 	fit$family <- c(name=dist, link=link, "")
 	fit$linear.predictors <- eta
-	fit$deviance <- sfit$loglik[1]
-	fit$null.deviance <- sfit$null[1]
 	fit$iter <- sfit$iter
+	fit$parms <- sfit$parms
 
 	# If singular.ok=T, there may be NA coefs.  The var matrix should
 	#   be an inversion of the "non NA" portion.
-	if (is.null(scale)) {
-	    scale <- exp(as.vector(sfit$coef[nvar+1]))
-	    good <- c(!is.na(fit$coef),T)
-	    var <- matrix(0, nvar+1, nvar+1)
-	    }
-	else {
-	    good <- !is.na(fit$coef)
-	    var <- matrix(0, nvar, nvar)
-	    }
+	var <- 0*sfit$imat
+	good <- c(!is.na(fit$coef), rep(T, ncol(var)-nvar))
 	var[good,good] <- solve(sfit$imat[good,good])
-	fit$scale<- scale
 	fit$var <- var
-
+	fit$fixed <- sfit$fixed
 	fit$flag <- sfit$flag
-	fit$dresiduals <- sign(fit$residuals)*sqrt(sfit$deriv[,1])
+	dev <- sd$deviance(Y, fit$parms, sfit$deriv[,1])
+	fit$dresiduals <- sign(fit$residuals)*sqrt(dev)
+	fit$deviance <- sum(dev)
+	fit$null.deviance <- fit$deviance +2*(sfit$loglik[1]- sfit$ndev[1])
 	}
 
     na.action <- attr(m, "na.action")
