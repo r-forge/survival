@@ -1,8 +1,8 @@
-#SCCS $Date: 1992-06-01 09:26:55 $ $Id: survdiff.s,v 4.6 1992-06-01 09:26:55 therneau Exp $
+#SCCS $Date: 1992-06-01 09:54:04 $ $Id: survdiff.s,v 4.7 1992-06-01 09:54:04 therneau Exp $
 survdiff <- function(formula, data, subset, rho=0) {
     call <- match.call()
     m <- match.call(expand=F)
-    m$... <- m$rho <- m$riskwt <- NULL
+    m$rho <- NULL
 
     if (!inherits(formula,"formula")) {
 	# The dummy function stops an annoying warning message "Looking for
