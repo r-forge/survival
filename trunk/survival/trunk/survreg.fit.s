@@ -76,7 +76,7 @@ survreg.fit<- function(x, y, offset, init, controlvals, dist, fixed,
 	if (controlvals$failure==1)
 	       warning("Ran out of iterations and did not converge")
 	else if (controlvals$failure==2)
-	       stop("Ran out of iterations and did not converge")
+	       return("Ran out of iterations and did not converge")
 	}
 
     temp <- dimnames(x)[[2]]
