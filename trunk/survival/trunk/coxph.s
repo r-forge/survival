@@ -1,4 +1,4 @@
-#SCCS  $Id: coxph.s,v 5.7 1998-11-02 19:52:56 therneau Exp $
+#SCCS  $Id: coxph.s,v 5.8 1998-12-14 09:45:18 therneau Exp $
 # Version with general penalized likelihoods
 setOldClass(c('coxph.penal', 'coxph'))
 
@@ -144,7 +144,7 @@ coxph <- function(formula=formula(data), data=sys.parent(),
 	        }
 	    fit$var <- t(temp) %*% temp
 	    u <- apply(as.matrix(temp0), 2, sum)
-	    fit$rscore <- coxph.wtest(t(temp0)%*%temp0, u, toler.chol)
+	    fit$rscore <- coxph.wtest(t(temp0)%*%temp0, u, toler.chol)$test
 	    }
 	#Wald test
 	if (length(fit$coef) && is.null(fit$wald.test)) {  
