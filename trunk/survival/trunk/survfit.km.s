@@ -1,4 +1,4 @@
-#SCCS $Id: survfit.km.s,v 4.3 1992-04-15 11:12:01 sicks Exp $
+#SCCS $Id: survfit.km.s,v 4.4 1992-05-07 14:37:25 therneau Exp $
 survfit.km <- function(x, y, casewt=rep(1,n),
 	    type=c('kaplan-meier', 'fleming-harrington'),
 	    error=c('greenwood', "tsiatis"), se.fit=T,
@@ -27,6 +27,7 @@ survfit.km <- function(x, y, casewt=rep(1,n),
 	stop("Number of strata > number of observations/2")
 
     storage.mode(y) <- "double"
+    dimnames(y) <- NULL
     surv <- .C("survfit", as.integer(n),
 			  y = y,
 			  as.integer(ny),
