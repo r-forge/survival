@@ -1,4 +1,4 @@
-/* SCCS $Id: agexact.c,v 4.5 1992-08-25 12:09:52 grill Exp $  */
+/* SCCS $Id: agexact.c,v 4.6 1992-08-31 08:06:29 sicks Exp $  */
 /*
 ** Anderson-Gill formulation of the cox Model
 **   Do an exact calculation of the partial likelihood. (CPU city!)
@@ -45,7 +45,7 @@
 **  the 4 arrays score, a, cmat, and newbeta are passed as a single
 **    vector of storage, and then broken out.
 **
-**  calls functions:  cholesky, chsolve, chinv
+**  calls functions:  cholesky2, chsolve, chinv
 **
 **  the data must be sorted by ascending time within strata, deaths before
 **          living within tied times.
@@ -230,7 +230,7 @@ double  *eps;
     for (i=0; i<nvar; i++) /*use 'a' as a temp to save u0, for the score test*/
 	a[i] = u[i];
 
-    ierr= cholesky(imat, nvar);
+    ierr= cholesky2(imat, nvar);
     if (ierr != 0) {
 	*flag= -ierr;
 	*maxiter=0;
@@ -364,7 +364,7 @@ double  *eps;
 	/* am I done?
 	**   update the betas and test for convergence
 	*/
-	ierr = cholesky(imat, nvar);
+	ierr = cholesky2(imat, nvar);
 	if (ierr != 0) {
 	    *flag= -ierr;
 	    *maxiter=iter;

@@ -32,7 +32,7 @@
 **      newbeta(nvar)   always contains the "next iteration" of beta
 **      savediag(nvar)  the diagonal of imat
 **
-**  Calls functions:  cholesky, chsolve
+**  Calls functions:  cholesky2, chsolve
 */
 #include <math.h>
 #include <stdio.h>
@@ -83,7 +83,7 @@ void    (*dolk)(),
     /*
     ** Update the betas and test for convergence
     */
-    ierr = cholesky(imat, nvar);
+    ierr = cholesky2(imat, nvar);
     if (ierr !=0) {
 	if (*maxiter==0) {   /* Bail out */
 	    for (i=0; i<nvar; i++) {
@@ -99,7 +99,7 @@ void    (*dolk)(),
 	do {
 	    for (i=0; i<nvar; i++)
 		   imat[i][i] = savediag[i] + fabs(savediag[i]) *tau;
-	    ierr = cholesky(imat, nvar);
+	    ierr = cholesky2(imat, nvar);
 	    tau *= POWER;
 	    }  while (ierr !=0);
 	tau /= POWER;
@@ -163,14 +163,14 @@ void    (*dolk)(),
 
 	/* Check out the information matrix */
 	if (!levenberg) {
-	    ierr = cholesky(imat,nvar);
+	    ierr = cholesky2(imat,nvar);
 	    if (ierr !=0) levenberg=1;
 	    }
 retry:  if (levenberg) {
 	    do {
 		for (i=0; i<nvar; i++)
 		    imat[i][i] = savediag[i] + fabs(savediag[i])* tau;
-		ierr = cholesky(imat, nvar);
+		ierr = cholesky2(imat, nvar);
 		tau *= POWER;
 		if (debug>0 && ierr !=0)
 			fprintf(stderr, "\tBump tau to %f\n", tau);
