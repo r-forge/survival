@@ -1,4 +1,4 @@
-# SCCS $Id: summary.survreg.s,v 4.11 1998-11-30 08:29:17 therneau Exp $
+# SCCS @(#)summary.survreg.s	4.11  11/30/98
 summary.survreg<- function(object, correlation = T)
 {
     if (!is.null(object$fail)) {
@@ -49,8 +49,9 @@ summary.survreg<- function(object, correlation = T)
 	    pprint<- paste(sd$name, 'distribution: parmameters=', object$parms)
     else    pprint<- paste(sd$name, 'distribution')
 
-    x <- object[c('call', 'df', 'loglik', 'iter', 'na.action', 'idf', 'scale',
-		  'coefficients', 'var')]
+    x <- object[match(c('call', 'df', 'loglik', 'iter', 'na.action', 'idf',
+			'scale', 'coefficients', 'var'), 
+		      names(object), nomatch=0)]
     x$table <- table
     x$correlation  <- correl
     x$parms <- pprint
