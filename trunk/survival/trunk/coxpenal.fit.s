@@ -1,4 +1,4 @@
-# SCCS @(#)coxpenal.fit.s	1.8 06/12/00
+# SCCS $Id: coxpenal.fit.s,v 1.10 2001-01-19 15:56:21 therneau Exp $
 #
 # General penalized likelihood
 #
