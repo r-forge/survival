@@ -1,4 +1,4 @@
-#SCCS $Date: 1999-01-06 07:12:30 $ $Id: plot.survfit.s,v 4.15 1999-01-06 07:12:30 therneau Exp $
+#SCCS $Date: 1999-01-14 16:02:57 $ $Id: plot.survfit.s,v 4.16 1999-01-14 16:02:57 therneau Exp $
 plot.survfit<- function(x, conf.int,  mark.time=T,
 		 mark=3,col=1,lty=1, lwd=1, cex=1, log=F,
 		 xscale=1, yscale=1, 
@@ -181,7 +181,7 @@ plot.survfit<- function(x, conf.int,  mark.time=T,
 	    y <- y[-1]
 	    }
 	n <- length(x)
-	if (n > 1) {
+	if (n > 2) {
 	    # replace verbose horizonal sequences like
 	    # (1, .2), (1.4, .2), (1.8, .2), (2.3, .2), (2.9, .2), (3, .1)
 	    # with (1, .2), (3, .1).  They are slow, and can smear the looks
@@ -194,7 +194,8 @@ plot.survfit<- function(x, conf.int,  mark.time=T,
 	    yrep <- rep(y[dupy], c(rep(2, n2-1), 1))
 	    list(x=xrep, y=yrep)
 	    }
-	else list(x=x, y=y)
+	else if (n==1) list(x=x, y=y)
+	else           list(x=x[c(1,2,2)], y=y[c(1,1,2)])
 	}
 
     i <- 0
