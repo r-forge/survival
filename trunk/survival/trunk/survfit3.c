@@ -1,4 +1,4 @@
-/* SCCS %w% $Date: 2000-03-01 11:45:42 $
+/* SCCS $Id: survfit3.c,v 1.3 2000-07-09 14:41:17 boos Exp $
 /*
 ** Fit the survival curve
 **  Input

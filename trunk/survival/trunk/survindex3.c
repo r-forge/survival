@@ -1,4 +1,4 @@
-/*    SCCS %w% $Date: 2000-03-01 11:46:57 $
+/*    SCCS $Id: survindex3.c,v 1.3 2000-07-09 14:42:15 boos Exp $
 ** A subroutine for summary.survfit
 **
 ** Input --
