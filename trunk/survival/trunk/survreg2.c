@@ -1,4 +1,4 @@
-/* SCCS $Id: survreg2.c,v 1.1 1998-11-22 18:02:15 therneau Exp $
+/* SCCS $Id: survreg2.c,v 1.2 1998-11-30 08:25:50 therneau Exp $
 /*
 ** Fit one of several censored data distributions
 **
@@ -458,11 +458,11 @@ static double dolik(int n, double *beta, int whichcase) {
 **   for residuals work.  A stripped down version of
 **   some of the things seen above
 **
-**      deriv   - 3 or 6 column array: terms of the deviance, first deriv
-**                  wrt eta, and second deriv wrt eta.  If there are any
-**                  interval censored obs, then the next 3 cols contain, for
-**                  those observations only, d/sigma, d/sigma^2, and
-**                  d/(sigma eta)  (d/='derivative with respect to')
+**      deriv   - 3 or 6 column array: terms of the loglik, first deriv
+**                  wrt eta, and second deriv wrt eta.  If 6 columns
+**                  are requested then the next 3 cols contain
+**                  d/sigma, d/sigma^2, and d/(sigma eta)
+**                    (d/='derivative with respect to')
 */
 void survreg3(long   *nx,      double *y,     long *ny,   double *eta, 
 	       long   *nstratx, long *strata,  double *vars,
@@ -656,6 +656,7 @@ static void exvalue_d(double z, double ans[4], int j)
     double temp;
     double w;
     w = exp(z);
+    if (w > FLT_MAX) w=FLT_MAX;  /* stop infinite answers */
     temp = exp(-w);
     switch(j) {
 	case 1:  ans[1] = w*temp;

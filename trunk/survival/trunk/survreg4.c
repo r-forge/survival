@@ -1,4 +1,4 @@
-/* SCCS $Id: survreg4.c,v 1.1 1998-11-25 21:09:45 therneau Exp $
+/* SCCS $Id: survreg4.c,v 1.2 1998-11-30 08:25:51 therneau Exp $
 /*
 ** The variant of survreg2 for penalized models
 **
@@ -84,7 +84,7 @@ static double *u;
 static int    nf, ptype, pdiag;
 static double *ipen, *upen, logpen;
 static long   *zflag;
-static double *fdiag;
+static double *fdiag, *jdiag;
 
 static int debug;
 void survreg4(long   *maxiter,   long   *nx,       long   *nvarx, 
@@ -104,6 +104,7 @@ void survreg4(long   *maxiter,   long   *nx,       long   *nvarx,
     double temp;
     int halving, iter;
     double newlk;
+    int lastchance;
 
     n = *nx;
     nvar = *nvarx;
@@ -140,8 +141,8 @@ void survreg4(long   *maxiter,   long   *nx,       long   *nvarx,
 
     u = ux;
     newbeta = u+nvar2;
-    savediag= newbeta + nvar2;
-    JJ  = dmatrix(savediag+nvar2, nvar2, nvar);
+    jdiag= newbeta + nvar2;
+    JJ  = dmatrix(jdiag+nvar2, nvar2, nvar);
 
     if (*ny==2) {
 	time1=y;
@@ -185,12 +186,10 @@ void survreg4(long   *maxiter,   long   *nx,       long   *nvarx,
         fprintf(stderr, "iter=0, loglik=%f\n", loglik[0]);
 	}
 
-    for (i=0; i<nvar2; i++) savediag[i] = fdiag[i];
     *flag = cholesky3(jmat, nvar2, nf, fdiag, *tol_chol);
     if (*flag < 0) {
-	for (i=0; i<nvar2; i++) fdiag[i]= savediag[i];
-	i = cholesky3(JJ, nvar2, nf, fdiag, *tol_chol);
-	chsolve3(JJ, nvar2, nf, fdiag, u);
+	i = cholesky3(JJ, nvar2, nf, jdiag, *tol_chol);
+	chsolve3(JJ, nvar2, nf, jdiag, u);
 	if (debug>0) fprintf(stderr, " Alternate step, flag=%d\n", i);
 	}
     else chsolve3(jmat,nvar2, nf, fdiag, u);
@@ -239,7 +238,7 @@ void survreg4(long   *maxiter,   long   *nx,       long   *nvarx,
     halving =0 ;             /* >0 when in the midst of "step halving" */
     newlk = dolik(n, newbeta, 0); 
 
-    /* put in a call to simplex if in trouble */
+    /* some day put in a call to simplex if in trouble */
     for (iter=1; iter<=*maxiter; iter++) {
 	if (debug>0) fprintf(stderr, "iter=%d, loglik=%f\n\n", iter, newlk);
 
@@ -263,7 +262,7 @@ void survreg4(long   *maxiter,   long   *nx,       long   *nvarx,
 		    }
 	        }
 	    for (i=0; i<nvar2; i++) beta[i] = newbeta[i];
-	    if (halving==1) *flag= 1000; /*didn't converge after all */
+	    if (halving >0) *flag += 1000; /*didn't converge after all */
 	    *maxiter = iter;
 	    return;
 	    }
@@ -298,11 +297,9 @@ void survreg4(long   *maxiter,   long   *nx,       long   *nvarx,
 		fflush(stderr);
 		}
 	    }
-
 	else {    /* take a standard NR step */
-	    halving=0;
+	    halving=0; lastchance=0;
 	    *loglik = newlk;
-	    for (i=0; i<nvar2; i++) savediag[i] = fdiag[i];
 	    *flag = cholesky3(jmat, nvar2, nf, fdiag, *tol_chol);
 	    if (debug >2) {
 		fprintf(stderr, "Imat after inverse\n");
@@ -312,10 +309,10 @@ void survreg4(long   *maxiter,   long   *nx,       long   *nvarx,
 		    }
 		}
 	    if (*flag < 0) {
-		for (i=0; i<nvar2; i++) fdiag[i] = savediag[i];
-		i = cholesky3(JJ, nvar2, nf, fdiag, *tol_chol);
-		chsolve3(JJ, nvar2, nf, fdiag, u);
+		i = cholesky3(JJ, nvar2, nf, jdiag, *tol_chol);
+		chsolve3(JJ, nvar2, nf, jdiag, u);
 		if (debug>0) fprintf(stderr, " Alternate step, flag=%d\n", i);
+		lastchance =1;
 		}
 	    else chsolve3(jmat,nvar2, nf, fdiag, u);
 	    if (debug>1) {
@@ -329,10 +326,40 @@ void survreg4(long   *maxiter,   long   *nx,       long   *nvarx,
 		}
 	    }
 
+	if (halving > 9 && newlk < *loglik) {
+	    if (lastchance ==0){
+		/* Iteration is in trouble: the last NR step is no
+		**  good even after 10 step halvings.
+		** Try a Fisher step instead  -- 
+		*/
+		for (i=0; i<nvar2; i++) newbeta[i] = beta[i]; /* go back */
+		newlk = dolik(n, newbeta, 0);   /*recreate u, fdiag, etc */
+		i = cholesky3(JJ, nvar2, nf, jdiag, *tol_chol);
+		chsolve3(JJ, nvar2, nf, jdiag, u);
+		if (debug>0)
+		    fprintf(stderr, " Alternate step b, flag=%d loglik=%f\n",
+			    i, newlk);
+
+		for (i=0; i<nvar2; i++) 
+		    newbeta[i] = beta[i] +  u[i];
+		halving =0;
+		lastchance=1;
+		}
+	    else {
+		/* REAL trouble: a Fisher step didn't work
+		**   I hope this never happens...
+		*/
+		*flag=1000;
+		for (i=0; i<nvar2; i++) newbeta[i] = beta[i]; /* go back */
+		newlk = dolik(n, newbeta, 0);   /*recreate u, fdiag, etc */
+		break;
+		}
+	    }
 	newlk = dolik(n, newbeta, 0);
 	}   /* return for another iteration */
 
     *loglik = newlk;
+    *flag = cholesky3(jmat, nvar2, nf, fdiag, *tol_chol);
     chinv3(jmat, nvar2, nf, fdiag);
     for (i=0; i<nvar; i++) {
 	for (j=0; j<nvar2; j++)  imat[i][j] = jmat[i][j];
@@ -349,7 +376,7 @@ void survreg4(long   *maxiter,   long   *nx,       long   *nvarx,
 
     for (i=0; i<nvar2; i++)
 	beta[i] = newbeta[i];
-    *flag= 1000;
+    *flag += 1000;
     return;
     }
     
@@ -415,7 +442,7 @@ static double dolik(int n, double *beta, int whichcase) {
 		    **  derivatives to gaussian limits (almost any deriv would
 		    **  do, since the function value triggers step-halving).
 		    */
-		    g = -FLT_MAX;
+		    g = -FLT_MAX/n;
 		    dg = -z/sigma;
 		    ddg = -1/sigma;
 		    dsig =0; ddsig=0; dsg=0;
@@ -433,7 +460,7 @@ static double dolik(int n, double *beta, int whichcase) {
 	    case 0:                             /* right censored */
 		(*sreg_gg)(z, funs,2);
 		if (funs[1] <=0) {
-		    g = -FLT_MAX;
+		    g = -FLT_MAX/n;
 		    dg = z/sigma;
 		    ddg =0;
 		    dsig =0; ddsig=0; dsg=0;
@@ -452,7 +479,7 @@ static double dolik(int n, double *beta, int whichcase) {
 		(*sreg_gg)(z, funs,2);
 		if (funs[2] <=0) {
 		    /* off the probability scale -- avoid log(0) */
-		    g = -FLT_MAX;
+		    g = -FLT_MAX/n;
 		    dg = -z/sigma;
 		    dsig =0; ddsig=0; dsg=0;
 		    ddg =0;
@@ -475,7 +502,7 @@ static double dolik(int n, double *beta, int whichcase) {
 		else      temp = ufun[0] - funs[0];
 		if (temp <=0) {
 		    /* off the probability scale -- avoid log(0) */
-		    g = -FLT_MAX;
+		    g = -FLT_MAX/n;
 		    dg = 1; 
 		    ddg =0;
 		    dsig =0; ddsig=0; dsg=0;
@@ -504,6 +531,7 @@ static double dolik(int n, double *beta, int whichcase) {
 	if (nf>0) {
 	    u[fgrp] += dg * w;
 	    fdiag[fgrp] -= ddg * w;
+	    jdiag[fgrp] += dg*dg *w;
 	    }
 	for (i=0; i<nvar0; i++) {
 	    temp = dg * covar[i][person] *w;
@@ -551,14 +579,18 @@ static double dolik(int n, double *beta, int whichcase) {
 	    for (i=0; i<nf; i++) {
 		u[i]=0;
 		fdiag[i] =1;
-		for (j=0; j<nvar; j++) 
+		jdiag[i] =1;
+		for (j=0; j<nvar; j++) {
+		    JJ[j][i] =0;
 		    jmat[j][i]=0;
+		    }
 		}
 	    }
 	else {
 	    for (i=0; i<nf; i++) {
 		u[i] += upen[i];
 		fdiag[i] += ipen[i];
+		jdiag[i] += ipen[i];
 		}
 	    loglik += logpen;
 	    }
@@ -814,6 +846,7 @@ static void exvalue_d(double z, double ans[4], int j)
     double temp;
     double w;
     w = exp(z);
+    if (w > FLT_MAX) w=FLT_MAX;  /* stop infinite answers */
     temp = exp(-w);
     switch(j) {
 	case 1:  ans[1] = w*temp;
