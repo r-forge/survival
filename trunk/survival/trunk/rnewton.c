@@ -1,4 +1,4 @@
-/* SCCS $Id: rnewton.c,v 4.7 1992-09-20 23:27:59 therneau Exp $ */
+/* SCCS @(#)rnewton.c	4.7 9/20/92 */
 /*
 ** Ridge stabilized Newton iteration
 **
@@ -18,7 +18,6 @@
 **      beta        the coef vector
 **      u           first derivative vector
 **      imat        the information matrix at beta
-**      imat2       alternate estimate of imat, unused at this time
 **      loglik(2)   loglik at beta=start and beta=final
 **      maxiter     actual # of iterations used
 **
@@ -39,7 +38,7 @@
 #include <stdio.h>
 #define POWER 2      /*how fast to increase or decrease the ridge parameter*/
 
-int rnewton(maxiter, n, nvar, beta, u, imat, imat2, loglik, eps,
+int rnewton(maxiter, n, nvar, beta, u, imat, loglik, eps,
 		    dolk, doimat, newbeta, savediag, debug)
 int     *maxiter,
 	n,
@@ -52,7 +51,6 @@ double  u[],
 	savediag[],
 	eps;
 double  **imat;
-double  **imat2;
 
 void    (*dolk)(),
 	(*doimat)();
@@ -79,7 +77,7 @@ void    (*dolk)(),
 	fflush(stderr);
 	}
 
-    (*doimat)(n, nvar, beta, u, imat, imat2);
+    (*doimat)(n, nvar, beta, u, imat);
     for (i=0; i<nvar; i++) savediag[i] = imat[i][i];
     tau =1;
 
@@ -163,7 +161,7 @@ void    (*dolk)(),
 	    } while ( (eps + newlk) <= loglik[1]) ;
 	tau /= 2*POWER;
 
-	(*doimat)(n, nvar, newbeta, u, imat, imat2);
+	(*doimat)(n, nvar, newbeta, u, imat);
 	for (i=0; i<nvar; i++)  savediag[i] = imat[i][i];
 
 	/* Check out the information matrix */
