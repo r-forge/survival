@@ -1,4 +1,4 @@
-#SCCS  $Id: pyears.s,v 4.5 1996-11-21 12:50:35 therneau Exp $
+#SCCS  $Id: pyears.s,v 4.6 1996-11-21 16:57:23 therneau Exp $
 pyears <- function(formula=formula(data), data=sys.parent(),
 	weights, subset, na.action,
 	ratetable=survexp.us, scale=365.25,  expect=c('event', 'pyears'),
@@ -7,7 +7,7 @@ pyears <- function(formula=formula(data), data=sys.parent(),
     expect <- match.arg(expect)
     call <- match.call()
     m <- match.call(expand=F)
-    m$ratetable <- m$model <- m$x <- m$y <- m$scale<- NULL
+    m$ratetable <- m$model <- m$x <- m$y <- m$scale<- m$expect <- NULL
 
     Terms <- if(missing(data)) terms(formula, 'ratetable')
 	     else              terms(formula, 'ratetable',data=data)
