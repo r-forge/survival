@@ -1,4 +1,4 @@
-#SCCS 8/6/92 @(#)agexact.fit.s	4.7
+#SCCS $Id: agexact.fit.s,v 4.16 1995-02-28 11:55:06 therneau Exp $
 agexact.fit <- function(x, y, strata, offset, iter.max,
 			eps, weights, init, method, rownames)
     {
