@@ -1,4 +1,4 @@
-#SCCS $Id: plot.survfit.s,v 4.7 1992-07-22 10:03:21 therneau Exp $
+#SCCS $Id: plot.survfit.s,v 4.8 1992-08-07 17:21:06 therneau Exp $
 plot.survfit<- function(surv, conf.int,  mark.time=T,
 		 mark=3,col=1,lty=1, lwd=1, cex=1,log=F,yscale=1,
 		 xscale=1,
@@ -74,9 +74,9 @@ plot.survfit<- function(surv, conf.int,  mark.time=T,
 
 	if (conf.int==T && !is.null(surv$upper)) {
 	    if (nstrat==1) lty[i] <- lty[i] +1
-	    yy _ c(1,surv$upper[who &drops])
+	    yy _ c(1,surv$upper[who])
 	    lines(xx,yy, lty=lty[i], col=col[i], lwd=lwd[i], type='s')
-	    yy _ c(1,surv$lower[who &drops])
+	    yy _ c(1,surv$lower[who])
 	    lines(xx,yy, lty=lty[i], col=col[i], lwd=lwd[i], type='s')
 	    }
 
