@@ -1,5 +1,5 @@
 #
-# SCCS $Id: is.ratetable.s,v 4.7 2004-11-24 13:23:21 therneau Exp $
+# SCCS $Id: is.ratetable.s,v 4.8 2005-02-08 22:04:52 therneau Exp $
 #
 is.ratetable <- function(x, verbose=F) {
     dlist <- c("dim", "dimnames", "dimid", "factor", "cutpoints")
@@ -16,7 +16,7 @@ is.ratetable <- function(x, verbose=F) {
 	fac <- as.numeric(att$factor)
 	if (any(is.na(fac))) return(F)
 	if (any(fac <0)) return(F)
-        if (length(dimid) != n) return(F)
+        if (length(att$dimid) != nd) return(F)
 	for (i in 1:nd) {
 	    n <- att$dim[i]
 	    if (length(att$dimnames[[i]]) !=n) return(F)
