@@ -1,4 +1,4 @@
-/*  SCCS $Id: cholesky2.c,v 5.2 1998-10-27 17:31:15 therneau Exp $
+/*  SCCS @(#)cholesky2.c	5.2 10/27/98
 /*
 ** subroutine to do Cholesky decompostion on a matrix: C = FDF'
 **   where F is lower triangular with 1's on the diagonal, and D is diagonal
@@ -12,22 +12,23 @@
 **    diagonal and the upper triangle is left undisturbed.
 **    The lower triangle need not be filled in at the start.
 **
-**  Return value:  the rank of the matrix.
+**  Return value:  the rank of the matrix (non-negative definite), or -rank
+**     it not SPD or NND
 **
 **  If a column is deemed to be redundant, then that diagonal is set to zero.
 **
 **   Terry Therneau
 */
-#include "survS.h"
-#include "survproto.h"
 
 int cholesky2(double **matrix, int n, double toler)
     {
-    register double temp;
-    register int  i,j,k;
+    double temp;
+    int  i,j,k;
     double eps, pivot;
     int rank;
+    int nonneg;
 
+    nonneg=1;
     eps =0;
     for (i=0; i<n; i++) {
 	if (matrix[i][i] > eps)  eps = matrix[i][i];
@@ -38,7 +39,10 @@ int cholesky2(double **matrix, int n, double toler)
     rank =0;
     for (i=0; i<n; i++) {
 	pivot = matrix[i][i];
-	if (pivot < eps) matrix[i][i] =0;
+	if (pivot < eps) {
+	    matrix[i][i] =0;
+	    if (pivot < -8*eps) nonneg= -1;
+	    }
 	else  {
 	    rank++;
 	    for (j=(i+1); j<n; j++) {
@@ -49,5 +53,5 @@ int cholesky2(double **matrix, int n, double toler)
 		}
 	    }
 	}
-    return(rank);
+    return(rank * nonneg);
     }
