@@ -1,4 +1,4 @@
-# SCCS $Id: print.coxph.s,v 4.5 1994-10-01 11:37:39 therneau Exp $
+# SCCS $Id: print.coxph.s,v 4.6 1995-12-22 17:05:18 therneau Exp $
 print.coxph <-
  function(cox, digits=.Options$digits -4, ...)
     {
@@ -44,5 +44,8 @@ print.coxph <-
     if (length(omit))
 	cat("  n=", cox$n, " (", naprint(omit), ")\n", sep="")
     else cat("  n=", cox$n, "\n")
+    if (length(cox$icc))
+	cat("   number of clusters=", cox$icc[1],
+	    "    ICC=", format(cox$icc[2:3]), "\n")
     invisible()
     }

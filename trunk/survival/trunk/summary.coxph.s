@@ -1,7 +1,7 @@
-#SCCS $Date: 1994-10-01 11:37:40 $ $Id: summary.coxph.s,v 4.3 1994-10-01 11:37:40 therneau Exp $
+#SCCS $Date: 1995-12-22 17:05:19 $ $Id: summary.coxph.s,v 4.4 1995-12-22 17:05:19 therneau Exp $
 summary.coxph <-
  function(cox, table = T, coef = T, conf.int = 0.95, scale = 1,
-			digits = .Options$digits-4 )
+			digits = max(options()$digits-4,3) )
     {
     if (!is.null(cl<- cox$call)) {
 	cat("Call:\n")
@@ -12,18 +12,21 @@ summary.coxph <-
 	cat(" Coxreg failed.", cox$fail, "\n")
 	return()
 	}
+    savedig <- options(digits = digits)
+    on.exit(options(savedig))
+
     omit <- cox$na.action
     if (length(omit))
 	cat("  n=", cox$n, " (", naprint(omit), ")\n", sep="")
     else cat("  n=", cox$n, "\n")
-
+    if (length(cox$icc))
+	cat("  robust variance based on", cox$icc[1],
+	    "groups, intra-class correlation =", format(cox$icc[2:3]), "\n")
     if (is.null(cox$coef)) {   # Null model
 	cat ("   Null model\n")
 	return()
 	}
 
-    savedig <- options(digits = digits)
-    on.exit(options(savedig))
     beta <- cox$coef
     if(is.null(beta) | is.null(cox$var))
         stop("Input is not valid")

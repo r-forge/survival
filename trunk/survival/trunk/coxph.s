@@ -1,4 +1,4 @@
-#SCCS  $Id: coxph.s,v 4.18 1995-10-25 17:00:09 therneau Exp $
+#SCCS  $Id: coxph.s,v 4.19 1995-12-22 17:05:17 therneau Exp $
 coxph <- function(formula=formula(data), data=sys.parent(),
 	weights, subset, na.action,
 	eps=.0001, init, iter.max=10,
@@ -95,11 +95,31 @@ coxph <- function(formula=formula(data), data=sys.parent(),
 	    # I also make sure that it doesn't have to reconstruct X and Y
 	    fit2 <- c(fit, list(x=X, y=Y, weights=weights))
 	    if (length(strats)) fit2$strata <- strata.keep
-	    if (length(cluster))
+	    if (length(cluster)) {
 		temp <- residuals.coxph(fit2, type='dfbeta', collapse=cluster,
 					  weighted=T)
-	    else
-		temp <- residuals.coxph(fit2, type='dfbeta', weighted=T)
+		indx <- match(cluster, unique(cluster))
+		k    <- as.vector(table(indx))
+		if (any(k>1)) {
+		    #compute the ICC for the m-residuals
+		    N    <- sum(k * (k-1))
+		    mu   <- sum(fit$resid * (k-1)[indx])/N   #grand mean
+		    mu2  <- tapply(fit$resid, indx, mean)    # group means
+		    sig  <- tapply((fit$resid - mu)^2, indx, sum)  #SS
+		    icc1 <- sum( (k*(mu2-mu))^2 - sig) / sum((k-1)*sig)
+		    #rank residuals
+		    rr <- rank(fit$resid)
+		    mu   <- sum(rr * (k-1)[indx])/N   #grand mean
+		    mu2  <- tapply(rr, indx, mean)    # group means
+		    sig  <- tapply((rr - mu)^2, indx, sum)  #SS
+		    icc2 <- sum( (k*(mu2-mu))^2 - sig) / sum((k-1)*sig)
+
+		    fit$icc <- c(length(k), icc1, icc2)
+		    names(fit$icc) <- c("nclust", "icc(resid)",
+						    "icc(rank(resid))")
+		    }
+		}
+	    else temp <- residuals.coxph(fit2, type='dfbeta', weighted=T)
 	    fit$var <- t(temp) %*% temp
 	    }
 	na.action <- attr(m, "na.action")
