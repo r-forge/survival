@@ -1,4 +1,4 @@
-#SCCS $Date: 1994-09-08 15:51:52 $ $Id: coxph.fit.s,v 4.13 1994-09-08 15:51:52 therneau Exp $
+#SCCS $Date: 1994-12-29 17:38:05 $ $Id: coxph.fit.s,v 4.14 1994-12-29 17:38:05 therneau Exp $
 coxph.fit <- function(x, y, strata, offset, init, iter.max,
 			eps, weights, method, rownames)
     {
@@ -35,7 +35,7 @@ coxph.fit <- function(x, y, strata, offset, init, iter.max,
 				    stime,
 				    sstat,
 				    exp(offset[sorted]),
-				    weights,
+				    as.double(weights),
 				    newstrat,
 				    loglik=double(1),
 				    resid = double(n) )
@@ -61,7 +61,7 @@ coxph.fit <- function(x, y, strata, offset, init, iter.max,
 		       sstat,
 		       x= x[sorted,] ,
 		       as.double(offset[sorted] - mean(offset)),
-		       weights,
+		       as.double(weights),
 		       newstrat,
 		       means= double(nvar),
 		       coef= as.double(init),

@@ -1,4 +1,4 @@
-#SCCS $Id: agreg.fit.s,v 4.13 1994-09-08 15:51:53 therneau Exp $
+#SCCS $Id: agreg.fit.s,v 4.14 1994-12-29 17:38:06 therneau Exp $
 agreg.fit <- function(x, y, strata, offset, init, iter.max,
 			eps, weights, method, rownames)
     {
@@ -37,7 +37,7 @@ agreg.fit <- function(x, y, strata, offset, init, iter.max,
 		       sstart, sstop,
 		       sstat,
 		       offset[sorted],
-		       weights,
+		       as.double(weights),
 		       newstrat,
 		       loglik=double(1))
 
@@ -47,7 +47,7 @@ agreg.fit <- function(x, y, strata, offset, init, iter.max,
 		       sstart, sstop,
 		       sstat,
 		       score,
-		       weights,
+		       as.double(weights),
 		       newstrat,
 		       resid=double(n))
 
@@ -73,7 +73,7 @@ agreg.fit <- function(x, y, strata, offset, init, iter.max,
 		       sstat,
 		       x= x[sorted,],
 		       as.double(offset[sorted] - mean(offset)),
-		       weights,
+		       as.double(weights),
 		       newstrat,
 		       means = double(nvar),
 		       coef= as.double(init),
@@ -109,7 +109,7 @@ agreg.fit <- function(x, y, strata, offset, init, iter.max,
 		       sstart, sstop,
 		       sstat,
 		       score,
-		       weights,
+		       as.double(weights),
 		       newstrat,
 		       resid=double(n))
 
