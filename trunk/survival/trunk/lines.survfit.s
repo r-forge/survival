@@ -1,4 +1,4 @@
-# SCCS $Id: lines.survfit.s,v 4.12 1998-04-05 23:45:25 therneau Exp $
+# SCCS $Id: lines.survfit.s,v 4.13 1998-07-20 13:13:28 therneau Exp $
 lines.survfit <- function(x, type='s', mark=3, col=1, lty=1, lwd=1,
 			  mark.time =T, xscale=1, 
 			  firstx=0, firsty=1, xmax, fun,
@@ -165,12 +165,14 @@ lines.survfit <- function(x, type='s', mark=3, col=1, lty=1, lwd=1,
 	    yy <- c(firsty, ssurv[who])
 	    yyu<- c(firsty, supper[who])
 	    yyl<- c(firsty, slower[who])
+	    deaths <- c(-1, surv$n.event[who])
 	    }
 	else {
 	    xx <- time[who]
 	    yy <- ssurv[who]
 	    yyu<- supper[who]
 	    yyl<- slower[who]
+	    deaths <- surv$n.event[who]
 	    }
 	nn <- length(xx)
 
@@ -194,7 +196,6 @@ lines.survfit <- function(x, type='s', mark=3, col=1, lty=1, lwd=1,
 		       pch=mark[k],col=col[k], ...)
 		}
 	    else if (mark.time==T) {
-		deaths <- c(-1, x$n.event[who])
 		if ( any(deaths==0))
 			points(xx[deaths==0], yy[deaths==0],
 				   pch=mark[k],col=col[k], ...)
