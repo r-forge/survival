@@ -1,31 +1,32 @@
-/* SCCS $Id: survfit2.c,v 5.4 2000-03-03 10:22:48 boos Exp $
+/* SCCS $Id: survfit2.c,v 5.5 2000-07-09 14:40:54 boos Exp $
 /*
 ** Fit the survival curve
 **  Input
-**    n=# of subjects
-**    y[ny,n]    - matrix of time and status values
-**    ny   - number of columns of y
-**    wt[n] - vector of case weights
-**    strata[n] - ==1 at the last obs of each strata
-**    method- 1= km  2= fleming-harrington
-**    error  -1= Greenwood, 2=Tsiatis
-**    mark[n], risksum[n], wtsum[n] -- work arrays
+**    sn = number of subjects
+**    y[ny,n] =  matrix of time and status values
+**    wt[n] = vector of case weights
+**    strata[n] = is equal to 1 at the last obs of each strata
+**    method = 1= km, 2= fleming-harrington
+**    error = 1= Greenwood, 2=Tsiatis
+**    mark[n], surv[n], varh[n], risksum[n] = work arrays
+**
 ** Output
-**    surv  - the survival
-**    varh  - the variance of the hazard function
-**    nsurv - returned, number of survival time points
-**    y[,1] - contains the survival times
-**    risksum-the weighted N at that time
-**    method - # of strata
-**    strata[0: (n-1)]= last obs strata 1,2, etc
+**    y[] = contains the survival times
+**    strata[] = number of observations in each strata
+**    mark[] = number of (weighted) events at each time point
+**    surv[] = the survival for each time point
+**    varh[] = the variance of the hazard function for each time point
+**    risksum[] = total (weighted) number of observations still in the 
+**                study at each time point
 */
+
 #include <math.h>
 #include "survS.h"
 #include "survproto.h"
-void survfit2(long   *sn,     double *y,        long   *ny, 
-	      double *wt,     long   *strata,   long   *method, 
-	      long   *error,  double *mark,     double *surv,
-	      double *varh,   double *risksum,  long   * snsurv)
+void survfit2(long   *sn,      double *y,       double *wt,
+	      long   *strata,  long   *method,  long   *error, 
+	      double *mark,    double *surv,    double *varh, 
+	      double *risksum)
 {
     int i,j;
     double hazard, varhaz;
@@ -120,8 +121,5 @@ void survfit2(long   *sn,     double *y,        long   *ny,
 	    varhaz  =0;
 	    }
 	}
-
-    *method = nstrat;
-    *snsurv = nsurv;
     }
 
