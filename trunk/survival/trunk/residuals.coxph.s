@@ -1,4 +1,4 @@
-#SCCS $Id: residuals.coxph.s,v 4.21 1994-04-08 15:23:09 therneau Exp $
+#SCCS $Id: residuals.coxph.s,v 4.22 1994-04-14 15:42:00 therneau Exp $
 residuals.coxph <-
   function(object, type=c("martingale", "deviance", "score", "schoenfeld",
 			  "dfbeta", "dfbetas", "scaledsch"),
@@ -29,7 +29,7 @@ residuals.coxph <-
 	    temp <- coxph.getdata(object, y=T, x=T, strata=T)
 	    y <- temp$y
 	    x <- temp$x
-	    if (length(stats)) strat <- temp$strata
+	    if (length(strats)) strat <- temp$strata
 	    }
 
 	ny <- ncol(y)
