@@ -1,4 +1,4 @@
-# SCCS $Id: survexp.uswhite.s,v 4.6 1994-11-22 21:56:29 therneau Exp $
+# SCCS $Id: survexp.uswhite.s,v 4.7 1995-02-06 22:27:55 therneau Exp $
 #
 # Create the US total hazards table, whites only
 #   The raw numbers below are q* 10^5.  Note that there are 24 leap years/100
@@ -82,7 +82,7 @@ survexp.uswhite  <- {
 	summary = function(R) {
 		     x <- c(format(round(min(R[,1]) /365.24, 1)),
 			    format(round(max(R[,1]) /355.24, 1)),
-			    sum(R[,2]==1), sum(R[,2]==1),
+			    sum(R[,2]==1), sum(R[,2]==2),
 			    min(R[,3]), max(R[,3]))
 
 		     paste("age ranges from", x[1], "to", x[2], "years,\n",
