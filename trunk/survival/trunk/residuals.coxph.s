@@ -1,4 +1,4 @@
-#SCCS $Id: residuals.coxph.s,v 4.16 1993-05-28 08:21:25 therneau Exp $
+#SCCS $Id: residuals.coxph.s,v 4.17 1993-06-17 12:26:19 therneau Exp $
 residuals.coxph <-
   function(object, type=c("martingale", "deviance", "score", "schoenfeld",
 			  "dbeta", "dfbetas", "scaledsch"),
@@ -12,6 +12,7 @@ residuals.coxph <-
     rr <- object$residual
     y <- object$y
     x <- object$x
+    weights <- object$weights
     strat <- object$strata
     method <- object$method
     if (method=='exact' && (type=='score' || type=='schoenfeld'))
@@ -37,6 +38,7 @@ residuals.coxph <-
 		else x <- model.matrix(Terms, m)[,-1,drop=F]   #remove column of 1's though
 		}
 	    if (is.null(y)) y <- model.extract(m, 'response')
+	    weights <- model.extract(m, 'weights')
 	    }
 
 	ny <- ncol(y)
@@ -58,6 +60,8 @@ residuals.coxph <-
 	    x <- x[ord,]
 	    y <- y[ord,]
 	    score <- exp(object$linear.predictor)[ord]
+	    if (is.null(weights)) weights <- rep(1,n)
+	    else                  weights <- weights[ord]
 	    }
 	}
 
@@ -70,7 +74,7 @@ residuals.coxph <-
 			    as.integer(nvar),
 			    as.double(y),
 			    resid= x,
-			    score,
+			    score * weights,
 			    as.integer(newstrat),
 			    as.integer(method=='efron'),
 			    double(3*nvar))
@@ -100,6 +104,7 @@ residuals.coxph <-
 				x=x,
 				as.integer(newstrat),
 				score,
+				weights,
 				as.integer(method=='efron'),
 				resid= double(n*nvar),
 				double(2*nvar))$resid
@@ -112,6 +117,7 @@ residuals.coxph <-
 				x,
 				as.integer(newstrat),
 				score,
+				weights,
 				as.integer(method=='efron'),
 				resid=double(n*nvar),
 				double(nvar*6))$resid

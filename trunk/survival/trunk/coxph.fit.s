@@ -1,6 +1,6 @@
-#SCCS $Date: 1993-01-30 21:21:42 $ $Id: coxph.fit.s,v 4.11 1993-01-30 21:21:42 therneau Exp $
+#SCCS $Date: 1993-06-17 12:26:16 $ $Id: coxph.fit.s,v 4.12 1993-06-17 12:26:16 therneau Exp $
 coxph.fit <- function(x, y, strata, offset, init, iter.max,
-			eps, method, rownames)
+			eps, weights, method, rownames)
     {
     n <-  nrow(y)
     nvar <- ncol(x)
@@ -17,8 +17,12 @@ coxph.fit <- function(x, y, strata, offset, init, iter.max,
 	strata <- (as.numeric(strata))[sorted]
 	newstrat <- as.integer(c(1*(diff(strata)!=0), 1))
 	}
-    if (is.null(offset)) offset <- rep(0,n)
-
+    if (missing(offset) || is.null(offset)) offset <- rep(0,n)
+    if (missing(weights)|| is.null(weights))weights<- rep(1,n)
+    else {
+	if (any(weights<=0)) stop("Invalid weights, must be >0")
+	weights <- weights[sorted]
+	}
     stime <- as.double(time[sorted])
     sstat <- as.integer(status[sorted])
 
@@ -31,6 +35,7 @@ coxph.fit <- function(x, y, strata, offset, init, iter.max,
 				    stime,
 				    sstat,
 				    exp(offset[sorted]),
+				    weights,
 				    newstrat,
 				    loglik=double(1),
 				    resid = double(n) )
@@ -45,7 +50,7 @@ coxph.fit <- function(x, y, strata, offset, init, iter.max,
 	}
 
     else {
-	if (!is.null(init)) {
+	if (!missing(init) && !is.null(init)) {
 	    if (length(init) != nvar) stop("Wrong length for inital values")
 	    }
 	else init <- rep(0,nvar)
@@ -56,32 +61,34 @@ coxph.fit <- function(x, y, strata, offset, init, iter.max,
 		       sstat,
 		       x= x[sorted,] ,
 		       as.double(offset[sorted] - mean(offset)),
+		       weights,
 		       newstrat,
 		       means= double(nvar),
 		       coef= as.double(init),
 		       u = double(nvar),
 		       imat= double(nvar*nvar), loglik=double(2),
 		       flag=integer(1),
-		       mark = integer(n),
-		       double(2*nvar*nvar + 3*nvar),
+		       double(2*n + 2*nvar*nvar + 3*nvar),
 		       as.double(eps),
 		       sctest=as.double(method=="efron") )
 
-	if (coxfit$flag > 0 && coxfit$flag<1000)
-	      return(paste("X matrix deemed to be singular; variable",
-			    coxfit$flag, "iteration", coxfit$iter))
-	infs <- abs(coxfit$u %*% matrix(coxfit$imat,nvar))
+	var <- matrix(coxfit$imat,nvar,nvar)
+	coef <- coxfit$coef
+	if (coxfit$flag < nvar) which.sing <- diag(var)==0
+	else which.sing <- rep(F,nvar)
+
+	infs <- abs(coxfit$u %*% var)
 	if (iter.max >1) {
 	    if (coxfit$flag == 1000)
 		   warning("Ran out of iterations and did not converge")
-	    else if (any((infs > eps) & (infs > sqrt(eps)*abs(coxfit$coef))))
+	    else if (any((infs > eps) & (infs > sqrt(eps)*abs(coef))))
 		warning(paste("Loglik converged before variable ",
 			  paste((1:nvar)[(infs>eps)]),
 			  ", beta may be infinite. "))
 	    }
 
-	names(coxfit$coef) <- dimnames(x)[[2]]
-	lp <- c(x %*% coxfit$coef) + offset - sum(coxfit$coef*coxfit$means)
+	names(coef) <- dimnames(x)[[2]]
+	lp <- c(x %*% coef) + offset - sum(coef*coxfit$means)
 	score <- exp(lp[sorted])
 	coxres <- .C("coxmart", as.integer(n),
 				as.integer(method=='efron'),
@@ -89,13 +96,15 @@ coxph.fit <- function(x, y, strata, offset, init, iter.max,
 				sstat,
 				newstrat,
 				score,
+				weights,
 				resid=double(n))
 	resid <- double(n)
 	resid[sorted] <- coxres$resid
 	names(resid) <- rownames
+	coef[which.sing] <- NA
 
-	list(coefficients  = coxfit$coef,
-		    var    = matrix(coxfit$imat, ncol=nvar),
+	list(coefficients  = coef,
+		    var    = var,
 		    loglik = coxfit$loglik,
 		    score  = coxfit$sctest,
 		    iter   = coxfit$iter,

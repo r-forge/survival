@@ -1,4 +1,4 @@
-/* SCCS $Id: coxfit_null.c,v 4.5 1993-01-30 21:21:43 therneau Exp $  */
+/* SCCS $Id: coxfit_null.c,v 4.6 1993-06-17 12:26:16 therneau Exp $  */
 /*
 ** Special case: fit the "Null" model.  All that is needed are the loglik
 **     and the residual  -- 90% of the work is the residual
@@ -13,6 +13,7 @@
 **                       vector can be identically zero, since the nth person's
 **                       value is always assumed to be = to 1.
 **       score(n)    :the risk score
+**       weights(n)  :case weights
 **
 **  returned parameters
 **       loglik       : the log-likelihood for the data
@@ -22,7 +23,7 @@
 */
 #include <math.h>
 
-void coxfit_null( nusedx, method, time, status, score, strata,
+void coxfit_null( nusedx, method, time, status, score, weights, strata,
 		  loglik, resid)
 
 long    *nusedx,
@@ -30,6 +31,7 @@ long    *nusedx,
 	strata[],
 	status[];
 double  score[],
+	weights[],
 	time[];
 double  loglik[],  /* returned values */
 	resid[];
@@ -41,6 +43,7 @@ double  loglik[],  /* returned values */
     double  hazard;
     double  e_denom, temp, downwt;
     int     lastone;
+    double  meanwt;
 
     n = *nusedx;
     /*
@@ -49,7 +52,7 @@ double  loglik[],  /* returned values */
     strata[n-1] =1;  /* just in case */
     for (i=n-1; i>=0; i--) {
 	if (strata[i] == 1) denom = 0;
-	denom += score[i];
+	denom += score[i] * weights[i];
 	if (i==0 || strata[i-1]==1 || time[i-1]!=time[i])
 	    resid[i] = denom;
 	else resid[i] =0;
@@ -61,6 +64,7 @@ double  loglik[],  /* returned values */
     deaths=0;
     e_denom=0;
     hazard =0;
+    meanwt =0;
     lastone = 0;
     loglik[0] =0;
     for (i= 0; i<n; i++) {
@@ -68,25 +72,25 @@ double  loglik[],  /* returned values */
 	resid[i] = status[i];
 	if (status[i]==1) {
 	    deaths++;
-	    e_denom += score[i];
-	    loglik[0] += log(score[i]);
+	    e_denom += score[i] * weights[i];
+	    meanwt += weights[i];
+	    loglik[0] += weights[i] *log(score[i]);
 	    }
 	if (strata[i]==1 ||  time[i+1]!=time[i]) {
 	    /*last subject of a set of tied times */
 	    if (deaths<2 || *method==0) {
-		hazard += deaths/denom;
-		loglik[0] -= deaths * log(denom);
-		for (j=lastone; j<=i; j++) {
-		    resid[j] -= score[j]*hazard;
-		    }
+		hazard += meanwt/denom;
+		loglik[0] -= meanwt * log(denom);
+		for (j=lastone; j<=i; j++) resid[j] -= score[j]*hazard;
 		}
 	    else {
 		temp = hazard;
+		meanwt /= deaths;
 		for (j=0; j<deaths; j++) {
 		    downwt = j /deaths;
-		    hazard +=  1/(denom - e_denom* downwt);
-		    temp   +=  (1-downwt)/(denom - e_denom* downwt);
-		    loglik[0] -=  log(denom - e_denom* downwt);
+		    hazard +=  meanwt/(denom - e_denom* downwt);
+		    temp   +=  meanwt*(1-downwt)/(denom - e_denom* downwt);
+		    loglik[0] -=  meanwt *log(denom - e_denom* downwt);
 		    }
 		for (j=lastone; j<=i; j++) {
 		    if (status[j]==0) resid[j] = -score[j]*hazard;
@@ -96,6 +100,10 @@ double  loglik[],  /* returned values */
 	    lastone =i +1;
 	    deaths =0;
 	    e_denom =0;
+	    meanwt =0;
 	    }
 	}
+
+    /* finish any "trailing" censored obs */
+    for (j=lastone; j<n; j++)  resid[j] -= score[j]*hazard;
     }

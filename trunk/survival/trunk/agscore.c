@@ -1,4 +1,4 @@
-/* SCCS: $Id: agscore.c,v 1.1 1993-01-30 19:51:22 therneau Exp $
+/* SCCS: $Id: agscore.c,v 1.2 1993-06-17 12:26:18 therneau Exp $
 /*
 ** Do the score residuals
 **
@@ -10,6 +10,7 @@
 **      covar2  the matrix of covariates, rows=variables, columns=subjects
 **                (the S executive stores matrices in the Fortran ordering)
 **      score   the vector of subject scores, i.e., exp(beta*z)
+**      weights case weights
 **      method  ==1 for efron approx
 **
 ** Output
@@ -21,7 +22,7 @@
 #include <stdio.h>
 extern double **dmatrix();
 
-void agscore(nx, nvarx, y, covar2, strata, score,
+void agscore(nx, nvarx, y, covar2, strata, score, weights,
 		method, resid2, a)
 long    nx[1],
 	nvarx[1],
@@ -30,24 +31,25 @@ long    nx[1],
 double  y[],
 	*covar2,
 	score[],
+	weights[],
 	*a,
 	*resid2;
 
     {
     register int i,k;
-    register double temp;
     int n, nvar;
     int person;
     double denom, time;
     double *a2, *mean;
     double e_denom;
-    double hazard;
+    double risk;
+    double hazard, meanwt;
     double  deaths, downwt;
     int dd;
     double *start, *stop, *event;
     double **covar,
 	   **resid;
-    double temp1, temp2;
+    double temp1, temp2, d2;
     double *mh1, *mh2, *mh3;
 
     n = *nx;
@@ -74,6 +76,7 @@ double  y[],
 	    */
 	    denom =0;
 	    e_denom =0;
+	    meanwt =0;
 	    deaths =0;
 	    for (i=0; i<nvar; i++) {
 		a[i] =0;
@@ -82,15 +85,17 @@ double  y[],
 	    time = stop[person];
 	    for (k=person; k<n; k++) {
 		if (start[k] < time) {
-		    denom += score[k];
+		    risk = score[k] * weights[k];
+		    denom += risk;
 		    for (i=0; i<nvar; i++) {
-			a[i] = a[i] + score[k]*covar[i][k];
+			a[i] = a[i] + risk*covar[i][k];
 			}
 		     if (stop[k]==time && event[k]==1) {
 			deaths++;
-			e_denom += score[k];
+			e_denom += risk;
+			meanwt += weights[k];
 			for (i=0; i<nvar; i++)
-			    a2[i] = a2[i] + score[k]*covar[i][k];
+			    a2[i] = a2[i] + risk*covar[i][k];
 			}
 		     }
 		if (strata[k]==1) break;
@@ -99,12 +104,13 @@ double  y[],
 	    /* add things in for everyone in the risk set*/
 	    if (deaths <2 || *method==0) {
 		/* easier case */
-		hazard = deaths/denom;
+		hazard = meanwt/denom;
 		for (i=0; i<nvar; i++) mean[i] = a[i]/denom;
 		for (k=person; k<n; k++) {
 		    if (start[k] < time) {
+			risk = score[k];
 			for (i=0; i<nvar; i++)
-			    resid[i][k] -= (covar[i][k] -mean[i])*score[k]*hazard;
+			    resid[i][k] -= (covar[i][k] -mean[i])*risk*hazard;
 			if (stop[k]==time) {
 			    person++;
 			    if (event[k]==1)
@@ -117,6 +123,15 @@ double  y[],
 		}
 
 	    else {
+		/*
+		** If there are 3 deaths, let m1, m2, m3 be the three
+		**   weighted means,  h1, h2, h3 be the three hazard jumps.
+		** Then temp1 = h1 + h2 + h3
+		**      temp2 = h1 + (2/3)h2 + (1/3)h3
+		**      mh1   = m1*h1 + m2*h2 + m3*h3
+		**      mh2   = m1*h1 + (2/3)m2*h2 + (1/3)m3*h3
+		**      mh3   = (1/3)*(m1+m2+m3)
+		*/
 		temp1=0;
 		temp2=0;
 		for (i=0; i<nvar; i++) {
@@ -124,13 +139,15 @@ double  y[],
 		    mh2[i] =0;
 		    mh3[i] =0;
 		    }
+		meanwt /= deaths;
 		for (dd=0; dd<deaths; dd++){
 		    downwt = dd/deaths;
-		    hazard = 1/(denom - downwt*e_denom);
+		    d2 = denom - downwt*e_denom;
+		    hazard = meanwt/d2;
 		    temp1 += hazard;
 		    temp2 += (1-downwt) * hazard;
 		    for (i=0; i<nvar; i++) {
-			mean[i] = (a[i] - downwt*a2[i])*hazard;
+			mean[i] = (a[i] - downwt*a2[i])/ d2;
 			mh1[i]  += mean[i] * hazard;
 			mh2[i]  += mean[i] * (1-downwt) * hazard;
 			mh3[i]  += mean[i]/deaths;
@@ -138,16 +155,17 @@ double  y[],
 		    }
 		for (k=person; k<n; k++) {
 		    if (start[k] < time) {
+			risk = score[k];
 			if (stop[k]==time && event[k]==1) {
 			    for (i=0; i<nvar; i++) {
 				resid[i][k] += covar[i][k] - mh3[i];
-				resid[i][k] -= score[k]*covar[i][k]*temp2;
-				resid[i][k] += score[k]* mh2[i];
+				resid[i][k] -= risk*covar[i][k]*temp2;
+				resid[i][k] += risk* mh2[i];
 				}
 			    }
 			else {
 			    for (i=0; i<nvar; i++)
-				resid[i][k] -= score[k]*(covar[i][k]*temp1 - mh1[i]);
+				resid[i][k] -= risk*(covar[i][k]*temp1 - mh1[i]);
 			    }
 			}
 		    if (strata[k]==1) break;

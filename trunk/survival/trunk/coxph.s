@@ -1,8 +1,9 @@
-#SCCS  $Id: coxph.s,v 4.9 1993-03-26 17:02:38 therneau Exp $
+#SCCS  $Id: coxph.s,v 4.10 1993-06-17 12:26:18 therneau Exp $
 coxph <- function(formula=formula(data), data=sys.parent(),
-	subset, na.action,
+	weights, subset, na.action,
 	eps=.0001, init, iter.max=10,
 	method= c("efron", "breslow", "exact"),
+	singular.ok =T,
 	model=F, x=F, y=T) {
 
     method <- match.arg(method)
@@ -19,6 +20,7 @@ coxph <- function(formula=formula(data), data=sys.parent(),
 
     Y <- model.extract(m, "response")
     if (!inherits(Y, "Surv")) stop("Response must be a survival object")
+    weights <- model.extract(m, 'weights')
     offset<- attr(Terms, "offset")
     tt <- length(offset)
     offset <- if(tt == 0)
@@ -54,15 +56,22 @@ coxph <- function(formula=formula(data), data=sys.parent(),
     else stop(paste ("Unknown method", method))
 
     if (missing(init)) init <- NULL
-    fit <- fitter(X, Y, strats, offset, iter.max=iter.max,
-			eps=eps, init=init,
-			method=method, row.names(m) )
+    fit <- fitter(X, Y, strats, offset, init=init, iter.max=iter.max,
+			eps=eps, weights=weights,
+			method=method, row.names(m))
 
     if (is.character(fit)) {
 	fit <- list(fail=fit)
 	attr(fit, 'class') <- 'coxph'
 	}
     else {
+	if (any(is.na(fit$coef))) {
+	   vars <- (1:length(fit$coef))[is.na(fit$coef)]
+	   msg <-paste("X matrix deemed to be singular; variable",
+			   paste(vars, collapse=" "))
+	   if (singular.ok) warning(msg)
+	   else             stop(msg)
+	   }
 	fit$n <- nrow(Y)
 	na.action <- attr(m, "na.action")
 	if (length(na.action)) fit$na.action <- na.action
@@ -71,11 +80,15 @@ coxph <- function(formula=formula(data), data=sys.parent(),
 	fit$terms <- Terms
 	fit$assign <- attr(X, 'assign')
 	if (model) fit$model <- m
-	if (x)  {
-	    fit$x <- X
-	    if (length(strats)) fit$strata <- strata.keep
+	else {
+	    if (x)  {
+		fit$x <- X
+		if (length(strats)) fit$strata <- strata.keep
+		if (length(weights))fit$weights<- weights
+		}
+	    if (y)     fit$y <- Y
+	    if (!is.null(weights) && any(weights!=1)) fit$weights <- weights
 	    }
-	if (y)     fit$y <- Y
 	}
     fit$formula <- as.vector(attr(Terms, "formula"))
     fit$call <- call
