@@ -3,9 +3,10 @@
 .TL
 Proportional Hazards Regression
 .DN
-Fits either a Cox proportional hazards model or an Anderson-Gill
-formulation of a proportional hazards model for multiple events and/or
-time dependent covariates.
+Fit a Cox proportional hazards model.
+Time dependent variables, time dependent strata, multiple events per subject,
+and other extensions are incorporated using the counting process formulation
+of Anderson and Gill.
 .CS
 coxph(formula=formula(data), data=sys.parent(), subset, 
        na.action, eps=0.0001, inf.ratio=200, init, 
@@ -13,11 +14,9 @@ coxph(formula=formula(data), data=sys.parent(), subset,
        model=F, x=F, y=T)
 .RA
 .AG formula
-A formula expression as for other survival functions, of the form
-Surv( time, status) ~ predictors for the regular Cox proportional
-hazards model or Surv( start, stop, status) ~ predictors for the
-Anderson-Gill formulation.  For a stratified analysis put a call
-to the strata function among the predictors.
+a formula object, with the response on the left of a ~ operator, and
+the terms on the right.  The response must be a survival object as
+returned by the Surv() function.
 .OA
 .AG data
 a data.frame in which to interpret the variables named in
@@ -48,9 +47,14 @@ value is zero for all variables.
 .AG iter.max
 maximum number of iterations to perform.  Default is 10.
 .AG method
-method for tie handling.  "breslow" is the default for historical
-reasons.  "efron" is a more accurate method of handling ties.  "exact"
-refers to the exact partial likelihood (conditional logistic).
+method for tie handling.  If there are no tied death times all the methods
+are equivalent.
+Breslow is the default for historical
+reasons (it is the easiest to program, and appears in most implimentations).
+The efron approxomation is more accurate, and is as fast computationally.
+The exact method computes the exact partial likelihood, which is equivalent
+to a conditional logistic model.  If there are a large number of ties the
+computational time will be excessive.
 .AG model,x,y
 flags to control what is returned.  If these are true, then the model
 frame, the model matrix, and/or the response is returned as components
@@ -58,21 +62,19 @@ of the fitted model, with the same names as the flag arguments.
 .RT 
 an object of class "coxph"
 .SE
-The basic problem is that it is inefficient to return _everything_
-one might ever need from a model fit.  The routines for a Kaplan-Meier
-survival, differences in survival, and for expected survival return
-all necessary information, and have no side effects.  For a Cox
-model however ....
+Depending on the call, the predict, residuals, and survfit routines may
+need to reconstruct the x matrix created by coxph.  Differences in the
+environment, such as which data frames are attached or the value of
+options()$contrasts, may cause this computation to fail or worse, to be
+incorrect.  See the survival overview document for details.
 .DT
 The proportional hazards model is usually expressed in terms of a
 single survival time value for each person, with possible censoring.
 Anderson and Gill reformulated the same problem as a counting process;
 as time marches onward we observe the events for a subject, rather
-like watching a Geiger counter.  Extensions to the Cox model are
-readily apparent: time dependent covariates, multiple events, and
-discontinuous observation periods for a single subject.  A martingale
-formulation of the counting process leads to direct proofs of
-asymptotic properties, and to a useful set of residuals.
+like watching a Geiger counter.
+The data for a subject is presented as multiple rows or "observations", each
+of which applies to an interval of observation (start, stop].
 .SH REFERENCES
 Terry Therneau, author of local function.
 
@@ -91,12 +93,7 @@ survfit, Surv, strata.
                 status=c(1,NA,1,0,1,1,0),
                 x=     c(0, 2,1,1,1,0,0),
                 sex=   c(0, 0,0,0,1,1,1))
-
-# fit the cox proportional hazards model
-# a call to strata in the terms of the formula tells coxph to fit
-# a separate hazard function to the different strata.
-#
-> coxph( Surv(time, status) ~ x + strata(sex), test1)
+> coxph( Surv(time, status) ~ x + strata(sex), test1)  #stratified model
 
 #
 # Create a simple data set for a time-dependent model
@@ -106,10 +103,7 @@ survfit, Surv, strata.
                 event=c(1, 1, 1, 1, 1, 1, 1, 0, 0, 0),
                 x    =c(1, 0, 0, 1, 0, 1, 1, 1, 0, 0) )
 
-# Create a Surv object, using names off of the data.frame test2
-# summary will print out a bit more information
-#
 > summary( coxph( Surv(start, stop, event) ~ x, test2))
 
-.KW ~keyword
+.KW survival
 .WR
