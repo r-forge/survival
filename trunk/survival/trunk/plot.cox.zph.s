@@ -1,4 +1,4 @@
-#SCCS $Id: plot.cox.zph.s,v 4.4 1993-04-09 16:29:54 therneau Exp $
+#SCCS $Id: plot.cox.zph.s,v 4.5 1995-06-08 15:55:42 therneau Exp $
 plot.cox.zph <- function(x, resid=T, se=T, df=4, nsmo=40, var) {
     xx <- x$x
     yy <- x$y
@@ -15,8 +15,7 @@ plot.cox.zph <- function(x, resid=T, se=T, df=4, nsmo=40, var) {
     if (se) {
 	bk <- backsolve(qmat$qr[1:df, 1:df], diag(df))
 	xtx <- bk %*% t(bk)
-	temp <- xtx %*% ( (d+1)*t(xmat) - c(rep(1,d)%*%xmat)) %*% xmat %*% xtx
-	seval <- ((pmat%*%temp) *pmat) %*% rep(1, df)
+	seval <- d*((pmat%*% xtx) *pmat) %*% rep(1, df)
 	}
 
     ylab <- paste("Beta(t) for", dimnames(yy)[[2]])
