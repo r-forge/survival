@@ -2,7 +2,6 @@
 <!entity % S-OLD "INCLUDE">
 ]
 >
-<! SCCS $Id: plot.aareg.sgml,v 1.1 2001-04-17 08:23:42 therneau Exp $>
 <s-function-doc>
 <s-topics>
 <s-topic> plot.aareg </s-topic>

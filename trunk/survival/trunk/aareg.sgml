@@ -27,14 +27,14 @@ weights=&lt;&lt;see below&gt;&gt;,
 a formula object, with the response on the left of a `~' operator and 
 the terms,
  separated by <s-expression>+</s-expression> operators, on the right. 
-The response must be a <s-expression>Surv/s-expression> object.
+The response must be a <s-expression>Surv</s-expression> object.
 </s-arg>
 </s-args-required>
 <s-args-optional>
 
 <s-arg name=" data ">
 data frame in which to interpret the variables named in the
-<s-expression>formul a</s-expression>,
+<s-expression>formula</s-expression>,
 <s-expression>subset</s-expression>, and <s-expression>weights
 </s-expression> arguments. This may also be a single number to handle
 some speci al cases -- see below for details. If
@@ -50,7 +50,7 @@ minimizes the sum of the weights multiplied by the squared residuals
 observations. The weights must be nonnegative and it i s recommended
 that they be strictly positive, since zero weights are ambiguous.  To
 exclude particular observations from the model, use the
-<s-expression>subset< /s-expression> argument instead of zero weights.
+<s-expression>subset</s-expression> argument instead of zero weights.
 </s-arg>
 
 <s-arg name="subset">
