@@ -1,8 +1,9 @@
-#SCCS $Id: ratetable.s,v 4.1 1993-12-02 21:41:43 therneau Exp $
+#SCCS $Id: ratetable.s,v 4.2 1993-12-15 13:31:22 therneau Exp $
 #
 # This is a 'specials' function for pyears
 #   it is a stripped down version of as.matrix(data.frame(...))
 # There is no function to create a ratetable.
+# This function has a class, only so that data frame subscripting will work
 #
 ratetable <- function(...) {
     args <- list(...)
@@ -27,7 +28,23 @@ ratetable <- function(...) {
 	}
     attr(x, "constants") <- (ll==1) & (n>1)
     attr(x, "levlist")   <- levlist
+    attr(x, "class")  <- "ratetable2"
     x
+    }
+
+# The function below should only be called internally, when missing
+#   values cause model.frame to drop some rows
+"[.ratetable2" <- function(x, rows, cols, drop=F) {
+    if (!missing(cols)) {
+       stop("This should never be called!")
+       }
+    aa <- attributes(x)
+    attributes(x) <- aa[c("dim", "dimnames")]
+    y <- x[rows,,drop=F]
+    attr(y,'constants') <- aa$constants
+    attr(y,'levlist')   <- aa$levlist
+    class(y) <- aa$class
+    y
     }
 
 #
@@ -51,7 +68,8 @@ ratetable <- function(...) {
 	    }
 	}
     else {
-	attributes(y) <- aa
+	attributes(y) <- c(attributes(y), aa[c('dimid','factor','cutpoints',
+						'class')])
 	y
 	}
     }
