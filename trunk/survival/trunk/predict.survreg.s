@@ -1,4 +1,4 @@
-# SCCS $Id: predict.survreg.s,v 4.2 1992-03-24 22:09:16 therneau Exp $
+# SCCS $Id: predict.survreg.s,v 4.3 1992-03-24 23:29:14 therneau Exp $
 #What do I need to do predictions --
 #
 #linear predictor:  exists
@@ -17,8 +17,8 @@
 #   +new  : new X matrix and the old means + I matrix
 predict.surv.reg <-
 function(object, newdata, type=c("lp", "risk", "expected", "terms"),
-		se.fit=F,
-		terms=labels(object), miss.expand=T, collapse, safe=F, ...)
+	    se.fit=F,
+	    terms=labels.lm(object), miss.expand=T, collapse, safe=F, ...)
 
     {
     type <- match.arg(type)
