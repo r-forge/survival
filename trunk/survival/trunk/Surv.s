@@ -1,8 +1,8 @@
-#SCCS $Date: 1992-04-21 14:56:44 $ $Id: Surv.s,v 4.9 1992-04-21 14:56:44 therneau Exp $
+#SCCS $Date: 1992-07-10 09:26:35 $ $Id: Surv.s,v 4.10 1992-07-10 09:26:35 therneau Exp $
 # Package up surivival type data as a structure
 #
 Surv <- function(time, time2, event,
-		       type=c('right', 'left', 'interval', 'counting'),
+	      type=c('right', 'left', 'interval', 'counting', 'interval2'),
 		       origin=0) {
     nn <- length(time)
     ng <- nargs()
@@ -16,10 +16,18 @@ Surv <- function(time, time2, event,
 	ng <- ng-1
 	if (ng!=3 && (type=='interval' || type =='counting'))
 		stop("Wrong number of args for this type of survival data")
-	if (ng!=2 && (type=='right' || type=='left'))
+	if (ng!=2 && (type=='right' || type=='left' ||  type=='interval2'))
 		stop("Wrong number of args for this type of survival data")
 	}
     who <- !is.na(time)
+
+    if (type=='interval2') {
+	event <- ifelse(is.na(time), 2,
+		 ifelse(is.na(time2),0,
+		 ifelse(time==time2, 1,3)))
+	time <- ifelse(event!=2, time, time2)
+	type <- 'interval'
+	}
 
     if (ng==1) {
 	if (!is.numeric(time)) stop ("Time variable is not numeric")
@@ -27,7 +35,7 @@ Surv <- function(time, time2, event,
 	ss <- cbind(time, 1)
 	dimnames(ss) <- list(NULL, c("time", "status"))
 	}
-    else if (ng==2) {  #assume second arg is event
+    else if (type=='right' || type=='left') {
 	if (!is.numeric(time)) stop ("Time variable is not numeric")
 	else if (any(time[who]<0))  stop ("Time variable must be >= 0")
 	if (length(time2) != nn) stop ("Time and status are different lengths")
@@ -52,10 +60,11 @@ Surv <- function(time, time2, event,
 	if (type=='interval') {
 	    temp <- event[!is.na(event)]
 	    if (!is.numeric(temp)) stop("Status indicator must be numeric")
-	    if (length(temp)>0 && any(temp!= floor(temp) | temp<1 | temp>4))
-		stop("Status indicator must be 1, 2, 3 or 4")
+	    if (length(temp)>0 && any(temp!= floor(temp) | temp<0 | temp>3))
+		stop("Status indicator must be 0, 1, 2 or 3")
 	    status <- event
-	    time2 <- ifelse(!is.na(event) & event==4, time2, 0)
+	    ss <- cbind(time, ifelse(!is.na(event) & event==3, time2, 1),
+				status)
 	    }
 	else {
 	    if (is.logical(event)) status <- 1*event
@@ -65,9 +74,9 @@ Surv <- function(time, time2, event,
 		    if (any(status[who2] !=0  & status[who2]!=1))
 				    event ("Invalid status value")
 		    }
-		else event("Invalid status value")
+		else stop("Invalid status value")
+	    ss <- cbind(time-origin, time2-origin, status)
 	    }
-	ss <- cbind(time-origin, time2-origin, status)
 	}
     attr(ss, "class") <- c("Surv")
     attr(ss, "type")  <- type
@@ -94,9 +103,11 @@ print.Surv <- function(xx, quote=F, ...) {
 	}
     else {   #interval type
 	stat <- xx[,3]
-	temp <- c("", "<", ">", "[")[stat]
-	temp2 <- ifelse(stat==4, paste(", ", format(xx[,2]), "]", sep=''), '')
-	print(ifelse(is.na(stat)), "NA", paste(temp, format(xx[,1], temp2, sep='')),
+	temp <- c("+", "", "-", "]")[stat+1]
+	temp2 <- ifelse(stat==3,
+			 paste("[", format(xx[,1]), ", ",format(xx[,2]), sep=''),
+			 format(xx[,1]))
+	print(ifelse(is.na(stat), "NA", paste(temp2, temp, sep='')),
 			       quote=quote)
 	}
     }

@@ -10,8 +10,8 @@ first argument is the starting time for the interval.
 .AG event
 The status indicator, normally 0=alive, 1=dead.  Other choices are T/F
 (TRUE = death) or 1/2 (2=death).
-For interval censored data, the status indicator is 1=event at `time',
-2= right censored, 3=left censored, 4=interval censored.
+For interval censored data, the status indicator is 0=right censored,
+1= event at `time', 2=left censored, 3=interval censored.
 .AG time2
 For interval censored  or counting process data only, the ending time of the interval.
 Intervals are
@@ -20,7 +20,8 @@ For counting process data,
 `event' marks whether an event occured at the end of the interval.
 .OA
 .AG type
-one of left, right, counting, or interval.  If this is not specified, the
+one of left, right, counting, interval, or interval2.
+If this is not specified, the
 default is either right or counting, depending on whether the `time2'
 argument is absent or present, respectively.
 .OA origin
@@ -40,9 +41,13 @@ left censored and interval censored observation would be represented as
 intervals of (a,a), (a, infinity), (-infinity,b), and (a,b) respectively;
 each specifing the interval within which the event is known to have occured.
 Infinity is, of course, impractical in a computer routine.
-If the status code is 1, 2 or 3, then the relevant information is assumed to
+.pp
+If `type' is "interval2" then the representation given above is assumed,
+with NA taking the place of infinity.  If type='interval' then an explicit
+status code must be given in the third argument.
+If the status code is 0, 1 or 2, then the relevant information is assumed to
 be contained in `time',  the value in `time2' is ignored, and the second
-column of the result will contain a 0.
+column of the result will contain a placeholder.
 .pp
 At present, all of the methods that handle interval censored data are
 parametric models, so the distinction between open and closed intervals
