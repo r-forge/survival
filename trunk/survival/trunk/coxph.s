@@ -1,4 +1,4 @@
-#SCCS  $Id: coxph.s,v 4.21 1997-03-19 13:42:33 therneau Exp $
+#SCCS  $Id: coxph.s,v 4.22 1997-03-25 10:55:50 therneau Exp $
 coxph <- function(formula=formula(data), data=sys.parent(),
 	weights, subset, na.action,
 	eps=.0001, init, iter.max=10,
@@ -99,7 +99,9 @@ coxph <- function(formula=formula(data), data=sys.parent(),
 		temp <- residuals.coxph(fit2, type='dfbeta', collapse=cluster,
 					  weighted=T)
 		# get score for null model
-		fit2$linear.predictors <- 0*fit$linear.predictors
+		if (is.null(init))
+			fit2$linear.predictors <- 0*fit$linear.predictors
+		else fit2$linear.predictors <- c(X %*% init)
 		temp0 <- residuals.coxph(fit2, type='score', collapse=cluster,
 					 weighted=T)
 		#Now for ICC
@@ -135,6 +137,13 @@ coxph <- function(formula=formula(data), data=sys.parent(),
 	    u <- apply(temp0, 2, sum)
 	    fit$rscore <- c(u %*% solve(t(temp0)%*%temp0, u))
 	    }
+
+	#Wald test
+	nabeta <- !is.na(fit$coef)
+	if (is.null(init)) temp <- fit$coef[nabeta]
+	else		   temp <- (fit$coef - init)[nabeta]
+	fit$wald.test <-  sum(temp * solve(fit$var[nabeta,nabeta], temp))
+
 	na.action <- attr(m, "na.action")
 	if (length(na.action)) fit$na.action <- na.action
 	if (model) fit$model <- m

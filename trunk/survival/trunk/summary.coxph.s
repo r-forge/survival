@@ -1,4 +1,4 @@
-#SCCS $Date: 1997-03-19 13:42:34 $ $Id: summary.coxph.s,v 4.7 1997-03-19 13:42:34 therneau Exp $
+#SCCS $Date: 1997-03-25 10:55:51 $ $Id: summary.coxph.s,v 4.8 1997-03-25 10:55:51 therneau Exp $
 summary.coxph <-
  function(cox, table = T, coef = T, conf.int = 0.95, scale = 1,
 			digits = max(options()$digits - 4, 3))
@@ -32,16 +32,9 @@ summary.coxph <-
     beta2 <- beta[nabeta]
     if(is.null(beta) | is.null(cox$var))
         stop("Input is not valid")
+    se <- sqrt(diag(cox$var))
+    if (!is.null(cox$naive.var)) nse <- sqrt(diag(cox$naive.var))
 
-    if (is.null(cox$naive.var)) {
-	se <- sqrt(diag(cox$var))
-	wald.test <-  sum(beta2 * solve(cox$var[nabeta,nabeta], beta2))
-	}
-    else {
-	nse <- sqrt(diag(cox$naive.var))        #naive se
-	se <- sqrt(diag(cox$var))
-	wald.test <-  sum(beta2 * solve(cox$var[nabeta,nabeta], beta2))
-	}
     if(coef) {
 	if (is.null(cox$naive.var)) {
 	    tmp <- cbind(beta, exp(beta), se, beta/se,
@@ -80,8 +73,8 @@ summary.coxph <-
     cat("Likelihood ratio test= ", format(round(logtest, 2)), "  on ",
 	df, " df,", "   p=", format(1 - pchisq(logtest, df)),
 	"\n", sep = "")
-    cat("Wald test            = ", format(round(wald.test, 2)), "  on ",
-	df, " df,", "   p=", format(1 - pchisq(wald.test, df)),
+    cat("Wald test            = ", format(round(cox$wald.test, 2)), "  on ",
+	df, " df,", "   p=", format(1 - pchisq(cox$wald.test, df)),
 	"\n", sep = "")
     cat("Score (logrank) test = ", format(round(sctest, 2)), "  on ", df,
         " df,", "   p=", format(1 - pchisq(sctest, df)), sep ="") 

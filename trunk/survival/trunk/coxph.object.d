@@ -29,6 +29,8 @@ with the final values of the coefficients.
 value of the efficient score test, at the initial value of the coefficients.
 .AG rscore
 the robust log-rank statistic, if a robust variance was requested.
+.AG wald.test
+the Wald test of whether the final coefficients differ from the initial values.
 .AG iter
 number of iterations used.
 .AG linear.predictors
