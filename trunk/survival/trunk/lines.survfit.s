@@ -1,4 +1,4 @@
-# SCCS $Id: lines.survfit.s,v 4.11 1998-03-21 16:06:57 therneau Exp $
+# SCCS $Id: lines.survfit.s,v 4.12 1998-04-05 23:45:25 therneau Exp $
 lines.survfit <- function(x, type='s', mark=3, col=1, lty=1, lwd=1,
 			  mark.time =T, xscale=1, 
 			  firstx=0, firsty=1, xmax, fun,
@@ -8,7 +8,10 @@ lines.survfit <- function(x, type='s', mark=3, col=1, lty=1, lwd=1,
 	if (missing(type)) type <- 'l'
 	if (!is.numeric(mark.time)) mark.time <- F
 	}
-   
+    if (inherits(x, 'survfit.coxph')) {
+	if (!is.numeric(mark.time)) mark.time <- F
+	}
+
     if (is.character(conf.int)) {
 	if (conf.int=='only') {
 	    conf.int <- T
