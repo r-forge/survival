@@ -1,6 +1,6 @@
-# SCCS $Id: lines.survfit.s,v 4.6 1994-05-19 16:10:17 therneau Exp $
+# SCCS $Id: lines.survfit.s,v 4.7 1994-10-01 11:12:57 therneau Exp $
 lines.survfit <- function(x, type='s', mark=3, col=1, lty=1, lwd=1,
-		       mark.time =T, ...) {
+		       mark.time =T, xscale=1, yscale=1,  ...) {
     if (inherits(x, 'survexp')) {
 	if (missing(type)) type <- 'l'
 	if (!is.numeric(mark.time)) mark.time <- F
@@ -29,8 +29,8 @@ lines.survfit <- function(x, type='s', mark=3, col=1, lty=1, lwd=1,
 	n <- strata[1+(i-1)%%nstrat]
 	who <- seq(from=j, length=n)
 	j <-  j+n
-	xx <- c(0, time[who])
-	yy <- c(1, x$surv[who])
+	xx <- c(0, time[who])/xscale
+	yy <- c(1, x$surv[who])*yscale
 	lines(xx, yy, type=type, col=col[i], lty=lty[i], lwd=lwd[i], ...)
 
 	if (is.numeric(mark.time)) {
