@@ -1,4 +1,4 @@
-# SCCS $Id: survexp.fit.s,v 4.3 1993-12-13 08:43:53 therneau Exp $
+# SCCS $Id: survexp.fit.s,v 4.4 1993-12-15 13:33:53 therneau Exp $
 #  Actually compute the expected survival for one or more cohorts
 #    of subjects.  If each subject is his/her own group, it gives individual
 #    survival
@@ -10,7 +10,8 @@ survexp.fit <- function(x, y, times, death, ratetable) {
     rfac <- atts$factor
     if (length(rfac) != ncol(x)-1) stop("Wrong length for rfac")
     ngrp <- max(x[,1])
-    if (any(times != sort(times))) stop("Times must be in sorted order")
+    times <- sort(unique(times))
+    if (any(times <0)) stop("Negative time point requested")
     if (missing(y))  y <- rep(max(times), nrow(x))
     ntime <- length(times)
     if (!is.logical(death)) stop("Invalid value for death indicator")
