@@ -1,4 +1,4 @@
-/* SCCS $Id: survreg4.c,v 1.6 1999-02-21 15:52:43 therneau Exp $
+/* SCCS $Id: survreg4.c,v 1.7 2001-04-16 08:10:08 therneau Exp $
 /*
 ** The variant of survreg2 for penalized models
 **
@@ -169,11 +169,11 @@ void survreg4(long   *maxiter,   long   *nx,       long   *nvarx,
     */
     if (nf > nvar) i=nf; else i=nvar;
     if (nf > nvar*nvar) j=nf; else j=nvar*nvar;
-    if (pdiag==0)  upen = Calloc(2*i, double);
-    else           upen = Calloc(i+j, double);
+    if (pdiag==0)  upen = ALLOC(2*i, double);
+    else           upen = ALLOC(i+j, double);
     ipen = upen + i;
-    if (ptype>1)  zflag = Calloc(nvar, long);
-    else          zflag = Calloc(2, long);
+    if (ptype>1)  zflag = ALLOC(nvar, long);
+    else          zflag = ALLOC(2, long);
 
     if (debug>0) {
 	fprintf(stderr, "\n----------Enter survreg4-----------\n");
