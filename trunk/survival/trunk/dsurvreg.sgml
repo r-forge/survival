@@ -1,8 +1,8 @@
-<!-- SCCS $Id: dsurvreg.sgml,v 1.1 2001-07-11 07:47:26 therneau Exp $ --->
 <!doctype s-function-doc system "s-function-doc.dtd" [
 <!entity % S-OLD "INCLUDE">
 ]
 >
+<!-- SCCS $Id: dsurvreg.sgml,v 1.2 2001-07-11 08:35:01 therneau Exp $ -->
 <s-function-doc>
 <s-topics>
    <s-topic>dsurvreg</s-topic>
@@ -88,11 +88,9 @@ Wiley, New York.
 </s-section>
 <s-see>
 <s-function name="survreg.sgm">survreg</s-function>, 
-<s-function name="F.sgm">F</s-function>, <s-function 
-name="Lognormal.sgm">Lognormal</s-function>, <s-function 
-name="dnrange.sgm">dnrange</s-function>, <s-function 
-name="qqnorm.sgm">qqnorm</s-function>, <s-function 
-name="set.seed.sgm">set.seed</s-function>.  </s-see>
+<s-function name="Normal.sgm">Normal</s-function>, <s-function 
+name="Lognormal.sgm">Lognormal</s-function>
+</s-see>
 <s-examples>
 <s-example type = text>
 # List of distributions available
@@ -102,7 +100,12 @@ names(survreg.distributions)
 
 # Compare results
 all.equal(dsurvreg(1:10, 2, 5, dist='lognormal'), dlnorm(1:10, 2, 5))
- [1] T  
+ [1] T
+
+# Hazard function for a Weibull distribution
+x   <- seq(.1, 3, length=30)
+haz <- dsurvreg(x, 2, 3)/ (1-psurvreg(x, 2, 3))
+plot(x, haz, log='xy', ylab="Hazard") #line with slope (1/scale -1)
 </s-example>
 </s-examples>
 <s-keywords>
