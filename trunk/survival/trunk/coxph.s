@@ -1,4 +1,4 @@
-#SCCS $Date: 1992-03-04 16:48:04 $ $Id: coxph.s,v 4.1 1992-03-04 16:48:04 therneau Exp $
+#SCCS 3/4/92 @(#)coxreg.s	4.1
 coxreg <- function(formula=formula(data), data=sys.parent(),
 	weights,  subset, na.action,
 	eps=.0001, inf.ratio=200, init, iter.max=10,
@@ -50,13 +50,13 @@ coxreg <- function(formula=formula(data), data=sys.parent(),
 
     if (is.character(fit)) {
 	fit <- list(fail=fit)
-	attr(fit, 'class') <- 'cox'
+	attr(fit, 'class') <- 'coxreg'
 	}
     else {
 	fit$n <- nrow(Y)
 	omit <- attr(m, "omit")
 	if (length(omit)) attr(fit$n, "omit") <- omit
-	attr(fit, "class") <-  c(fit$method, "surv.reg", "lm")
+	attr(fit, "class") <-  c(fit$method, "surv.reg")
 	fit$method <- NULL
 	fit$terms <- Terms
 	fit$assign <- attr(X, 'assign')
