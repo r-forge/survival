@@ -1,4 +1,4 @@
-/* SCCS $Id: survreg4.c,v 1.3 1998-12-02 13:34:44 therneau Exp $
+/* SCCS $Id: survreg4.c,v 1.4 1998-12-03 22:13:01 therneau Exp $
 /*
 ** The variant of survreg2 for penalized models
 **
@@ -420,7 +420,7 @@ static double dolik(int n, double *beta, int whichcase) {
     strata =0;
     strata =0;
     if (nstrat ==0) sigma = scale;   /* fixed scale */
-    else            sigma = exp(beta[nvar0]);
+    else            sigma = exp(beta[nvar0+ nf]);
     sig2  = 1/(sigma*sigma);
     for (person=0; person<n; person++) {
 	if (nstrat>1) {
@@ -644,10 +644,13 @@ static double dolik(int n, double *beta, int whichcase) {
 	}
     if (debug >1 && whichcase==0) {
 	fprintf(stderr, "Imat\n");
-	for (i=0; i<nvar2; i++) {
+	for (i=0; i<nvar; i++) {
 	    for (j=0; j<nvar2; j++) fprintf(stderr,"  %f", jmat[i][j]);
 	    fprintf(stderr, "\n");
 	    }
+	fprintf(stderr,"fdiag\n");
+	for (i=0; i<nvar2; i++) fprintf(stderr, "  %f", fdiag[i]);
+	fprintf(stderr, "\n"); fflush(stderr);
 	}
     return(loglik);
     }
