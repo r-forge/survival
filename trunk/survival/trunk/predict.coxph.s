@@ -1,4 +1,4 @@
-#SCCS $Date: 1993-06-29 10:07:16 $ $Id: predict.coxph.s,v 4.8 1993-06-29 10:07:16 therneau Exp $
+#SCCS $Date: 1998-03-01 23:40:22 $ $Id: predict.coxph.s,v 4.9 1998-03-01 23:40:22 therneau Exp $
 #What do I need to do predictions --
 #
 #linear predictor:  exists
@@ -107,7 +107,8 @@ function(object, newdata, type=c("lp", "risk", "expected", "terms"),
     if (se.fit) se <- drop(se)
     pred <- drop(pred)
     #Expand out the missing values in the result
-    if (!is.null(object$na.action)) {
+    # But only if operating on the original dataset
+    if (missing(newdata) && !is.null(object$na.action)) {
 	pred <- naresid(object$na.action, pred)
 	if (is.matrix(pred)) n <- nrow(pred)
 	else               n <- length(pred)
