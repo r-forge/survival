@@ -1,4 +1,4 @@
-#SCCS  $Id: survfit.coxph.null.s,v 4.4 1992-04-14 18:08:05 grill Exp $ % G%
+#SCCS  $Id: survfit.coxph.null.s,v 4.5 1992-07-14 00:02:18 therneau Exp $ % G%
 survfit.coxph.null <-
   function(object, newdata, se.fit=T, conf.int=.95, individual=F,
 	    type=c('tsiatis', 'kaplan-meier'),
@@ -22,7 +22,8 @@ survfit.coxph.null <-
 	# I need the model frame
 	m <- model.frame(object)
 	if (is.null(strata)) {
-	    strata <- m[[(as.character(Terms))[strat]]]
+	    temp <- untangle.specials(Terms, 'strata', 1)
+	    strata <- strata(m[temp$vars])
 	    }
 	if (is.null(y)) y <- model.extract(m, 'response')
 	}

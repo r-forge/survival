@@ -1,4 +1,4 @@
-#SCCS $Id: survfit.coxph.s,v 4.4 1992-04-14 18:08:08 grill Exp $
+#SCCS $Id: survfit.coxph.s,v 4.5 1992-07-14 00:02:19 therneau Exp $
 survfit.coxph <-
   function(object, newdata, se.fit=T, conf.int=.95, individual=F,
 	    type=c('tsiatis', 'kaplan-meier'),
@@ -23,12 +23,12 @@ survfit.coxph <-
 	m <- model.frame(object)
 	if (is.null(x)) {   #Both strata and X will be null, or neither
 	    if (length(strat)) {
-		if (length(strat)>1) stop("Only one strata() expression allowed")
-		x <- model.matrix(Terms[-strat], m)
-		stratum <- m[[(as.character(Terms))[strat]]]
+		temp <- untangle.specials(Terms, 'strata', 1)
+		x <- model.matrix(Terms[-temp$terms], m)[,-1,drop=F]
+		stratum <- strata(m[temp$vars])
 		}
 	    else {
-		x <- model.matrix(Terms, m)
+		x <- model.matrix(Terms, m)[,-1,drop=F]
 		stratum <- rep(1,n)
 		}
 	    }
@@ -66,7 +66,7 @@ survfit.coxph <-
     if (individual && !missing(newdata)) stype <- 1
     else {
 	stype <- 2
-	if (length(strat)) Terms <- Terms[-strat]  #don't need it
+	if (length(strat)) Terms <- Terms[-temp$terms]  #don't need it
 	}
     offset2 <- mean(object$linear.predictors)
     if (!missing(newdata)) {
@@ -79,7 +79,7 @@ survfit.coxph <-
 	    }
 
 	else  {
-	    x2 <- model.matrix(Terms, m2)
+	    x2 <- model.matrix(Terms, m2)[,-1,drop=F]
 	    n2 <- nrow(x2)
 	    offset2 <- model.extract(m2, 'offset')
 	    if (is.null(offset2)) offset2 <- 0
