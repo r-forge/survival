@@ -1,4 +1,4 @@
-# SCCS $Id: print.coxph.s,v 4.4 1993-07-04 16:08:54 therneau Exp $
+# SCCS $Id: print.coxph.s,v 4.5 1994-10-01 11:37:39 therneau Exp $
 print.coxph <-
  function(cox, digits=.Options$digits -4, ...)
     {
@@ -19,16 +19,16 @@ print.coxph <-
     if(is.null(coef) | is.null(se))
         stop("Input is not valid")
 
-    if (is.null(cox$robust.var)) {
+    if (is.null(cox$naive.var)) {
 	tmp <- cbind(coef, exp(coef), se, coef/se,
 	       signif(1 - pchisq((coef/ se)^2, 1), digits -1))
 	dimnames(tmp) <- list(names(coef), c("coef", "exp(coef)",
 	    "se(coef)", "z", "p"))
 	}
     else {
-	rse <- sqrt(diag(cox$robust.var))
-	tmp <- cbind(coef, exp(coef), se, rse, coef/rse,
-	       signif(1 - pchisq((coef/rse)^2, 1), digits -1))
+	nse <- sqrt(diag(cox$naive.var))
+	tmp <- cbind(coef, exp(coef), nse, se, coef/se,
+	       signif(1 - pchisq((coef/se)^2, 1), digits -1))
 	dimnames(tmp) <- list(names(coef), c("coef", "exp(coef)",
 	    "se(coef)", "robust se", "z", "p"))
 	}

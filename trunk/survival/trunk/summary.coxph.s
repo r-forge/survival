@@ -1,4 +1,4 @@
-#SCCS $Date: 1993-07-04 16:08:53 $ $Id: summary.coxph.s,v 4.2 1993-07-04 16:08:53 therneau Exp $
+#SCCS $Date: 1994-10-01 11:37:40 $ $Id: summary.coxph.s,v 4.3 1994-10-01 11:37:40 therneau Exp $
 summary.coxph <-
  function(cox, table = T, coef = T, conf.int = 0.95, scale = 1,
 			digits = .Options$digits-4 )
@@ -28,17 +28,17 @@ summary.coxph <-
     if(is.null(beta) | is.null(cox$var))
         stop("Input is not valid")
 
-    if (is.null(cox$robust.var)) {
+    if (is.null(cox$naive.var)) {
 	se <- sqrt(diag(cox$var))
 	wald.test <-  sum(beta * solve(cox$var, beta))
 	}
     else {
-	nse <- sqrt(diag(cox$var))        #naive se
-	se <- sqrt(diag(cox$robust.var))
-	wald.test <-  sum(beta * solve(cox$robust.var, beta))
+	nse <- sqrt(diag(cox$naive.var))        #naive se
+	se <- sqrt(diag(cox$var))
+	wald.test <-  sum(beta * solve(cox$var, beta))
 	}
     if(coef) {
-	if (is.null(cox$robust.var)) {
+	if (is.null(cox$naive.var)) {
 	    tmp <- cbind(beta, exp(beta), se, beta/se,
 		   signif(1 - pchisq((beta/ se)^2, 1), digits -1))
 	    dimnames(tmp) <- list(names(beta), c("coef", "exp(coef)",
