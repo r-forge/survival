@@ -1,4 +1,4 @@
-#SCCS 03/03/00 @(#)survfit.s	4.17
+#SCCS $Id: survfit.s,v 4.19 2000-09-08 16:10:17 boos Exp $
 survfit <- function (formula, data, weights, subset, na.action, ...) {
     call <- match.call()
     # Real tricky -- find out if the first arg is "Surv(...)" without
@@ -51,6 +51,8 @@ survfit <- function (formula, data, weights, subset, na.action, ...) {
 		temp$na.action <- attr(m, 'na.action')
 	}
     temp$call <- call
+    # added to change INFs to NAs for C program - cmb 8/25/2000
+    if (any(is.inf(temp$std.err))) temp$std.err[is.inf(temp$std.err)] <- NA
     temp
     }
 
