@@ -1,12 +1,12 @@
 .BG
-.FN surv.diff
+.FN survdiff
 .TL
 Test Survival Curve Differences
 .DN
 Tests if there is a difference between two or more survival curves using
 the G-rho family of tests, or for a single curve against a known alternative.
 .CS
-surv.diff(formula, data,  rho=0, subset)
+survdiff(formula, data,  rho=0, subset)
 .RA
 .AG formula
 a formula expression as for other survival models, of the form
@@ -52,11 +52,11 @@ A class of rank test procedures for censored survival data.
 Biometrika
 \fB69\fR, 553-566.
 .SA
-`surv.diff.print'.
+`survdiff.print'.
 .EX
-surv.diff(Surv(futime, fustat) ~ rx)
+survdiff(Surv(futime, fustat) ~ rx)
 
-expect <- surv.exp(entry, birth, sex, futime)
-surv.diff(Surv(futime, fustat) ~ offset(expect$surv))  #One sample log-rank
+expect <- survexp(entry, birth, sex, futime)
+survdiff(Surv(futime, fustat) ~ offset(expect$surv))  #One sample log-rank
 .KW survival
 .WR

@@ -1,4 +1,4 @@
-#SCCS $Date: 1992-03-04 16:48:17 $ $Id: print.data.frame.s,v 4.1 1992-03-04 16:48:17 therneau Exp $
+#SCCS $Date: 1992-04-14 18:06:06 $ $Id: print.data.frame.s,v 4.2 1992-04-14 18:06:06 grill Exp $
 #
 # In order to get objects with attributes to print correctly, I replace the
 #   call to "as.matrix" with a copy of as.matrix.data.frame, one that knows

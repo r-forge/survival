@@ -1,5 +1,5 @@
-#SCCS $Date: 1992-03-04 16:48:11 $ $Id: plot.coxph.s,v 4.1 1992-03-04 16:48:11 therneau Exp $
-plot.coxreg <- function(fit, ...) {
+#SCCS $Date: 1992-04-14 18:07:07 $ $Id: plot.coxph.s,v 4.2 1992-04-14 18:07:07 grill Exp $
+plot.coxph <- function(fit, ...) {
     op <- par(ask=T)
     on.exit(par(op))
     yy <- (1-fit$residuals)/ fit$linear.predictors   # psuedo y

@@ -1,6 +1,6 @@
-# SCCS $Id: lines.survfit.s,v 4.3 1992-04-13 22:05:35 therneau Exp $
-lines.surv.fit <- function(object, type='s', ...) {
-    if (inherits(object, 'surv.exp') && missing(type)) type <- 'l'
+# SCCS $Id: lines.survfit.s,v 4.4 1992-04-14 18:06:43 grill Exp $
+lines.survfit <- function(object, type='s', ...) {
+    if (inherits(object, 'survexp') && missing(type)) type <- 'l'
     if (!is.matrix(object$surv))
 	lines(object$time, object$surv, type=type, ...)
     else {

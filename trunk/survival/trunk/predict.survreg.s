@@ -1,4 +1,4 @@
-# SCCS $Id: predict.survreg.s,v 4.5 1992-03-30 02:41:22 therneau Exp $
+# SCCS $Id: predict.survreg.s,v 4.6 1992-04-14 18:07:19 grill Exp $
 #What do I need to do predictions --
 #
 #linear predictor:  exists
@@ -15,7 +15,7 @@
 #terms -- : X matrix and the means
 #    +se  :  ""  + I matrix
 #   +new  : new X matrix and the old means + I matrix
-predict.surv.reg <-
+predict.survreg <-
 function(object, newdata, type=c("lp", "risk", "expected", "terms"),
 	    se.fit=F,
 	    terms=labels.lm(object), collapse, safe=F, ...)

@@ -1,5 +1,5 @@
-#SCCS 3/4/92 @(#)coxreg.s	4.1
-coxreg <- function(formula=formula(data), data=sys.parent(),
+#SCCS 3/4/92 @(#)coxph.s	4.1
+coxph <- function(formula=formula(data), data=sys.parent(),
 	subset, na.action,
 	eps=.0001, inf.ratio=200, init, iter.max=10,
 	method= c("breslow", "efron", "exact"),
@@ -33,7 +33,7 @@ coxreg <- function(formula=formula(data), data=sys.parent(),
 
     type <- attr(Y, "type")
     if( method=="breslow" || method =="efron") {
-	if (type== 'right')  fitter <- get("coxreg.fit")
+	if (type== 'right')  fitter <- get("coxph.fit")
 	else if (type=='counting') fitter <- get("agreg.fit")
 	else stop(paste("Cox model doesn't support \"", type,
 			  "\" survival data", sep=''))
@@ -48,13 +48,13 @@ coxreg <- function(formula=formula(data), data=sys.parent(),
 
     if (is.character(fit)) {
 	fit <- list(fail=fit)
-	attr(fit, 'class') <- 'coxreg'
+	attr(fit, 'class') <- 'coxph'
 	}
     else {
 	fit$n <- nrow(Y)
 	na.action <- attr(m, "na.action")
 	if (length(na.action)) fit$na.action <- na.action
-	attr(fit, "class") <-  c(fit$method, "surv.reg")
+	attr(fit, "class") <-  c(fit$method, "survreg")
 	fit$method <- NULL
 	fit$terms <- Terms
 	fit$assign <- attr(X, 'assign')

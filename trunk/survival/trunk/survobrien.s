@@ -1,8 +1,8 @@
-# SCCS  $Id: survobrien.s,v 4.2 1992-03-09 01:33:11 therneau Exp $
+# SCCS  $Id: survobrien.s,v 4.3 1992-04-14 18:08:10 grill Exp $
 #
 # The test for survival proposed by Peter O'Brien
 #
-surv.obrien <- function(formula, data= sys.parent()) {
+survobrien <- function(formula, data= sys.parent()) {
     m <- model.frame(formula, data, na.action= function(x) x )
     n <- nrow(m)
     Terms <- attr(m, 'terms')

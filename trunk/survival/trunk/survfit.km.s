@@ -1,4 +1,4 @@
-#SCCS $Id: survfit.km.s,v 4.1 1992-04-13 22:38:50 therneau Exp $
+#SCCS $Id: survfit.km.s,v 4.2 1992-04-14 18:08:14 grill Exp $
 survfit.km <- function(x, y, casewt=rep(1,n),
 	    type=c('kaplan-meier', 'fleming-harrington'),
 	    error=c('greenwood', "tsiatis"), se.fit=T,

@@ -1,9 +1,9 @@
-#SCCS $Id: survexp.s,v 4.7 1992-04-13 22:07:52 therneau Exp $
-surv.exp <- function(entry, birth, sex,
+#SCCS $Id: survexp.s,v 4.8 1992-04-14 18:08:01 grill Exp $
+survexp <- function(entry, birth, sex,
 		      data=sys.parent(), subset, na.action,
 		      times=round(182.6 * 0:8),
 		      type=c("mean", "individual", "matrix"),
-		      expected=surv.exp.uswhite, interp=F) {
+		      expected=survexp.uswhite, interp=F) {
     call <- match.call()
 
     type <- match.arg(type)
@@ -109,13 +109,13 @@ surv.exp <- function(entry, birth, sex,
     if(!is.null(tj <- attr(m, 'na.action')))
 	xx$na.action <- tj
     if (type == 'individual') {
-	attr(xx, "class") <- "surv.exp"
+	attr(xx, "class") <- "survexp"
 	if (!is.null(tj)) {
 	    xx$time <- naresid(tj, times)
 	    xx$surv <- naresid(ty, xx$surv)
 	    }
 	}
-    else attr(xx, "class") <- c("surv.exp", "surv.fit")
+    else attr(xx, "class") <- c("survexp", "survfit")
     xx
     }
 

@@ -1,4 +1,4 @@
-#SCCS $Date: 1992-04-13 20:49:19 $ $Id: strata.s,v 4.3 1992-04-13 20:49:19 therneau Exp $
+#SCCS $Date: 1992-04-14 18:07:51 $ $Id: strata.s,v 4.4 1992-04-14 18:07:51 grill Exp $
 # Create a strata variable, possibly from many objects
 #
 strata <- function(..., na.group=F) {

@@ -1,4 +1,4 @@
-#SCCS $Date: 1992-03-30 09:13:10 $ $Id: naresid.omit.s,v 4.1 1992-03-30 09:13:10 therneau Exp $
+#SCCS $Date: 1992-04-14 18:07:01 $ $Id: naresid.omit.s,v 4.2 1992-04-14 18:07:01 grill Exp $
 naresid.omit <- function(omit, x) {
     if (!length(omit) || !is.numeric(omit))
 	stop("Invalid argument for 'omit'")

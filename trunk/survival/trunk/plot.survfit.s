@@ -1,10 +1,10 @@
-#SCCS $Id: plot.survfit.s,v 4.3 1992-03-24 09:33:42 therneau Exp $
-plot.surv.fit<- function(surv, conf.int,  mark.time=T,
+#SCCS $Id: plot.survfit.s,v 4.4 1992-04-14 18:07:10 grill Exp $
+plot.survfit<- function(surv, conf.int,  mark.time=T,
 		 mark=3,col=1,lty=1, lwd=1, cex=1,log=F,yscale=1,
 		 xlab="", ylab="", xaxs='i', ...) {
 
-    if (!inherits(surv, 'surv.fit'))
-	  stop("First arg must be the result of surv.fit")
+    if (!inherits(surv, 'survfit'))
+	  stop("First arg must be the result of survfit")
 
     if (missing(conf.int)) {
 	if (is.null(surv$strata)) conf.int <-T
@@ -42,7 +42,7 @@ plot.surv.fit<- function(surv, conf.int,  mark.time=T,
     if (yscale !=1) par(usr=par("usr")/ c(1,1,yscale, yscale))
     #
     # put up the curves one by one
-    #   surv.fit has already put them into the "right" order
+    #   survfit has already put them into the "right" order
     i _ 0
     xend _ NULL
     yend _ NULL

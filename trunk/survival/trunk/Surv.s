@@ -1,4 +1,4 @@
-#SCCS $Date: 1992-04-13 22:22:31 $ $Id: Surv.s,v 4.6 1992-04-13 22:22:31 therneau Exp $
+#SCCS $Date: 1992-04-14 18:06:15 $ $Id: Surv.s,v 4.7 1992-04-14 18:06:15 grill Exp $
 # Package up surivival type data as a structure
 #  Eventually allow lots of censored data types
 #

@@ -1,11 +1,11 @@
-#SCCS  $Id: survfit.coxph.null.s,v 4.3 1992-03-30 02:55:05 therneau Exp $ % G%
-surv.fit.coxreg.null <-
+#SCCS  $Id: survfit.coxph.null.s,v 4.4 1992-04-14 18:08:05 grill Exp $ % G%
+survfit.coxph.null <-
   function(object, newdata, se.fit=T, conf.int=.95, individual=F,
 	    type=c('tsiatis', 'kaplan-meier'),
 	    conf.type=c('log', 'log-log', 'plain', 'none'), ...) {
     # May have strata and/or offset terms, linear predictor = offset
     #  newdata doesn't make any sense
-    #  This is surv.fit.coxreg with lots of lines removed
+    #  This is survfit.coxph with lots of lines removed
 
     call <- match.call()
     Terms <- terms(object)
@@ -113,6 +113,6 @@ surv.fit.coxreg.null <-
 	}
 
     temp$call <- call
-    attr(temp, 'class') <- c("surv.fit.cox", "surv.fit")
+    attr(temp, 'class') <- c("survfit.cox", "survfit")
     temp
     }

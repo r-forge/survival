@@ -1,5 +1,5 @@
-#SCCS $Date: 1992-03-30 02:51:50 $ $Id: summary.survreg.s,v 4.2 1992-03-30 02:51:50 therneau Exp $
-summary.surv.reg <-
+#SCCS $Date: 1992-04-14 18:07:54 $ $Id: summary.survreg.s,v 4.3 1992-04-14 18:07:54 grill Exp $
+summary.survreg <-
  function(cox, table = T, coef = T, conf.int = 0.95, scale = 1, digits=3)
     {
     if (!is.null(cl<- cox$call)) {

@@ -1,5 +1,5 @@
-# SCCS $Id: print.survreg.s,v 4.2 1992-03-30 02:49:19 therneau Exp $
-print.surv.reg <-
+# SCCS $Id: print.survreg.s,v 4.3 1992-04-14 18:07:38 grill Exp $
+print.survreg <-
  function(cox, digits=3, ...)
     {
     if (!is.null(cl<- cox$call)) {

@@ -1,5 +1,5 @@
-#SCCS $Date: 1992-04-13 23:05:51 $ $Id: survreg.s,v 4.3 1992-04-13 23:05:51 therneau Exp $
-surv.reg <- function(formula=formula(data), data=sys.parent(),
+#SCCS $Date: 1992-04-14 18:08:12 $ $Id: survreg.s,v 4.4 1992-04-14 18:08:12 grill Exp $
+survreg <- function(formula=formula(data), data=sys.parent(),
 	subset, na.action,
 	eps=.0001, init, iter.max=10,
 	method= c("weibull"),
@@ -42,7 +42,7 @@ surv.reg <- function(formula=formula(data), data=sys.parent(),
 	if (length(na.action)) fit$na.action <- na.action
 	}
 
-    attr(fit, "class") <-  c(method, "surv.reg", "lm")
+    attr(fit, "class") <-  c(method, "survreg", "lm")
     fit$terms <- Terms
     fit$formula <- as.vector(attr(Terms, "formula"))
     fit$call <- call

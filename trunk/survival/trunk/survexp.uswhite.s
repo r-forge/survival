@@ -1,5 +1,5 @@
-#SCCS $Date: 1992-03-04 16:48:33 $ $Id: survexp.uswhite.s,v 4.1 1992-03-04 16:48:33 therneau Exp $
-"surv.exp.uswhite"<-
+#SCCS $Date: 1992-04-14 18:08:03 $ $Id: survexp.uswhite.s,v 4.2 1992-04-14 18:08:03 grill Exp $
+"survexp.uswhite"<-
 structure(.Data = c(8.5341e-05, 5.79655e-06, 3.79562e-06, 2.89274e-06, 
 	2.46983e-06, 2.21618e-06, 2.04731e-06, 1.84955e-06, 1.73688e-06, 
 	1.65246e-06, 1.65344e-06, 1.71157e-06, 1.82685e-06, 2.0852e-06, 

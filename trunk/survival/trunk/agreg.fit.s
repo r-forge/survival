@@ -1,4 +1,4 @@
-#SCCS $Date: 1992-03-30 02:22:45 $ $Id: agreg.fit.s,v 4.2 1992-03-30 02:22:45 therneau Exp $
+#SCCS $Date: 1992-04-14 18:06:24 $ $Id: agreg.fit.s,v 4.3 1992-04-14 18:06:24 grill Exp $
 agreg.fit <- function(x, y, strata, offset, init, iter.max,
 			eps, inf.ratio, method, rownames)
     {
@@ -51,7 +51,7 @@ agreg.fit <- function(x, y, strata, offset, init, iter.max,
 	list(loglik=agfit$loglik,
 	     linear.predictors = offset,
 	     residuals = resid,
-	     method= c("coxreg.null", 'coxreg') )
+	     method= c("coxph.null", 'coxph') )
 	}
 
     else {
@@ -107,6 +107,6 @@ agreg.fit <- function(x, y, strata, offset, init, iter.max,
 		    linear.predictors = as.vector(lp),
 		    residuals = resid,
 		    means = agfit$means,
-		    method= 'coxreg')
+		    method= 'coxph')
 	}
     }

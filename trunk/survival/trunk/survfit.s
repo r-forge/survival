@@ -1,4 +1,4 @@
-#SCCS $Date: 1992-04-13 22:38:32 $ $Id: survfit.s,v 4.1 1992-04-13 22:38:32 therneau Exp $
+#SCCS $Date: 1992-04-14 18:08:16 $ $Id: survfit.s,v 4.2 1992-04-14 18:08:16 grill Exp $
 survfit <- function (formula, data, weights, subset, na.action, ...) {
     call <- match.call()
     # Real tricky -- find out if the first arg is "Surv(...)" without

@@ -1,12 +1,12 @@
-#SCCS $Date: 1992-03-30 02:44:29 $ $Id: print.survdiff.s,v 4.3 1992-03-30 02:44:29 therneau Exp $
-print.surv.diff <- function(diff.list, digits=4, ...) {
+#SCCS $Date: 1992-04-14 18:07:29 $ $Id: print.survdiff.s,v 4.4 1992-04-14 18:07:29 grill Exp $
+print.survdiff <- function(diff.list, digits=4, ...) {
 
     fit <- diff.list
     saveopt <-options(digits=digits)
     on.exit(options(saveopt))
 
-    if (!inherits(diff.list, 'surv.diff'))
-	stop("Object is not the result of surv.diff")
+    if (!inherits(diff.list, 'survdiff'))
+	stop("Object is not the result of survdiff")
     if (!is.null(cl<- fit$call)) {
 	cat("Call:\n")
 	dput(cl)

@@ -1,5 +1,5 @@
-#SCCS $Id: survfit.coxph.s,v 4.3 1992-03-30 02:56:21 therneau Exp $
-surv.fit.coxreg <-
+#SCCS $Id: survfit.coxph.s,v 4.4 1992-04-14 18:08:08 grill Exp $
+survfit.coxph <-
   function(object, newdata, se.fit=T, conf.int=.95, individual=F,
 	    type=c('tsiatis', 'kaplan-meier'),
 	    conf.type=c('log', 'log-log', 'plain', 'none'))
@@ -200,6 +200,6 @@ surv.fit.coxreg <-
 	}
 
     temp$call <- call
-    attr(temp, 'class') <- c("surv.fit.cox", "surv.fit")
+    attr(temp, 'class') <- c("survfit.cox", "survfit")
     temp
     }

@@ -1,8 +1,8 @@
-#SCCS $Date: 1992-03-30 02:46:47 $ $Id: print.survfit.s,v 4.2 1992-03-30 02:46:47 therneau Exp $
-print.surv.fit <- function(fit.list, times, censored=F,
+#SCCS $Date: 1992-04-14 18:07:35 $ $Id: print.survfit.s,v 4.3 1992-04-14 18:07:35 grill Exp $
+print.survfit <- function(fit.list, times, censored=F,
 		       print.it=T,  digits=3, ... ) {
     fit <- fit.list
-    if (!inherits(fit.list, 'surv.fit'))
+    if (!inherits(fit.list, 'survfit'))
 	    stop("Invalid data")
 
     if (!is.null(cl<- fit$call)) {

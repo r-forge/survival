@@ -1,4 +1,4 @@
-#SCCS $Date: 1992-03-30 10:09:30 $ $Id: agexact.fit.s,v 4.3 1992-03-30 10:09:30 therneau Exp $
+#SCCS $Date: 1992-04-14 18:06:18 $ $Id: agexact.fit.s,v 4.4 1992-04-14 18:06:18 grill Exp $
 agexact.fit <- function(x, y, strata, offset, iter.max,
 			eps, inf.ratio, init, method, rownames)
     {
@@ -90,5 +90,5 @@ agexact.fit <- function(x, y, strata, offset, iter.max,
 		linear.predictors = lp,
 		residuals = resid,
 		means = agfit$means,
-		method= 'coxreg')
+		method= 'coxph')
     }

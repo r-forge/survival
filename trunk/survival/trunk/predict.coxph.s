@@ -1,5 +1,5 @@
-#SCCS $Date: 1992-03-30 02:40:09 $ $Id: predict.coxph.s,v 4.3 1992-03-30 02:40:09 therneau Exp $
-predict.coxreg <-
+#SCCS $Date: 1992-04-14 18:07:15 $ $Id: predict.coxph.s,v 4.4 1992-04-14 18:07:15 grill Exp $
+predict.coxph <-
 function(object, newdata, type=c("lp", "risk", "expected", "terms"),
 		se.fit=F,
 		terms=labels(object), collapse, ...)

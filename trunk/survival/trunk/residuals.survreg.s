@@ -1,4 +1,4 @@
-residuals.surv.reg <-
+residuals.survreg <-
   function(object, type=c("martingale", "deviance"), collapse )
     {
     type <- match.arg(type)

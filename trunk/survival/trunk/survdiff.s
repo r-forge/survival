@@ -1,5 +1,5 @@
-#SCCS $Date: 1992-03-30 02:53:16 $ $Id: survdiff.s,v 4.4 1992-03-30 02:53:16 therneau Exp $
-surv.diff <- function(formula, data, subset, rho=0) {
+#SCCS $Date: 1992-04-14 18:07:56 $ $Id: survdiff.s,v 4.5 1992-04-14 18:07:56 grill Exp $
+survdiff <- function(formula, data, subset, rho=0) {
     call <- match.call()
     m <- match.call(expand=F)
     m$... <- m$rho <- m$riskwt <- NULL
@@ -82,6 +82,6 @@ surv.diff <- function(formula, data, subset, rho=0) {
     if (length(na.action)) fit$na.action <- na.action
     rval <-list(n= n, obs = observed, exp=expected,
 		    chisq= chi)
-    attr(rval, "class") <- 'surv.diff'
+    attr(rval, "class") <- 'survdiff'
     rval
     }

@@ -1,15 +1,15 @@
 .BG
-.FN surv.exp
+.FN survexp
 .TL
 Compute expected survival
 .DN
 Computes the expected survival post study entry for a cohort of subjects,
 based on their age and sex composition.
 .CS
-surv.exp(entry, birth, sex,
+survexp(entry, birth, sex,
 data, subset, na.action,
 times=round(182.6 * 0:8),
-type=c("mean", "individual", "matrix"), expected=surv.exp.uswhite, interp=F)
+type=c("mean", "individual", "matrix"), expected=survexp.uswhite, interp=F)
 .RA
 .AG entry
 date of entry to the study.  Must be a date value as returned by mdy.date.
@@ -27,7 +27,7 @@ frame in which to find the variables.
 the subset of observations to be used in the calculation, and the function
 to be used to handle any NAs in the data.
 .AG times
-vector of time points at which an expected survival is desired.  If surv.exp
+vector of time points at which an expected survival is desired.  If survexp
 is used for plotting purposes, then this can be a fairly coarse grid, since
 the expected survival function is very smooth.
 .AG type
@@ -36,7 +36,7 @@ The result will often be added to an existing Kaplan-Meier plot.
 If type=='individual', then the times vector must be of the same length as
 entry and birth date, and the return value contains the expected survival
 of each individual at his/her respective time.
-This form is most often used with the one sample log-rank test, see surv.diff.
+This form is most often used with the one sample log-rank test, see survdiff.
 If type=='matrix', then one column is returned per subject.
 .AG expected
 a 2 or 3 dimensional array, age by sex by calendar year, containing the
@@ -84,7 +84,7 @@ individual patient survivals.
 The dimnames of the hazard array `expected' control which entries of the
 array are used.  The first name vector contains the starting age for each
 age interval.  The first interval must start at 0, but intervals need not be
-sequential integers as used in the default surv.exp.uswhite data set, e.g.,
+sequential integers as used in the default survexp.uswhite data set, e.g.,
 a study of infant mortality would likely wish to divide the first year more
 finely, or a non-US population might have data only on 5 year age groups.
 (The internal calculations are done in days, so there is a lower limit to the
@@ -102,11 +102,11 @@ National Office of Vital Statistics: Life Tables for the Geographic Divisions
 of the United States: 1959-61.  Vol. 1, No. 3.  Public Health Service,
 Washington.  U.S. Government Printing Office, May 1965.
 .SA
-surv.fit, surv.diff
+survfit, survdiff
 .EX
-xx <-  surv.fit(last.dt - entry.dt, last.status)
+xx <-  survfit(last.dt - entry.dt, last.status)
 plot(xx)
 maxt <- max(xx$time)
-lines(surv.exp(entry.dt, birth.dt, sex, times=seq(0,maxt,length=10), lty=2)
+lines(survexp(entry.dt, birth.dt, sex, times=seq(0,maxt,length=10), lty=2)
 .KW survival
 .WR

@@ -1,9 +1,9 @@
-# SCCS $Id: cox.zph.s,v 1.1 1992-03-24 09:27:06 therneau Exp $
+# SCCS $Id: cox.zph.s,v 1.2 1992-04-14 18:06:41 grill Exp $
 #  Do the Z:PH test on a Cox model fit
 #
-coxreg.zph <- function(fit, ranks=T, global=T) {
-    if (!inherits(fit, 'coxreg')) stop ("Argument must be the result of coxreg")
-    if (inherits(fit, 'coxreg.null'))
+coxph.zph <- function(fit, ranks=T, global=T) {
+    if (!inherits(fit, 'coxph')) stop ("Argument must be the result of coxph")
+    if (inherits(fit, 'coxph.null'))
 	stop("The are no score residuals for a Null model")
 
     sresid <- resid(fit, 'scho')

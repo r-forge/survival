@@ -1,5 +1,5 @@
-#SCCS $Id: residuals.coxph.s,v 4.3 1992-03-30 02:50:58 therneau Exp $
-residuals.coxreg <-
+#SCCS $Id: residuals.coxph.s,v 4.4 1992-04-14 18:07:47 grill Exp $
+residuals.coxph <-
   function(object, type=c("martingale", "deviance", "score", "schoenfeld"),
 	    collapse)
     {

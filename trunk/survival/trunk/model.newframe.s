@@ -1,4 +1,4 @@
-#SCCS $Date: 1992-03-24 22:11:32 $ $Id: model.newframe.s,v 4.2 1992-03-24 22:11:32 therneau Exp $
+#SCCS $Date: 1992-04-14 18:06:51 $ $Id: model.newframe.s,v 4.3 1992-04-14 18:06:51 grill Exp $
 # This function is called if you want to get a new data frame,
 #   usually for prediction.  It's main problem is to "glue" any
 #   transform specific information back onto the formula, so that

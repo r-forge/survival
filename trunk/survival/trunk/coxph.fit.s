@@ -1,5 +1,5 @@
-#SCCS $Date: 1992-03-30 09:44:23 $ $Id: coxph.fit.s,v 4.2 1992-03-30 09:44:23 therneau Exp $
-coxreg.fit <- function(x, y, strata, offset, init, iter.max,
+#SCCS $Date: 1992-04-14 18:06:28 $ $Id: coxph.fit.s,v 4.3 1992-04-14 18:06:28 grill Exp $
+coxph.fit <- function(x, y, strata, offset, init, iter.max,
 			eps, inf.ratio, method, rownames)
     {
     n <-  nrow(y)
@@ -40,7 +40,7 @@ coxreg.fit <- function(x, y, strata, offset, init, iter.max,
 	list( loglik = coxfit$loglik,
 	      linear.predictors = offset,
 	      residuals = resid,
-	      method= c('coxreg.null', 'coxreg') )
+	      method= c('coxph.null', 'coxph') )
 	}
 
     else {
@@ -94,6 +94,6 @@ coxreg.fit <- function(x, y, strata, offset, init, iter.max,
 		    linear.predictors = as.vector(lp),
 		    residuals = resid,
 		    means = coxfit$means,
-		    method='coxreg')
+		    method='coxph')
 	}
     }

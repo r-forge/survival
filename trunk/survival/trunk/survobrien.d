@@ -1,11 +1,11 @@
 .BG
-.FN surv.obrien
+.FN survobrien
 .TL
 Peter O'Brien's test for association of a single variable with survival
 .DN
 This test is proposed in Biometrics, June 1978.
 .CS
-surv.obrien(formula, data)
+survobrien(formula, data)
 .RA
 .AG formula
 a valid formula for a cox model, without time dependent covariates.
@@ -35,12 +35,12 @@ start.
 O'Brien, Peter, "A Nonparametric Test for Association with Censored Data",
 Biometrics 34: 243-250, 1978.
 .SA
-surv.diff
+survdiff
 .KW survival
 .EX
-xx <- surv.obrien(Surv(time, status) ~ age + factor(rx) + ecog.ps,
+xx <- survobrien(Surv(time, status) ~ age + factor(rx) + ecog.ps,
 			       data=fleming)
 attach(xx)
-coxreg(Surv(start, stop, event) ~ age)
-coxreg(Surv(start, stop, event) ~ age + rx + ecog.ps)
+coxph(Surv(start, stop, event) ~ age)
+coxph(Surv(start, stop, event) ~ age + rx + ecog.ps)
 .WR

@@ -1,5 +1,5 @@
-#SCCS $Date: 1992-03-04 16:48:13 $ $Id: points.survfit.s,v 4.1 1992-03-04 16:48:13 therneau Exp $
-points.surv.fit <- function(object, ...) {
+#SCCS $Date: 1992-04-14 18:07:12 $ $Id: points.survfit.s,v 4.2 1992-04-14 18:07:12 grill Exp $
+points.survfit <- function(object, ...) {
     if (!is.matrix(object$surv))
 	    points(object$time, object$surv, ...)
     else

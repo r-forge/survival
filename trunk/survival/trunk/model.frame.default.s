@@ -1,4 +1,4 @@
-#SCCS $Date: 1992-03-04 16:48:06 $ $Id: model.frame.default.s,v 4.1 1992-03-04 16:48:06 therneau Exp $
+#SCCS $Date: 1992-04-14 18:06:49 $ $Id: model.frame.default.s,v 4.2 1992-04-14 18:06:49 grill Exp $
 # Only change -- look to options() for the default na.action
 #
 model.frame.default <- function(formula, data = NULL, na.action = na.fail, ...)
