@@ -1,6 +1,7 @@
+#SCCS $Id: residuals.coxph.s,v 4.3 1992-03-30 02:50:58 therneau Exp $
 residuals.coxreg <-
   function(object, type=c("martingale", "deviance", "score", "schoenfeld"),
-	    miss.expand=T, collapse)
+	    collapse)
     {
     type <- match.arg(type)
     if (type=='martingale' || type=='deviance') return(NextMethod())
@@ -118,9 +119,10 @@ residuals.coxreg <-
 	}
 
     #Expand out the missing values in the result
-    if (miss.expand && !is.null(omit <- attr(object$n, 'omit'))) {
-	rr <- na.expand(rr, omit)
-	n  <- n + length(omit)
+    if (!is.null(object$na.action)) {
+	rr <- naresid(object$na.action, rr)
+	if (is.matrix(rr)) n <- nrow(rr)
+	else               n <- length(rr)
 	}
 
     # Collapse if desired
