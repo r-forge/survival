@@ -1,4 +1,4 @@
-/* SCCS $Id: dmatrix.c,v 4.2 1992-08-10 13:48:21 grill Exp $  */
+/* SCCS $Id: dmatrix.c,v 4.3 1992-08-10 13:59:57 grill Exp $  */
 /*
 ** set up ragged arrays, with #of columns and #of rows
 */
