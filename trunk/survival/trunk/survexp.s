@@ -1,4 +1,4 @@
-#SCCS  $Id: survexp.s,v 4.21 1995-03-14 13:12:12 therneau Exp $
+#SCCS  $Id: survexp.s,v 4.22 1997-03-27 06:48:34 therneau Exp $
 survexp <- function(formula=formula(data), data=sys.parent(),
 	weights, subset, na.action,
 	times,  cohort=T,  conditional=F,
@@ -12,13 +12,39 @@ survexp <- function(formula=formula(data), data=sys.parent(),
 
     Terms <- if(missing(data)) terms(formula, 'ratetable')
 	     else              terms(formula, 'ratetable',data=data)
-    if (any(attr(Terms, 'order') >1))
-	    stop("Survexp cannot have interaction terms")
+
+    rate <- attr(Terms, "specials")$ratetable
+    if(length(rate) > 1)
+	    stop("Can have only 1 ratetable() call in a formula")
+    if(length(rate) == 0) {
+	# add a 'ratetable' call to the internal formula
+        # The dummy function stops an annoying warning message "Looking for
+        #  'formula' of mode function, ignored one of mode ..."
+	xx <- function(x) formula(x)
+    
+	if(is.ratetable(ratetable))   varlist <- attr(ratetable, "dimid")
+	else if(inherits(ratetable, "coxph")) {
+	    varlist <- names(ratetable$coef)
+	    # Now remove "log" and such things, using terms.inner
+	    temp <- terms.inner(xx(paste("~", paste(varlist, collapse='+'))))
+	    varlist <- attr(temp, 'term.labels')
+            }
+	else stop("Invalid rate table")
+
+	ftemp <- deparse(substitute(formula))
+	formula <- xx( paste( ftemp, "+ ratetable(",
+			  paste( varlist, "=", varlist, collapse = ","), ")"))
+	Terms <- if (missing(data)) terms(formula, "ratetable")
+	         else               terms(formula, "ratetable", data = data)
+	}
+
     m$formula <- Terms
     m[[1]] <- as.name("model.frame")
     m <- eval(m, sys.parent())
     n <- nrow(m)
 
+    if (any(attr(Terms, 'order') >1))
+	    stop("Survexp cannot have interaction terms")
     if (!missing(times)) {
 	if (any(times<0)) stop("Invalid time point requested")
 	if (length(times) >1 )
@@ -41,12 +67,6 @@ survexp <- function(formula=formula(data), data=sys.parent(),
     else conditional <- F
     weights <- model.extract(m, 'weights')
     if (!is.null(weights)) warning("Weights ignored")
-
-    rate <- attr(Terms, "specials")$ratetable
-    if (length(rate)==0)
-	stop("Must have a ratetable() call in the formula")
-    if (length(rate) >1 )
-	stop ("Can have only 1 ratetable() call in a formula")
 
     if (no.Y) ovars <- attr(Terms, 'term.labels')[-rate]
     else      ovars <- attr(Terms, 'term.labels')[-(rate-1)]
