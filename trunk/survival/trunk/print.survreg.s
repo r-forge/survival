@@ -1,9 +1,9 @@
-# SCCS $Id: print.survreg.s,v 4.3 1992-04-14 18:07:38 grill Exp $
+# SCCS $Id: print.survreg.s,v 4.4 1992-06-17 13:58:40 sicks Exp $
 print.survreg <-
  function(cox, digits=3, ...)
     {
     if (!is.null(cl<- cox$call)) {
-	cat("Call:  ")
+	cat("Call:\n")
 	dput(cl)
 	cat("\n")
 	}
