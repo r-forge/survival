@@ -1,8 +1,8 @@
-#SCCS $Date: 1992-03-24 22:08:43 $ $Id: predict.coxph.s,v 4.2 1992-03-24 22:08:43 therneau Exp $
+#SCCS $Date: 1992-03-30 02:40:09 $ $Id: predict.coxph.s,v 4.3 1992-03-30 02:40:09 therneau Exp $
 predict.coxreg <-
 function(object, newdata, type=c("lp", "risk", "expected", "terms"),
 		se.fit=F,
-		terms=labels(object), miss.expand=T, collapse, ...)
+		terms=labels(object), collapse, ...)
 
     {
     type <-match.arg(type)
