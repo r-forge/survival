@@ -1,4 +1,4 @@
-# SCCS $Id: match.ratetable.s,v 4.2 1994-01-04 14:56:57 therneau Exp $
+# SCCS $Id: match.ratetable.s,v 4.3 1994-04-08 15:42:00 therneau Exp $
 # Do a set of error checks on whether the ratetable() vars match the
 #   actual ratetable
 # This is called by pyears and survexp, but not by users
@@ -47,7 +47,7 @@ match.ratetable <- function(R, ratetable) {
 	    call <- paste(call, temp)
 	    }
 	else if (length(levlist[[i]]) >0) {  #factor or character variable
-	    if (efac[i]!=0) stop(paste("In ratetable(),", dimid[i],
+	    if (efac[i]!=1) stop(paste("In ratetable(),", dimid[i],
 				     "must be a continuous variable"))
 	    temp <- match(levlist[[i]], dtemp[[i]])
 	    if (any(is.na(temp)))
