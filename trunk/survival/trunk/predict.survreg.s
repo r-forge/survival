@@ -1,9 +1,9 @@
-# SCCS $Id: predict.survreg.s,v 4.8 1998-11-30 08:30:55 therneau Exp $
-# Type "p" removed till I understand it better
+# SCCS $Id: predict.survreg.s,v 4.9 1999-01-19 22:59:36 therneau Exp $
 predict.survreg <-
-    function(object, newdata, type=c("lp", 'response', 'terms', 'quantile'),
+    function(object, newdata, 
+	     type=c("link", 'lp', 'response', 'terms', 'quantile','uquantile'),
 				se.fit=F,  terms=labels.lm(object),
-	                        p=c(.1, .9))
+	                        p=c(.1, .9), ripley=F)
     {
 #
 # What do I need to do predictions ?
@@ -16,12 +16,11 @@ predict.survreg <-
 #  
 #  p --  density function from distribution
 #          scale(s) -- if multiple I need the strata
-#          +se : disallowed
+#          +se : variance matrix
 #	   newdata: new X
 #
     type <-match.arg(type)
-    if (type=='quantile' && se.fit) 
-	    stop("Standard errors not available for probability predictions")
+    if (type=='link') type= 'lp'  #true until their are link functions
     n <- length(object$linear.predictors)
     Terms <- object$terms
     if(!inherits(Terms, "terms"))
@@ -31,14 +30,20 @@ predict.survreg <-
     Terms <- delete.response(Terms)
     coef <- object$coefficients
     intercept <- attr(Terms, "intercept")
-    
+    nvar <- length(object$coef)
+    vv <- object$var[1:nvar, 1:nvar]
+    fixedscale <- (nvar == ncol(object$var)) || ripley
 
     if (missing(newdata) && (type=='terms' || se.fit)) need.x <- T
     else  need.x <- F
 
-    if (length(strata) && type=='quantile') {
-	if (is.null(object$m)) m <- model.frame(object)
-	else m <- object$m
+    if (length(strata) && (type=='quantile' || type=='uquantile') &&
+	      !fixedscale) {
+	#
+	# We need to reconstruct the "strata" variable
+	#
+	if (is.null(object$model)) m <- model.frame(object)
+	else m <- object$model
 	temp <- untangle.specials(Terms, 'strata', 1)
 	dropx <- temp$terms
 	if (length(temp$vars)==1) strata.keep <- m[[temp$vars]]
@@ -48,23 +53,22 @@ predict.survreg <-
 	    
 	if (missing(newdata) && need.x){
 	    x <- object$x
-	    if (is.null(x)) {
-		if (is.null(object$m)) 
-			x <- model.matrix(Terms[-dropx], model.frame(object))
-		else    x <- model.matrix(Terms[-dropx], object$m)
-		}
+	    if (is.null(x)) x <- model.matrix(Terms[-dropx], m)
 	    }
 
 	else if (!missing(newdata)) {
-	    if (length(temp$vars)==1) newstrat <- newdata[[temp$vars]]
-	    else newstrat <- strata(newdata[,temp$vars], shortlabel=T)
-	    strata <- match(newstrat, strata.keep)
-	    x <- model.matrix(Terms[-dropx], newdata)
-	    offset <- model.extract(newdata, 'offset')
+	    newframe <- model.frame(Terms, newdata, na.action=function(x)x)
+	    if (length(temp$vars)==1) newstrat <- newframe[[temp$vars]]
+	    else newstrat <- strata(newframe[,temp$vars], shortlabel=T)
+	    strata <- match(newstrat, levels(strata.keep))
+	    x <- model.matrix(Terms[-dropx], newframe)
+	    offset <- model.extract(newframe, 'offset')
 	    }
 	}
 
     else {  # per subject strata not needed
+	temp <- untangle.specials(Terms, 'strata', 1)
+	if (length(temp$terms)) Terms <- Terms[-temp$terms]
 	strata <- rep(1,n)
 	if (missing(newdata) && need.x) {
 	    x <- object$x
@@ -99,8 +103,6 @@ predict.survreg <-
 	dtrans <- dd$dtrans
 	}
     if (!is.null(dd$dist)) dd <- survreg.distributions[[dd$dist]]
-    nvar <- length(object$coef)
-    vv <- object$var[1:nvar, 1:nvar]
 
     #
     # Now, lay out the code one case at a time.
@@ -117,18 +119,61 @@ predict.survreg <-
 
 	if (type=='response') {
 	    pred <- itrans(pred)
-	    if (se.fit) se <- se/ sqrt(dtrans(pred))
+	    if (se.fit) se <- se/ dtrans(pred)
 	    }
 	}
-    else if (type=='quantile') {
+    else if (type=='quantile' || type=='uquantile') {
 	if (missing(newdata)) pred <- object$linear.predictors
 	else  pred <- x %*% coef 
 	# "pred" is the mean of the distribution,
 	#   now add quantiles and then invert
 	qq <- dd$quantile(p, dd$parm)
-	if (length(qq)==1) pred <- pred + qq*scale
-	else pred <- c(pred) + outer(scale, qq)
-	pred <- itrans(pred)
+	if (length(qq)==1 || length(pred)==1) {
+	    pred <- pred + qq*scale
+	    if (se.fit && fixedscale) {
+		var <- ((x %*% vv) * x) %*% rep(1., ncol(x))
+		se <- rep(sqrt(drop(var)), length(qq))
+		}
+	    else if (se.fit) {
+		x.strata <- outer(strata, 1:nstrata, 
+				  function(x,y) 1*(x==y))
+		se <- matrix(0, ncol=length(qq), nrow=nrow(x))
+		for (i in 1:(length(qq))) {
+		    temp <- cbind(x, (qq[i]*scale)* x.strata)
+		    var <- ((temp %*% object$var) *temp) %*% rep(1, ncol(temp))
+		    se[,i] <- sqrt(drop(var))
+		    }
+		se <- drop(se)
+		}
+	    }
+	else {
+	    pred <- c(pred) + outer(scale, qq)
+	    if (se.fit && fixedscale) {
+		var <- ((x %*% vv) * x) %*% rep(1., ncol(x))
+		if (length(qq) >1) {
+		    se <- rep(sqrt(drop(var)), length(qq))
+		    se <- matrix(se, ncol=length(qq))
+		    }
+		else se <- sqrt(drop(var))
+		}
+	    else if (se.fit) {
+		x.strata <- outer(strata, 1:nstrata, 
+				  function(x,y) 1*(x==y))
+		se <- pred
+		nc <- rep(1., ncol(object$var))
+		for (i in 1:length(qq)) {
+		    temp <- cbind(x, (qq[i]*scale)*x.strata)
+		    var <- ((temp %*% object$var)* temp) %*% nc
+		    se[,i] <- sqrt(drop(var))
+		    }
+		se <- drop(se)
+		}
+	    }
+	pred <- drop(pred)
+	if (type == 'quantile') {
+	    pred <- itrans(pred)
+	    if (se.fit) se <- se/dtrans(pred)
+	    }
 	}
 
     else {  #terms
