@@ -1,4 +1,4 @@
-#SCCS  $Id: survfit.coxph.null.s,v 4.8 1992-10-19 11:27:30 therneau Exp $ % G%
+#SCCS  $Id: survfit.coxph.null.s,v 4.9 1994-06-22 13:44:09 therneau Exp $ % G%
 survfit.coxph.null <-
   function(object, newdata, se.fit=T, conf.int=.95, individual=F,
 	    type=c('tsiatis', 'kaplan-meier'),
@@ -17,34 +17,34 @@ survfit.coxph.null <-
     else conf.type <- match.arg(conf.type)
 
     y <- object$y
-    strata <- object$strata
-    if (is.null(y) || (length(strat) && is.null(strata))) {
+    stratx <- object$strata
+    if (is.null(y) || (length(strat) && is.null(stratx))) {
 	# I need the model frame
 	m <- model.frame(object)
-	if (is.null(strata)) {
+	if (is.null(stratx)) {
 	    temp <- untangle.specials(Terms, 'strata', 1)
-	    strata <- strata(m[temp$vars])
+	    stratx <- strata(m[temp$vars])
 	    }
 	if (is.null(y)) y <- model.extract(m, 'response')
 	}
-    if (is.null(strata)) strata <- rep(1,n)
+    if (is.null(stratx)) stratx <- rep(1,n)
     ny <- ncol(y)
     if (nrow(y) != n) stop ("Mismatched lengths: logic error")
 
     type <- attr(y, 'type')
     if (type=='counting') {
-	ord <- order(strata, y[,2], -y[,3])
+	ord <- order(stratx, y[,2], -y[,3])
 	if (method=='kaplan-meier')
 	      stop ("KM method not valid for counting type data")
 	}
     else if (type=='right') {
-	ord <- order(strata, y[,1], -y[,2])
+	ord <- order(stratx, y[,1], -y[,2])
 	y <- cbind(-1, y)
 	}
     else stop("Cannot handle \"", type, "\" type survival data")
 
     if (length(strat)) {
-	newstrat <- (as.numeric(strata))[ord]
+	newstrat <- (as.numeric(stratx))[ord]
 	newstrat <- as.integer(c(1*(diff(newstrat)!=0), 1))
 	}
     else newstrat <- as.integer(c(rep(0,n-1),1))
@@ -79,7 +79,7 @@ survfit.coxph.null <-
     else {
 	temp <- surv$strata[1:(1+surv$strata[1])]
 	tstrat <- diff(c(0, temp[-1])) #n in each strata
-	names(tstrat) <- levels(strata)
+	names(tstrat) <- levels(stratx)
 	temp _ list(time=surv$y[ntime,1],
 		 n.risk=surv$y[ntime,2],
 		 n.event=surv$y[ntime,3],
