@@ -1,8 +1,8 @@
-# SCCS $Id: tcut.s,v 5.2 1998-09-25 22:44:03 therneau Exp $
+# SCCS $Id: tcut.s,v 5.3 1998-11-03 14:11:57 therneau Exp $
 tcut <-  function (x, breaks, labels, scale=1){
     # avoid some problems with dates
-    x <- as(x, 'numeric')
-    breaks <- as(breaks, 'numeric')
+    x <- as.numeric(x)
+    breaks <- as.numeric(breaks)
 
     if(length(breaks) == 1) {
 	if(breaks < 1)

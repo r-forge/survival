@@ -1,4 +1,4 @@
-#  SCCS $Id: survexp.fit.s,v 5.1 1998-08-30 15:51:21 therneau Exp $
+#  SCCS $Id: survexp.fit.s,v 5.2 1998-11-03 14:11:56 therneau Exp $
 #  Actually compute the expected survival for one or more cohorts
 #    of subjects.  If each subject is his/her own group, it gives individual
 #    survival
@@ -24,7 +24,7 @@ survexp.fit <- function(x, y, times, death, ratetable) {
 	#slide entry date so that it appears that they were born on Jan 1
 	cols <- 1+match(c("age", "year"), attr(ratetable, "dimid"))
 	if (any(is.na(cols))) stop("Ratetable does not have expected shape")
-	temp <- date.mdy(as(x[,cols[2]], 'date') -x[,cols[1]])
+	temp <- date.mdy(as.date(x[,cols[2]]) -x[,cols[1]])
 	x[,cols[2]] <- x[,cols[2]] - mdy.date(temp$month, temp$day, 1960)
 	# Doctor up "cutpoints"
 	temp <- (1:length(rfac))[us.special]
