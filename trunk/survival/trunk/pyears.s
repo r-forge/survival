@@ -1,4 +1,4 @@
-#SCCS  $Id: pyears.s,v 5.5 2001-05-10 11:31:03 therneau Exp $
+#SCCS  $Id: pyears.s,v 5.6 2001-06-12 14:23:42 therneau Exp $
 pyears <- function(formula=formula(data), data=sys.parent(),
 	weights, subset, na.action,
 	ratetable=survexp.us, scale=365.25,  expect=c('event', 'pyears'),
@@ -124,6 +124,7 @@ pyears <- function(formula=formula(data), data=sys.parent(),
 			as.integer(ncol(Y)),
 			as.integer(is.Surv(Y)),
 			as.double(Y),
+		        as.double(weights),
 			as.integer(length(atts$dim)),
 			as.integer(rfac),
 			as.integer(atts$dim),
@@ -140,7 +141,7 @@ pyears <- function(formula=formula(data), data=sys.parent(),
 			pn    =double(osize),
 			pcount=double(if(is.Surv(Y)) osize else 1),
 			pexpect=double(osize),
-			offtable=double(1))[17:21]
+			offtable=double(1))[18:22]
 	}
     else {
 	temp <- .C('pyears2',
@@ -148,6 +149,7 @@ pyears <- function(formula=formula(data), data=sys.parent(),
 			as.integer(ncol(Y)),
 			as.integer(is.Surv(Y)),
 			as.double(Y),
+		        as.double(weights),
 			as.integer(odim),
 			as.integer(ofac),
 			as.integer(odims),
@@ -156,7 +158,7 @@ pyears <- function(formula=formula(data), data=sys.parent(),
 			pyears=double(osize),
 			pn    =double(osize),
 			pcount=double(if(is.Surv(Y)) osize else 1),
-			offtable=double(1)) [10:13]
+			offtable=double(1)) [11:14]
 	}
 
     if (prod(odims) ==1) {  #don't make it an array

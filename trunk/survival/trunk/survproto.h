@@ -1,5 +1,5 @@
 /*
-**  SCCS $Id: survproto.h,v 5.9 2001-01-19 15:55:44 therneau Exp $
+**  SCCS $Id: survproto.h,v 5.10 2001-06-12 14:23:45 therneau Exp $
 ** prototypes of all the survival functions
 **  along with a few macros
 */
@@ -141,7 +141,8 @@ void cox_callback (int which, double *coef, double *first,
                    double *second, double *penalty, long *flag);
 
 void pyears1(long   *sn,      long   *sny,      long   *sdoevent, 
-	     double *sy,      long   *sedim,    long   *efac, 
+	     double *sy,      double *wt,       
+	     long   *sedim,   long   *efac, 
 	     long   *edims,   double *secut,    double *expect, 
 	     double *sedata,  long   *sodim,    long   *ofac, 
 	     long   *odims,   double *socut,    long   *smethod, 
@@ -149,7 +150,8 @@ void pyears1(long   *sn,      long   *sny,      long   *sdoevent,
 	     double *pcount,  double *pexpect,  double *offtable);
 
 void pyears2(long   *sn,      long   *sny,   long   *sdoevent, 
-	     double *sy,      long   *sodim, long   *ofac, 
+	     double *sy,      double *wt,    
+	     long   *sodim,   long   *ofac, 
 	     long   *odims,   double *socut, double *sodata,
 	     double *pyears,  double *pn,    double *pcount, 
 	     double *offtable);

@@ -1,4 +1,4 @@
-/*  SCCS $Id: pyears1.c,v 5.2 1998-10-27 17:36:27 therneau Exp $
+/*  SCCS $Id: pyears1.c,v 5.3 2001-06-12 14:23:43 therneau Exp $
 /*
 **  Person-years calculations, in its most general
 **
@@ -10,6 +10,7 @@
 **      method  if =1 do expected number of events, else expected number
 **                    of person years
 **      y[3,n]  contains start, stop, and event for each subject
+**      weight     case weights
 **
 **    expected table
 **      edim        number of dimensions of the expected table
@@ -47,7 +48,8 @@
 
 /* names that begin with "s" will be re-declared in the main body */
 void pyears1(long   *sn,      long   *sny,      long   *sdoevent, 
-	     double *sy,      long   *sedim,    long   *efac, 
+	     double *sy,      double *weight,       
+             long   *sedim,   long   *efac, 
 	     long   *edims,   double *secut,    double *expect, 
 	     double *sedata,  long   *sodim,    long   *ofac, 
 	     long   *odims,   double *socut,    long   *smethod, 
@@ -77,7 +79,9 @@ S_EVALUATOR
 	    et2;
     int     index,
 	    indx, indx2;
-    double  wt;
+    double  lwt;   /*this variable is returned by pystep, and controls the
+		   "on the fly" linear interpolation done for the calandar
+		   year dimension of rate tables */
     int     dostart;
     double  hazard, cumhaz;
     double  temp, lambda;
@@ -140,10 +144,10 @@ S_EVALUATOR
 	** add up p-yrs
 	*/
 	while (timeleft >0) {
-	    thiscell = pystep(odim, &index, &indx2, &wt, data, ofac, odims,
+	    thiscell = pystep(odim, &index, &indx2, &lwt, data, ofac, odims,
 				     ocut, timeleft, 0);
 	    if (index >=0) {
-		pyears[index] += thiscell;
+		pyears[index] += thiscell * weight[i];
 		pn[index] += 1;
 
 		/* expected calc */
@@ -151,10 +155,18 @@ S_EVALUATOR
 		hazard=0;
 		temp =0;
 		while (etime >0) {
-		    et2 = pystep(edim, &indx, &indx2, &wt, data2, efac,
+		    /*
+		    ** The hazard or survival curve (temp) calculated within
+		    ** this loop don't depend on the case weight --- the
+		    ** whole loop is only for one person, and hazard is a
+		    ** function of time alone.  Once computed, however, the
+		    ** total hazard added into the expected table 
+		    ** is weighted.
+		    */
+		    et2 = pystep(edim, &indx, &indx2, &lwt, data2, efac,
 				 edims, ecut, etime, 1);
-		    if (wt <1) lambda = (wt*expect[indx] +
-						     (1-wt)*expect[indx2]);
+		    if (lwt <1) lambda = (lwt*expect[indx] +
+						     (1-lwt)*expect[indx2]);
 		    else       lambda =  expect[indx];
 		    if (method==0)
 			temp += exp(-hazard)*(1-exp(-lambda*et2))/ lambda;
@@ -164,8 +176,8 @@ S_EVALUATOR
 			if (efac[j] !=1) data2[j] += et2;
 		    etime -= et2;
 		    }
-		if (method==1) pexpect[index] += hazard;
-		else           pexpect[index] += exp(-cumhaz)*temp;
+		if (method==1) pexpect[index] += hazard * weight[i];
+		else           pexpect[index] += exp(-cumhaz)*temp * weight[i];
 		cumhaz += hazard;
 		}
 	    else  *offtable += thiscell;
@@ -174,6 +186,6 @@ S_EVALUATOR
 		if (ofac[j] ==0) data[j] += thiscell;
 	    timeleft -=thiscell;
 	    }
-	if (index >=0 && doevent) pcount[index] += event[i];
+	if (index >=0 && doevent) pcount[index] += event[i] * weight[i];
 	}
     }

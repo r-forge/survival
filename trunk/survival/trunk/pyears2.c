@@ -1,4 +1,4 @@
-/*  SCCS $Id: pyears2.c,v 5.2 1998-10-27 17:36:28 therneau Exp $
+/*  SCCS $Id: pyears2.c,v 5.3 2001-06-12 14:23:44 therneau Exp $
 /*
 **  Person-years calculations.
 **     same as pyears1, but no expected rates
@@ -9,6 +9,7 @@
 **      doevent does y have an 'events' column?  1=yes, 0=no
 **              if ny=2 and doevent=1, then "start" is missing.
 **      y[3,n]  contains start, stop, and event for each subject
+**      wt      contains the case weights
 **
 **  output table's description
 **      odim        number of dimensions
@@ -33,7 +34,7 @@
 
 /* names that begin with "s" will be re-declared in the main body */
 void pyears2(long   *sn,      long   *sny,   long   *sdoevent, 
-	     double *sy,      long   *sodim, long   *ofac, 
+	     double *sy,      double *wt,    long   *sodim,    long   *ofac, 
 	     long   *odims,   double *socut, double *sodata,
 	     double *pyears,  double *pn,    double *pcount, 
 	     double *offtable)
@@ -100,15 +101,15 @@ S_EVALUATOR
 	    thiscell = pystep(odim, &index, &d1, &d2, data, ofac, odims, ocut,
 				    timeleft, 0);
 	    if (index >=0) {
-		pyears[index] += thiscell;
+		pyears[index] += thiscell * wt[i];
 		pn[index] += 1;
 		}
-	    else *offtable += thiscell;
+	    else *offtable += thiscell * wt[i];
 
 	    for (j=0; j<odim; j++)
 		if (ofac[j] ==0) data[j] += thiscell;
 	    timeleft -=thiscell;
 	    }
-	if (index >=0 && doevent) pcount[index] += event[i];
+	if (index >=0 && doevent) pcount[index] += event[i] * wt[i];
 	}
     }
