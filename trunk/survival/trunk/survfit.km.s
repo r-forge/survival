@@ -1,4 +1,4 @@
-#SCCS $Id: survfit.km.s,v 4.5 1992-08-11 08:20:45 grill Exp $
+#SCCS $Id: survfit.km.s,v 4.6 1993-04-07 11:51:21 therneau Exp $
 survfit.km <- function(x, y, casewt=rep(1,n),
 	    type=c('kaplan-meier', 'fleming-harrington'),
 	    error=c('greenwood', "tsiatis"), se.fit=T,
@@ -33,7 +33,7 @@ survfit.km <- function(x, y, casewt=rep(1,n),
 			  as.integer(ny),
 			  as.double(casewt),
 			  strata= as.integer(newstrat),
-			  as.integer(method),
+			  nstrat= as.integer(method),
 			  as.integer(error.int),
 			  mark=integer(n),
 			  surv=double(n),
@@ -43,14 +43,14 @@ survfit.km <- function(x, y, casewt=rep(1,n),
     ntime <- surv$ntime
     if (error.int==1) surv$varhaz[surv$surv==0] <- NA
     ntime <- 1:ntime
-    if (surv$strata[1] ==1)
+    if (surv$nstrat ==1)
 	temp _ list(time=surv$y[ntime,1],
 		 n.risk=surv$risksum[ntime],
 		 n.event=surv$mark[ntime],
 		 surv=surv$surv[ntime])
     else {
-	temp <- surv$strata[1:(1+surv$strata[1])]
-	tstrat <- diff(c(0, temp[-1])) #n in each strata
+	temp <- surv$strata[1:surv$nstrat]
+	tstrat <- diff(c(0, temp)) #n in each strata
 	names(tstrat) <- levels(x)
 	temp _ list(time=surv$y[ntime,1],
 		 n.risk=surv$risksum[ntime],

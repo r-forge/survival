@@ -1,4 +1,4 @@
-/* SCCS $Id: survfit2.c,v 4.5 1992-08-10 14:15:43 grill Exp $
+/* SCCS $Id: survfit2.c,v 4.6 1993-04-07 11:51:22 therneau Exp $
 /*
 ** Fit the survival curve
 **  Input
@@ -16,7 +16,8 @@
 **    nsurv - returned, number of survival time points
 **    y[,1] - contains the survival times
 **    risksum-the weighted N at that time
-**    strata[0]= # of strata, strata[1:n]= last obs strata 1,2, etc
+**    method - # of strata
+**    strata[0: (n-1)]= last obs strata 1,2, etc
 */
 #include <math.h>
 
@@ -69,8 +70,14 @@ double risksum[];
 	    }
 	}
 
-    mark[0] = j+ status[0]*wt[0];
-    risksum[0] = sum + wt[0];
+    if (strata[0]==0) {
+	mark[0] = j+ status[0]*wt[0];
+	risksum[0] = sum + wt[0];
+	}
+    else {
+	mark[0] = status[0]*wt[0];
+	risksum[0] = wt[0];
+	}
 
     /*
     ** the hazard starts out at zero;
@@ -110,8 +117,8 @@ double risksum[];
 	for (; i<(n-1) && strata[i]!=1 && time[i+1]==temp; i++);
 
 	if (strata[i]==1) {
-	    nstrat++;
 	    strata[nstrat]= nsurv;
+	    nstrat++;
 	    if (nsurv<n) {
 		surv[nsurv] =1;
 		varh[nsurv] = 0;
@@ -126,7 +133,7 @@ double risksum[];
 	    }
 	}
 
-    strata[0] = nstrat;
+    *method = nstrat;
     *snsurv = nsurv;
     }
 
