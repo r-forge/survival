@@ -1,4 +1,4 @@
-#SCCS $Id: survexp.s,v 4.5 1992-03-30 11:23:32 therneau Exp $
+#SCCS $Id: survexp.s,v 4.6 1992-03-30 13:21:02 therneau Exp $
 surv.exp <- function(entry, birth, sex, times=round(182.6 * 0:8),
 		      type=c("mean", "individual", "matrix"),
 		      expected=surv.exp.uswhite, interp=F,
@@ -110,13 +110,14 @@ surv.exp <- function(entry, birth, sex, times=round(182.6 * 0:8),
 			 surv=matrix(temp$surv, ncol=nused, byrow=F),
 			 n=nused)
     xx$call <- call
-    if(!is.null(tj <- attr(m, 'na.action')))  xx$na.action <- tj
+    if(!is.null(tj <- attr(m, 'na.action')))
+	xx$na.action <- tj
     if (type == 'individual') {
-	if (any(!nomiss)) {
-	    xx$time <- na.expand(times, omit)
-	    xx$surv <- na.expand(xx$surv, omit)
-	    }
 	attr(xx, "class") <- "surv.exp"
+	if (!is.null(tj)) {
+	    xx$time <- naresid(tj, times)
+	    xx$surv <- naresid(ty, xx$surv)
+	    }
 	}
     else attr(xx, "class") <- c("surv.exp", "surv.fit")
     xx
