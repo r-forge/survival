@@ -1,8 +1,8 @@
-/* SCCS $Id: dmatrix.c,v 4.1 1992-03-04 16:51:50 therneau Exp $  */
+/* SCCS $Id: dmatrix.c,v 4.2 1992-08-10 13:48:21 grill Exp $  */
 /*
 ** set up ragged arrays, with #of columns and #of rows
 */
-double **dmatrix(array, ncol, nrow)
+double **dmatrix2(array, ncol, nrow)
 double  *array;
 int ncol, nrow;
     {

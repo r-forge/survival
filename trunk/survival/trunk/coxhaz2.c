@@ -20,7 +20,7 @@
 */
 #include <stdio.h>
 
-void coxhaz(n, score, mark, strata, hazard, cumhaz)
+void coxhaz2(n, score, mark, strata, hazard, cumhaz)
 double  score[],
 	hazard[],
 	cumhaz[];

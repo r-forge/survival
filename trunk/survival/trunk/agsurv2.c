@@ -1,4 +1,4 @@
-/* SCCS $Id: agsurv2.c,v 4.2 1992-03-11 14:40:02 therneau Exp $  */
+/* SCCS $Id: agsurv2.c,v 4.3 1992-08-10 13:26:39 grill Exp $  */
 /*
 ** Fit the survival curve, the special case of an Anderson-Gill style data
 **   This program differs from survfit in several key ways:
@@ -43,7 +43,7 @@
 #include <math.h>
 double **dmatrix();
 
-void agsurv2(sn, snvar, y, score, strata, surv, varh,
+void agsurv22(sn, snvar, y, score, strata, surv, varh,
 		  xmat, varcov, snsurv, d,
 		  sncurve, newx, newrisk)
 long *sn, *snvar;

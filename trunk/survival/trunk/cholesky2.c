@@ -1,4 +1,4 @@
-/* SCCS $Id: cholesky2.c,v 4.1 1992-03-04 16:51:48 therneau Exp $  */
+/* SCCS $Id: cholesky2.c,v 4.2 1992-08-10 13:31:54 grill Exp $  */
 /*
 ** subroutine to do Cholesky decompostion on a matrix: C = FDF'
 **   where F is lower triangular with 1's on the diagonal, and D is diagonal
@@ -17,7 +17,7 @@
 **   Terry Therneau
 */
 
-cholesky(matrix, n)
+cholesky2(matrix, n)
 double **matrix;
 int n;
      {

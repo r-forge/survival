@@ -22,7 +22,7 @@
 #include <stdio.h>
 extern double **dmatrix();
 
-void coxres1(nx, nvarx, y, covar2, strata, score,
+void coxres12(nx, nvarx, y, covar2, strata, score,
 		hazard, cumhaz, resid2, wmean2)
 long    nx[1],
 	nvarx[1],

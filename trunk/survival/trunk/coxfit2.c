@@ -1,4 +1,4 @@
-/* SCCS $Id: coxfit2.c,v 4.2 1992-08-06 16:26:52 therneau Exp $  */
+/* SCCS $Id: coxfit2.c,v 4.3 1992-08-10 13:36:48 grill Exp $  */
 /*
 ** here is a cox regression program, written in c
 **     uses Efron's approximation for ties
@@ -52,7 +52,7 @@
 
 double **dmatrix();
 
-void coxfit(maxiter, nusedx, nvarx, time, status, covar2, offset, strata,
+void coxfit2(maxiter, nusedx, nvarx, time, status, covar2, offset, strata,
 		 means, beta, u, imat2, loglik, flag, mark, work,
 		 eps, sctest)
 

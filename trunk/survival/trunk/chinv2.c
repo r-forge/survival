@@ -1,4 +1,4 @@
-/* SCCS: $Id: chinv2.c,v 2.1 1991-06-12 16:58:17 therneau Exp $ */
+/* SCCS: $Id: chinv2.c,v 2.2 1992-08-10 13:28:53 grill Exp $ */
 /*
 ** matrix inversion, given the cholesky decomposition
 **
@@ -10,7 +10,7 @@
 **  Terry Therneau
 */
 
-chinv (matrix ,n)
+chinv2 (matrix ,n)
 int  n;
 double **matrix;
      {
