@@ -11,7 +11,7 @@ Compute a Survival Curve for Censored Data
 </s-title>
 <s-description>
 Computes an estimate of a survival curve for censored data 
-using either the Kaplan-Meier or the Fleming-Herrington method 
+using either the Kaplan-Meier or the Fleming-Harrington method 
 or computes the predicted survivor function for a Cox proportional 
 hazards model. 
 </s-description>
@@ -19,18 +19,18 @@ hazards model.
 <s-old-style-usage>
 survfit(formula, data=sys.parent(), weights, subset, na.action,  
         newdata, individual=F, conf.int=.95, se.fit=T,  
-        type=&lt;&lt;see below&gt;&gt;, error=&lt;&lt;see below&gt;&gt;, conf.type="log", 
-        conf.lower="usual", new.start) 
+        type=&lt;&lt;see below&gt;&gt;, error=&lt;&lt;see below&gt;&gt;, 
+        conf.type="log", conf.lower="usual", new.start) 
 </s-old-style-usage>
 </s-usage>
 <s-args-required>
 <s-arg name="formula ">
 a formula object or a <s-expression>coxph</s-expression> object. 
 If a formula object is supplied it must have a <s-expression>Surv</s-expression> object as the  
-response on the left of the ~ operator 
-and, if desired, terms separated by + operators on the right. 
-One of the terms may be a <s-expression>strata</s-expression> object. 
-For a single survival curve the "~ 1" part of the formula is not required. 
+response on the left of the ~ operator and, if desired, terms  
+separated by + operators on the right. 
+One of the terms may be a <s-expression>strata</s-expression> object.  For a single survival curve 
+the "~ 1" part of the formula is not required. 
 </s-arg>
 </s-args-required>
 <s-args-optional>
@@ -61,14 +61,13 @@ Default is the mean of the covariates used in the <s-expression>coxph</s-express
 </s-arg>
 <s-arg name="individual">
 a logical value, if <s-expression>TRUE</s-expression>, the data frame represents different 
-time epochs for only one individual. If <s-expression>FALSE</s-expression>, multiple rows indicate 
-multiple individuals.  
-If <s-expression>TRUE</s-expression>, only one curve will be produced, 
-if <s-expression>FALSE</s-expression>, there will be one curve per row in <s-expression>newdata</s-expression>. 
-Only applicable when <s-expression>formula</s-expression> is a <s-expression>coxph</s-expression> object. 
+time epochs for only one individual.  If <s-expression>FALSE</s-expression>, multiple rows indicate 
+multiple individuals.  If <s-expression>TRUE</s-expression>, only one curve 
+will be produced, if <s-expression>FALSE</s-expression>, there will be one curve per row in 
+<s-expression>newdata</s-expression>.  Only applicable when <s-expression>formula</s-expression> is a <s-expression>coxph</s-expression> object. 
 </s-arg>
 <s-arg name="conf.int">
-the level for a two-sided confidence interval on  the survival curve(s). 
+the level for a two-sided confidence interval on the survival curve(s). 
 Default is 0.95. 
 </s-arg>
 <s-arg name="se.fit">
@@ -82,43 +81,38 @@ if a formula is given
 and <s-expression>"aalen"</s-expression> or <s-expression>"kaplan-meier"</s-expression> if the first argument is a <s-expression>coxph</s-expression> object, 
 (only the first two characters are necessary). 
 The default is <s-expression>"aalen"</s-expression> when a <s-expression>coxph</s-expression> object is given, 
-and it is <s-expression>"kaplan-meier"</s-expression> otherwise. 
-Earlier versions of <s-expression>survfit</s-expression> used <s-expression>type="tsiatis"</s-expression> 
-to get the <s-expression>"aalen"</s-expression> estimator. 
-For backward compatibility, this is still allowed. 
+and it is <s-expression>"kaplan-meier"</s-expression> otherwise.  Earlier versions of <s-expression>survfit</s-expression> 
+used <s-expression>type="tsiatis"</s-expression> to get the <s-expression>"aalen"</s-expression> estimator.  For backward 
+compatibility, this is still allowed. 
 </s-arg>
 <s-arg name="error">
-a character string specifying the error. 
-Possible values are <s-expression>"greenwood"</s-expression> for the Greenwood formula 
-or <s-expression>"tsiatis"</s-expression> for the Tsiatis formula, 
-(only the first character is  necessary). 
-The default is <s-expression>"tsiatis"</s-expression> when a <s-expression>coxph</s-expression> object is given, 
-and it is <s-expression>"greenwood"</s-expression> otherwise. 
+a character string specifying the error.  Possible values are 
+<s-expression>"greenwood"</s-expression> for the Greenwood formula or 
+<s-expression>"tsiatis"</s-expression> for the Tsiatis formula, (only the first character is 
+necessary).  The default is <s-expression>"tsiatis"</s-expression> when a <s-expression>coxph</s-expression> object is 
+given, and it is <s-expression>"greenwood"</s-expression> otherwise. 
 </s-arg>
 <s-arg name="conf.type">
-a character string specifying the the confidence interval type. 
-Possible values are: 
-<s-expression>"none"</s-expression> for no confidence intervals, 
-<s-expression>"plain"</s-expression> for standard intervals, "curve +- k *se(curve)", 
-where k is determined from <s-expression>conf.int</s-expression>, 
-<s-expression>"log"</s-expression> for intervals based on the cumulative hazard or log(survival) 
-(the default), 
-and <s-expression>"log-log"</s-expression> for intervals based on the log hazard or log(-log(survival)). 
-The last type will never extend past 0 or 1. 
-Only enough of the string to uniquely identify it is necessary. 
+a character string specifying the confidence interval type.  Possible 
+values are: <s-expression>"none"</s-expression> for no confidence intervals, <s-expression>"plain"</s-expression> for 
+standard intervals, "curve +- k *se(curve)", where k is determined 
+from <s-expression>conf.int</s-expression>,  <s-expression>"log"</s-expression> for intervals based on the cumulative hazard 
+or log(survival) (the default), and <s-expression>"log-log"</s-expression> for intervals based on 
+the log hazard or log(-log(survival)).  The last type will never 
+extend past 0 or 1.  Only 
+enough of the string to uniquely identify it is necessary. 
 </s-arg>
 <s-arg name="conf.lower">
-a character string to specify modified lower limits to the curve, 
-the upper limit remains unchanged. 
-Possible values are <s-expression>"usual"</s-expression>, <s-expression>"peto"</s-expression>, and <s-expression>"modified"</s-expression>.  
-The modified lower limit is based on an "effective n" argument. 
-The confidence bands will agree with the usual calculation at each death time, 
-but unlike the usual bands the confidence interval becomes wider 
-at each censored observation. 
-The extra width is obtained by multiplying the usual variance 
-by a factor m/n, where n is the number currently at risk 
-and m is the number at risk at the last death time. 
-(The bands thus agree with the un-modified bands at each death time.) 
+a character string to specify modified lower limits to the curve, the 
+upper limit remains unchanged.  Possible values are <s-expression>"usual"</s-expression>, 
+<s-expression>"peto"</s-expression>, and <s-expression>"modified"</s-expression>.  The modified lower limit 
+is based on an "effective n" argument.  The confidence 
+bands will agree with the usual calculation at each death time, but unlike 
+the usual bands the confidence interval becomes wider at each censored 
+observation.  The extra width is obtained by multiplying the usual 
+variance by a factor m/n, where n is the number currently at risk and 
+m is the number at risk at the last death time.  (The bands thus agree 
+with the un-modified bands at each death time.) 
 This is especially useful for survival curves with a long flat tail. 
 <br><br>
 The Peto lower limit is based on the same "effective n" argument as the 
@@ -126,26 +120,24 @@ modified limit, but also replaces the usual Greenwood variance term with
 a simple approximation.  It is known to be conservative. 
 </s-arg>
 <s-arg name="new.start">
-numeric value specifying a time to start calculating survival information.
+numeric value specifying a time to start calculating survival information. 
 </s-arg>
 </s-args-optional>
 <s-value>
-an object of class <s-expression>"survfit"</s-expression>. 
-See <s-expression>survfit.object</s-expression> for details. 
-Methods defined for survfit objects are <s-expression>print</s-expression>, <s-expression>plot</s-expression>, <s-expression>lines</s-expression>, and <s-expression>points</s-expression>. 
+an object of class <s-expression>"survfit"</s-expression>.  See <s-expression>survfit.object</s-expression> for 
+details. Methods defined for survfit objects are  
+<s-expression>print</s-expression>, <s-expression>plot</s-expression>, <s-expression>lines</s-expression>, and <s-expression>points</s-expression>. 
 </s-value>
 <s-details>
 The estimates used are the Kalbfleisch-Prentice 
 (Kalbfleisch and Prentice, 1980, p.86) and the Tsiatis/Link/Breslow, 
 which reduce to the Kaplan-Meier and Fleming-Harrington estimates, 
-respectively, when the weights are unity. 
-When curves are fit for a Cox model, 
-subject weights of <s-expression>exp(sum(coef*(x-center)))</s-expression> are used,  
-ignoring any value for <s-expression>weights</s-expression> input by the user. 
-There is also an extra term in the variance of the curve, 
-due to the variance of the coefficients 
-and hence variance in the computed weights. 
-Details of the Aalen estimator and its variance are found in Tsiatis (1981). 
+respectively, when the weights are unity.  When curves are fit for a 
+Cox model, subject weights of <s-expression>exp(sum(coef*(x-center)))</s-expression> are used,  
+ignoring any value for <s-expression>weights</s-expression> input by the user.  There is also an extra 
+term in the variance of the curve, due to the variance of the coefficients and 
+hence variance in the computed weights.  Details of the Aalen 
+estimator and its variance are found in Tsiatis (1981). 
 <br><br>
 The Greenwood formula for the variance is a sum of terms 
 d/(n*(n-m)), where d is the number of deaths at a given time point, n 
@@ -156,11 +148,11 @@ equal to one; extension to the weighted case is ad hoc.  Tsiatis
 (1981) proposes a sum of terms d/(n*n), based on a counting process 
 argument which includes the weighted case. 
 <br><br>
-For the Fleming-Harrington estimate, two different methods 
-for handling ties have been implemented. If there were 3 deaths out 
-of 10 at risk, then the method due to Fleming and Harrington  
-increments the hazard by 3/10 while the Nelson estimate 
-increments the hazard by 1/10 + 1/9 + 1/8. For curves created 
+For the Fleming-Harrington estimate, two different methods for 
+handling ties have been implemented. 
+If there were 3 deaths out of 10 at risk, then the method due to 
+Fleming and Harrington increments 
+the hazard by 3/10 while the Nelson estimate increments the hazard by 1/10 + 1/9 + 1/8.  For curves created 
 after a Cox model these correspond to the Breslow and Efron estimates, 
 respectively, and the proper choice is made automatically. 
 The <s-expression>fh2</s-expression> method will give results closer to the Kaplan-Meier. 
@@ -172,38 +164,34 @@ a more reliable confidence band for the tails of the curve.
 </s-details>
 <s-section name=" REFERENCES">
 
-Dorey, F. J. and Korn, E. L. (1987). 
-Effective sample sizes for confidence intervals for survival probabilities. 
-<it>Statistics in Medicine</it>
+Dorey, F. J. and Korn, E. L. (1987).  Effective sample sizes for confidence 
+intervals for survival probabilities.  <it>Statistics in Medicine</it> 
 <bf>6</bf>, 679-87. 
-Fleming, T. H. and Harrington, D. P. (1984). 
-Nonparametric estimation of the survival distribution in censored data. 
-<it>Comm. in Statistics</it>
+Fleming, T. H. and Harrington, D. P. (1984).  Nonparametric estimation of the 
+survival distribution in censored data.  <it>Comm. in Statistics</it>  
 <bf>13</bf>, 2469-86. 
-Kablfleisch, J. D. and Prentice, R. L. (1980). 
+Kablfleisch, J. D. and Prentice, R. L. (1980).  
 <it>The Statistical Analysis of Failure Time Data.</it>
 New York:Wiley. 
-Link, C. L. (1984). 
-Confidence intervals for the survival function using Cox's 
-proportional hazards model with covariates. 
-<it>Biometrics</it>
+Link, C. L. (1984). Confidence intervals for the survival 
+function using Cox's proportional hazards model with  
+covariates.  <it>Biometrics</it>  
 <bf>40</bf>, 601-610. 
-Tsiatis, A. (1981). 
-A large sample study of the estimate for the integrated hazard function 
-in Cox's regression model for survival data. 
-<it>Annals of Statistics</it>
+Tsiatis, A. (1981). A large sample study of the estimate 
+for the integrated hazard function in Cox's regression 
+model for survival data. <it>Annals of Statistics</it>  
 <bf>9</bf>, 93-108. 
 </s-section>
 <s-see>
-<s-function name="print.sgm">print</s-function>,  <s-function name="plot.sgm">plot</s-function>,  <s-function name="lines.sgm">lines</s-function>,  <s-function name="coxph.sgm">coxph</s-function>,  <s-function name="Surv.sgm">Surv</s-function>,  <s-function name="strata.sgm">strata</s-function>.   </s-see>
+<s-function name="print.sgm">print</s-function>,  <s-function name="plot.sgm">plot</s-function>,  <s-function name="lines.sgm">lines</s-function>,   <s-function name="coxph.sgm">coxph</s-function>,  <s-function name="Surv.sgm">Surv</s-function>,  <s-function name="strata.sgm">strata</s-function>.   </s-see>
 <s-examples>
 <s-example type = text>
-# fit a Kaplan-Meier and plot it 
+#fit a Kaplan-Meier and plot it 
 fit &lt;- survfit(Surv(time, status) ~ group, data = leukemia) 
 plot(fit, lty = 2:3) 
 legend(100, .8, c("Maintained", "Nonmaintained"), lty = 2:3) 
-# fit a Cox proportional hazards model and plot the  
-# predicted survival curve at the average predictor 
+#fit a Cox proportional hazards model and plot the  
+#predicted survival curve at the average predictor 
 fit &lt;- coxph(Surv(futime, fustat) ~ age, data = ovarian) 
 plot(survfit(fit), xlab = "Survival in Days") 
 </s-example>
