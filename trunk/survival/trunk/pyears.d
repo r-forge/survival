@@ -9,7 +9,7 @@ It also computes the number of subjects who contribute to each cell of the
 output table, and optionally the number of events and/or expected number of
 events in each cell.
 .CS
-pyears(formula, data, weights, subset, na.action, ratetable=survexp.uswhite,
+pyears(formula, data, weights, subset, na.action, ratetable=survexp.us,
 scale=365.25, model=F, x=F, y=F)
 .RA
 .AG formula
