@@ -1,4 +1,4 @@
-/* SCCS @(#)survreg.c	4.2 9/24/92    */
+/* SCCS $Id: survreg.c,v 4.4 1992-11-19 10:41:35 therneau Exp $    */
 /*
 ** Fit one of several censored data distributions
 **
@@ -56,7 +56,7 @@
 #define  SPI    2.506628274631001     /* sqrt(2*pi) */
 #define  ROOT_2 1.414213562373095
 
-static int debug =1;       /* normally set to zero */
+static int debug =0;       /* normally set to zero */
 
 double **dmatrix();
 static void exvalue_d();
