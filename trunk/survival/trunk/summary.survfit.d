@@ -1,7 +1,7 @@
 .BG
 .FN summary.survfit
 .TL
-Print a Survival Curve
+Summary of a Survival Curve
 .DN
 Returns a list containing the survival curve, confidence limits for the
 curve, and other information.
@@ -12,18 +12,18 @@ summary.survfit(fit, times, censored=F, scale=1)
 output from a call to `survfit'.
 .OA
 .AG times
-vector of the times;
+vector of times;
 the returned matrix will contain 1 row for each time.
 This must be in increasing order and missing values are not allowed.
-If censored=T, the default time vector contains all the unique times in
-`fit.list',
-otherwise the default time vector uses only the event (death) times.
+If `censored=T', the default `times' vector contains all the unique times in
+`fit',
+otherwise the default `times' vector uses only the event (death) times.
 .AG censored
 logical flag: should the censoring times be included in the output?
 This is ignored if the `times' argument is present.
 .AG scale
-rescale the survival time, e.g., if the input data to survfit were in
-days, "scale=365" would scale the printout to years.
+rescale the survival time, e.g., if the input data to `survfit' were in
+days, `scale=365.25' would scale the output to years.
 .RT
 a list with the following components
 .AG time
@@ -38,23 +38,25 @@ if the `times' argument is missing, then this column is the number of
 events that occurred at time t.
 Otherwise, it is the cumulative number of events that have occurred
 since the last time listed until time t+0.
-.AG std.dev
-the standard deviation of the survival value.
+.AG std.err
+the standard error of the survival value.
+.AG conf.int
+level of confidence for the confidence intervals of survival.
 .AG lower CI
 lower confidence limits for the curve.
 .AG upper CI
 upper confidence limits for the curve.
 .AG strata
-the number of points per curve.  If there are multiple curves in this
-result, then the `time', `surv', etc vectors will contain multiple
-curves, pasted end to end, and length(surv)=sum(strata).  The names
-of the strata vector are the labels for the curves.
+indicates stratification of curve estimation.  If `strata' is not `NULL',
+there are multiple curves in the result and the `surv', `time', `n.risk', etc. 
+vectors will contain multiple curves, pasted end to end. 
+The levels of `strata' (a factor) are the labels for the curves.
 .AG call
 the statement used to create the `fit' object.
 .AG na.action
 passed through from `fit', if present.
 .SA
-`survfit', 'print.summary.survfit'.
+`survfit', `print.summary.survfit'.
 .EX
 summary( survfit( futime, fustat))
 .KW survival

@@ -1,7 +1,7 @@
 .BG
 .FN cluster
 .TL
-Identify clusters.
+Identify Clusters
 .DN
 This is a special function used in the context of the Cox model.  It
 identifies correlated groups of observations, and is used on the right hand
@@ -12,13 +12,13 @@ cluster(x)
 .AG x
 A character, factor, or numeric variable.
 .RT
-x
+`x'
 .DT
 The function's only action is semantic, to mark a variable as the
 cluster indicator.
 .SA
-coxph
+`coxph', `Surv'
 .EX
-coxph(Surv(futime, fustat) ~ age + cluster(group))
+coxph(Surv(futime, fustat) ~ age + cluster(group), data = ovarian)
 .KW survival
 .WR

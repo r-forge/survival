@@ -1,6 +1,8 @@
 .BG
 .FN rowsum
 .TL
+Give Row Sums of a Matrix, Based on a Grouping Variable
+.DN
 Give row sums of a matrix, based on a grouping variable.
 .CS
 rowsum(x, group, reorder=T)
@@ -21,7 +23,7 @@ example below).
 a matrix containing the sums.  There will be one row per unique value
 of `group'.
 .SA
-tapply
+`tapply'
 .EX
 x <- matrix(runif(100), ncol=5)
 group <- sample(1:8, 20, T)

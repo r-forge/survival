@@ -1,22 +1,23 @@
 .BG
 .FN plot.cox.zph
 .TL
-Graphical test of proportional hazards
+Graphical Test of Proportional Hazards
 .DN
-Displays a graph of the scaled Shoenfeld residuals, along with a smooth.
+Displays a graph of the scaled Schoenfeld residuals, along with a smooth curve.
 .CS
-plot.cox.zph(x, resid=T, se=T, df=4, nsmo=40, var)
+plot.cox.zph(x, resid=T, se=T, df=4, nsmo=40, var, ...)
 .RA
 .AG x
 result of the `cox.zph' function.
 .OA
 .AG resid
-include the residuals on the plot, as well as the smooth fit.
+a logical value, if `TRUE' the residuals are included on the plot, as well as the smooth fit.
 .AG se
-if true, confidence bands at 2 standard errors will be added.
+a logical value, if `TRUE', confidence bands at two standard errors
+will be added.
 .AG df
-the degrees of freedom for the fitted natural spline.  A df value of
-2 leads to a linear fit.
+the degrees of freedom for the fitted natural spline, `df=2' leads
+to a linear fit.
 .AG nsmo
 number of points used to plot the fitted spline.
 .AG var
@@ -26,19 +27,22 @@ allows other features to be added to the plot, e.g., a horizontal line at
 zero or a main title.
 .PP
 This has been superseded by a subscripting method; see the example below.
+.AG ...
+additional arguments passed to the `plot' function.
 .SE
 a plot is produced on the current graphics device.
 .SA
-cox.zph, coxph
+`cox.zph', `coxph'
 .EX
-vfit <- coxph(Surv(futime,fustat) ~ rx + factor(celltype) + karno +age,
-		   data=veteran, x=T)
+veteran <- data.frame(cancer.vet)
+vfit <- coxph(Surv(survival,status) ~ therapy + factor(celltype) +
+              Karn..score + age, data=veteran, x=T)
 temp <- cox.zph(vfit)
-
-plot(temp[5])          #do only the Karnofsky score plot
-#plot(temp, var=5)      #  old way of doing the prior command
-abline(0,0, lty=3)
-lines( lm( temp$y[,5] ~ temp$x), lty=4)   #Add the linear fit as well
+plot(temp, var=5)      # Look at Karnofsy score, old way of doing plot
+plot(temp[5])     # New way with subscripting
+abline(0, 0, lty=3)
+# Add the linear fit as well 
+abline(lm(temp$y[,5] ~ temp$x)$coefficients, lty=4, col=3) 
 title(main="VA Lung Study")
 .KW survival
 .WR

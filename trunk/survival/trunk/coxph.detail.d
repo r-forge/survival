@@ -1,15 +1,16 @@
 .BG
 .FN coxph.detail
 .TL
-Details of a cox model fit
+Details of a Cox Model Fit
 .DN
+Details of a Cox model fit.
 Returns the individual contributions to the first and second derivative
 matrix, at each unique event time.
 .CS
 coxph.detail(fit)
 .RA
 .AG fit
-a cox model object, i.e., the result of `coxph'.
+a Cox model object, i.e., the result of `coxph'.
 .RT
 a list with components
 .RC time
@@ -20,7 +21,7 @@ the number of events at each of these time points.
 a matrix with one row for each event time and one column for each variable
 in the Cox model, containing the weighted mean of the variable at that time,
 over all subjects still at risk at that time.  The weights are the risk
-weights exp(x %*% fit$coef).
+weights `exp(x %*% fit$coef)'.
 .RC nrisk
 number of subjects at risk.
 .RC hazard
@@ -42,14 +43,14 @@ were contributed by each of the strata.
 .DT
 This function may be useful for those who wish to investigate new methods or
 extensions to the Cox model.  The example below shows one way to calculate
-the Shoenfeld residuals.
+the Schoenfeld residuals.
 .SA
-coxph, residuals.coxph
+`coxph', `residuals.coxph'
 .EX
 fit   <- coxph(Surv(futime,fustat) ~ age + rx + ecog.ps, fleming, x=T)
 fitd  <- coxph.details(fit)
 events <- fit$y[,2]==1
-etime  <- fit$y[events,1]   #the event times--- may have duplicates
+etime  <- fit$y[events,1]   #the event times --- may have duplicates
 indx   <- match(etime, fitd$time)
 sresid <- fit$x[events,] - fitd$means[indx,]
 .KW survival

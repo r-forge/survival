@@ -1,7 +1,7 @@
 .BG
 .FN plot.survfit
 .TL
-Plot method for survfit.
+Plot Method for `survfit'
 .CS
 plot.survfit(survfit, conf.int=<<see below>>, mark.time=T,
  mark=3, col=1, lty=1, lwd=1, cex=1, log=F, xscale=1, yscale=1, 
@@ -15,8 +15,9 @@ an object of class `survfit', usually returned by the `survfit' function.
 determines whether confidence intervals will be plotted.  The default is to
 do so if there is only 1 curve, i.e., no strata.
 .AG mark.time
-controls the labeling of the curves.  If set to False, no labeling is done.
-If True, then curves are marked at each censoring time.  If mark.time is a
+controls the labeling of the curves.  If set to `FALSE', no labeling is done.
+If `TRUE', then curves are marked at each censoring time which is not also 
+a death time.  If `mark.time' is a
 numeric vector, then curves are marked at the specified time points.
 .AG mark
 vector of mark parameters, which will be used to label the curves.
@@ -47,10 +48,10 @@ A value of 100, for instance, would be used to give a percent scale.
 Only the labels are
 changed, not the actual plot coordinates, so that adding a curve with
 "`lines(surv.exp(...))'", say, 
-will perform as it did without the yscale arg.
-.AG firstx/firsty
+will perform as it did without the `yscale' argument.
+.AG firstx, firsty
 the starting point for the survival curves.  If either of these is set to
-NA the plot will start at the first time point of the curve.
+`NA' the plot will start at the first time point of the curve.
 .AG xmax
 the maximum horizontal plot coordinate.  This can be used to shrink the range
 of a plot.  It shortens the curve before plotting it, so that unlike using the
@@ -60,35 +61,35 @@ not generated.
 lower boundary for y values.  Survival curves are most often drawn in the
 range of 0-1, even if none of the curves approach zero.
 The parameter is ignored if the `fun' argument is present, or if it has been
-set to NA.
+set to `NA'.
 .AG fun
 an arbitrary function defining a transformation of the survival curve.
 For example `fun=log' is an alternative way to draw a log-survival curve
 (but with the axis labeled with log(S) values),
 and `fun=sqrt' would generate a curve on square root scale.
 Four often used transformations can be specified with a character
-argument instead: "log" is the same as using the `log=T' option,
-"event" plots cumulative events (f(y) = 1-y), 
-"cumhaz" plots the cumulative hazard function (f(y) = -log(y)), and
-"cloglog" creates a complimentary log-log survival plot (f(y) =
+argument instead: `"log"' is the same as using the `log=T' option,
+`"event"' plots cumulative events (f(y) = 1-y), 
+`"cumhaz"' plots the cumulative hazard function (f(y) = -log(y)), and
+`"cloglog"' creates a complimentary log-log survival plot (f(y) =
 log(-log(y)) along with log scale for the x-axis). 
 .AG xlab
 label given to the x-axis.
 .AG ylab
 label given to the y-axis.
 .AG xaxs
-either "S" for a survival curve or a standard x axis style as listed in `par'.
+either `"S"' for a survival curve or a standard x axis style as listed in `par'.
 Survival curves are usually displayed with the curve touching the y-axis,
 but not touching the bounding box of the plot on the other 3 sides.
-Type "S" accomplishes this by manipulating the plot range and then using
-the "i" style internally.
+Type `"S"' accomplishes this by manipulating the plot range and then using
+the `"i"' style internally.
 .RT
-a list with components x and y, containing the coordinates of the last point
+a list with components `x' and `y', containing the coordinates of the last point
 on each of the curves (but not the confidence limits).  
 This may be useful for labeling.
 .SE
 A plot of survival curves is produced, one curve for each strata.
-.SH Details
+.SH DETAILS
 The `log=T' option does extra work to avoid log(0), and to try to create a
 pleasing result.  If there are zeros, they are plotted by default at
 0.8 times the smallest non-zero value on the curve(s).
@@ -112,4 +113,3 @@ plot(lsurv2, lty=2:3, fun="cumhaz",
 .KW survival
 .KW hplot
 .WR
-

@@ -2,7 +2,7 @@
 .FN coxph.object
 .TL
 Proportional Hazards Regression Object
-.PP
+.DN
 This class of objects is returned by the `coxph' class of functions
 to represent a fitted proportional hazards model.
 
@@ -47,12 +47,12 @@ the vector of case weights, if one was used.
 .AG method
 the computation method used.
 .AG na.action
-the na.action attribute, if any, that was returned by the na.action routine.
+the `na.action' attribute, if any, that was returned by the `na.action' routine.
 .PP
 The object will also contain the following, for documentation see the `lm'
 object: `terms', `assign', `formula', `call', and, optionally, `x', `y',
 and/or `frame'.
 .SA
-`survfit', `coxph.detail', `cox.zph', `survreg', `residuals.coxph'.
+`coxph', `coxph.detail', `cox.zph', `survfit', `residuals.coxph', `survreg'
 .KW survival
 .WR

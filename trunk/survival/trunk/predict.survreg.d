@@ -1,6 +1,8 @@
 .BG
 .FN predict.survreg
 .TL
+Predicted Values for a `survreg' Object
+.DN
 Predicted values for a `survreg' object
 .CS
 predict.survreg(object, newdata, 
@@ -17,11 +19,11 @@ subjects used in the original fit.
 .AG type
 the type of predicted value. 
 This can be on the original scale of the data (response),
-the linear predictor (linear, with lp as an allowed abbreviation),
+the linear predictor (`"linear"', with `"lp"' as an allowed abbreviation),
 a predicted quantile on the original scale of the data (quantile),
 a quantile on the linear predictor scale (uquantile),
 or the matrix of terms for the linear predictor (terms).
-At this time "link" and linear predictor ("lp") are identical.
+At this time `"link"' and linear predictor (`"lp"') are identical.
 .AG se.fit
 if TRUE, include the standard errors of the prediction in the result.
 .AG terms
@@ -39,7 +41,7 @@ a vector or matrix of predicted values.
 Escobar and Meeker (1992). Assessing influence in regression analysis with
 censored data. \fIBiometrics,\fP 48, 507-528.
 .SA
-survreg, residuals.survreg
+`survreg', `residuals.survreg'
 .EX
 # Draw figure 1 from Escobar and Meeker
 fit <- survreg(Surv(time,status) ~ age + age^2, data=stanford2,
