@@ -1,9 +1,12 @@
-#SCCS $Id: residuals.coxph.s,v 4.7 1992-08-28 11:58:30 therneau Exp $
+#SCCS $Id: residuals.coxph.s,v 4.8 1992-09-20 23:25:43 therneau Exp $
 residuals.coxph <-
-  function(object, type=c("martingale", "deviance", "score", "schoenfeld"),
-	    collapse)
+  function(object, type=c("martingale", "deviance", "score", "schoenfeld",
+			  "dbeta", "dfbetas"),
+	    collapse=F)
     {
     type <- match.arg(type)
+    otype <- type
+    if (type=='dbeta' || type=='dfbetas') type <- 'score'
     n <- length(object$residuals)
     rr <- object$residual
     y <- object$y
@@ -93,7 +96,7 @@ residuals.coxph <-
 	    hazard <- ifelse(temp==1, cumhaz, diff(c(0, cumhaz)))
 	    }
 	else {  # I need to call a routine
-	    aghaz <- .C("aghaz2",
+	    aghaz <- .C("aghaz",
 			   as.integer(n),
 			   as.double(y[,1]),
 			   as.double(y[,2]),
@@ -141,5 +144,7 @@ residuals.coxph <-
 	rr <- sign(rr) *sqrt(-2* (rr+
 			      ifelse(status==0, 0, status*log(status-rr))))
 
-    rr
+    if      (otype=='dbeta') rr %*% object$var
+    else if (otype=='dfbetas') (rr %*% object$var) %*% diag(sqrt(1/diag(object$var)))
+    else  rr
     }

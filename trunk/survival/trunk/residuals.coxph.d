@@ -7,7 +7,8 @@ Calculates martingale, deviance, score or Schoenfeld residuals for a
 Cox proportional hazards model.
 .CS
 resid(object,
-       type=c("martingale", "deviance", "score", "schoenfeld"), 
+       type=c("martingale", "deviance", "score", "schoenfeld",
+	      "dbeta", "dfbetas"),
        collapse)
 .RA
 .AG object
@@ -29,6 +30,13 @@ residuals and matrices for score and schoenfeld residuals.  There will
 be one row of residuals for each row in the input data (without `collapse').
 One column of score and Schoenfeld
 residuals will be returned for each column in the model.matrix.
+.PP
+The score residuals are each individual's contribution to the score vector.
+Two transformatons of
+this are often more useful: `dbeta' is the approximate change in the
+coefficient vector if that observation were dropped,
+and 'dfbetas' is the approximate change in the coefficients, scaled by
+the standard error for the coefficients.
 .SE
 For deviance residuals, the status variable may need to be reconstructed.
 For score and Shoenfeld residuals, the X matrix will need to be reconstructed.
