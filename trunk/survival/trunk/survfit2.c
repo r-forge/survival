@@ -1,4 +1,4 @@
-/* SCCS $Id: survfit2.c,v 4.2 1992-03-24 09:23:30 therneau Exp $  */
+/* SCCS $Id: survfit2.c,v 4.3 1992-05-04 10:32:59 therneau Exp $  */
 /*
 ** Fit the survival curve
 **  Input
@@ -82,7 +82,7 @@ double risksum[];
     varhaz  =0;
     surv[0]=1.0;
     varh[0] = 0.0;
-    for(i=0; i<n; ) {
+    for(i=0; i<n; i++) {
 	if (mark[i] >0) {
 	    if (*error==1 )
 		 varhaz += mark[i]/(risksum[i]*(risksum[i]-mark[i]));
@@ -105,6 +105,11 @@ double risksum[];
 	risksum[nsurv] = risksum[i];
 	nsurv++;
 
+	/* walk past any tied survival times */
+	temp = time[i];
+	for (; i<n && strata[i]!=1 && time[i]==temp; i++);
+	i--;
+
 	if (strata[i]==1) {
 	    nstrat++;
 	    strata[nstrat]= nsurv;
@@ -120,10 +125,6 @@ double risksum[];
 	    surv[nsurv] = surv[nsurv-1];
 	    varh[nsurv] = varh[nsurv-1];
 	    }
-
-	/* walk past any tied survival times */
-	temp = time[i];
-	for (; i<n && time[i]==temp; i++);
 	}
 
     strata[0] = nstrat;
