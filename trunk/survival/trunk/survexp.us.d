@@ -29,7 +29,7 @@ white versus nonwhite.  For 1970 the nonwhite population values
 were not reported separately, so the white values were used.
 .PP
 Each of these tables contains the daily hazard rate for a matched subject
-from the population, defined as -log(1-q)/365.24 where q is the 1-year
+from the population, defined as -log(1-q)/365.24 where q is the 1 year
 probability of death as reported in the original tables.
 For age 25 in 1970, for instance, p = 1-q is is the probability that a subject
 who becomes 25 years of age in 1970 will achieve his/her 26th birthday.
