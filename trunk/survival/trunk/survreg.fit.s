@@ -1,4 +1,4 @@
-#SCCS @(#)survreg.fit.s	4.5 9/20/92
+#SCCS $Id: survreg.fit.s,v 4.7 1992-11-19 17:38:47 therneau Exp $
 #
 # This handles the one parameter distributions-- extreme, logistic,
 #       gaussian, and cauchy.
@@ -8,7 +8,7 @@
 survreg.fit<- function(x, y, offset, init, controlvals, dist, fixed,
 				nullmodel=T) {
 
-    iter.max <- controlvals$max.iters
+    iter.max <- controlvals$maxiter
     eps <- controlvals$rel.tol
 
     if (!is.matrix(x)) stop("Invalid X matrix ")
@@ -24,7 +24,7 @@ survreg.fit<- function(x, y, offset, init, controlvals, dist, fixed,
 
     ncol.deriv <- if (any(y[,ny]==3)) 6  else 3
     nvar2 <- nvar + length(sd$parms) - length(fixed)
-    yy <- ifelse(y[,ny]==3, y[,1], (y[,1]+y[,2])/2 )
+    yy <- ifelse(y[,ny]!=3, y[,1], (y[,1]+y[,2])/2 )
 
     if (is.numeric(init)) {
 	if (length(init) != nvar2) stop("Wrong length for initial parameters")
@@ -36,19 +36,20 @@ survreg.fit<- function(x, y, offset, init, controlvals, dist, fixed,
 	else if (length(eta) != n) stop ("Wrong length for init$eta")
 
 	# Do the 'glim' method of finding an initial value of coef,
-	tfix <- sd$init(yy - eta, init, fixed)
+	tfix <- sd$init(yy - (eta+offset), init, fixed)
 	deriv <- .C("survreg_g",
 		       as.integer(n),
 		       y,
 		       as.integer(ny),
 		       as.double(eta + offset),
 		       coef= as.double(c(0,tfix[,1])),
-		       deriv = matrix(double(n * ncol.deriv),nrow=n),
+		       deriv = matrix(double(n * 3),nrow=n),
+		       as.integer(3),
 		       as.integer(dnum))$deriv
 	wt <- -1*deriv[,3]
 	coef <- solve(t(x) %*% diag(wt) %*% x,
 		      t(x) %*% (wt*eta + deriv[,2]))
-	eta <- x %*% coef
+	eta <- x %*% coef  + offset
 	tfix <- sd$init(yy-eta, fixed, init)
 	init <- c(coef, tfix[tfix[,2]==0,1])
 	}
@@ -72,8 +73,13 @@ survreg.fit<- function(x, y, offset, init, controlvals, dist, fixed,
 		   deriv = matrix(double(ncol.deriv*n),nrow=n),
 		   as.integer(dnum))
 
-    if (iter.max >1 && fit$flag== -1)
+    if (iter.max >1 && fit$flag== -1) {
+	if (controlvals$failure==1)
 	       warning("Ran out of iterations and did not converge")
+	else if (controlvals$failure==2)
+	       stop("Ran out of iterations and did not converge")
+	}
+
     temp <- dimnames(x)[[2]]
     if (is.null(temp)) temp <- paste("x", 1:ncol(x))
     temp <- c(temp, (dimnames(tfix)[[1]])[tfix[,2]==0])
@@ -87,8 +93,7 @@ survreg.fit<- function(x, y, offset, init, controlvals, dist, fixed,
 		list(parms=parms, fixed=tfix[,2]==1))
     else {
 	init <- c(mean(x%*% fit$coef[1:nvar]), fit$coef[-(1:nvar)])
-	tfix[,1] <- parms # "nail down" extras
-	tfix[,2] <- 1
+	temp <- cbind(parms, 1)     # "nail down" extras
 	nfit <- .C("survreg",
 		   iter = as.integer(iter.max),
 		   as.integer(n),
@@ -99,7 +104,7 @@ survreg.fit<- function(x, y, offset, init, controlvals, dist, fixed,
 		   as.double(offset),
 		   coef= as.double(init),
 		   as.integer(nrow(tfix)),
-		   tfix,
+		   temp,
 		   double(3*(nvar) + 2*n),
 		   imat= matrix(0, nvar, nvar),
 		   loglik=double(2),
