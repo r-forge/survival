@@ -1,4 +1,4 @@
-#SCCS $Date: 1992-04-02 08:00:39 $ $Id: Surv.s,v 4.5 1992-04-02 08:00:39 therneau Exp $
+#SCCS $Date: 1992-04-13 22:22:31 $ $Id: Surv.s,v 4.6 1992-04-13 22:22:31 therneau Exp $
 # Package up surivival type data as a structure
 #  Eventually allow lots of censored data types
 #
@@ -7,12 +7,17 @@ Surv <- function(time, time2, event,
     nn <- length(time)
     ng <- nargs()
     if (missing(type)) {
-	if (ng<3) type <- 'right'
-	else      type <- 'counting'
+	if (ng==1 || ng==2) type <- 'right'
+	else if (ng==3)     type <- 'counting'
+	else stop("Invalid number of arguments")
 	}
     else {
 	type <- match.arg(type)
 	ng <- ng-1
+	if (ng!=3 && (type=='interval' || type =='counting'))
+		stop("Wrong number of args for this type of survival data")
+	if (ng!=2 && (type=='right' || type=='left'))
+		stop("Wrong number of args for this type of survival data")
 	}
     who <- !is.na(time)
 
@@ -44,14 +49,24 @@ Surv <- function(time, time2, event,
 	if (!is.numeric(time2)) stop("Stop time is not numeric")
 	who3 <- who & !is.na(time2)
 	if (any (time[who3]>= time2[who3]))stop("Stop time must be > start time")
-	if (is.logical(event)) status <- 1*event
-	    else  if (is.numeric(event)) {
-		who2 <- !is.na(event)
-		status <- event - min(event[who2])
-		if (any(status[who2] !=0  & status[who2]!=1))
-				event ("Invalid status value")
-		}
-	    else event("Invalid status value")
+	if (type=='interval') {
+	    temp <- event[!is.na(event)]
+	    if (!is.numeric(temp)) stop("Status indicator must be numeric")
+	    if (length(temp)>0 && any(temp!= floor(temp) | temp<1 | temp>4))
+		stop("Status indicator must be 1, 2, 3 or 4")
+	    status <- event
+	    time2 <- ifelse(!is.na(event) & event==4, time2, 0)
+	    }
+	else {
+	    if (is.logical(event)) status <- 1*event
+		else  if (is.numeric(event)) {
+		    who2 <- !is.na(event)
+		    status <- event - min(event[who2])
+		    if (any(status[who2] !=0  & status[who2]!=1))
+				    event ("Invalid status value")
+		    }
+		else event("Invalid status value")
+	    }
 	ss <- cbind(time, time2,status)
 	}
     attr(ss, "class") <- c("Surv")
@@ -61,15 +76,27 @@ Surv <- function(time, time2, event,
 
 print.Surv <- function(xx, quote=F, ...) {
     class(xx) <- NULL
-    if (ncol(xx)==2) {
+    if (type=='right') {
 	temp <- xx[,2]
 	temp <- ifelse(is.na(temp), "?", ifelse(temp==0, "+"," "))
 	print(paste(format(xx[,1]), temp, sep=''), quote=quote)
 	}
-    else {
+    else if (type=='counting') {
 	temp <- xx[,3]
 	temp <- ifelse(is.na(temp), "?", ifelse(temp==0, "+"," "))
 	print(paste('(', format(xx[,1]), ',', xx[,2], temp, ']', sep=''), quote=quote)
+	}
+    else if (type=='left') {
+	temp <- xx[,2]
+	temp <- ifelse(is.na(temp), "?", ifelse(temp==0, "<"," "))
+	print(paste(temp, format(xx[,1]), sep=''), quote=quote)
+	}
+    else {   #interval type
+	stat <- xx[,3]
+	temp <- c("", "<", ">", "[")[stat]
+	temp2 <- ifelse(stat==4, paste(", ", format(xx[,2]), "]", sep=''), '')
+	print(ifelse(is.na(stat)), "NA", paste(temp, format(xx[,1], temp2, sep='')),
+			       quote=quote)
 	}
     }
 
@@ -95,3 +122,4 @@ is.na.Surv <- function(x) {
 Math.Surv <- function(...)  stop("Invalid operation on a survival time")
 Ops.Surv  <- function(...)  stop("Invalid operation on a survival time")
 Summary.Surv<-function(...) stop("Invalid operation on a survival time")
+is.Surv <- function(x) inherits(x, 'Surv')
