@@ -1,4 +1,4 @@
-#SCCS $Id: residuals.coxph.s,v 4.14 1993-01-30 19:46:12 therneau Exp $
+#SCCS $Id: residuals.coxph.s,v 4.15 1993-04-12 11:12:37 therneau Exp $
 residuals.coxph <-
   function(object, type=c("martingale", "deviance", "score", "schoenfeld",
 			  "dbeta", "dfbetas", "scaledsch"),
@@ -31,7 +31,8 @@ residuals.coxph <-
 		if (length(strats)) {
 		    temp <- untangle.specials(Terms, 'strata', 1)
 		    x <- model.matrix(Terms[-temp$terms], m)[,-1,drop=F]
-		    strat <- as.numeric(strata(m[temp$vars]))
+		    strat <- strata(m[temp$vars], shortlabel=T)
+		    nstrat <- as.numeric(strat)
 		    }
 		else x <- model.matrix(Terms, m)[,-1,drop=F]   #remove column of 1's though
 		}
@@ -48,8 +49,8 @@ residuals.coxph <-
 		newstrat <- rep(0,n)
 		}
 	    else {
-		ord <- order(strat, y[,ny-1], -status)
-		newstrat <- c(diff(as.numeric(strat[ord]))!=0 ,1)
+		ord <- order(nstrat, y[,ny-1], -status)
+		newstrat <- c(diff(as.numeric(nstrat[ord]))!=0 ,1)
 		}
 	    newstrat[n] <- 1
 
@@ -78,7 +79,7 @@ residuals.coxph <-
 
 	if (nvar==1) rr <- temp$resid[deaths]
 	else rr <- matrix(temp$resid[deaths,], ncol=nvar) #pick rows, and kill attr
-	if (length(strats)) attr(rr, "strata")  <- strat[deaths]
+	if (length(strats)) attr(rr, "strata")  <- table((strat[ord])[deaths])
 	time <- c(y[deaths,2])  # 'c' kills all of the attributes
 	if (is.matrix(rr)) dimnames(rr)<- list(time, names(object$coef))
 	else               names(rr) <- time
