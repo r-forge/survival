@@ -1,4 +1,4 @@
-# SCCS $Id: frailty.controldf.s,v 1.2 1998-11-30 08:24:24 therneau Exp $
+# SCCS $Id: frailty.controldf.s,v 1.3 1998-12-02 13:35:32 therneau Exp $
 # A function to calibrate the df
 #    very empirical  
 # Find the closest 3 points that span the target value
@@ -51,7 +51,7 @@ frailty.controldf <- function(parms, iter, old, df) {
 	ord <- order(x)
 	if ((x[1]-x[2])*(y[1]-y[2]) >0)  y <- y[ord]  #monotone up
 	else  { #monotone down
-	    y <- -1* y[rev(ord)]
+	    y <- -1* y[ord]
 	    target <- -target
 	    }
 	x <- x[ord]
