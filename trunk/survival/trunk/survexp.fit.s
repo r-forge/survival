@@ -1,4 +1,4 @@
-# SCCS $Id: survexp.fit.s,v 4.1 1993-12-02 21:37:07 therneau Exp $
+# SCCS $Id: survexp.fit.s,v 4.2 1993-12-02 21:58:34 therneau Exp $
 #  Actually compute the expected survival for one or more cohorts
 #    of subjects.  If each subject is his/her own group, it gives individual
 #    survival
@@ -47,7 +47,6 @@ survexp.fit <- function(x, y, times, death, ratetable) {
 		    as.double(times),
 		    surv = double(ntime * ngrp),
 		    n   = integer(ntime *ngrp))
-browser()
     if (ntime >1 && ngrp >1)
 	 list(surv=matrix(temp$surv, ntime, ngrp),
 		 n=   matrix(temp$n, ntime, ngrp))
