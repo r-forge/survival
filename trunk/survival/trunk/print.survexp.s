@@ -1,4 +1,4 @@
-#SCCS $Id: print.survexp.s,v 4.5 1993-12-02 22:07:00 therneau Exp $
+#SCCS $Id: print.survexp.s,v 4.6 1994-01-04 14:56:59 therneau Exp $
 print.survexp <- function(fit, scale=1, digits=3, ...) {
     if (!inherits(fit, 'survexp'))
 	    stop("Invalid data")
@@ -11,9 +11,11 @@ print.survexp <- function(fit, scale=1, digits=3, ...) {
 	cat("\n")
 	}
 
+    if (!is.null(fit$summ)) cat(fit$summ)
     omit <- fit$na.action
     if (length(omit))
 	cat(naprint(omit), "\n")
+    else cat("\n")
 
     mat <- cbind(fit$time, fit$n.risk, fit$surv)
     cnames <- c("time", "n.risk")

@@ -8,7 +8,7 @@ individual expected survival for each subject.
 .CS
 survexp(formula, data, weights, subset, na.action,
  times, cohort=T, conditional=T,
- ratetable=survexp.uswhite, scale=365.25, model=F, x=F, y=F)
+ ratetable=survexp.us, scale=365.25, model=F, x=F, y=F)
 .RA
 .AG formula
 a formula object.  The response variable will be a vector of follow-up times,
@@ -29,7 +29,7 @@ If false, each subject is treated as a subgroup of size 1.
 .AG conditional
 If `y' is missing in the formula, this argument is ignored.  Otherwise it
 is an indicator of whether y includes death times, which leads to conditional
-expected survival, or includes only the potential censoring times.
+expected survival, or y includes only the potential censoring times.
 .AG ratetable
 a table of event rates, such as survexp.uswhite.
 .AG scale
@@ -52,14 +52,14 @@ actual survival time are all known for a group of subjects.
 The uswhite population tables contain expected death rates
 based on calendar year, sex and age.  Then
 .Cs
-dprob <- 1 -survexp(death.time ~ ratetable(sex=sex, year=entry.dt, age=(birth.dt-entry.dt)), cohort=F)
+haz <- -log(survexp(death.time ~ ratetable(sex=sex, year=entry.dt, age=(birth.dt-entry.dt)), cohort=F))
 .Ce
-gives for each subject the probability of death at or before their observed
-death time.  This probability can be used as a rescaled time value in
-models:
+gives for each subject the total hazard experienced up to their observed
+death time or censoring time.
+This probability can be used as a rescaled time value in models:
 .Cs
-glm(status ~ 1 + offset(log(dprob)), family=poisson)
-glm(status ~ x + offset(log(dprob)), family=poisson)
+glm(status ~ 1 + offset(log(haz)), family=poisson)
+glm(status ~ x + offset(log(haz)), family=poisson)
 .Ce
 In the first model, a test for intercept=0 is the one sample log-rank
 test of whether the observed group of subjects has equivalent survival to
@@ -89,7 +89,7 @@ withdrawal.  Biometrics 1892, 38:933.
 H. Verheul, E. Dekker, P. Bossuyt, A. Moulijn, and A. Dunning.  Backround
 mortality in clinical survival studies.  Lancet 1993, 341:872-5.
 .SA
-survfit, survexp.uswhite, survexp.fit, personyr, date
+survfit, survexp.us, survexp.fit, personyr, date
 .EX
 efit <- survexp( ~ ratetable(sex=sex, year=entry.dt, age=entry.dt-birth.dt))
 plot(survfit(Surv(futime, status) ~1))

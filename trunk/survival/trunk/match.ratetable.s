@@ -1,4 +1,4 @@
-# SCCS $Id: match.ratetable.s,v 4.1 1993-12-02 21:41:23 therneau Exp $
+# SCCS $Id: match.ratetable.s,v 4.2 1994-01-04 14:56:57 therneau Exp $
 # Do a set of error checks on whether the ratetable() vars match the
 #   actual ratetable
 # This is called by pyears and survexp, but not by users
@@ -43,6 +43,7 @@ match.ratetable <- function(R, ratetable) {
 		else stop(paste("Invalid value in ratetable() for variable",
 					dimid[i]))
 		}
+	    R[,i] <- temp
 	    call <- paste(call, temp)
 	    }
 	else if (length(levlist[[i]]) >0) {  #factor or character variable
@@ -66,5 +67,9 @@ match.ratetable <- function(R, ratetable) {
 	else       call <- paste(call, ",")
 	}
 
-    list(R= R[,!const, drop=F], call={if(any(const)) call else NULL})
+    summ <- attr(ratetable, 'summary')
+    if (is.null(summ))
+	 list(R= R[,!const, drop=F], call={if(any(const)) call else NULL})
+    else list(R= R[,!const, drop=F], call={if(any(const)) call else NULL},
+		summ=summ(R))
     }

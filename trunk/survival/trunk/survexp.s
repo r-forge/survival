@@ -1,8 +1,8 @@
-#SCCS  $Id: survexp.s,v 4.13 1993-12-02 21:30:52 therneau Exp $
+#SCCS  $Id: survexp.s,v 4.14 1994-01-04 14:56:58 therneau Exp $
 survexp <- function(formula=formula(data), data=sys.parent(),
 	weights, subset, na.action,
 	times,  cohort=T,  conditional=T,
-	ratetable=survexp.uswhite, scale=365.25,
+	ratetable=survexp.us, scale=365.25,
 	model=F, x=F, y=F) {
 
     call <- match.call()
@@ -47,10 +47,10 @@ survexp <- function(formula=formula(data), data=sys.parent(),
 	stop ("Can have only 1 ratetable() call in a formula")
 
     ovars <- (dimnames(attr(Terms, 'factors'))[[1]])[-c(1, rate)]
-    temp <- match.ratetable(m[,rate], ratetable)
-    R <- temp$R
-    if (!is.null(temp$call)) {  #need to dop some dimensions from ratetable
-	ratetable <- eval(parse(text=temp$call))
+    rtemp <- match.ratetable(m[,rate], ratetable)
+    R <- rtemp$R
+    if (!is.null(rtemp$call)) {  #need to dop some dimensions from ratetable
+	ratetable <- eval(parse(text=rtemp$call))
 	}
 
     if (cohort) {
@@ -114,6 +114,7 @@ survexp <- function(formula=formula(data), data=sys.parent(),
 		dimnames=list(row.names(m), c("group", dimid)))
 	    if (y) out$y <- Y
 	    }
+	out$summ <- rtemp$summ
 	class(out) <- c("survexp", "survfit")
 	out
 	}
