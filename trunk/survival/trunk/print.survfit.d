@@ -17,7 +17,7 @@ a numeric value to rescale the survival time, e.g.,
 if the input data to survfit were in days,
 `scale=365' would scale the printout to years.
 .RT
-`x', with the invisible flag set.
+x, with the invisible flag set to prevent printing.
 .SE
 the number of observations, the number of events, the mean survival and its
 standard error, and the median survival with its confidence interval are
@@ -36,11 +36,11 @@ for the median's interval, and similarly for the upper band.  If any of the
 intersections is not a point, then we use the smallest point of intersection,
 e.g., if the survival curve were exactly equal to 0.5 over an interval.
 .SH REFERENCES
-Miller, Rupert G., Jr. (1981) 
+Miller, Rupert G., Jr. (1981). 
 .ul
-Survival Analysis, 
-Wiley, New York, p 71.
+Survival Analysis.
+New York:Wiley, p 71.
 .SA
-`summary.survfit'
-.KW survival
+`summary.survfit'.
+.KW survival4
 .WR
