@@ -1,16 +1,26 @@
-#SCCS $Date: 1992-03-04 16:47:32 $ $Id: Surv.s,v 4.1 1992-03-04 16:47:32 therneau Exp $
+#SCCS $Date: 1992-03-25 01:15:26 $ $Id: Surv.s,v 4.2 1992-03-25 01:15:26 therneau Exp $
 # Package up surivival type data as a structure
 #  Eventually allow lots of censored data types
 #
-Surv <- function(time, time2, event) {
+Surv <- function(time, time2, event,
+		       type=c('right', 'left', 'interval', 'counting')) {
     nn <- length(time)
     ng <- nargs()
+    if (missing(type)) {
+	if (ng<3) type <- 'right'
+	else      type <- 'interval'
+	}
+    else {
+	type <- match.arg(type)
+	ng <- ng-1
+	}
     who <- !is.na(time)
+
     if (ng==1) {
 	if (!is.numeric(time)) stop ("Time variable is not numeric")
 	else if (any(time[who]<0))  stop ("Time variable must be >= 0")
 	ss <- cbind(time, 1)
-	 dimnames(ss) <- list(NULL, c("time", "status"))
+	dimnames(ss) <- list(NULL, c("time", "status"))
 	}
     else if (ng==2) {  #assume second arg is event
 	if (!is.numeric(time)) stop ("Time variable is not numeric")
@@ -27,7 +37,7 @@ Surv <- function(time, time2, event) {
 	 ss <- cbind(time, status)
 	 dimnames(ss) <- list(NULL, c("time", "status"))
 	}
-    else  {    #assume agreg type data
+    else  {
 	if (length(time2) !=nn) stop ("Start and stop are different lengths")
 	if (length(event)!=nn) stop ("Start and event are different lengths")
 	if (!is.numeric(time))stop("Start time is not numeric")
@@ -45,11 +55,7 @@ Surv <- function(time, time2, event) {
 	ss <- cbind(time, time2,status)
 	}
     attr(ss, "class") <- c("Surv")
-
-    # Eventually, may add more types of survival object, such as
-    #   interval censored
-    if (ncol(ss) ==2) attr(ss, "type") <- "right"   #simple right censored
-    else              attr(ss, "type") <- "counting"   #counting process style
+    attr(ss, "type")  <- type
     ss
     }
 
@@ -71,6 +77,7 @@ print.Surv <- function(xx, quote=F, ...) {
     temp <- class(x)
     type <- attr(x, "type")
     class(x) <- NULL
+    attr(x, 'type') <- NULL
     if (missing(j)) {
 	x <- x[i,,drop=drop]
 	class(x) <- temp
@@ -84,3 +91,7 @@ is.na.Surv <- function(x) {
     class(x) <- NULL
     as.vector( (1* is.na(x))%*% rep(1, ncol(x)) >0)
     }
+
+Math.Surv <- function(...)  stop("Invalid operation on a survival time")
+Ops.Surv  <- function(...)  stop("Invalid operation on a survival time")
+Summary.Surv<-function(...) stop("Invalid operation on a survival time"
