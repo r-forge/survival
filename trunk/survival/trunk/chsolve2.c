@@ -1,4 +1,4 @@
-/* SCCS: $Id: chsolve2.c,v 1.2 1991-06-12 14:00:19 therneau Exp $ */
+/* SCCS: $Id: chsolve2.c,v 1.3 1991-06-12 16:47:20 therneau Exp $ */
 /*
 ** Solve the equation Ab = y, where the cholesky decomposition of A and y
 **   are the inputs.
