@@ -1,4 +1,4 @@
-/* SCCS $Id: coxfit2.c,v 4.3 1992-08-10 13:36:48 grill Exp $  */
+/* SCCS $Id: coxfit2.c,v 4.4 1992-08-10 13:38:51 grill Exp $  */
 /*
 ** here is a cox regression program, written in c
 **     uses Efron's approximation for ties
