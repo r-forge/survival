@@ -7,7 +7,7 @@
    <s-topic>survfit.object</s-topic>
 </s-topics>
 <s-title>
- Survival Curve Object 
+Survival Curve Object 
 </s-title>
 <s-description>
 Class of objects that represent a fitted survival curve. 
@@ -23,7 +23,8 @@ Objects of this class have methods for the functions <s-expression>print</s-expr
 </s-section>
 <s-section name=" STRUCTURE">
 
-The following components must be included in a legitimate <s-expression>survfit</s-expression> object. 
+The following components must be included in a legitimate <s-expression>survfit</s-expression> 
+object. 
 </s-section>
 <s-args>
 <s-arg name="n">
@@ -39,12 +40,11 @@ the number of subjects at risk at t.
 the number of events that occur at time t. 
 </s-arg>
 <s-arg name="enter">
-if <s-expression>type</s-expression> argument is counting, the number
-of subjects that enter at time t. 
+if <s-expression>type</s-expression> argument is <s-expression>counting</s-expression>, the number of subjects that enter at time t. 
 </s-arg>
 <s-arg name="exit.censor">
-if <s-expression>type</s-expression> argument is counting, the number
-of subjects that leave without an event at time t. 
+if <s-expression>type</s-expression> argument is <s-expression>counting</s-expression>, the number of subjects that leave 
+without an event  at time t. 
 </s-arg>
 <s-arg name="surv">
 the estimate of survival at time t+0. 
@@ -53,7 +53,7 @@ This may be a vector or a matrix.
 <s-arg name="strata.all">
 if there are multiple curves, this component gives the total number of elements of 
 the <s-expression>time</s-expression> etc. vectors before any subsetting, corresponding to the first curve, the second curve, 
-and so on.
+and so on.  The names of the elements are labels for the curves. 
 </s-arg>
 <s-arg name="strata">
 if there are multiple curves, this component gives the number of elements of 
@@ -61,8 +61,10 @@ the <s-expression>time</s-expression> etc. vectors corresponding to the first cu
 and so on.  The names of the elements are labels for the curves. 
 </s-arg>
 <s-arg name="ntimes.strata">
-if there are multiple curves, this component gives the number of times
-in each <s-expression>strata</s-expression>. 
+if there are multiple curves, this component gives the number of 
+elements of 
+the <s-expression>time</s-expression> etc. vectors for the first curve, the second curve, 
+and so on. 
 </s-arg>
 <s-arg name="std.err">
 the standard error of the cumulative hazard or -log(survival). 
@@ -88,7 +90,7 @@ to missing values.
 an image of the call that produced the object. 
 </s-arg>
 <s-arg name="type">
-type of survival censoring.
+type of survival censoring. 
 </s-arg>
 </s-args>
 <s-section name=" SUBSCRIPTS">
