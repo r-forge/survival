@@ -1,4 +1,4 @@
-# SCCS $Id: print.summary.survreg.s,v 4.1 1992-07-10 09:13:49 therneau Exp $
+# SCCS $Id: print.summary.survreg.s,v 4.2 1992-07-13 10:31:15 therneau Exp $
 print.summary.survreg <- function(x, digits = 3, quote = T, prefix = "")
 {
     nas <- x$nas
@@ -69,5 +69,5 @@ print.summary.survreg <- function(x, digits = 3, quote = T, prefix = "")
                 digits)
             }
         }
-	nas = nas, na.action=object$na.action),
+    invisible(NULL)
     }
