@@ -1,7 +1,7 @@
 .BG
 .FN cox.zph
 .TL
-Test the proportional hazards assumption
+Test the proportional hazards assumption of a Cox regression.
 .CS
 cox.zph(fit, transform='km', global=T)
 .AG fit
@@ -30,20 +30,25 @@ the transformed time axis.
 .AG y
 the matrix of scaled Schoenfeld residuals.  There will be one column per
 variable and one row per event.  The row labels contain the original event
-times, which will be the same as `x' for the identity transform.
+times (for the identity transform, these will be the same as `x').
 .AG call
 the calling sequence for the routine.
 .pp
 The computations require the original `x' matrix of the Cox model fit.
 Thus it saves time if the `x=T' option is used in coxph.
-This function would usually be executed in conjunction with a plot of the
-scaled Schoenfeld residuals versus survival time.  The plot gives an
-estimate of the time-dependent coefficient beta(t).
+This function would usually be followed by both a plot and a print of the
+result.
+The plot gives an estimate of the time-dependent coefficient beta(t).
+If the proportional hazards assumption is true, beta(t) will be a horizontal
+line.  The printout gives a test for slope=0.
 .SH REFERENCES
-Terry Therneau, author of local function.
+P. Grambsch and T. Therneau (1994),
+Proportional hazards tests and diagnostics based on weighted residuals.
+.IT Biometrika,
+vol 81, 515-26.
 .EX
 fit <- coxph( Surv(futime, fustat) ~ age + surgery, jasa, x=T)
-temp<- cox.zph(fit, x=T)
+temp<- cox.zph(fit)
 print(temp)                  #display the results
 plot(temp)                   #plot curves
 .KW survival

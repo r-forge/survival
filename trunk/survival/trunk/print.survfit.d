@@ -3,7 +3,9 @@
 .TL
 Short summary of a survival curve
 .DN
-Print n, number of event, mean and median survival.
+Print number of observations, number of events,
+	mean survival and its standard error,  and the median survival
+	with confidence limits for the median.
 .CS
 print.survfit(fit, scale=1)
 .RA

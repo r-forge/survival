@@ -14,7 +14,7 @@ scale=365.25, model=F, x=F, y=F)
 .RA
 .AG formula
 a formula object.  The response variable will be a vector of follow-up times
-for each subject, or a Surv object containing the survival time and an
+for each subject, or a Surv object containing the follow-up time and an
 event indicator.
 The predictors consist of optional grouping variables
 separated by + operators (exactly as in `survfit'), time-dependent grouping
@@ -22,19 +22,23 @@ variables such as age (specified with `tcut'), and optionally a
 `ratetable()' term.  This latter matches each subject to his/her expected
 cohort.
 .OA
-.AG data, weights, subset, na.action
-as in other modeling routines.
-Weights are case weights.
+.AG data
+a data frame in which to interpret the variables named in the formula.
+.AG weights
+case weights.
+.AG subset
+expression stating that only a subset of the rows should be used.
+.AG na.action
+missing data filter function.
 .AG ratetable
 a table of event rates, such as survexp.uswhite.
 .AG scale
 a scaling for the results.  As most rate tables are in units/day, the
 default value of 365.25 causes the output to be reported in years.
-.AG model, x, y
-flags to control what is returned.  If any of these is true, then the
+.AG "model, x, y"
+If any of these is true, then the
 model frame, the model matrix, and/or the vector of response times will be
-returned as components of the final result, with the same names as the
-flag arguments.
+returned as components of the final result.
 .RT
 a list with components
 .RC pyears
@@ -81,6 +85,31 @@ object which allows the pyears function to correctly track the subject.
 The results of pyears() are normally used as input to further calculations.
 The print routine, therefore, is designed to give only a summary of the
 table.
+The example below is from a study of hip fracture rates from 1930 - 1990
+in Olmstead County, Minnesota.  Survival post hip fracture has increased over
+that time, but so has the survival of elderly subjects in the population at
+large.  A model of relative survival helps to clarify what has happened:
+Poisson regression is used, but replacing exposure time with expected
+exposure (for an age and sex matched control).
+Death rates change with age, of course, so the result is carved into
+1 year increments of time.  Males and females were done separately.
+.EX
+attach(hips)
+temp1 <- tcut(dt.fracture, seq(from=mdy.date(1,1,30), by=365.25, length=61)
+temp2 <- tcut(age*365.5,   365.25*(0:105))   #max age was > 100!
+pfit.m<- pyears(Surv(futime, status) ~ temp1 + temp2 +
+			 ratetable(age=age*365.25, year=dt.fracture, sex=1),
+	       subset=(sex==1),
+	       ratetable=survexp.minnwhite)
+# now, convert the arrays into a data frame
+tdata <- data.frame( age  = (0:105)[col(pfit.m$pyears)],
+		     yr   = (1930:1990)[row(pfit.m$pyears)],
+		       y  = c(pfit.m$event),
+		     time = c(pfit.m$expect))
+# fit the gam model
+gfit.m <- gam(y ~ s(age) + s(yr) + offset(log(time)), family=poisson,
+			data= tdata)
+plot(gfit.m, se=T)
 .SA
 ratetable, survexp, Surv
 .KW survival

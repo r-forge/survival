@@ -33,8 +33,8 @@ the contribution to the information matrix (second derivative of the
 log partial likelihood) at each time point.
 .RC varhaz
 the variance of the hazard increment.
-.RC x, y, weights, strata
-input data for the model
+.RC "x, y, weights, strata"
+copies of the input data.
 .DT
 This function may be useful for those who wish to investigate new methods or
 extensions to the Cox model.  The example below shows one way to calculate

@@ -36,12 +36,16 @@ Does not yet handle confidence intervals.
 plot.survfit, survfit, survexp
 .EX
 fit <- survfit(Surv(futime, fustat) ~ surgery, jasa)
+plot(fit)
+lines(fit[1], lwd=2)       #darken the first curve
+
+# add expected survival curves for the two groups
+#   we need a 'would have been followed until' time for the deaths
 ptime <- ifelse(jasa$fustat==0, jasa$futime, mdy.date(4,1,74)-jasa$accept.dt)
 age <- jasa$accept.dt - jasa$birth.dt
 efit <- survexp(ptime~ratetable(age=age, year=accept.dt, sex=1) + surgery,
 		data=jasa, ratetable=survexp.us, conditional=F,times=0:5*300)
-plot(fit, col=1:2, lty=1)
 lines(efit, col=1:2, lty=2, mark='E', mark.time=1000, cex=1.5)
-# Note: the 2 expected curves are overlap
+# Note: the 2 expected curves overlap
 .KW survival
 .WR

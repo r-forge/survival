@@ -1,4 +1,4 @@
-\." SCCS $Id: coxph.d,v 1.6 1994-10-02 20:01:15 therneau Exp $
+\." SCCS $Id: coxph.d,v 1.7 1995-07-26 15:29:43 therneau Exp $
 .BG
 .FN coxph
 .TL
@@ -9,7 +9,7 @@ Time dependent variables, time dependent strata, multiple events per subject,
 and other extensions are incorporated using the counting process formulation
 of Anderson and Gill.
 .CS
-coxph(formula=formula(data), data=sys.parent(), subset, 
+coxph(formula, data=sys.parent(), subset,
        na.action, weights, eps=0.0001, init,
        iter.max=10, method=c("efron","breslow","exact"),
        singular.ok=T, robust,
@@ -18,7 +18,7 @@ coxph(formula=formula(data), data=sys.parent(), subset,
 .AG formula
 a formula object, with the response on the left of a ~ operator, and
 the terms on the right.  The response must be a survival object as
-returned by the Surv() function.
+returned by the `Surv' function.
 .OA
 .AG data
 a data.frame in which to interpret the variables named in
@@ -79,6 +79,16 @@ as time marches onward we observe the events for a subject, rather
 like watching a Geiger counter.
 The data for a subject is presented as multiple rows or "observations", each
 of which applies to an interval of observation (start, stop].
+.SH SPECIAL TERMS
+There are two special terms that may be used in the model equation.
+A 'strata' term identifies a stratified Cox model; separate baseline hazard
+functions are fit for each strata.
+The `cluster' term is used to compute a robust variance for the model.
+The term `+ cluster(id)', where `id == unique(id)', is equivalent to
+specifying the `robust=T' argument, and produces an approximate jackknife
+estimate of the variance.  If the `id' variable were not unique, but instead
+identifies clusters of correlated observations, then the variance estimate
+is based on a grouped jackknife.
 .SH CONVERGENCE
 In certain data cases the actual MLE estimate of a
 coefficient is infinity, e.g., a dichotomous variable where one of the
@@ -90,8 +100,6 @@ the computer hardware, or the maximum number of interactions is exceeded.
 The routine attempts to detect when this has happened, not always
 successfully.
 .SH REFERENCES
-Terry Therneau, author of local function.
-
 P. Andersen and R. Gill. "Cox's regression model for
 counting processes, a large sample study", Annals of Statistics, 
 10:1100-1120, 1982.  
@@ -99,7 +107,7 @@ counting processes, a large sample study", Annals of Statistics,
 T.Therneau, P. Grambsch, and T.Fleming. "Martingale based residuals
 for survival models", Biometrika, March 1990.
 .SA
-survfit, Surv, strata.
+cluster, survfit, Surv, strata.
 .EX
 # Create the simplest test data set
 #
