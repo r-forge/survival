@@ -1,4 +1,4 @@
-# SCCS $Id: lines.survfit.s,v 4.5 1994-01-06 12:21:39 therneau Exp $
+# SCCS $Id: lines.survfit.s,v 4.6 1994-05-19 16:10:17 therneau Exp $
 lines.survfit <- function(x, type='s', mark=3, col=1, lty=1, lwd=1,
 		       mark.time =T, ...) {
     if (inherits(x, 'survexp')) {
@@ -26,8 +26,9 @@ lines.survfit <- function(x, type='s', mark=3, col=1, lty=1, lwd=1,
     time <- rep(x$time, length=length(x$surv))
     j <- 1
     for (i in 1:ncurve) {
-	n <- strata[1+(j-1)%%nstrat]
+	n <- strata[1+(i-1)%%nstrat]
 	who <- seq(from=j, length=n)
+	j <-  j+n
 	xx <- c(0, time[who])
 	yy <- c(1, x$surv[who])
 	lines(xx, yy, type=type, col=col[i], lty=lty[i], lwd=lwd[i], ...)
@@ -41,10 +42,11 @@ lines.survfit <- function(x, type='s', mark=3, col=1, lty=1, lwd=1,
 		   pch=mark[i],col=col[i], ...)
 	    }
 	else if (mark.time==T) {
-	    deaths <- c(-1, surv$n.event[who])
+	    deaths <- c(-1, x$n.event[who])
 	    if ( any(deaths==0))
 		points(xx[deaths==0], yy[deaths==0],
 			      pch=mark[i],col=col[i], ...)
 	    }
 	}
+    invisible()
     }
