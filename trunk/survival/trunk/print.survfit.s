@@ -1,4 +1,4 @@
-#SCCS $Id: print.survfit.s,v 4.15 2000-03-02 20:40:13 boos Exp $
+#SCCS $Id: print.survfit.s,v 4.16 2000-03-02 20:47:10 boos Exp $
 print.survfit <- function(x, scale=1, 
 			  digits = max(options()$digits - 4, 3), ...) {
 
@@ -88,7 +88,7 @@ print.survfit <- function(x, scale=1,
         }
     else {   #strata case
 	nstrat <- length(x$strata)
-	if (is.null(x$ntimes.strata) x$ntimes.strata <- x$strata
+	if (is.null(x$ntimes.strata)) x$ntimes.strata <- x$strata
 	stemp <- rep(1:nstrat,x$ntimes.strata)
 	x1 <- NULL
 	for (i in unique(stemp)) {
