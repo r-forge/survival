@@ -1,4 +1,4 @@
-#SCCS $Date: 1993-06-10 12:39:43 $ $Id: predict.coxph.s,v 4.7 1993-06-10 12:39:43 therneau Exp $
+#SCCS $Date: 1993-06-29 10:07:16 $ $Id: predict.coxph.s,v 4.8 1993-06-29 10:07:16 therneau Exp $
 #What do I need to do predictions --
 #
 #linear predictor:  exists
@@ -117,14 +117,8 @@ function(object, newdata, type=c("lp", "risk", "expected", "terms"),
     # Collapse over subjects, if requested
     if (!missing(collapse)) {
 	if (length(collapse) != n) stop("Collapse vector is the wrong length")
-	if (!is.matrix(pred)) pred <- tapply(pred, list(collapse), "sum")
-	else
-	    pred<- tapply(pred, list(collapse[row(pred)], col(pred)), sum)
-	if (se.fit){
-	    if (!is.matrix(pred)) se <- sqrt(tapply(se^2, list(collapse), "sum"))
-	    else
-		se<- sqrt(tapply(se^2, list(collapse[row(pred)], col(pred)), sum))
-	    }
+	pred <- rowsum(pred, collapse)
+	if (se.fit) se <- sqrt(rowsum(se^2, collapse))
 	}
 
     if (se.fit) list(fit=pred, se.fit=se)
