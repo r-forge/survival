@@ -1,4 +1,4 @@
-/* SCCS  $Date: 1996-06-24 13:48:58 $ $Id: coxfit2.c,v 4.9 1996-06-24 13:48:58 therneau Exp $                         /*
+/* SCCS  $Date: 1996-11-18 07:55:39 $ $Id: coxfit2.c,v 4.10 1996-11-18 07:55:39 therneau Exp $                         /*
 /*
 ** here is a cox regression program, written in c
 **     uses Efron's approximation for ties
@@ -125,7 +125,7 @@ double  *eps;
 	    }
 	else  {
 	    mark[i] = j + status[i];
-	    wtave[i]= (temp+ status[i]*weights[i])/ mark[i];
+	    if (mark[i] >0) wtave[i]= (temp+ status[i]*weights[i])/ mark[i];
 	    temp=0; j=0;
 	    }
 	}
