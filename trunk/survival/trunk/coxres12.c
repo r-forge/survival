@@ -20,7 +20,7 @@
 **      wmean2  matrix of the same size as resid2
 */
 #include <stdio.h>
-extern double **matrix();
+extern double **dmatrix();
 
 void coxres1(nx, nvarx, y, covar2, strata, score,
 		hazard, cumhaz, resid2, wmean2)
@@ -52,9 +52,9 @@ double  y[],
     /*
     **  Set up the ragged arrays
     */
-    covar=  matrix(covar2, n, nvar);
-    wmean = matrix(wmean2, n, nvar);
-    resid = matrix(resid2, n, nvar);
+    covar=  dmatrix(covar2, n, nvar);
+    wmean = dmatrix(wmean2, n, nvar);
+    resid = dmatrix(resid2, n, nvar);
 
     /*
     ** set up the matrix of weighted means
