@@ -1,4 +1,4 @@
-#SCCS $Id: plot.survfit.s,v 4.9 1993-03-26 17:04:13 therneau Exp $
+#SCCS $Id: plot.survfit.s,v 4.10 1993-04-07 12:25:37 therneau Exp $
 plot.survfit<- function(surv, conf.int,  mark.time=T,
 		 mark=3,col=1,lty=1, lwd=1, cex=1,log=F, yscale=1,
 		 xscale=1,
@@ -39,8 +39,10 @@ plot.survfit<- function(surv, conf.int,  mark.time=T,
     # for log plots we have to be tricky about the y axis scaling
     #
     if   (log) {
+	    ymin <- min(.1,ssurv[!is.na(ssurv) &ssurv>0])
+	    ssurv[!is.na(ssurv) &ssurv==0] <- ymin
 	    plot(c(0, temp),
-	       yscale*c(.99,min(.1,ssurv[!is.na(ssurv) &ssurv>0])),
+	       yscale*c(.99, ymin),
 	       type ='n', log='y', xlab=xlab, ylab=ylab, xaxs=xaxs,...)
 	    }
      else
@@ -91,7 +93,7 @@ plot.survfit<- function(surv, conf.int,  mark.time=T,
 
 	else {
 	    i <- i+1
-	    yy _ c(1,surv$surv[who])
+	    yy _ c(1,ssurv[who])
 	    lines(xx, yy, lty=lty[i], col=col[i], lwd=lwd[i], type='s')
 
 	    if (is.numeric(mark.time)) {
