@@ -1,4 +1,4 @@
-/*SCCS $Id: survexp2.c,v 4.2 1992-03-30 13:06:11 therneau Exp $
+/*SCCS $Id: survexp2.c,v 4.3 1992-08-10 14:14:26 grill Exp $
 ** Calcultate expected survival for a single column of p's
 **
 ** Input
@@ -22,7 +22,7 @@
 **        surv: the expected survival for the cohort, at the specified times.
 */
 #include <math.h>
-void survexp(ntime, times, dim, ages, year, hazard, n,
+void survexp2(ntime, times, dim, ages, year, hazard, n,
 			   entry, birth, sex, work, nsurv, special, surv)
 long    *ntime, *nsurv,  *n;
 long    *special;

@@ -3,7 +3,7 @@
 */
 #include <math.h>
 
-survdiff(nn, nngroup, rho, time, status, group, obs, exp, var, risk, kaplan)
+survdiff2(nn, nngroup, rho, time, status, group, obs, exp, var, risk, kaplan)
 long    *nn,
 	*nngroup,
 	group[],

@@ -1,4 +1,4 @@
-/*    SCCS $Id: survindex2.c,v 2.1 1991-06-12 16:58:08 therneau Exp $
+/*    SCCS $Id: survindex2.c,v 2.2 1992-08-10 14:17:08 grill Exp $
 ** A subroutine for surv.fit.print
 **
 ** Input --
@@ -26,7 +26,7 @@
 **                 indicates an exact tie.
 */
 
-void survindex(n, stime, strata, ntime, time, nstrat, indx, indx2)
+void survindex2(n, stime, strata, ntime, time, nstrat, indx, indx2)
 long n[],
      strata[],
      ntime[],
@@ -40,7 +40,7 @@ double stime[],
     register int i,j;
     int nn;
     int current_strata;
-    double start_time;
+    double star_time;
 
     current_strata = strata[0];
     nn=0;

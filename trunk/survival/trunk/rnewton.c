@@ -38,7 +38,7 @@
 #include <stdio.h>
 #define POWER 2      /*how fast to increase or decrease the ridge parameter*/
 
-int rnewton(maxiter, n, nvar, beta, u, imat, loglik, eps,
+int rnewton2(maxiter, n, nvar, beta, u, imat, loglik, eps,
 		    dolk, doimat, newbeta, savediag, debug)
 int     *maxiter,
 	n,

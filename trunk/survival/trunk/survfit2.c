@@ -1,4 +1,4 @@
-/* SCCS $Id: survfit2.c,v 4.4 1992-05-07 14:36:07 therneau Exp $
+/* SCCS $Id: survfit2.c,v 4.5 1992-08-10 14:15:43 grill Exp $
 /*
 ** Fit the survival curve
 **  Input
@@ -20,7 +20,7 @@
 */
 #include <math.h>
 
-void survfit(sn, y, ny, wt, strata, method, error,mark,surv,
+void survfit2(sn, y, ny, wt, strata, method, error,mark,surv,
 		  varh, risksum, snsurv)
 long *sn;
 long mark[], *snsurv;
