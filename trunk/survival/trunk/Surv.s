@@ -1,4 +1,4 @@
-#SCCS $Date: 1997-02-18 15:20:52 $ $Id: Surv.s,v 4.18 1997-02-18 15:20:52 therneau Exp $
+#SCCS $Date: 1997-11-25 10:22:59 $ $Id: Surv.s,v 4.19 1997-11-25 10:22:59 therneau Exp $
 # Package up surivival type data as a structure
 #
 Surv <- function(time, time2, event,
@@ -34,7 +34,8 @@ Surv <- function(time, time2, event,
 	if (is.logical(time2)) status <- 1*time2
 	    else  if (is.numeric(time2)) {
 		who2 <- !is.na(time2)
-		status <- time2 - (max(time2[who2]) -1)
+		if (max(time2[who2]) ==2) status <- time2 -1
+		else status <- time2
 		if (any(status[who2] !=0  & status[who2]!=1))
 				stop ("Invalid status value")
 		}
