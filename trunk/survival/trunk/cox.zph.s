@@ -1,24 +1,36 @@
-# SCCS $Id: cox.zph.s,v 1.7 1992-07-13 23:37:09 therneau Exp $
-#  Do the Z:PH test on a Cox model fit
+# SCCS $Id: cox.zph.s,v 1.8 1993-01-13 01:01:00 therneau Exp $
+#  Test proportional hazards
 #
-cox.zph <- function(fit, ranks=T, global=T) {
+cox.zph <- function(fit, transform='rank', global=F) {
     if (!inherits(fit, 'coxph')) stop ("Argument must be the result of coxph")
     if (inherits(fit, 'coxph.null'))
 	stop("The are no score residuals for a Null model")
 
-    sresid <- as.matrix(resid(fit, 'scho'))
+    sresid <- as.matrix(resid(fit, 'scaledsch'))
     varnames <- names(fit$coef)
 
-    if (global && ncol(sresid)>1) {
-	sresid <- cbind(sresid, sresid %*% fit$coef)
-	varnames <- c(varnames, "GLOBAL")
-	}
     times <- as.numeric(dimnames(sresid)[[1]])
-    if (ranks) times <- rank(times)
-    corel <- cor(sresid, times)
-    n <- length(times)
-    Z.ph <- .5*log((1+corel)/(1-corel))*sqrt(n-3)
-    Z.ph <- cbind(corel, Z.ph, 2*pnorm(-abs(Z.ph)))
-    dimnames(Z.ph) <- list(varnames, c("rho", "Z:ph", "p"))
-    Z.ph
+    if (is.character(transform)) {
+	times <- switch(transform,
+			       'identity'= times,
+			       'rank'    = rank(times),
+			       stop("Unrecognized transform"))
+	}
+    else times <- transform(times)
+
+    ndead<- sum(fit$y[,ncol(fit$y)])
+    test <- apply((times/sum(times))*sresid, 2, sum)
+
+    if (global) {
+	z <- (test%*% fit$var) %*%test * ndead^2 / (ndead-1)
+	z <- c(chisq=z, p=pchisq(z, ncol(sresid)))
+	z
+	}
+    else {
+	corel <- cor(sresid, times)
+	z <- test^2 * diag(fit$var)* ndead^2/(ndead-1)
+	Z.ph <- cbind(corel, z, pchisq(z,1))
+	dimnames(Z.ph) <- list(varnames, c("rho", "chisq", "p"))
+	Z.ph
+	}
     }
