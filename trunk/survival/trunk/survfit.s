@@ -1,4 +1,4 @@
-#SCCS $Date: 1998-09-25 22:44:01 $ $Id: survfit.s,v 4.12 1998-09-25 22:44:01 therneau Exp $
+#SCCS $Date: 1998-09-25 23:34:04 $ $Id: survfit.s,v 4.13 1998-09-25 23:34:04 therneau Exp $
 survfit <- function (formula, data, weights, subset, na.action, ...) {
     call <- match.call()
     # Real tricky -- find out if the first arg is "Surv(...)" without
@@ -46,8 +46,9 @@ survfit <- function (formula, data, weights, subset, na.action, ...) {
 	else X <- strata(m[ll])
 
 	temp <- survfit.km(X, Y, casewt, ...)
-	attr(temp, "class") <- "survfit"
-	if (!is.null(attr(m, 'na.action'))) temp$na.action <- attr(m, 'na.action')
+	oldClass(temp) <- "survfit"
+	if (!is.null(attr(m, 'na.action'))) 
+		temp$na.action <- attr(m, 'na.action')
 	}
     temp$call <- call
     temp
