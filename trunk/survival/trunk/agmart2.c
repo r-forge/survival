@@ -1,4 +1,4 @@
-/*  SCCS $Id: agmart2.c,v 1.1 1999-06-24 15:16:47 therneau Exp $
+/*  SCCS $Id: agmart2.c,v 1.2 2000-06-12 07:48:10 therneau Exp $
 /*
 ** Compute the martingale residual for a counting process model
 **
@@ -21,8 +21,6 @@
 **      resid   martingale residual
 **
 ** The martingale residual is more of a nuisance for the Efron method
-**
-**  Data must be sorted by time within strata, with events first
 */
 #include <stdio.h>
 #include "survS.h"
