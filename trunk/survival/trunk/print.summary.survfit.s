@@ -1,4 +1,4 @@
-#SCCS $Id: print.summary.survfit.s,v 4.4 2000-03-01 11:17:56 boos Exp $
+#SCCS $Id: print.summary.survfit.s,v 4.5 2000-03-02 20:06:49 boos Exp $
 print.summary.survfit <- function(x, 
 				  digits = max(options()$digits - 4, 3), ...) {
     savedig <- options(digits=digits)
@@ -25,12 +25,24 @@ print.summary.survfit <- function(x,
     if (x$type == 'counting') {
 	mat <- cbind(x$time, x$n.risk, x$n.event, x$n.entered,
 		     x$n.exit.censored, x$surv)
-	if (x$cumm == 1) 
+	if (x$cumm == 1) { 
+	    if (is.Surv(x)) {
 		cnames <- c("time", "n.risk", "Cumm. n.event", 
 			    "Cumm. n.entered", "Cumm. n.censored")
-	else
+	        }	
+	    else {
+		cnames <- c("time", "n.risk", "Cumm. n.event") 
+	        }
+	    }	    
+	else {
+	    if (is.Surv(x)) {
 		cnames <- c("time", "n.risk", "n.event", 
 			    "n.entered", "n.censored")
+	       }
+	    else {
+		cnames <- c("time", "n.risk", "n.event")
+	        }
+	    }
         }
     if (is.matrix(x$surv)) ncurve <- ncol(x$surv)
     else	           ncurve <- 1
