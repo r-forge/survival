@@ -74,6 +74,7 @@ summary.survfit <- function(fit, times, censored=F, scale=1, extend=F, ...) {
   	    }
         }
     else {  #strata case
+	if (is.null(fit$ntimes.strata)) fit$ntimes.strata <- fit$strata
 	nstrat <- length(fit$strata)
 	stemp <- rep(1:nstrat,fit$ntimes.strata)
 	table <- NULL
