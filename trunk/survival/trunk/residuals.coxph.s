@@ -1,4 +1,4 @@
-#  SCCS $Id: residuals.coxph.s,v 5.3 2000-08-31 14:42:40 therneau Exp $
+#  SCCS $Id: residuals.coxph.s,v 5.4 2000-09-07 16:45:37 therneau Exp $
 residuals.coxph <-
   function(object, type=c("martingale", "deviance", "score", "schoenfeld",
 			  "dfbeta", "dfbetas", "scaledsch"),
@@ -8,7 +8,7 @@ residuals.coxph <-
     otype <- type
     if (type=='dfbeta' || type=='dfbetas') {
 	type <- 'score'
-	if (missing(weighted) weighted <- T  # different default
+	if (missing(weighted)) weighted <- T  # different default
 	}
     if (type=='scaledsch') type<-'schoenfeld'
 
