@@ -1,4 +1,4 @@
-#SCCS $Date: 1992-03-25 01:18:14 $ $Id: Surv.s,v 4.3 1992-03-25 01:18:14 therneau Exp $
+#SCCS $Date: 1992-03-25 01:33:56 $ $Id: Surv.s,v 4.4 1992-03-25 01:33:56 therneau Exp $
 # Package up surivival type data as a structure
 #  Eventually allow lots of censored data types
 #
@@ -8,7 +8,7 @@ Surv <- function(time, time2, event,
     ng <- nargs()
     if (missing(type)) {
 	if (ng<3) type <- 'right'
-	else      type <- 'interval'
+	else      type <- 'counting'
 	}
     else {
 	type <- match.arg(type)
