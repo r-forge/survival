@@ -1,4 +1,4 @@
-/* SCCS $Id: survreg2.c,v 1.3 1998-12-02 13:34:43 therneau Exp $
+/* SCCS $Id: survreg2.c,v 1.4 1998-12-06 21:58:02 therneau Exp $
 /*
 ** Fit one of several censored data distributions
 **
@@ -166,11 +166,9 @@ void survreg2(long   *maxiter,   long   *nx,    long   *nvarx,
 	newbeta[i] = beta[i] + u[i];
 	}
     if (*maxiter==0) {
-	if (debug==0) { 
-	    chinv2(imat,nvar2);
-	    for (i=1; i<nvar2; i++)
-		for (j=0; j<i; j++)  imat[i][j] = imat[j][i];
-	    }
+	chinv2(imat,nvar2);
+	for (i=1; i<nvar2; i++)
+	    for (j=0; j<i; j++)  imat[i][j] = imat[j][i];
 	return;   /* and we leave the old beta in peace */
 	}
 
@@ -184,7 +182,8 @@ void survreg2(long   *maxiter,   long   *nx,    long   *nvarx,
     /* put in a call to simplex if in trouble */
 
     for (iter=1; iter<=*maxiter; iter++) {
-	if (debug>0) fprintf(stderr, "iter=%d, loglik=%f\n\n", iter, newlk);
+	if (debug>0) fprintf(stderr, "---\niter=%d, loglik=%f\n\n", iter, 
+			     newlk);
 
 	/* 
 	**   Am I done?  Check for convergence, then update betas
@@ -205,31 +204,33 @@ void survreg2(long   *maxiter,   long   *nx,    long   *nvarx,
 	    }
 
 	if (newlk < *loglik)   {    /*it is not converging ! */
-	    for (i=0; i<nvar2; i++)
-		newbeta[i] = (newbeta[i] + beta[i]) /2; 
-	    /*
-	    ** Special code for sigmas.  Often, they are the part
-	    **  that gets this routine in trouble.  The prior NR step
-	    **  may have decreased one of them by a factor of >10, in which
-	    **  case step halving isn't quite enough.  Make sure the new
-	    **  try differs from the last good one by no more than 1/3
-	    **  approx log(3) = 1.1
-	    **  Step halving isn't enough of a "back away" when a
-	    **  log(sigma) goes from 0.5 to -3, or has become singular.
-	    */
-	    if (halving==1) {  /* only the first time */
-		for (i=0; i<nstrat; i++) {
-		    if ((beta[nvar+i]-newbeta[nvar+i])> 1.1)
-			newbeta[nvar+i] = beta[nvar+i] - 1.1;  
-		    }
-		}
-	    newlk = dolik(n, newbeta, 1);
-	    for (halving=1; halving< 6 && newlk < *loglik; halving++) {
+	    for (j=0; j<5 && newlk < *loglik; j++) {
+		halving++;
 		for (i=0; i<nvar2; i++)
-		    newbeta[i] = (newbeta[i] + beta[i])/2;
+		    newbeta[i] = (newbeta[i] + beta[i]) /2; 
+		/*
+		** Special code for sigmas.  Often, they are the part
+		**  that gets this routine in trouble.  The prior NR step
+		**  may have decreased one of them by a factor of >10, in which
+		**  case step halving isn't quite enough.  Make sure the new
+		**  try differs from the last good one by no more than 1/3
+		**  approx log(3) = 1.1
+		**  Step halving isn't enough of a "back away" when a
+		**  log(sigma) goes from 0.5 to -3, or has become singular.
+		*/
+		if (halving==1) {  /* only the first time */
+		    for (i=0; i<nstrat; i++) {
+			if ((beta[nvar+i]-newbeta[nvar+i])> 1.1)
+			    newbeta[nvar+i] = beta[nvar+i] - 1.1;  
+			}
+		    }
 		newlk = dolik(n, newbeta, 1);
 		}
-	    if (newlk > *loglik) halving=0;
+	    if (debug>0) {
+		fprintf(stderr,"   Step half -- %d steps, newlik=%f\n", 
+			halving, newlk);
+		fflush(stderr);
+		}
 	    }
 
 	else {    /* take a standard NR step */
@@ -417,7 +418,7 @@ static double dolik(int n, double *beta, int whichcase) {
 	/*
 	** Now the derivs wrt loglik
 	*/
-	if (whichcase==1) break;     /*only needed the loglik */
+	if (whichcase==1) continue;     /*only needed the loglik */
 	for (i=0; i<nvar; i++) {
 	    temp = wt[person] * covar[i][person];
 	    u[i] += temp * dg;
@@ -441,10 +442,10 @@ static double dolik(int n, double *beta, int whichcase) {
 
     if (debug >0) {
 	fprintf(stderr, "coef" );
-	if (nvar2=1) j=2; else j=nvar2;
+	if (nvar2==1) j=2; else j=nvar2;
 	for (i=0; i<j; i++) fprintf(stderr," %f", beta[i]);
 	if (whichcase==0) {
-	    fprintf(stderr, "U   ");
+	    fprintf(stderr, "\nU   ");
 	    for (i=0; i<nvar2; i++) fprintf(stderr," %f", u[i]);
 	    }
 	fprintf(stderr, "\n");
