@@ -1,4 +1,4 @@
-#SCCS $Id: ratetable.s,v 4.8 1995-01-24 09:54:49 therneau Exp $
+#SCCS $Id: ratetable.s,v 4.9 1995-01-31 15:00:00 therneau Exp $
 #
 # This is a 'specials' function for pyears
 #   it is a stripped down version of as.matrix(data.frame(...))
@@ -67,9 +67,9 @@ is.na.ratetable2 <- function(x) {
 
     if (any(change)) {  #dims that got smaller, but not dropped
 	newcut <- aa$cutpoints
-	args <- list(...)
 	for (i in (1:length(change))[change])
-	    newcut[[i]] <- (newcut[[i]])[args[[i]]]
+	    if (!is.null(newcut[[i]])) newcut[[i]] <-
+		(newcut[[i]])[match(dimnames(y)[[i]], aa$dimnames[[i]])]
 	aa$cutpoints <- newcut
 	}
     if (drop && any(dropped)){
