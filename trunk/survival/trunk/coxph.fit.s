@@ -1,10 +1,10 @@
-#SCCS $Date: 1995-09-01 12:29:38 $ $Id: coxph.fit.s,v 4.16 1995-09-01 12:29:38 therneau Exp $
+#SCCS $Date: 1995-12-22 13:05:21 $ $Id: coxph.fit.s,v 4.17 1995-12-22 13:05:21 therneau Exp $
 coxph.fit <- function(x, y, strata, offset, init, iter.max,
 			eps, weights, method, rownames)
     {
     n <-  nrow(y)
     if (is.matrix(x)) nvar <- ncol(x)
-    else  if (is.null(x)) nvar <-0;  else nvar <-1
+    else  if (length(x)==0) nvar <-0;  else nvar <-1
     time <- y[,1]
     status <- y[,2]
 
@@ -27,7 +27,7 @@ coxph.fit <- function(x, y, strata, offset, init, iter.max,
     stime <- as.double(time[sorted])
     sstat <- as.integer(status[sorted])
 
-    if (is.null(nvar)) {
+    if (nvar==0) {
 	# A special case: Null model.
 	#  (This is why I need the rownames arg- can't use x' names)
 	score <- exp(offset[sorted])
