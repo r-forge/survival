@@ -1,7 +1,33 @@
 #
-# SCCS $Id: is.ratetable.s,v 4.4 1996-04-09 07:49:47 therneau Exp $
+# SCCS $Id: is.ratetable.s,v 4.5 1996-04-17 14:08:58 therneau Exp $
 #
 is.ratetable <- function(x, verbose=F) {
+    if (!verbose) {
+	if (!inherits(x, 'ratetable')) return(F)
+	att <- attributes(x)
+	if (any(is.na(match(c("dim", "dimnames", "dimid", "factor", "cutpoints"),
+			    names(att))))) return(F)
+	nd <- length(att$dim)
+	if (length(x) != prod(att$dim)) return(F)
+	if (!(is.list(att$dimnames) && is.list(att$cutpoints)))
+		 return(F)
+	if (length(att$dimnames)!=nd || length(att$factor)!=nd ||
+			 length(att$cutpoints)!=nd) return(F)
+	fac <- as.numeric(att$factor)
+	if (any(is.na(fac))) return(F)
+	if (any(fac <0)) return(F)
+	for (i in 1:nd) {
+	    n <- att$dim[i]
+	    if (length(att$dimnames[[i]]) !=n) return(F)
+	    if (fac[i]!=1 && length(att$cutpoints[[i]])!=n) return(F)
+	    if (fac[i]!=1 && any(order(att$cutpoints[[i]])!= 1:n)) return(F)
+	    if (fac[i]==1 && !is.null(att$cutpoints[[i]]))  return(F)
+	    if (fac[i]>1 && i<nd) return(F)
+	    }
+	return(T)
+	}
+
+    #verbose return messages, useful for debugging
     msg <- ""
     if (!inherits(x, 'ratetable')) msg <- c(msg, "wrong class")
     att <- attributes(x)
@@ -25,5 +51,5 @@ is.ratetable <- function(x, verbose=F) {
 	if (fac[i]>1 && i<nd) msg <- c(msg, 'only the last dim can be interpolated')
 	}
     if (msg=='') T
-    else { if (verbose) msg  else F}
+    else msg
     }
