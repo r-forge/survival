@@ -1,4 +1,4 @@
-# SCCS $Id: summary.aareg.s,v 1.3 2002-04-29 15:35:07 therneau Exp $
+# SCCS $Id: summary.aareg.s,v 1.4 2004-11-04 08:28:36 therneau Exp $
 # The summary routine for aareg models.
 # A lot of the work below relates to one particular issue: the coeffients
 #  of an aareg model often get "wild" near the end (at the largest times).
@@ -13,10 +13,10 @@
 #    intermediate material from the fit had to be included in the aareg
 #    object.
 # The "variance" based weighting for a test is not allowed, because it would
-#    have meant an awful more stuff to pass, lots more work, for a test
+#    have meant an awful lot more stuff to pass, lots more work, for a test
 #    that is rarely used.
 #
-summary.aareg <- function(x, maxtime, test=c('aalen', 'nrisk')) {
+summary.aareg <- function(x, maxtime, test=c('aalen', 'nrisk'), scale=1) {
     if (!inherits(x, 'aareg')) stop ("Must be an aareg object")
 
     test <- match.arg(test)
@@ -28,11 +28,11 @@ summary.aareg <- function(x, maxtime, test=c('aalen', 'nrisk')) {
 
     if (test=='aalen') {
         twt <- (as.matrix(x$tweight))[1:ntime,]
-        scale <- apply(twt, 2, sum)
+        scale <- apply(twt, 2, sum)/scale
         }
     else {
         twt <-  x$nrisk[1:ntime]
-        scale <- ntime
+        scale <- ntime/scale
         }
 
     # Compute a "slope" for each line, using appropriate weighting

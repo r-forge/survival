@@ -2,7 +2,7 @@
 <!entity % S-OLD "INCLUDE">
 ]
 >
-<!-- SCCS $Id: summary.aareg.sgml,v 1.2 2002-04-29 14:29:27 therneau Exp $ -->
+<!-- SCCS $Id: summary.aareg.sgml,v 1.3 2004-11-04 08:28:35 therneau Exp $ -->
 <s-function-doc>
 <s-topics>
 <s-topic> summary.aareg </s-topic>
@@ -15,7 +15,7 @@ Creates the overall test statistics for an Aalen additive regression model
 </s-description>
 <s-usage>
 <s-old-style-usage>
-summary.aareg(x, maxtime, test=c("aalen", "nrisk"))
+summary.aareg(x, maxtime, test=c("aalen", "nrisk"), scale=1)
 </s-old-style-usage>
 </s-usage>
 <s-args-required>
@@ -32,6 +32,13 @@ truncate the input to the model at time "maxtime"
 
 <s-arg name=" test ">
 the relative time weights that will be used to compute the test
+</s-arg>
+
+<s-arg name=" scale ">
+scales the coefficients.  
+For some data sets, the coefficients of the Aalen model will be very
+small (10-4); this simply multiplies the printed values by a constant,
+say 1e6, to make the printout easier to read.
 </s-arg>
 </s-args-optional>
 
