@@ -1,4 +1,4 @@
-/* SCCS $Id: agexact.c,v 4.6 1992-08-31 08:06:29 sicks Exp $  */
+/* SCCS $Id: agexact.c,v 4.7 1993-06-17 12:25:27 therneau Exp $  */
 /*
 ** Anderson-Gill formulation of the cox Model
 **   Do an exact calculation of the partial likelihood. (CPU city!)
@@ -29,11 +29,8 @@
 **                      if flag<0, imat is undefined upon return
 **       loglik(2)    :loglik at beta=initial values, at beta=final
 **       sctest       :the score test at beta=initial
-**       flag         :success flag  0 - ok
-**                                  -1 to -nvar: variable __ caused a singular
-**                                             matrix failure
-**                                   1 to nvar: var __ is going to infinity
-**                                 1000 did not converge
+**       flag         :success flag  1000  did not converge
+**                                   1 to nvar: rank of the solution
 **       maxiter      :actual number of iterations used
 **
 **  work arrays
@@ -45,7 +42,7 @@
 **  the 4 arrays score, a, cmat, and newbeta are passed as a single
 **    vector of storage, and then broken out.
 **
-**  calls functions:  cholesky2, chsolve, chinv
+**  calls functions:  cholesky2, chsolve2, chinv2
 **
 **  the data must be sorted by ascending time within strata, deaths before
 **          living within tied times.
@@ -54,6 +51,7 @@
 #include <stdio.h>
 
 double **dmatrix();
+void  init_doloop();
 
 void agexact(maxiter, nusedx, nvarx, start, stop, event, covar2, offset, strata,
 		 means, beta,  u, imat2, loglik, flag, work, work2,
@@ -80,7 +78,7 @@ double  loglik[2],  /* returned values */
 double  *eps;
 {
     register int i,j,k, l, person;
-    int     ierr,iter;
+    int     iter;
     int     n, nvar;
 
     double **covar, **cmat, **imat;  /*ragged array versions*/
@@ -106,8 +104,8 @@ double  *eps;
     newbeta = a + nvar;
     score   = newbeta + nvar;
     newvar  = score + n;
-    index =  work2;
-    atrisk=  work2+n;
+    index =  (int *) work2;
+    atrisk=  index+n;
 
     /*
     ** Subtract the mean from each covar, as this makes the regression
@@ -230,14 +228,8 @@ double  *eps;
     for (i=0; i<nvar; i++) /*use 'a' as a temp to save u0, for the score test*/
 	a[i] = u[i];
 
-    ierr= cholesky2(imat, nvar);
-    if (ierr != 0) {
-	*flag= -ierr;
-	*maxiter=0;
-	return;
-	}
-
-    chsolve(imat,nvar,a);        /* a replaced by  a *inverse(i) */
+    *flag= cholesky2(imat, nvar);
+    chsolve2(imat,nvar,a);        /* a replaced by  a *inverse(i) */
 
     *sctest=0;
     for (i=0; i<nvar; i++)
@@ -251,7 +243,7 @@ double  *eps;
 	newbeta[i] = beta[i] + a[i];
 	}
     if (*maxiter==0) {
-	chinv(imat,nvar);
+	chinv2(imat,nvar);
 	for (i=1; i<nvar; i++)
 	    for (j=0; j<i; j++)  imat[i][j] = imat[j][i];
 	*flag=0;
@@ -364,22 +356,16 @@ double  *eps;
 	/* am I done?
 	**   update the betas and test for convergence
 	*/
-	ierr = cholesky2(imat, nvar);
-	if (ierr != 0) {
-	    *flag= -ierr;
-	    *maxiter=iter;
-	    return;
-	    }
+	*flag = cholesky2(imat, nvar);
 
 	if (fabs(1-(loglik[1]/newlk))<=*eps ) { /* all done */
 	    loglik[1] = newlk;
-	    chinv(imat, nvar);     /* invert the information matrix */
+	    chinv2(imat, nvar);     /* invert the information matrix */
 	    for (i=1; i<nvar; i++)
 		for (j=0; j<i; j++)  imat[i][j] = imat[j][i];
 	    for (i=0; i<nvar; i++)
 		beta[i] = newbeta[i];
 	    if (halving==1) *flag= 1000; /*didn't converge after all */
-	    else            *flag=0;
 	    *maxiter = iter;
 	    return;
 	    }
@@ -394,7 +380,7 @@ double  *eps;
 	    else {
 		halving=0;
 		loglik[1] = newlk;
-		chsolve(imat,nvar,u);
+		chsolve2(imat,nvar,u);
 
 		j=0;
 		for (i=0; i<nvar; i++) {
@@ -405,7 +391,7 @@ double  *eps;
 	}   /* return for another iteration */
 
     loglik[1] = newlk;
-    chinv(imat, nvar);
+    chinv2(imat, nvar);
     for (i=1; i<nvar; i++)
 	for (j=0; j<i; j++)  imat[i][j] = imat[j][i];
     for (i=0; i<nvar; i++)

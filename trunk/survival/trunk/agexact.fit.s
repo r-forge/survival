@@ -1,8 +1,10 @@
 #SCCS 8/6/92 @(#)agexact.fit.s	4.7
 agexact.fit <- function(x, y, strata, offset, iter.max,
-			eps, init, method, rownames)
+			eps, weights, init, method, rownames)
     {
     if (!is.matrix(x)) stop("Invalid formula for cox fitting function")
+    if (!is.null(weights) && any(weights!=1))
+	  stop("Case weights are not supported for the exact method")
     n <- nrow(x)
     nvar <- ncol(x)
     if (ncol(y)==3) {
@@ -59,20 +61,23 @@ agexact.fit <- function(x, y, strata, offset, iter.max,
 		   as.double(eps),
 		   sctest=double(1) )
 
-    if (agfit$flag < 0)
-	  return(paste("X matrix deemed to be singular; variable",-agfit$flag))
-    infs <- abs(agfit$u %*% matrix(agfit$imat,nvar))
+    var <- matrix(agfit$imat,nvar,nvar)
+    coef <- agfit$coef
+    if (agfit$flag < nvar) which.sing <- diag(var)==0
+    else which.sing <- rep(F,nvar)
+
+    infs <- abs(agfit$u %*% var)
     if (iter.max >1) {
 	if (agfit$flag == 1000)
 	       warning("Ran out of iterations and did not converge")
-	else if (any((infs > eps) & (infs > sqrt(eps)*abs(agfit$coef))))
+	else if (any((infs > eps) & (infs > sqrt(eps)*abs(coef))))
 	    warning(paste("Loglik converged before variable ",
-			  paste((1:nvar)[(infs>eps)]),
-			  ", beta may be infinite. "))
+		      paste((1:nvar)[(infs>eps)]),
+		      ", beta may be infinite. "))
 	}
 
-    names(agfit$coef) <- dimnames(x)[[2]]
-    lp  <- x %*% agfit$coef + offset - sum(agfit$coef *agfit$means)
+    names(coef) <- dimnames(x)[[2]]
+    lp  <- x %*% coef + offset - sum(coef *agfit$means)
     score <- as.double(exp(lp[sorted]))
     agres <- .C("agmart",
 		   as.integer(n),
@@ -80,14 +85,16 @@ agexact.fit <- function(x, y, strata, offset, iter.max,
 		   sstart, sstop,
 		   sstat,
 		   score,
+		   rep(1,n),
 		   newstrat,
 		   resid=double(n))
     resid _ double(n)
     resid[sorted] <- agres$resid
     names(resid) <- rownames
+    coef[which.sing] <- NA
 
-    list(coefficients  = agfit$coef,
-		var    = matrix(agfit$imat, ncol=nvar),
+    list(coefficients  = coef,
+		var    = var,
 		loglik = agfit$loglik,
 		score  = agfit$sctest,
 		iter   = agfit$iter,

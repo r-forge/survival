@@ -1,6 +1,6 @@
-#SCCS $Id: agreg.fit.s,v 4.10 1993-01-30 19:37:17 therneau Exp $
+#SCCS $Id: agreg.fit.s,v 4.11 1993-06-17 12:25:31 therneau Exp $
 agreg.fit <- function(x, y, strata, offset, init, iter.max,
-			eps, method, rownames)
+			eps, weights, method, rownames)
     {
     n <- nrow(y)
     nvar <- ncol(x)
@@ -18,8 +18,12 @@ agreg.fit <- function(x, y, strata, offset, init, iter.max,
 	strata <- (as.numeric(strata))[sorted]
 	newstrat <- as.integer(c(1*(diff(strata)!=0), 1))
 	}
-    if (is.null(offset)) offset <- rep(0,n)
-
+    if (missing(offset) || is.null(offset)) offset <- rep(0,n)
+    if (missing(weights)|| is.null(weights))weights<- rep(1,n)
+    else {
+	if (any(weights<=0)) stop("Invalid weights, must be >0")
+	weights <- weights[sorted]
+	}
     sstart <- as.double(start[sorted])
     sstop <- as.double(stopp[sorted])
     sstat <- as.integer(event[sorted])
@@ -33,6 +37,7 @@ agreg.fit <- function(x, y, strata, offset, init, iter.max,
 		       sstart, sstop,
 		       sstat,
 		       offset[sorted],
+		       weights,
 		       newstrat,
 		       loglik=double(1))
 
@@ -42,6 +47,7 @@ agreg.fit <- function(x, y, strata, offset, init, iter.max,
 		       sstart, sstop,
 		       sstat,
 		       score,
+		       weights,
 		       newstrat,
 		       resid=double(n))
 
@@ -67,6 +73,7 @@ agreg.fit <- function(x, y, strata, offset, init, iter.max,
 		       sstat,
 		       x= x[sorted,],
 		       as.double(offset[sorted] - mean(offset)),
+		       weights,
 		       newstrat,
 		       means = double(nvar),
 		       coef= as.double(init),
@@ -99,6 +106,7 @@ agreg.fit <- function(x, y, strata, offset, init, iter.max,
 		       sstart, sstop,
 		       sstat,
 		       score,
+		       weights,
 		       newstrat,
 		       resid=double(n))
 

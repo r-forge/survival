@@ -1,4 +1,4 @@
-/* SCCS $Id: coxfit2.c,v 4.6 1993-01-06 09:23:45 therneau Exp $  */
+/* SCCS $Id: coxfit2.c,v 4.7 1993-06-17 12:25:32 therneau Exp $  */
 /*
 ** here is a cox regression program, written in c
 **     uses Efron's approximation for ties
@@ -16,6 +16,7 @@
 **                       vector can be identically zero, since the nth person's
 **                       value is always assumed to be = to 1.
 **       offset(n)    :offset for the linear predictor
+**       weights(n)   :case weights
 **       eps          :tolerance for convergence.  Iteration continues until
 **                       the percent change in loglikelihood is <= eps.
 **       sctest       : on input contains the method 0=Breslow, 1=Efron
@@ -28,22 +29,22 @@
 **                      if flag<0, imat is undefined upon return
 **       loglik(2)    :loglik at beta=initial values, at beta=final
 **       sctest       :the score test at beta=initial
-**       flag         :success flag  0 - ok
-**                                  1 to nvar: variable __ caused a singular
-**                                             matrix failure
-**                                 1000 did not converge
+**       flag         :success flag  1000  did not converge
+**                                   1 to nvar: rank of the solution
 **       maxiter      :actual number of iterations used
 **
 **  work arrays
 **       mark(n)
-**       a(nvar)
+**       wtave(n)
+**       a(nvar), a2(nvar)
 **       cmat(nvar,nvar)       ragged array
+**       cmat2(nvar,nvar)
 **       newbeta(nvar)         always contains the "next iteration"
 **
-**  the 5 arrays a, a2, cmat, cmat2, and newbeta are passed as a single
+**  the work arrays are passed as a single
 **    vector of storage, and then broken out.
 **
-**  calls functions:  cholesky2, chsolve, chinv
+**  calls functions:  cholesky2, chsolve2, chinv2
 **
 **  the data must be sorted by ascending time within strata
 */
@@ -52,8 +53,9 @@
 
 double **dmatrix();
 
-void coxfit2(maxiter, nusedx, nvarx, time, status, covar2, offset, strata,
-		 means, beta, u, imat2, loglik, flag, mark, work,
+void coxfit2(maxiter, nusedx, nvarx, time, status, covar2, offset,
+		 weights, strata,
+		 means, beta, u, imat2, loglik, flag, work,
 		 eps, sctest)
 
 long    *nusedx,
@@ -61,8 +63,7 @@ long    *nusedx,
 	*maxiter,
 	*flag,
 	strata[],
-	status[],
-	mark[];
+	status[];
 double  *covar2,
 	*imat2;
 double  u[],
@@ -70,20 +71,23 @@ double  u[],
 	*work,
 	beta[],
 	offset[],
+	weights[],
 	time[];
 double  loglik[2],  /* returned values */
 	*sctest;
 double  *eps;
 {
     register int i,j,k, person;
-    int     ierr,iter;
+    int     iter;
     int     nused, nvar;
 
     double **covar, **cmat, **imat;  /*ragged array versions*/
+    double *mark, *wtave;
     double *a, *newbeta;
     double *a2, **cmat2;
-    double  denom, zbeta, weight;
+    double  denom, zbeta, risk;
     double  temp, temp2;
+    double  ndead;
     double  newlk;
     double  d2, efron_wt;
     int     halving;    /*are we doing step halving at the moment? */
@@ -102,24 +106,31 @@ double  *eps;
     a = work + 2*nvar*nvar;
     newbeta = a + nvar;
     a2 = newbeta + nvar;
+    mark = a2 + nvar;
+    wtave= mark + nused;
 
     /*
     **   Mark(i) contains the number of tied deaths at this point,
     **    for the first person of several tied times. It is zero for
     **    the second and etc of a group of tied times.
+    **   Wtave contains the average weight for the deaths
     */
+    temp=0;
     j=0;
     for (i=nused-1; i>0; i--) {
 	if ((time[i]==time[i-1]) & (strata[i-1] != 1)) {
-	    j=j+status[i];
+	    j += status[i];
+	    temp += status[i]* weights[i];
 	    mark[i]=0;
 	    }
 	else  {
-	    mark[i]=j+status[i];
-	    j=0;
+	    mark[i] = j + status[i];
+	    wtave[i]= (temp+ status[i]*weights[i])/ mark[i];
+	    temp=0; j=0;
 	    }
 	}
-    mark[0] = j+status[0];
+    mark[0]  = j + status[0];
+    if (mark[0]>0) wtave[0] = (temp +status[0]*weights[0])/ mark[0];
 
     /*
     ** Subtract the mean from each covar, as this makes the regression
@@ -144,9 +155,9 @@ double  *eps;
 	    imat[i][j] =0 ;
 	}
 
+    efron_wt =0;
     for (person=nused-1; person>=0; person--) {
 	if (strata[person] == 1) {
-	    efron_wt =0;
 	    denom = 0;
 	    for (i=0; i<nvar; i++) {
 		a[i] = 0;
@@ -161,42 +172,42 @@ double  *eps;
 	zbeta = 0;      /* form the term beta*z   (vector mult) */
 	for (i=0; i<nvar; i++)
 	    zbeta += beta[i]*covar[i][person];
-	weight = exp(zbeta +offset[person]);
+	risk = exp(zbeta +offset[person]) * weights[person];
 
-	denom += weight;
-	efron_wt += status[person] * weight;  /* sum of wts for tied deaths*/
+	denom += risk;
+	efron_wt += status[person] * risk;  /*sum(denom) for tied deaths*/
 
 	for (i=0; i<nvar; i++) {
-	    a[i] += weight*covar[i][person];
+	    a[i] += risk*covar[i][person];
 	    for (j=0; j<=i; j++)
-		cmat[i][j] += weight*covar[i][person]*covar[j][person];
+		cmat[i][j] += risk*covar[i][person]*covar[j][person];
 	    }
 
 	if (status[person]==1) {
-	    loglik[1] = loglik[1] + zbeta;
+	    loglik[1] += weights[person]*zbeta;
 	    for (i=0; i<nvar; i++) {
-		    u[i] += covar[i][person];
-		a2[i] +=  weight*covar[i][person];
+		    u[i] += weights[person]*covar[i][person];
+		a2[i] +=  risk*covar[i][person];
 		for (j=0; j<=i; j++)
-		    cmat2[i][j] += weight*covar[i][person]*covar[j][person];
+		    cmat2[i][j] += risk*covar[i][person]*covar[j][person];
 		}
 	    }
 	if (mark[person] >0) {  /* once per unique death time */
-	    for (k=0; k<mark[person]; k++) {
-		/*
-		** trick of the week: if method=0, then temp always =0,
-		**  giving the Breslow method.  This was simpler than lots
-		**  of if-then-else in the code.
-		*/
-		temp = (double)k *method / mark[person];
+	    /*
+	    ** Trick: when 'method==0' then temp=0, giving Breslow's method
+	    */
+	    ndead = mark[person];
+	    for (k=0; k<ndead; k++) {
+		temp = (double)k * method / ndead;
 		d2= denom - temp*efron_wt;
-		loglik[1] -= log(d2);
+		loglik[1] -= wtave[person] * log(d2);
 		for (i=0; i<nvar; i++) {
 		    temp2 = (a[i] - temp*a2[i])/ d2;
-		    u[i] -= temp2;
+		    u[i] -= wtave[person] *temp2;
 		    for (j=0; j<=i; j++)
-			imat[j][i] +=  (cmat[i][j] - temp*cmat2[i][j]) /d2 -
-					  temp2*(a[j]-temp*a2[j])/d2;
+			imat[j][i] +=  wtave[person]*(
+				 (cmat[i][j] - temp*cmat2[i][j]) /d2 -
+					  temp2*(a[j]-temp*a2[j])/d2);
 		    }
 		}
 	    efron_wt =0;
@@ -216,14 +227,8 @@ double  *eps;
     for (i=0; i<nvar; i++) /*use 'a' as a temp to save u0, for the score test*/
 	a[i] = u[i];
 
-    ierr= cholesky2(imat, nvar);
-    if (ierr != 0) {
-	*flag= ierr;
-	*maxiter=0;
-	return;
-	}
-
-    chsolve(imat,nvar,a);        /* a replaced by  a *inverse(i) */
+    *flag= cholesky2(imat, nvar);
+    chsolve2(imat,nvar,a);        /* a replaced by  a *inverse(i) */
 
     *sctest=0;
     for (i=0; i<nvar; i++)
@@ -237,10 +242,9 @@ double  *eps;
 	newbeta[i] = beta[i] + a[i];
 	}
     if (*maxiter==0) {
-	chinv(imat,nvar);
+	chinv2(imat,nvar);
 	for (i=1; i<nvar; i++)
 	    for (j=0; j<i; j++)  imat[i][j] = imat[j][i];
-	*flag=0;
 	return;   /* and we leave the old beta in peace */
 	}
 
@@ -273,24 +277,24 @@ double  *eps;
 	    zbeta = 0;
 	    for (i=0; i<nvar; i++)
 		zbeta += newbeta[i]*covar[i][person];
-	    weight = exp(zbeta +offset[person]);
+	    risk = exp(zbeta +offset[person]) * weights[person];
 
-	    denom += weight;
-	    efron_wt += status[person] * weight;  /* sum of wts for tied deaths*/
+	    denom += risk;
+	    efron_wt += status[person] * risk;  /* sum(denom) for tied deaths*/
 
 	    for (i=0; i<nvar; i++) {
-		a[i] += weight*covar[i][person];
+		a[i] += risk*covar[i][person];
 		for (j=0; j<=i; j++)
-		    cmat[i][j] += weight*covar[i][person]*covar[j][person];
+		    cmat[i][j] += risk*covar[i][person]*covar[j][person];
 		}
 
 	    if (status[person]==1) {
-		newlk += zbeta;
+		newlk += weights[person] *zbeta;
 		for (i=0; i<nvar; i++) {
-		    u[i] += covar[i][person];
-		    a2[i] +=  weight*covar[i][person];
+		    u[i] += weights[person] *covar[i][person];
+		    a2[i] +=  risk*covar[i][person];
 		    for (j=0; j<=i; j++)
-			cmat2[i][j] += weight*covar[i][person]*covar[j][person];
+			cmat2[i][j] += risk*covar[i][person]*covar[j][person];
 		    }
 		}
 
@@ -298,13 +302,14 @@ double  *eps;
 		for (k=0; k<mark[person]; k++) {
 		    temp = (double)k* method /mark[person];
 		    d2= denom - temp*efron_wt;
-		    newlk -= log(d2);
+		    newlk -= wtave[person] *log(d2);
 		    for (i=0; i<nvar; i++) {
 			temp2 = (a[i] - temp*a2[i])/ d2;
-			u[i] -= temp2;
+			u[i] -= wtave[person] *temp2;
 			for (j=0; j<=i; j++)
-			    imat[j][i] +=  (cmat[i][j] - temp*cmat2[i][j]) /d2 -
-					      temp2*(a[j]-temp*a2[j])/d2;
+			    imat[j][i] +=  wtave[person] *(
+				       (cmat[i][j] - temp*cmat2[i][j]) /d2 -
+					      temp2*(a[j]-temp*a2[j])/d2);
 			}
 		    }
 		efron_wt =0;
@@ -318,22 +323,16 @@ double  *eps;
 	/* am I done?
 	**   update the betas and test for convergence
 	*/
-	ierr = cholesky2(imat, nvar);
-	if (ierr != 0) {
-	    *flag= ierr;
-	    *maxiter=iter;
-	    return;
-	    }
+	*flag = cholesky2(imat, nvar);
 
 	if (fabs(1-(loglik[1]/newlk))<=*eps ) { /* all done */
 	    loglik[1] = newlk;
-	    chinv(imat, nvar);     /* invert the information matrix */
+	    chinv2(imat, nvar);     /* invert the information matrix */
 	    for (i=1; i<nvar; i++)
 		for (j=0; j<i; j++)  imat[i][j] = imat[j][i];
 	    for (i=0; i<nvar; i++)
 		beta[i] = newbeta[i];
 	    if (halving==1) *flag= 1000; /*didn't converge after all */
-	    else            *flag=0;
 	    *maxiter = iter;
 	    return;
 	    }
@@ -348,7 +347,7 @@ double  *eps;
 	    else {
 		halving=0;
 		loglik[1] = newlk;
-		chsolve(imat,nvar,u);
+		chsolve2(imat,nvar,u);
 
 		j=0;
 		for (i=0; i<nvar; i++) {
@@ -359,7 +358,7 @@ double  *eps;
 	}   /* return for another iteration */
 
     loglik[1] = newlk;
-    chinv(imat, nvar);
+    chinv2(imat, nvar);
     for (i=1; i<nvar; i++)
 	for (j=0; j<i; j++)  imat[i][j] = imat[j][i];
     for (i=0; i<nvar; i++)

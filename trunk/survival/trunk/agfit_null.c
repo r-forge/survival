@@ -1,4 +1,4 @@
-/* SCCS $Id: agfit_null.c,v 4.4 1993-01-30 19:34:57 therneau Exp $  */
+/* SCCS $Id: agfit_null.c,v 4.5 1993-06-17 12:25:30 therneau Exp $  */
 /*
 ** Fit a "null" model.  We just need the loglik
 **
@@ -9,6 +9,7 @@
 **      stop    stop times
 **      event   =1 if there was an event at time 'stop'
 **      offset  the vector of linear predictors
+**      weights case weights
 **      strata  is =1 for the last obs of a strata
 **
 ** Output
@@ -17,8 +18,9 @@
 */
 #include <math.h>
 
-void agfit_null(n, method, start, stop, event, offset, strata, loglik)
+void agfit_null(n, method, start, stop, event, offset, weights,strata, loglik)
 double  offset[],
+	weights[],
 	start[],
 	stop[],
 	loglik[];
@@ -28,13 +30,14 @@ long    n[1],
 	event[];
 
     {
-    register int i,j,k;
+    register int i,k;
     register double denom;
     double e_denom;
     double temp;
     double time;
     int deaths;
     double itemp;
+    double meanwt;
 
     loglik[0]=0;
     for (i=0; i<*n; ) {
@@ -45,23 +48,26 @@ long    n[1],
 	    */
 	    denom =0;
 	    e_denom =0;
+	    meanwt =0;
 	    deaths =0;
 	    time = stop[i];
 	    for (k=i; k<*n; k++) {
 		if (start[k] < time) denom += exp(offset[k]);
 		if (stop[k]==time && event[k]==1) {
 		    deaths ++;
-		    e_denom += exp(offset[k]);
-		    loglik[0] += offset[k];
+		    e_denom += exp(offset[k]) * weights[k];
+		    loglik[0] += offset[k] * weights[k];
+		    meanwt += weights[k];
 		    }
 		if (strata[k]==1) break;
 		}
 
 	    itemp =0;
+	    meanwt /= deaths;
 	    for (k=i; k<*n && stop[k]==time; k++) {
 		if (event[k]==1) {
 		    temp = *method * itemp / deaths;
-		    loglik[0] -= log(denom - temp*e_denom);
+		    loglik[0] -= meanwt *log(denom - temp*e_denom);
 		    itemp++;
 		    }
 		i++;
