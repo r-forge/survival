@@ -1,4 +1,4 @@
-#SCCS $Date: 1992-09-20 23:26:34 $ $Id: summary.survfit.s,v 1.5 1992-09-20 23:26:34 therneau Exp $
+#SCCS $Date: 1992-09-24 07:26:41 $ $Id: summary.survfit.s,v 1.6 1992-09-24 07:26:41 therneau Exp $
 summary.survfit <- function(fit, times, censored=F, scale=1, ...) {
     if (!inherits(fit, 'survfit'))
 	    stop("Invalid data")
@@ -84,8 +84,8 @@ summary.survfit <- function(fit, times, censored=F, scale=1, ...) {
 	}
 
     ncurve <- ncol(surv)
-    temp <- list(surv=surv, time=times, n.risk=n.risk, n.event=n.event)
-
+    temp <- list(surv=surv, time=times, n.risk=n.risk, n.event=n.event,
+			conf.int=fit$conf.int)
     if (ncurve==1) {
 	temp$surv <- drop(temp$surv)
 	if (!is.null(std.err)) temp$std.err <- drop(std.err)
