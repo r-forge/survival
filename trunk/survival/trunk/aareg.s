@@ -1,4 +1,4 @@
-# SCCS $Id: aareg.s,v 1.2 2002-04-29 14:14:30 therneau Exp $
+# SCCS $Id: aareg.s,v 1.3 2004-11-04 07:45:25 therneau Exp $
 # Aalen's additive regression model
 #  Originally, this tried to call coxph with certain options.
 #  But we found the passing ... to a model method just doesn't work (for
@@ -8,7 +8,7 @@
 #   yet supported by the downstream printing.
 #
 aareg <- function(formula, data=sys.parent(), weights, subset, na.action,
-                  qrtol=1e-7, nmin, dfbeta=F,
+                  qrtol=1e-7, nmin, dfbeta=F, taper=1,
 		  test = c('aalen', 'variance', 'nrisk'),
 		  model=F, x=F, y=F) {
     call <- match.call()
@@ -58,12 +58,18 @@ aareg <- function(formula, data=sys.parent(), weights, subset, na.action,
 	}
     else cluster <- 1:nrow(m)
 
-    # At first I had the line below in the code.  Then I realized that in
-    #  this model, the result of strata (which is just a factor variable)
-    #  is exactly the right thing.  It gives us multiple baselines.
-    #if (length(strats)) {
-    #   stop("Strata terms not allowed")
-    #	}
+    # Adding strata, when there is a coefficent per death, is identical
+    #  to doing a totally separate fit per group.
+    # Using "factor(group)" to get multiple baselines is likely what the
+    #  user wants.  However, because we have not processed the strata
+    #  statement (taken it out of X, and created the 'newstrat' of coxph)
+    #  it will act just like a factor.
+    # I've changed my mind multiple times on commenting out the line below.
+    #  Computationally identical to factor() -- is an error message or not
+    #  an error message the greater source of confusion to a user?
+    if (length(strats)) {
+       stop("Strata terms not allowed")
+       }
 
     if (length(dropx)) X <- model.matrix(Terms[-dropx], m)[,-1,drop=F]
     else               X <- model.matrix(Terms, m)[,-1,drop=F]
@@ -115,9 +121,11 @@ aareg <- function(formula, data=sys.parent(), weights, subset, na.action,
 			  double(nvar*(3 + 2*nvar)) )
     # riskmat is an nused by ndeath 0/1 matrix showing who is present
     riskmat <- matrix(ff$rmat, nused, ndeath) 
+
     # Note that imat, as returned by coxdetail, is Var(X) * nevents.
     dt <- list(means= (matrix(ff$means,ndeath, nvar)),
-	       imat = array(ff$i, c(nvar, nvar, ndeath)),
+	       var = aareg.taper(taper, array(ff$i, c(nvar, nvar, ndeath)), 
+                                     ff$event2[1:ndeath]),
 	       time = times[ff$index[1:ndeath]],
 	       nrisk= ff$nrisk2,            #weighted # at risk
 	       nevent=ff$event2[1:ndeath])  #weighted number of events
@@ -128,12 +136,12 @@ aareg <- function(formula, data=sys.parent(), weights, subset, na.action,
     #   time point.
     if (missing(nmin)) nmin <- 3*nvar
     if (nvar==1)
-        ndeath   <- sum(dt$nrisk>= nmin & c(dt$imat)>0)
+        ndeath   <- sum(dt$nrisk>= nmin & c(dt$var)>0)
     else {
         ndeath <- sum(dt$nrisk >= nmin)
         if (ndeath >0) {
             while (1) {  #we expect very few iterations of this loop
-                qri <- qr(dt$imat[,,ndeath], tol=qrtol)
+                qri <- qr(dt$var[,,ndeath], tol=qrtol)
                 if (qri$rank >= nvar) break   #not singular
                 ndeath <- ndeath -1
                 }
@@ -176,7 +184,7 @@ aareg <- function(formula, data=sys.parent(), weights, subset, na.action,
 	nrisk <- dt$nrisk[dindex]
 	xx <- (X[deaths] - means) * weights[deaths]
 
-	v.inverse <- dt$nevent[dindex]/dt$imat[dindex] #for all time points
+	v.inverse <- 1/dt$var[dindex] #for all time points
 	twt  <- nrisk* 1/cbind(1+ means^2*v.inverse, v.inverse)
 	coefficient <- v.inverse * xx / nrisk 
 	# Note that ybar is always w_i/nrisk, since we are doing the 
@@ -189,8 +197,8 @@ aareg <- function(formula, data=sys.parent(), weights, subset, na.action,
 	    xx <- c(X) * riskmat[,dindex] # X repeated in each col, if at risk
 	    predicted <- coefficient * t(xx) + b0*t(riskmat[,dindex]) 
 	    resid <- resid - predicted  #nused cols, nvevent rows
-            temp1 <- (resid * (t(xx) -means)/(nrisk*dt$imat[dindex])) *
-                       rep(weights, rep(nevent, nused)) * dt$nevent[dindex]
+            temp1 <- (resid * (t(xx) -means)/(nrisk*dt$var[dindex])) *
+                       rep(weights, rep(nevent, nused)) 
 
 	    # temp1[i,j] is the change in alpha at time i for subject j
 	    # the "intercept dfbeta" is resid*wt/sum(wt) - xbar*temp1
@@ -258,8 +266,7 @@ aareg <- function(formula, data=sys.parent(), weights, subset, na.action,
 	    #   the coxph.detail function, is Var(X) * #events
 	    #   and qri is intended to be the qr of V-inverse
             if (i==1 || dindex[i] != dindex[i-1]) {  #don't redo qr for ties
-		nn <- dt$nevent[dindex[i]] #weighted number of events
-                qri <- qr(dt$imat[,,dindex[i]]/nn, tol=qrtol)
+                qri <- qr(dt$var[,,dindex[i]], tol=qrtol)
 		vmat <- qr.coef(qri, diag(nvar))
                 twt[i,] <- nrisk[i] /c(1+ means[i,] %*% vmat %*% means[i,],
 				       diag(vmat))
