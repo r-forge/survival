@@ -1,10 +1,10 @@
-#SCCS  $Id: coxph.s,v 5.5 1998-10-29 22:23:35 therneau Exp $
+#SCCS  $Id: coxph.s,v 5.6 1998-10-29 22:25:44 therneau Exp $
 # Version with general penalized likelihoods
 setOldClass(c('coxph.penal', 'coxph'))
 
 coxph <- function(formula=formula(data), data=sys.parent(),
 	weights, subset, na.action,
-	eps=.0000001, init, iter.max=20, toler.chol=eps/1000,
+	eps=.0001, init, iter.max=10, toler.chol=1e-9,
 	method= c("efron", "breslow", "exact"),
 	singular.ok =T, robust=F,
 	model=F, x=F, y=T) {
@@ -82,6 +82,8 @@ coxph <- function(formula=formula(data), data=sys.parent(),
 	if (any(ord>1)) stop ('Penalty terms cannot be in an interaction')
 	pcols <- (attr(X, 'assign')[-1])[pterms]  
   
+	if (missing(eps)) eps <- 1e-7
+	if (missing(iter.max)) iter.max <- 20  #penalized are hard sometimes
         fit <- coxpenal.fit(X, Y, strats, offset, init=init,
 				iter.max=iter.max, eps=eps, 
 			        toler.chol=toler.chol,
