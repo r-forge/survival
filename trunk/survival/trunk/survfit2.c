@@ -1,4 +1,4 @@
-/* SCCS $Id: survfit2.c,v 4.6 1993-04-07 11:51:22 therneau Exp $
+/* SCCS $Id: survfit2.c,v 4.7 1993-05-03 14:39:12 therneau Exp $
 /*
 ** Fit the survival curve
 **  Input
@@ -24,10 +24,11 @@
 void survfit2(sn, y, ny, wt, strata, method, error,mark,surv,
 		  varh, risksum, snsurv)
 long *sn;
-long mark[], *snsurv;
+long *snsurv;
 long *method, *error;
 long *ny;
 long strata[];
+double mark[];
 double wt[], y[];
 double varh[];
 double surv[];
@@ -44,39 +45,28 @@ double risksum[];
     n = *sn;
     time =y;
     status = y+n;
+    strata[n-1] =1;   /*just in case the parent routine forgot */
     /*
     **  initialize a couple of arrays
     **    mark(i) contains the number of deaths at this particular time point
     **    risksum contains the running # at risk
     */
-    strata[n-1] =1;   /*just in case the parent routine forgot */
-    for (i=n-1; i>0; i--) {
-	if (strata[i]==1) {
-	    sum=0;
-	    j=0;
-	    temp=0;
-	    }
-	sum += wt[i];
-	risksum[i] = sum;
+    for (i=0; i<(n-1); i++)  /*first pass, just mark the ties */
+	if (time[i]==time[i+1] && strata[i]==0)  mark[i+1]= -1;
+	else                                     mark[i+1]=  1;
+    mark[0]=1;
 
-	if ( time[i]==time[i-1] && strata[i-1] ==0) {
-	    j +=status[i] * wt[i];
-	    mark[i] =0;
-	    }
-	else {
-	    mark[i] = j +status[i]* wt[i];
-	    temp=0;
-	    j = 0;
-	    }
-	}
+    temp =0;
+    for (i=n-1; i>=0; i--) {
+	if (strata[i]==1) sum =0;
+	sum  += wt[i];
+	temp += status[i] * wt[i];
 
-    if (strata[0]==0) {
-	mark[0] = j+ status[0]*wt[0];
-	risksum[0] = sum + wt[0];
-	}
-    else {
-	mark[0] = status[0]*wt[0];
-	risksum[0] = wt[0];
+	if (mark[i] == 1) {
+	    mark[i] = temp;
+	    risksum[i] = sum;
+	    temp =0;
+	    }
 	}
 
     /*
@@ -90,31 +80,42 @@ double risksum[];
     surv[0]=1.0;
     varh[0] = 0.0;
     for(i=0; i<n; i++) {
+	if (mark[i] <0) continue;    /*extra data line */
 	if (mark[i] >0) {
-	    if (*error==1 )
-		 varhaz += mark[i]/(risksum[i]*(risksum[i]-mark[i]));
-	    else varhaz += mark[i]/(risksum[i]*risksum[i]);
-	    varh[nsurv] = varhaz;
-
-	    if (*method==2) {
-		/* fh  estimator is easy */
-		hazard += mark[i]/risksum[i];
-		surv[nsurv] = exp(-hazard);
-		}
-
-	    else  {
+	    if (*method==1) {
 	       km *= (risksum[i] - mark[i]) / risksum[i];
 	       surv[nsurv] = km;;
-	       }
+
+		if (*error==1 )
+		     varhaz += mark[i]/(risksum[i]*(risksum[i]-mark[i]));
+		else varhaz += mark[i]/(risksum[i]*risksum[i]);
+		varh[nsurv] = varhaz;
+		}
+	    else  if (*method==2) {
+		hazard += mark[i]/risksum[i];
+		surv[nsurv] = exp(-hazard);
+		if (*error==1 )
+		     varhaz += mark[i]/(risksum[i]*(risksum[i]-mark[i]));
+		else varhaz += mark[i]/(risksum[i]*risksum[i]);
+		varh[nsurv] = varhaz;
+		}
+
+	    else  if (*method==3) {
+		for (j=0; j<mark[i]; j++) {
+		    hazard += 1/(risksum[i] -j);
+		    if (*error==1 )
+			 varhaz += 1/(risksum[i]*(risksum[i]-1));
+		    else varhaz += 1/(risksum[i]*risksum[i]);
+		    }
+		surv[nsurv] = exp(-hazard);
+		varh[nsurv] = varhaz;
+		}
 	    }
+
 	time[nsurv] = time[i];
 	mark[nsurv] = mark[i];
 	risksum[nsurv] = risksum[i];
 	nsurv++;
-
-	/* if there are ties, point to the last one of the set */
-	temp = time[i];
-	for (; i<(n-1) && strata[i]!=1 && time[i+1]==temp; i++);
 
 	if (strata[i]==1) {
 	    strata[nstrat]= nsurv;

@@ -1,12 +1,12 @@
-#SCCS $Id: survfit.km.s,v 4.6 1993-04-07 11:51:21 therneau Exp $
+#SCCS $Id: survfit.km.s,v 4.7 1993-05-03 14:39:26 therneau Exp $
 survfit.km <- function(x, y, casewt=rep(1,n),
-	    type=c('kaplan-meier', 'fleming-harrington'),
+	    type=c('kaplan-meier', 'fleming-harrington', 'fh2'),
 	    error=c('greenwood', "tsiatis"), se.fit=T,
 	    conf.int= .95,
 	    conf.type=c('log', 'log-log', 'plain', 'none'))
     {
     type <- match.arg(type)
-    method <- match(type, c("kaplan-meier", "fleming-harrington"))
+    method <- match(type, c("kaplan-meier", "fleming-harrington", "fh2"))
 
     error <- match.arg(error)
     error.int <- match(error, c("greenwood", "tsiatis"))
@@ -25,17 +25,19 @@ survfit.km <- function(x, y, casewt=rep(1,n),
     newstrat <- as.integer(c(1*(diff(newstrat)!=0), 1))
     if (sum(newstrat) > n/2)
 	stop("Number of strata > number of observations/2")
+    if (method==3 && any(floor(casewt) != casewt))
+	stop("The fh2 method is not valid for fractional case weights")
 
     storage.mode(y) <- "double"
     dimnames(y) <- NULL
     surv <- .C("survfit2", as.integer(n),
 			  y = y,
 			  as.integer(ny),
-			  as.double(casewt),
+			  as.double(casewt[sorted]),
 			  strata= as.integer(newstrat),
 			  nstrat= as.integer(method),
 			  as.integer(error.int),
-			  mark=integer(n),
+			  mark=double(n),
 			  surv=double(n),
 			  varhaz=double(n),
 			  risksum=double(n),
