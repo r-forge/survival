@@ -1,4 +1,4 @@
-#SCCS $Id: survfit.coxph.s,v 4.11 1993-03-26 17:03:31 therneau Exp $
+#SCCS $Id: survfit.coxph.s,v 4.12 1993-04-20 16:32:27 therneau Exp $
 survfit.coxph <-
   function(object, newdata, se.fit=T, conf.int=.95, individual=F,
 	    type=c('tsiatis', 'kaplan-meier'),
@@ -114,7 +114,7 @@ survfit.coxph <-
 			     strata=newstrat,
 			     surv=double(n*n2),
 			     varh=double(n*n2),
-			     nsurv=as.integer(2+ 1*coxmethod=='efron'),
+			     nsurv=as.integer(2+ 1*(coxmethod=='efron')),
 			     x[ord,],
 			     double(3*nvar),
 			     object$var,
