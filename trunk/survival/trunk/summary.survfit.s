@@ -1,18 +1,7 @@
-#SCCS $Date: 1992-09-18 16:21:54 $ $Id: summary.survfit.s,v 1.4 1992-09-18 16:21:54 sicks Exp $
-summary.survfit <- function(fit.list, times, censored=F,
-		       print.it=T,  scale=1, digits=3, ... ) {
-    fit <- fit.list
-    if (!inherits(fit.list, 'survfit'))
+#SCCS $Date: 1992-09-20 23:26:34 $ $Id: summary.survfit.s,v 1.5 1992-09-20 23:26:34 therneau Exp $
+summary.survfit <- function(fit, times, censored=F, scale=1, ...) {
+    if (!inherits(fit, 'survfit'))
 	    stop("Invalid data")
-
-    if (print.it && !is.null(cl<- fit$call)) {
-	cat("Call: ")
-	dput(cl)
-	cat("\n")
-	}
-
-    savedig <- options(digits=digits)
-    on.exit(options(savedig))
 
     n <- length(fit$surv)
     stime <- fit$time/scale
@@ -94,69 +83,29 @@ summary.survfit <- function(fit.list, times, censored=F,
 	stemp <- stemp[indx]
 	}
 
-    #
-    # Now for the printout logic, which is based on width of paper worries
-    #  If "print.it=F" return everything (easy)
-    #  else if ncurve==1, print all vars
-    #          ncurve> 1, skip std error and CI limits
-    #
     ncurve <- ncol(surv)
-    if (print.it==F) {
-	temp <- list(surv=surv, time=times, n.risk=n.risk, n.event=n.event)
-	if (ncurve==1) {
-	    temp$surv <- drop(temp$surv)
-	    if (!is.null(std.err)) temp$std.err <- drop(std.err)
-	    if (!is.null(fit$lower)) {
-		temp$lower <- drop(lower)
-		temp$upper <- drop(upper)
-		}
-	    }
-	else {
-	    temp$surv <- temp$surv
-	    if (!is.null(std.err)) temp$std.err <- std.err
-	    if (!is.null(fit$lower)) {
-		temp$lower <- lower
-		temp$upper <- upper
-		}
-	    }
-	if (!is.null(fit$strata))
-	    temp$strata <- factor(stemp, 
-                labels = names(fit$strata)[sort(unique(stemp))])
-	return(invisible(temp))
-	}
+    temp <- list(surv=surv, time=times, n.risk=n.risk, n.event=n.event)
 
-    mat <- cbind(times, n.risk, n.event, surv)
-    cnames <- c("time", "n.risk", "n.event")
     if (ncurve==1) {
-	cnames <- c(cnames, "survival")
-	if (!is.null(std.err)) {
-	    if (is.null(fit$lower)) {
-		mat <- cbind(mat, std.err)
-		cnames <- c(cnames, "std.err")
-		}
-	    else {
-		mat <- cbind(mat, std.err, lower, upper)
-		cnames <- c(cnames, 'std.err',
-			  paste("lower ", fit$conf.int*100, "% CI", sep=''),
-			  paste("upper ", fit$conf.int*100, "% CI", sep=''))
-		}
+	temp$surv <- drop(temp$surv)
+	if (!is.null(std.err)) temp$std.err <- drop(std.err)
+	if (!is.null(fit$lower)) {
+	    temp$lower <- drop(lower)
+	    temp$upper <- drop(upper)
 	    }
 	}
-    else cnames <- c(cnames, paste("survival", seq(ncurve), sep=''))
-
-    dimnames(mat) <- list(NULL, cnames)
-    if (nstrat==1) {
-	prmatrix(mat, rowlab=rep("", nrow(mat)))
-	}
-    else  { #print it out one strata at a time
-	for (i in unique(stemp)) {
-	    who <- (stemp==i)
-	    cat("               ", names(fit$strata)[i], "\n")
-	    if (sum(who) ==1) print(mat[who,])
-	    else    prmatrix(mat[who,], rowlab=rep("", sum(who)))
-	    cat("\n")
+    else {
+	if (!is.null(std.err)) temp$std.err <- std.err
+	if (!is.null(fit$lower)) {
+	    temp$lower <- lower
+	    temp$upper <- upper
 	    }
-	dimnames(mat) <- list(names(fit$strata)[stemp], cnames)
 	}
-    invisible(mat)
+    if (!is.null(fit$strata))
+	temp$strata <- factor(stemp,
+	    labels = names(fit$strata)[sort(unique(stemp))])
+    temp$call <- fit$call
+    if (!is.null(fit$na.action)) temp$na.action <- fit$na.action
+    class(temp) <- 'summary.survfit'
+    temp
     }
