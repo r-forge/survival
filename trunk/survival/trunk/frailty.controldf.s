@@ -1,10 +1,12 @@
-# SCCS $Id: frailty.controldf.s,v 1.1 1998-10-28 08:51:56 therneau Exp $
+# SCCS $Id: frailty.controldf.s,v 1.2 1998-11-30 08:24:24 therneau Exp $
 # A function to calibrate the df
 #    very empirical  
 # Find the closest 3 points that span the target value
 #   We know the function is monotone, so fit the function
 #     dy = a * (dx)^p   to the 3 points, where dx and dy are the distance
-#   from the leftmost of the three points.
+#     from the leftmost of the three points.
+#   This method can fail near a boundary, so use step halving if things don't
+#     go well
 # On input, parms$df = target degrees of freedom
 #           parms$dfs, parms$thetas = known values (usually 0,0)
 #           parms$guess = first guess
@@ -29,7 +31,7 @@ frailty.controldf <- function(parms, iter, old, df) {
 						    (dfs[2] - dfs[1])
 	if (parms$df > df) theta <- theta * 1.5 
 	return(list(theta=theta, done=F,
-		    history=cbind(thetas=thetas, dfs=dfs)))
+		    history=cbind(thetas=thetas, dfs=dfs), half=0))
 	}
     else{
 	# Now, thetas= our guesses at theta
@@ -37,21 +39,38 @@ frailty.controldf <- function(parms, iter, old, df) {
 	done <- (iter>1 &&
 		 (abs(dfs[nx]-parms$df) < eps))
 
-	# actually look for a new minimum
+	# look for a new minimum
 	x <- thetas
 	y <- dfs
 	target <- parms$df
-	if ((x[1]-x[2])*(y[1]-y[2]) >0)  y <- sort(y)  #monotone up
+
+	# How am I doing
+	if ( abs( (y[nx]-target)/(y[nx-1]-target)) > .6) doing.well <- F
+	else doing.well <- T
+	
+	ord <- order(x)
+	if ((x[1]-x[2])*(y[1]-y[2]) >0)  y <- y[ord]  #monotone up
 	else  { #monotone down
-	    y <- sort(-y)
+	    y <- -1* y[rev(ord)]
 	    target <- -target
 	    }
-	x <- sort(x)
+	x <- x[ord]
 
 	if (all(y>target)) b1 <- 1     #points 1:3 are the closest then
 	else if (all(y<target)) b1 <- nx-2
 	else {
 	    b1 <- max((1:nx)[y <= target]) #this point below target, next above
+	    if (!doing.well && old$half<2) {
+		#try bisection
+		if (length(parms$trace) && parms$trace){
+		    print(cbind(thetas=thetas, dfs=dfs))
+		    cat("  bisect:new theta=" , format( mean(x[b1+0:1])), 
+			"\n\n")
+		    }
+		return(list(theta= mean(x[b1+0:1]),done=done, 
+			      history=cbind(thetas=thetas, dfs=dfs), 
+				            half=old$half+1))
+		}
 	    # use either b1,b1+1,b1+2 or  b1-1, b1, b1+1, whichever is better
 	    #  better = midpoint of interval close to the target
 
@@ -70,10 +89,10 @@ frailty.controldf <- function(parms, iter, old, df) {
 	newx <- (log(target -y[b1]) - a)/power
 	if (length(parms$trace) && parms$trace){
 	    print(cbind(thetas=thetas, dfs=dfs))
-	    cat("  new theta=" , format(newx), "\n\n")
+	    cat("  new theta=" , format(x[b1] + exp(newx)), "\n\n")
 	    }
 	list(theta=x[b1] + exp(newx), done=done, 
-	     history=cbind(thetas=thetas, dfs=dfs))
+	     history=cbind(thetas=thetas, dfs=dfs), half=0)
 	}
     }
 
