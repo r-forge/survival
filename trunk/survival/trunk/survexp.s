@@ -1,14 +1,14 @@
-#SCCS  $Id: survexp.s,v 4.14 1994-01-04 14:56:58 therneau Exp $
+#SCCS  $Id: survexp.s,v 4.15 1994-01-06 09:50:47 therneau Exp $
 survexp <- function(formula=formula(data), data=sys.parent(),
 	weights, subset, na.action,
 	times,  cohort=T,  conditional=T,
-	ratetable=survexp.us, scale=365.25,
+	ratetable=survexp.us, scale=1, npoints,
 	model=F, x=F, y=F) {
 
     call <- match.call()
     m <- match.call(expand=F)
     m$ratetable <- m$model <- m$x <- m$y <- m$scale<- m$cohort <- NULL
-    m$times <- m$conditional <- NULL
+    m$times <- m$conditional <- m$npoints <- NULL
 
     Terms <- if(missing(data)) terms(formula, 'ratetable')
 	     else              terms(formula, 'ratetable',data=data)
@@ -22,22 +22,23 @@ survexp <- function(formula=formula(data), data=sys.parent(),
     Y <- model.extract(m, 'response')
     no.Y <- is.null(Y)
     if (!no.Y) {
-	if (is.matrix(Y) && ncol(Y)>1) {
-	    if (cohort || ncol(Y)!=2)
-		stop("Illegal response value, for cohort survival")
-	    if (Y[,1] >= Y[,2]) stop("Stop time must be > start time")
-	    if (Y[,1] <0) stop("Start time must be >=0")
+	if (is.matrix(Y)) {
+	    if (is.Surv(Y) && attributes(Y, 'type')=='right') Y <- Y[,1]
+	    else stop("Illegal response value")
 	    }
-	else if (any(Y <0)) stop ("Negative follow up time")
+	if (any(Y<0)) stop ("Negative follow up time")
+	if (missing(npoints)) temp <- unique(Y)
+	else                  temp <- seq(min(Y), max(Y), length=npoints)
+	if (missing(times)) newtime <- sort(temp)
+	else  newtime <- sort(unique(c(times, temp[temp<max(times)])))
 	}
     else {
 	conditional <- F
 	if (missing(times))
 	   stop("There is no times argument, and no follow-up times are given in the formula")
+	else newtime <- sort(unique(times))
 	Y <- rep(max(times), n)
 	}
-    if (!missing(times)) newtime <- sort(unique(c(Y, times)))
-    else                 newtime <- sort(unique(Y))
     weights <- model.extract(m, 'weights')
 
     rate <- attr(Terms, "specials")$ratetable
@@ -46,7 +47,8 @@ survexp <- function(formula=formula(data), data=sys.parent(),
     if (length(rate) >1 )
 	stop ("Can have only 1 ratetable() call in a formula")
 
-    ovars <- (dimnames(attr(Terms, 'factors'))[[1]])[-c(1, rate)]
+    if (no.Y) ovars <- attr(Terms, 'term.labels')[-rate]
+    else      ovars <- attr(Terms, 'term.labels')[-(rate-1)]
     rtemp <- match.ratetable(m[,rate], ratetable)
     R <- rtemp$R
     if (!is.null(rtemp$call)) {  #need to dop some dimensions from ratetable

@@ -8,7 +8,7 @@ individual expected survival for each subject.
 .CS
 survexp(formula, data, weights, subset, na.action,
  times, cohort=T, conditional=T,
- ratetable=survexp.us, scale=365.25, model=F, x=F, y=F)
+ ratetable=survexp.us, scale=1, model=F, x=F, y=F)
 .RA
 .AG formula
 a formula object.  The response variable will be a vector of follow-up times,
@@ -33,8 +33,13 @@ expected survival, or y includes only the potential censoring times.
 .AG ratetable
 a table of event rates, such as survexp.uswhite.
 .AG scale
-a scaling for the results.  As most rate tables are in units/day, the
-default value of 365.25 causes the output to be reported in years.
+a scaling for the results.  As most rate tables are in units/day, a
+value of 365.24 would cause the output to be reported in years.
+.AG npoints
+calculate intermediate results at npoints values, evenly spaced on the range
+of `y'.  The usual (exact) calculation is done at each unique 'y' value;
+for very large data sets this may incur too much storage for the scratch
+array.
 .AG model, x, y
 flags to control what is returned.  If any of these is true, then the
 model frame, the model matrix, and/or the vector of response times will be
