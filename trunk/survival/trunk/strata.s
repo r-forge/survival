@@ -1,4 +1,4 @@
-# $Id: strata.s,v 4.7 1993-03-26 17:02:37 therneau Exp $
+# $Id: strata.s,v 4.8 1993-04-12 11:11:04 therneau Exp $
 # Create a strata variable, possibly from many objects
 #
 strata <- function(..., na.group=F, shortlabel=F) {
@@ -19,7 +19,8 @@ strata <- function(..., na.group=F, shortlabel=F) {
 	levs[is.na(levs)] <- length(wlab)
 	wlab <- c(wlab, "NA")
 	}
-    labs <- paste(words[nterms], wlab, sep='=')
+    if (shortlabel) labs <- wlab
+    else            labs <- paste(words[nterms], wlab, sep='=')
     for (i in (1:nterms)[-nterms]) {
 	what <- allf[[nterms-i]]
 	if(is.null(levels(what)))
