@@ -1,4 +1,4 @@
-#SCCS  $Id: survexp.s,v 4.15 1994-01-06 09:50:47 therneau Exp $
+#SCCS  $Id: survexp.s,v 4.16 1994-01-06 11:02:45 therneau Exp $
 survexp <- function(formula=formula(data), data=sys.parent(),
 	weights, subset, na.action,
 	times,  cohort=T,  conditional=T,
@@ -68,9 +68,11 @@ survexp <- function(formula=formula(data), data=sys.parent(),
 		}
 	    X <- strata(m[ovars])
 	    }
+
+	#do the work
 	temp <- survexp.fit(cbind(as.numeric(X),R), Y, newtime,
 			       conditional, ratetable)
-
+	#package the results
 	if (missing(times)) {
 	    n.risk <- temp$n
 	    if (is.matrix(temp$surv)) surv <- apply(temp$surv, 2,cumprod)
@@ -80,8 +82,8 @@ survexp <- function(formula=formula(data), data=sys.parent(),
 	    keep <- match(times, newtime)
 	    if (is.matrix(temp$surv)) {
 		surv <- apply(temp$surv, 2, cumprod)
-		surv <- surv[keep,]
-		n.risk <- temp$n[keep,]
+		surv <- surv[keep,,drop=F]
+		n.risk <- temp$n[keep,,drop=F]
 		}
 	    else {
 		surv <- cumprod(temp$surv)
@@ -92,14 +94,15 @@ survexp <- function(formula=formula(data), data=sys.parent(),
 	    }
 	newtime <- newtime/scale
 	if (length(ovars)) {    #matrix output
-	    if (no.Y) { #use matrix formulation
+	    if (no.Y) { # n's are all the same, so just send a vector
+		dimnames(surv) <- list(NULL, levels(X))
 		out <- list(call=call, surv=surv, n.risk=c(n.risk[,1]),
 			    time=newtime)
 		}
 	    else {
-		#I can't use the "matrix" form of surv, due to different n's
-		out <- list(call=call, surv=c(surv), n.risk=c(n.risk),
-				time = rep(newtime, ncol(surv)))
+		#Need a matrix of n's, and a strata component
+		out <- list(call=call, surv=surv, n.risk=n.risk,
+				time = newtime)
 		tstrat <- rep(nrow(surv), ncol(surv))
 		names(tstrat) <- levels(X)
 		out$strata <- tstrat
@@ -117,6 +120,9 @@ survexp <- function(formula=formula(data), data=sys.parent(),
 	    if (y) out$y <- Y
 	    }
 	out$summ <- rtemp$summ
+	if (no.Y) out$method <- 'exact'
+	else if (conditional) out$method <- 'conditional'
+	else                  out$method <- 'cohort'
 	class(out) <- c("survexp", "survfit")
 	out
 	}
