@@ -63,7 +63,7 @@ coxph.fit <- function(x, y, strata, offset, init, iter.max,
 		   sctest=as.double(method=="efron") )
 
     if (nullmodel) {
-	score <- exp(offset)
+	score <- exp(offset[sorted])
 	coxres <- .C("coxmart", as.integer(n),
 				as.integer(method=='efron'),
 				stime,
