@@ -1,4 +1,4 @@
-/* $Id: survreg.c,v 4.8 1993-03-30 17:29:04 therneau Exp $  */
+/* SCCS $Id: survreg.c,v 4.9 1998-07-22 08:41:21 therneau Exp $
 /*
 ** Fit one of several censored data distributions
 **
@@ -58,11 +58,12 @@
 */
 #include <math.h>
 #include <stdio.h>
+#include <values.h>
 #define  PI     3.141592653589793
 #define  SPI    2.506628274631001     /* sqrt(2*pi) */
 #define  ROOT_2 1.414213562373095
 
-static int debug =0;       /* normally set to zero */
+static int debug =1;       /* normally set to zero */
 
 double **dmatrix();
 static void exvalue_d();
@@ -75,7 +76,7 @@ void sreg_deriv();
 
 static int    nvar, np;
 static double **covar;
-static double *time2, *time, *status;
+static double *time2, *time1, *status;
 static double *g, *dg, *ddg;
 static double *dsig, *ddsig, *dsg;
 static double *offset;
@@ -102,7 +103,7 @@ double  beta[],
 	loglik[2],
 	*eps;
     {
-    register int n, nvar2, i;
+    int n, nvar2, i;
     int maxiter2;
     double *newbeta,
 	   *savediag;
@@ -131,12 +132,12 @@ double  beta[],
     dsg = ddsig +n;
 
     if (*ny==2) {
-	time=y;
+	time1=y;
 	status = y+n;
 	}
     else {
-	time=y;
-	time2 = time + n;
+	time1=y;
+	time2 = time1 + n;
 	status = time2 +n;
 	}
 
@@ -180,30 +181,56 @@ double *loglik;
 	eta =0;
 	for (i=0; i<nvar; i++) eta += beta[i] * covar[i][person];
 	eta += offset[person];
-	z = (time[person] - eta) /sigma;
+	z = (time1[person] - eta) /sigma;
 
 	j = status[person];       /*convert to integer */
 	switch(j) {
 	    case 1:                             /* exact */
 		(*sreg_gg)(z, funs,1);
-		g[person] = log(funs[1])  - log(sigma);
-		temp = funs[2]/sigma;
-		dg[person] = -temp;
-		ddg[person]= funs[3]*sig2 - temp*temp;
+		if (funs[1] <=0) {
+		    /* off the probability scale -- avoid log(0), and set the
+		    **  derivatives to gaussian limits (almost any deriv would
+		    **  do, since the function value triggers step-halving).
+		    */
+		    g[person] = -MAXFLOAT;
+		    dg[person] = -z/sigma;
+		    ddg[person] = -1/sigma;
+		    }
+		else {
+		    g[person] = log(funs[1])  - log(sigma);
+		    temp = funs[2]/sigma;
+		    dg[person] = -temp;
+		    ddg[person]= funs[3]*sig2 - temp*temp;
+		    }
 		break;
 	    case 0:                             /* right censored */
 		(*sreg_gg)(z, funs,2);
-		g[person] = log(funs[1]);
-		temp = funs[2]/(funs[1]*sigma);
-		dg[person] = temp;
-		ddg[person]= -funs[3]*sig2/funs[1] - temp*temp;
+		if (funs[1] <=0) {
+		    g[person] = -MAXFLOAT;
+		    dg[person] = z/sigma;
+		    ddg[person] =0;
+		    }
+		else {
+		    g[person] = log(funs[1]);
+		    temp = funs[2]/(funs[1]*sigma);
+		    dg[person] = temp;
+		    ddg[person]= -funs[3]*sig2/funs[1] - temp*temp;
+		    }
 		break;
 	    case 2:                             /* left censored */
 		(*sreg_gg)(z, funs,2);
-		g[person] = log(funs[0]);
-		temp = funs[2]/(funs[0]*sigma);
-		dg[person]= -temp;
-		ddg[person]= funs[3]*sig2/funs[0] - temp*temp;
+		if (funs[2] <=0) {
+		    /* off the probability scale -- avoid log(0) */
+		    g[person] = -MAXFLOAT;
+		    dg[person] = -z/sigma;
+		    ddg[person] =0;
+		    }
+		else {
+		    g[person] = log(funs[0]);
+		    temp = funs[2]/(funs[0]*sigma);
+		    dg[person]= -temp;
+		    ddg[person]= funs[3]*sig2/funs[0] - temp*temp;
+		    }
 		break;
 	    case 3:                             /* interval censored */
 		zu = (time2[person] - eta)/sigma;  /*upper endpoint */
@@ -211,18 +238,27 @@ double *loglik;
 		(*sreg_gg)(zu,ufun ,2);
 		if (z>0)  temp = funs[1] - ufun[1]; /*stop roundoff in tails*/
 		else      temp = ufun[0] - funs[0];
-		g[person] = log(temp);
-		dg[person]  = -(ufun[2] - funs[2])/(temp*sigma);
-		ddg[person] = (ufun[3] - funs[3])*sig2/temp -
-						     dg[person]*dg[person];
-		if (pfixed[0]==0) {
-		    dsig[person] = (z*funs[2] - zu*ufun[2])/temp;
-		    ddsig[person]= ((zu*zu*ufun[3] - z*z*funs[3])
+		if (temp <=0) {
+		    /* off the probability scale -- avoid log(0) */
+		    g[person] = -MAXFLOAT;
+		    dg[person] = 1; 
+		    ddg[person] =0;
+		    dsig[person] =0; ddsig[person]=0; dsg[person]=0;
+		    }
+		else {
+		    g[person] = log(temp);
+		    dg[person]  = 0;
+		    ddg[person] = 0;
+		
+		    if (pfixed[0]==0) {
+			dsig[person] = (z*funs[2] - zu*ufun[2])/temp;
+			ddsig[person]= ((zu*zu*ufun[3] - z*z*funs[3])
 				      +(zu*ufun[2] - z*funs[2])) /temp -
-				    dsig[person]*dsig[person];
-		    dsg[person] = ((zu*ufun[3] - z*funs[3])
+			              dsig[person]*dsig[person];
+			dsg[person] = ((zu*ufun[3] - z*funs[3])
 				   + (ufun[2] - funs[2])) /(temp*sigma)  -
 				      dsig[person]*dg[person];
+			}
 		    }
 		break;
 	    }
@@ -269,7 +305,7 @@ double  beta[],
 	    eta =0;
 	    for (i=0; i<nvar; i++) eta += beta[i] *covar[i][person];
 	    eta += offset[person];
-	    sz = (time[person] - eta);   /* sigma * z */
+	    sz = (time1[person] - eta);   /* sigma * z */
 
 	    if (status[person]==3) {/* interval censored */
 		u[nvar] += dsig[person];
@@ -319,12 +355,12 @@ double  parms[],
     dsg = ddsig +n;
 
     if (*ny==2) {
-	time=y;
+	time1=y;
 	status = y+n;
 	}
     else {
-	time=y;
-	time2 = time + n;
+	time1=y;
+	time2 = time1 + n;
 	status = time2 +n;
 	}
 
@@ -341,7 +377,7 @@ double  parms[],
     sigma = exp(parms[0]);
     sig2 = 1/(sigma*sigma);
     for (person=0; person<n; person++) {
-	z = (time[person] - eta[person]) /sigma;
+	z = (time1[person] - eta[person]) /sigma;
 
 	j = status[person];       /*convert to integer */
 	switch(j) {
