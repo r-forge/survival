@@ -1,7 +1,7 @@
-#SCCS  $Id: pyears.s,v 4.4 1996-07-29 21:41:22 therneau Exp $
+#SCCS  $Id: pyears.s,v 4.5 1996-11-21 12:50:35 therneau Exp $
 pyears <- function(formula=formula(data), data=sys.parent(),
 	weights, subset, na.action,
-	ratetable=survexp.us, scale=365.25,  expected=c('event', 'pyears'),
+	ratetable=survexp.us, scale=365.25,  expect=c('event', 'pyears'),
 	model=F, x=F, y=F) {
 
     expect <- match.arg(expect)

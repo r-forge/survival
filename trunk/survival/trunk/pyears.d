@@ -35,7 +35,7 @@ a table of event rates, such as survexp.uswhite.
 .AG scale
 a scaling for the results.  As most rate tables are in units/day, the
 default value of 365.25 causes the output to be reported in years.
-.AG expected
+.AG expect
 should the output table include the expected number of events, or the
 expected number of person-years of observation.  This is only valid with
 a rate table.
