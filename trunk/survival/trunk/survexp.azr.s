@@ -1,4 +1,4 @@
-# SCCS $Id: survexp.azr.s,v 4.3 1998-12-17 17:49:43 therneau Exp $
+# SCCS $Id: survexp.azr.s,v 4.4 1999-02-02 18:37:46 therneau Exp $
 #
 # Create the Arizona hazards table, by race
 #   The raw numbers below are q* 10^5.  Note that there are 24 leap years/100
@@ -83,11 +83,13 @@ survexp.azr  <- {
      14466,15800,17048,18338,19682,21089,22557,23911,25346,26866,28478,
      30187,31998,33918,35953,38110,40397,42821)
 
-    temp3 <- -log(1- c(temp1, temp2[1:220], temp2)/100000)/365.24
+    temp1 <- -log(1-temp1/100000)/365.24
+    temp2 <- -log(1- c(temp2[1:220], temp2)/100000)/365.24
 
     # Add in the extrapolated data for 2000
     temp <- array(0, c(110,2, 2, 4))
-    temp[,,,1:3] <- temp3
+    temp[,,1,1:3] <- temp1
+    temp[,,2,1:3] <- temp2
     data.restore("survexp2000.sdump")
     temp[,,1,4]   <- exp(log(temp[,,1,3]) + survexp.2000[,,'white'])
     temp[,,2,4]   <- exp(log(temp[,,2,3]) + survexp.2000[,,'non-white'])
@@ -113,5 +115,5 @@ survexp.azr  <- {
 		     })
     temp
     }
-rm(temp, temp1, temp2, temp3, survexp.2000)
+rm(temp, temp1, temp2, survexp.2000)
 oldClass(survexp.azr) <- 'ratetable'
