@@ -1,4 +1,4 @@
-# SCCS @(#)summary.survreg.s	4.11  11/30/98
+# SCCS $Id: summary.survreg.s,v 4.13 1999-01-31 21:17:29 therneau Exp $
 summary.survreg<- function(object, correlation = T)
 {
     if (!is.null(object$fail)) {
