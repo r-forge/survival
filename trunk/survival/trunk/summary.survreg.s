@@ -1,5 +1,5 @@
-# SCCS $Id: summary.survreg.s,v 4.14 1999-02-06 23:39:04 therneau Exp $
-summary.survreg<- function(object, correlation = T)
+# SCCS $Id: summary.survreg.s,v 4.15 1999-02-11 16:40:25 therneau Exp $
+summary.survreg<- function(object, correlation = F)
 {
     if (!is.null(object$fail)) {
 	warning(" Survreg failed.", x$fail, "   No summary provided\n")
