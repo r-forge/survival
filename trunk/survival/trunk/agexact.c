@@ -1,4 +1,4 @@
-/* SCCS $Id: agexact.c,v 4.4 1992-08-25 12:07:36 grill Exp $  */
+/* SCCS $Id: agexact.c,v 4.5 1992-08-25 12:09:52 grill Exp $  */
 /*
 ** Anderson-Gill formulation of the cox Model
 **   Do an exact calculation of the partial likelihood. (CPU city!)
