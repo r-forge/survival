@@ -1,4 +1,4 @@
-/* SCCS $Id: pyears1.c,v 4.2 1994-04-21 16:47:31 therneau Exp $  */
+/* SCCS $Id: pyears1.c,v 4.3 1996-07-29 21:37:46 therneau Exp $  */
 /*
 **  Person-years calculations, in its most general
 **
@@ -7,6 +7,8 @@
 **      ny      number of columns of y.
 **      doevent does y have an 'events' column?  1=yes, 0=no
 **              if ny=2 and doevent=1, then "start" is missing.
+**      method  if =1 do expected number of events, else expected number
+**                    of person years
 **      y[3,n]  contains start, stop, and event for each subject
 **
 **    expected table
@@ -39,14 +41,14 @@
 ** Scratch   -- allocated on the fly
 **      scratch[edim + odim]
 */
-
+#include<math.h>
 double **dmatrix();
 double pystep();
 
 /* names that begin with "s" will be re-declared in the main body */
 void pyears1(sn, sny, sdoevent, sy,
 		     sedim, efac, edims, secut, expect, sedata,
-		     sodim, ofac, odims, socut, sodata,
+		     sodim, ofac, odims, socut, smethod, sodata,
 		     pyears, pn, pcount, pexpect, offtable)
 
 long    *sn,
@@ -54,6 +56,7 @@ long    *sn,
 	*sdoevent,
 	*sedim,
 	*sodim,
+        *smethod,
 	efac[],
 	ofac[],
 	edims[],
@@ -75,6 +78,7 @@ double  *sy,
     int     n,
 	    ny,
 	    doevent,
+            method,
 	    edim,
 	    odim;
     double  *start,
@@ -94,10 +98,13 @@ double  *sy,
 	    indx, indx2;
     double  wt;
     int     dostart;
+    double  hazard, cumhaz;
+    double  temp, lambda;
 
     n = *sn;
     ny= *sny;
     doevent = *sdoevent;
+    method  = *smethod;
     edim = *sedim;
     odim = *sodim;
     start = sy;
@@ -147,6 +154,7 @@ double  *sy,
 	if (dostart==1) timeleft = stop[i] - start[i];
 	else timeleft= stop[i];
 
+	cumhaz=0;
 	/*
 	** add up p-yrs
 	*/
@@ -159,16 +167,25 @@ double  *sy,
 
 		/* expected calc */
 		etime = thiscell;
+		hazard=0;
+		temp =0;
 		while (etime >0) {
 		    et2 = pystep(edim, &indx, &indx2, &wt, data2, efac,
 				 edims, ecut, etime, 1);
-		    if (wt <1) pexpect[index]+= et2*(wt*expect[indx] +
+		    if (wt <1) lambda = (wt*expect[indx] +
 						     (1-wt)*expect[indx2]);
-		    else       pexpect[index]+= et2* expect[indx];
+		    else       lambda =  expect[indx];
+		    if (method==0)
+			temp += exp(-hazard)*(1-exp(-lambda*et2))/ lambda;
+		    hazard += lambda * et2;
+
 		    for (j=0; j<edim; j++)
 			if (efac[j] !=1) data2[j] += et2;
 		    etime -= et2;
 		    }
+		if (method==1) pexpect[index] += hazard;
+		else           pexpect[index] += exp(-cumhaz)*temp;
+		cumhaz += hazard;
 		}
 	    else  *offtable += thiscell;
 

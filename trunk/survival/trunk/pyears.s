@@ -1,9 +1,10 @@
-#SCCS  $Id: pyears.s,v 4.2 1994-04-21 16:48:50 therneau Exp $
+#SCCS  $Id: pyears.s,v 4.3 1996-07-29 21:37:47 therneau Exp $
 pyears <- function(formula=formula(data), data=sys.parent(),
 	weights, subset, na.action,
-	ratetable=survexp.us, scale=365.25,
+	ratetable=survexp.us, scale=365.25,  expected=c('event', 'pyears'),
 	model=F, x=F, y=F) {
 
+    expect <- match.arg(expect)
     call <- match.call()
     m <- match.call(expand=F)
     m$ratetable <- m$model <- m$x <- m$y <- m$scale<- NULL
@@ -117,12 +118,13 @@ pyears <- function(formula=formula(data), data=sys.parent(),
 			as.integer(ofac),
 			as.integer(odims),
 			as.double(ocut),
+			as.integer(expect=='event'),
 			X,
 			pyears=double(osize),
 			pn    =double(osize),
 			pcount=double(if(is.Surv(Y)) osize else 1),
 			pexpect=double(osize),
-			offtable=double(1))[16:20]
+			offtable=double(1))[17:21]
 	}
     else {
 	temp <- .C('pyears2',
@@ -146,7 +148,8 @@ pyears <- function(formula=formula(data), data=sys.parent(),
 		n     = array(temp$pn,     dim=odims, dimnames=outdname),
 		offtable = temp$offtable/scale)
     if (length(rate)) {
-	out$expected <- array(temp$pexpect, dim=odims, dimnames=outdname)
+        out$expected <- array(temp$pexpect, dim=odims, dimnames=outdname)
+	if (expect=='pyears') out$expected <- out$expected/scale
 	if (!is.null(rtemp$summ)) out$summ <- rtemp$summ
 	}
     if (is.Surv(Y))
@@ -158,5 +161,7 @@ pyears <- function(formula=formula(data), data=sys.parent(),
 	if (x) out$x <- cbind(X, R)
 	if (y) out$y <- Y
 	}
+    class(out) <- 'pyears'
     out
     }
+
