@@ -1,5 +1,5 @@
 /*
-**  SCCS $Id: survproto.h,v 5.8 2000-07-09 14:42:53 boos Exp $
+**  SCCS $Id: survproto.h,v 5.9 2001-01-19 15:55:44 therneau Exp $
 ** prototypes of all the survival functions
 **  along with a few macros
 */
@@ -52,13 +52,14 @@ void agscore(long   *nx,       long   *nvarx,      double *y,
 	     double *weights,  long   *method,     double *resid2, double *a);
 
 void agsurv1(long   *sn,     long   *snvar,  double *y,      double *score, 
-	     long   *strata, double *surv,   double *varh,   long   *snsurv,
+	     long   *strata, 
+	     double *surv,   double *varh,   long   *snsurv,
 	     double *xmat,   double *d,      double *varcov, double *yy,
 	     long   *shisn,  double *hisy,   double *hisxmat,double *hisrisk, 
 	     long   *hisstrat);
 
 void agsurv2(long   *sn,      long   *snvar,    double *y, 
-	     double *score,   long   *strata,   double *surv, 
+	     double *score,   long   *strata,   double *wt,    double *surv, 
 	     double *varh,    double *xmat,     double *varcov, 
 	     long   *snsurv,  double *d,        long   *sncurve,
              double *newx,    double *newrisk);
@@ -134,8 +135,8 @@ double **dmatrix(double *array, int ncol, int nrow);
 void init_doloop(int min, int max);
 int doloop      (int nloops, int *index);
 
-void init_coxcall1(long *ptr1, s_object **ptr2);
-void init_coxcall2(long *ptr1, s_object **ptr2);
+s_object *init_coxcall1(s_object *frame, s_object *nfrail, s_object *expr);
+s_object *init_coxcall2(s_object *frame, s_object *nfrail, s_object *expr);
 void cox_callback (int which, double *coef, double *first, 
                    double *second, double *penalty, long *flag);
 
