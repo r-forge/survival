@@ -24,6 +24,8 @@ the set of variables for which plots are desired.  By default, plots are
 produced in turn for each variable of a model.  Selection of a single variable
 allows other features to be added to the plot, e.g., a horizontal line at
 zero or a main title.
+.PP
+This has been superseded by a subscripting method; see the example below.
 .SE
 a plot is produced on the current graphics device.
 .SA
@@ -32,7 +34,9 @@ cox.zph, coxph
 vfit <- coxph(Surv(futime,fustat) ~ rx + factor(celltype) + karno +age,
 		   data=veteran, x=T)
 temp <- cox.zph(vfit)
-plot(temp, var=5)      #Look at Karnofsy score
+
+plot(temp[5])          #do only the Karnofsky score plot
+#plot(temp, var=5)      #  old way of doing the prior command
 abline(0,0, lty=3)
 lines( lm( temp$y[,5] ~ temp$x), lty=4)   #Add the linear fit as well
 title(main="VA Lung Study")
