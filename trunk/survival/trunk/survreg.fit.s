@@ -1,4 +1,4 @@
-# SCCS $Id: survreg.fit.s,v 5.2 1998-10-27 17:55:12 therneau Exp $
+# SCCS $Id: survreg.fit.s,v 5.3 1998-11-04 02:04:28 therneau Exp $
 #
 # This handles the one parameter distributions-- extreme, logistic,
 #       gaussian, and cauchy.
@@ -10,7 +10,7 @@ survreg.fit<- function(x, y, offset, init, controlvals, dist, fixed,
 
     iter.max <- controlvals$maxiter
     eps <- controlvals$rel.tol
-    toler.cholesky <- controlvals$tolerance.cholesky
+    toler.chol <- controlvals$toler.chol
 
     if (!is.matrix(x)) stop("Invalid X matrix ")
     n <- nrow(x)
@@ -70,7 +70,7 @@ survreg.fit<- function(x, y, offset, init, controlvals, dist, fixed,
 		   loglik=double(2),
 		   flag=integer(1),
 		   as.double(eps),
-	           as.double(toler.cholesky), 
+	           as.double(toler.chol), 
 		   deriv = matrix(double(ncol.deriv*n),nrow=n),
 		   as.integer(dnum))
 
@@ -111,7 +111,7 @@ survreg.fit<- function(x, y, offset, init, controlvals, dist, fixed,
 		   loglik=double(2),
 		   flag=integer(1),
 		   as.double(eps),
-		   as.double(toler.cholesky),
+		   as.double(toler.chol),
 		   deriv = matrix(double(ncol.deriv*n),nrow=n),
 		   as.integer(dnum))
 
