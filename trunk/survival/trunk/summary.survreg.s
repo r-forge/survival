@@ -1,4 +1,4 @@
-# SCCS $Id: summary.survreg.s,v 4.13 1999-01-31 21:17:29 therneau Exp $
+# SCCS $Id: summary.survreg.s,v 4.14 1999-02-06 23:39:04 therneau Exp $
 summary.survreg<- function(object, correlation = T)
 {
     if (!is.null(object$fail)) {
@@ -52,11 +52,8 @@ summary.survreg<- function(object, correlation = T)
     x <- object[match(c('call', 'df', 'loglik', 'iter', 'na.action', 'idf',
 			'scale', 'coefficients', 'var'), 
 		      names(object), nomatch=0)]
-    x$table <- table
-    x$correlation  <- correl
-    x$parms <- pprint
-    x$n <- n
-    x$chi <- 2*diff(object$loglik)
+    x <- c(x, list(table=table, correlation=correl, parms=pprint,
+		   n=n, chi=2*diff(object$loglik)))
 
     oldClass(x) <- 'summary.survreg'
     x

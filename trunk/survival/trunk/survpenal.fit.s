@@ -1,9 +1,10 @@
 # 
-#  SCCS $Id: survpenal.fit.s,v 1.3 1998-12-02 13:34:45 therneau Exp $
+#  SCCS $Id: survpenal.fit.s,v 1.4 1999-02-06 23:40:16 therneau Exp $
 # fit a penalized parametric model
 #
 survpenal.fit<- function(x, y, weights, offset, init, controlvals, dist, 
-		       scale=0, nstrat=1, strata, pcols, pattr, assign) {
+		       scale=0, nstrat=1, strata, pcols, pattr, assign,
+			 parms=NULL) {
 
     iter.max <- controlvals$iter.max
     outer.max <- controlvals$outer.max
@@ -36,12 +37,59 @@ survpenal.fit<- function(x, y, weights, offset, init, controlvals, dist,
     if (is.na(dnum)) {
 	# Not one of the "built-in distributions
 	dnum <- 4
-	if (!is.function(sd$quantiles)) 
-		stop("Missing quantiles function in user defined distribution")
-	stop ('function not yet finished')
+	fitter <- c('survreg3', 'survreg5')
+	#Set up the callback for the sparse frailty term
+	n2 <- n + sum(y[,ny]==3)
+	expr1 <- expression({
+	    z <- survlist$z
+	    if (length(parms)) temp <- sd$density(z, parms)
+	    else               temp <- sd$density(z)
+	    
+	    if (!is.matrix(temp) || any(dim(temp) != c(n2,5)))
+		    stop("Density function returned an invalid matrix")
+	    survlist$density <- as.vector(as.double(temp))
+	    survlist})
+	survlist <- list(z=double(n2), density=double(n2*5))
+	.C("init_survcall", as.integer(sys.nframe()), expr1)
 	}
+    else fitter <- c('survreg2', 'survreg4')
 
+    # This is a subset of residuals.survreg: define the first and second
+    #   derivatives at z=0 for the 4 censoring types
+    #   Used below for starting estimates
+    derfun <- function(y, eta, sigma, density, parms) {
+	ny <<- ncol(y)
+	status <- y[,ny]
+	z <- (y[,1] - eta)/sigma
+	dmat <- density(z,parms)
+	dtemp<- dmat[,3] * dmat[,4]    #f'
+	if (any(status==3)) {
+	    z2 <- (y[,2] - eta)/sigma
+	    dmat2 <- density(z2)
+	    }
+	else {
+	    dmat2 <- matrix(0,1,5)   #dummy values
+	    z2 <- 0
+	    }
+	tdenom <- ((status==0) * dmat[,2]) +
+		  ((status==1) * 1 )       +
+		  ((status==2) * dmat[,1]) +
+		  ((status==3) * ifelse(z>0, dmat[,2]-dmat2[,2], 
+		                             dmat2[,1] - dmat[,1]))
+	tdenom <- 1/(tdenom* sigma)
+	dg <- -tdenom   *(((status==0) * (0-dmat[,3])) +
+			  ((status==1) * dmat[,4]) + 
+			  ((status==2) * dmat[,3]) +
+			  ((status==3) * (dmat2[,3]- dmat[,3])))
+
+	ddg <- (tdenom/sigma)*(((status==0) * (0- dtemp)) +
+			       ((status==1) * dmat[,5]) +
+			       ((status==2) * dtemp) +
+			       ((status==3) * (dmat2[,3]*dmat2[,4] - dtemp))) 
+	list(dg = dg, ddg = ddg - dg^2)
+	}
     status <- y[,ny]
+
     #
     # are there any sparse frailty terms?
     # 
@@ -247,27 +295,20 @@ survpenal.fit<- function(x, y, weights, offset, init, controlvals, dist,
     if (meanonly) stop("Cannot fit a penalized 'mean only' model")
 
     yy <- ifelse(status !=3, y[,1], (y[,1]+y[,2])/2 )
-    coef <- sd$init(yy, weights)
+    coef <- sd$init(yy, weights,parms)
     if (scale >0) vars <- log(scale)
     else vars <- log(coef[2])/2   # init returns \sigma^2, I need log(sigma)
-    coef <- c(coef[1], rep(vars, nstrat))
+    # We sometimes get into trouble with a small estimate of sigma,
+    #  (the surface isn't SPD), but never with a large one.  Double it.
+    coef <- c(coef[1], rep(vars + .7, nstrat))
     # get a better initial value for the mean using the "glim" trick
-    deriv <- .C("survreg3",
-		as.integer(n),
-		as.double(y),
-		as.integer(ny),
-		as.double(yy),
-		nstrat = as.integer(nstrat2),
-		strata = as.integer(strata),
-		vars= as.double(coef[-1]),
-		deriv = matrix(double(n * 3),nrow=n),
-		as.integer(3),
-		as.integer(dnum))$deriv
-    coef[1] <- coef[1] - sum(weights*deriv[,2])/sum(weights*deriv[,3])
+    deriv <- derfun(y, yy, exp(vars), sd$density, parms)
+    coef[1] <- sum(weights* (deriv$dg + deriv$ddg*(yy -offset))) /
+		                        sum(weights*deriv$ddg)
 
     # Now the fit proper (intercept only)
     temp <- 1 +nstrat2
-    fit0 <- .C("survreg2",
+    fit0 <- .C(fitter[1],
 	       iter = as.integer(iter.max),
 	       as.integer(n),
 	       as.integer(1),
@@ -320,7 +361,7 @@ survpenal.fit<- function(x, y, weights, offset, init, controlvals, dist,
     iterfail <- NULL
     thetasave <- unlist(thetalist)
     for (iterx in 1:outer.max) {
-	fit <- .C("survreg4",
+	fit <- .C(fitter[2],
 		   iter = as.integer(iter.max),
 		   as.integer(n),
 		   as.integer(nvar),

@@ -1,4 +1,4 @@
-# SCCS $Id: residuals.survreg.s,v 4.11 1999-01-29 15:28:58 therneau Exp $
+# SCCS $Id: residuals.survreg.s,v 4.12 1999-02-06 23:39:03 therneau Exp $
 # 
 #  Residuals for survreg objects
 residuals.survreg <- function(object, type=c('response', 'deviance',
@@ -91,11 +91,11 @@ residuals.survreg <- function(object, type=c('response', 'deviance',
 	status <- y[,ncol(y)]
 	eta <- object$linear.predictor
 	z <- (y[,1] - eta)/sigma
-	dmat <- dens(z)
+	dmat <- dens(z, object$parms)
 	dtemp<- dmat[,3] * dmat[,4]    #f'
 	if (any(status==3)) {
 	    z2 <- (y[,2] - eta)/sigma
-	    dmat2 <- dens(z2)
+	    dmat2 <- dens(z2, object$parms)
 	    }
 	else {
 	    dmat2 <- dmat   #dummy values
@@ -149,7 +149,7 @@ residuals.survreg <- function(object, type=c('response', 'deviance',
 	}
     
     else if (type=='dfbeta' || type== 'dfbetas') {
-	score <- deriv[,2] %*% x  # score residuals
+	score <- deriv[,2] * x  # score residuals
 	if (rsigma) score <- cbind(score, deriv[,4])
 	rr <-    score %*% vv
 	if (type=='dfbetas') rr <- rr %*% diag(1/sqrt(diag(vv)))

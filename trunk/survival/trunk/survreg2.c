@@ -1,4 +1,4 @@
-/* SCCS $Id: survreg2.c,v 1.4 1998-12-06 21:58:02 therneau Exp $
+/* SCCS $Id: survreg2.c,v 1.5 1999-02-06 23:40:18 therneau Exp $
 /*
 ** Fit one of several censored data distributions
 **
@@ -290,7 +290,7 @@ static double dolik(int n, double *beta, int whichcase) {
 	    sigma;
     double  z, zu,
 	    loglik,
-	    temp;
+	    temp, temp2;
     double  sz;
     double  sig2;
     static double  funs[4], ufun[4];
@@ -343,11 +343,13 @@ static double dolik(int n, double *beta, int whichcase) {
 		else {
 		    g = log(funs[1])  - log(sigma);
 		    temp = funs[2]/sigma;
+		    temp2= funs[3]*sig2;
 		    dg = -temp;
-		    ddg= funs[3]*sig2 - temp*temp;
-		    dsig= -funs[2]*z -1;
-		    dsg = sz * ddg - dg;
-		    ddsig = sz*dsg;
+		    dsig= -temp*sz;
+		    ddg= temp2 - dg*dg;
+		    dsg = sz * temp2 - dg*(dsig +1);
+		    ddsig = sz*sz* temp2 - dsig*(1+dsig);
+		    dsig -= 1;
 		    }
 		break;
 	    case 0:                             /* right censored */
@@ -360,17 +362,18 @@ static double dolik(int n, double *beta, int whichcase) {
 		    }
 		else {
 		    g = log(funs[1]);
-		    temp = funs[2]/(funs[1]*sigma);
-		    dg = temp;
-		    ddg= -funs[3]*sig2/funs[1] - temp*temp;
-		    dsig= sz * temp;
-		    dsg = sz * ddg - dg;
-		    ddsig = sz*dsg;
+		    temp = -funs[2]/(funs[1]*sigma);
+		    temp2= -funs[3]*sig2/funs[1];
+		    dg = -temp;
+		    dsig= -temp*sz;
+		    ddg= temp2 - dg*dg;
+		    dsg = sz * temp2 - dg*(dsig +1);
+		    ddsig = sz*sz* temp2 - dsig*(1+dsig);
 		    }
 		break;
 	    case 2:                             /* left censored */
 		(*sreg_gg)(z, funs,2);
-		if (funs[2] <=0) {
+		if (funs[0] <=0) {
 		    /* off the probability scale -- avoid log(0) */
 		    g = -FLT_MAX;
 		    dg = -z/sigma;
@@ -380,11 +383,12 @@ static double dolik(int n, double *beta, int whichcase) {
 		else {
 		    g = log(funs[0]);
 		    temp = funs[2]/(funs[0]*sigma);
-		    dg= -temp;
-		    ddg= funs[3]*sig2/funs[0] - temp*temp;
-		    dsig= sz * temp;
-		    dsg = sz * ddg - dg;
-		    ddsig = sz*dsg;
+		    temp2= funs[3]*sig2/funs[0];
+		    dg = -temp;
+		    dsig= -temp*sz;
+		    ddg= temp2 - dg*dg;
+		    dsg = sz * temp2 - dg*(dsig +1);
+		    ddsig = sz*sz* temp2 - dsig*(1+dsig);
 		    }
 		break;
 	    case 3:                             /* interval censored */
@@ -405,11 +409,10 @@ static double dolik(int n, double *beta, int whichcase) {
 		    dg  = -(ufun[2] - funs[2])/(temp*sigma);
 		    ddg = (ufun[3] - funs[3])*sig2/temp - dg*dg;
 		    dsig = (z*funs[2] - zu*ufun[2])/temp;
-		    ddsig= ((zu*zu*ufun[3] - z*z*funs[3]) +
-			    (zu*ufun[2] - z*funs[2]))/ temp -dsig*dsig;
-		    dsg = ((zu*ufun[3] - z*funs[3])
-			       + (ufun[2] - funs[2])) /(temp*sigma)  -
-				      dsig*dg;
+		    ddsig= ((zu*zu*ufun[3] - z*z*funs[3])/temp) -
+			                dsig*(1+dsig);
+		    dsg = ((zu*ufun[3] - z*funs[3])/ (temp*sigma)) -
+				      dg * (dsig +1);
 		    }
 		break;
 	    }
@@ -460,130 +463,6 @@ static double dolik(int n, double *beta, int whichcase) {
     return(loglik);
     }
 
-/*
-** This routine is called by S for intial values and
-**   for residuals work.  A stripped down version of
-**   some of the things seen above
-**
-**      deriv   - 3 or 6 column array: terms of the loglik, first deriv
-**                  wrt eta, and second deriv wrt eta.  If 6 columns
-**                  are requested then the next 3 cols contain
-**                  d/sigma, d/sigma^2, and d/(sigma eta)
-**                    (d/='derivative with respect to')
-*/
-void survreg3(long   *nx,      double *y,     long *ny,   double *eta, 
-	       long   *nstratx, long *strata,  double *vars,
-	       double *deriv,   long *ncol, long   *dist)
-    {
-    int n;
-    int person, j;
-    int nstrat;
-    double  sigma;
-    double  z, zu,
-	    temp;
-    double  sig2;
-    static double  funs[4], ufun[4];
-    double *g, *dg, *ddg;
-    double *dsig, *ddsig, *dsg;
-
-    n = *nx;
-    nstrat = *nstratx;
-    g = deriv;
-    dg= g+n;
-    ddg = dg +n;
-    dsig= ddg +n;
-    ddsig = dsig +n;
-    dsg = ddsig +n;
-
-    if (*ny==2) {
-	time1=y;
-	status = y+n;
-	}
-    else {
-	time1=y;
-	time2 = time1 + n;
-	status = time2 +n;
-	}
-
-    switch(*dist) {
-	case 1: sreg_gg = exvalue_d;  break;
-	case 2: sreg_gg = logistic_d; break;
-	case 3: sreg_gg = gauss_d;    break;
-	case 4: sreg_gg = cauchy_d;   break;
-	}
-
-    /*
-    ** calculate the first and second derivative wrt eta
-    */
-    sigma = exp(vars[0]);
-    sig2  = 1/(sigma*sigma);
-    for (person=0; person<n; person++) {
-	if (nstrat>1) {
-	    sigma = exp(vars[strata[person]-1]);
-	    sig2  = 1/(sigma*sigma);
-	    }
-	z = (time1[person] - eta[person]) /sigma;
-
-	j = status[person];       /*convert to integer */
-	switch(j) {
-	    case 1:                             /* exact */
-		(*sreg_gg)(z, funs,1);
-		g[person] = log(funs[1])  - log(sigma);
-		temp = -funs[2]/sigma;
-		dg[person] = temp;
-		ddg[person]= funs[3]*sig2 - temp*temp;
-		if (*ncol==6) {
-		    dsig[person] = temp*sigma*z -1;
-		    dsg[person] =  sigma*z*ddg[person] - temp;
-		    ddsig[person]= sigma*z* dsg[person];
-		    }
-		break;
-	    case 0:                             /* right censored */
-		(*sreg_gg)(z, funs,2);
-		g[person] = log(funs[1]);
-		temp = funs[2]/(funs[1]*sigma);
-		dg[person] = temp;
-		ddg[person]= -funs[3]*sig2/funs[1] - temp*temp;
-		if (*ncol==6) {
-		    dsig[person] = temp*sigma*z;
-		    dsg[person] =  sigma*z*ddg[person] - temp;
-		    ddsig[person]= sigma*z* dsg[person];
-		    }
-		break;
-	    case 2:                             /* left censored */
-		(*sreg_gg)(z, funs,2);
-		g[person] = log(funs[0]);
-		temp = funs[2]/(funs[0]*sigma);
-		dg[person]= -temp;
-		ddg[person]= funs[3]*sig2/funs[0] - temp*temp;
-		if (*ncol==6) {
-		    dsig[person] = temp*sigma*z;
-		    dsg[person] =  sigma*z*ddg[person] - temp;
-		    ddsig[person]= sigma*z* dsg[person];
-		    }
-		break;
-	    case 3:                             /* interval censored */
-		zu = (time2[person] - eta[person])/sigma;  /*upper endpoint */
-		(*sreg_gg)(z, funs, 2);
-		(*sreg_gg)(zu,ufun ,2);
-		if (z>0)  temp = funs[1] - ufun[1]; /*stop roundoff in tails*/
-		else      temp = ufun[0] - funs[0];
-		g[person] = log(temp);
-		dg[person]  = -(ufun[2] - funs[2])/(temp*sigma);
-		ddg[person] = (ufun[3] - funs[3])*sig2/temp -
-						     dg[person]*dg[person];
-		if (*ncol==6) {
-		    dsig[person] = (z*funs[2] - zu*ufun[2])/temp;
-		    ddsig[person]= (zu*zu*ufun[3] - z*z*funs[3])/temp - 
-				    dsig[person]*dsig[person];
-		    dsg[person] = ((zu*ufun[3] - z*funs[3])
-				   + (ufun[2] - funs[2])) /(temp*sigma)  -
-				      dsig[person]*dg[person];
-		    }
-		break;
-	    }
-	}
-    }
 
 /*
 **  Case      ans[0]    ans[1]       ans[2]     ans[3]

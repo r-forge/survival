@@ -1,4 +1,4 @@
-# SCCS $Id: predict.survreg.s,v 4.10 1999-01-20 08:55:53 therneau Exp $
+# SCCS $Id: predict.survreg.s,v 4.11 1999-02-06 23:39:02 therneau Exp $
 predict.survreg <-
     function(object, newdata, type=c('response', "link", 'lp', 'linear',
 				     'terms', 'quantile','uquantile'),
@@ -70,7 +70,7 @@ predict.survreg <-
     else {  # per subject strata not needed
 	temp <- untangle.specials(Terms, 'strata', 1)
 	if (length(temp$terms)) Terms <- Terms[-temp$terms]
-	strata <- rep(1,n)
+	strata <- rep(1,n); nstrata<- 1
 	if (missing(newdata) && need.x) {
 	    x <- object$x
 	    if (is.null(x)) {
@@ -128,7 +128,7 @@ predict.survreg <-
 	else  pred <- x %*% coef 
 	# "pred" is the mean of the distribution,
 	#   now add quantiles and then invert
-	qq <- dd$quantile(p, dd$parm)
+	qq <- dd$quantile(p, object$parm)
 	if (length(qq)==1 || length(pred)==1) {
 	    pred <- pred + qq*scale
 	    if (se.fit && fixedscale) {

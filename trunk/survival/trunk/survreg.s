@@ -1,12 +1,12 @@
 #
-# SCCS $Id: survreg.s,v 5.2 1998-11-30 08:33:36 therneau Exp $
+# SCCS $Id: survreg.s,v 5.3 1999-02-06 23:40:17 therneau Exp $
 #  The newest version of survreg, that accepts penalties and strata
 #
 setOldClass(c('survreg.penal', 'survreg'))
 
 survreg <- function(formula=formula(data), data=sys.parent(),
 	subset, na.action, dist='weibull', 
-	init=NULL,  scale=0, control,
+	init=NULL,  scale=0, control, parms=NULL, 
 	model=F, x=F, y=T, ...) {
 
     call <- match.call()
@@ -83,7 +83,7 @@ survreg <- function(formula=formula(data), data=sys.parent(),
 	tranfun <- dlist$trans
 	exactsurv <- Y[,ncol(Y)] ==1
 	if (any(exactsurv)) logcorrect <-sum(log(dlist$dtrans(Y[exactsurv,1])))
-	
+
 	if (type=='interval') {
 	    if (any(Y[,3]==3))
 		    Y <- cbind(tranfun(Y[,1:2]), Y[,3])
@@ -92,6 +92,10 @@ survreg <- function(formula=formula(data), data=sys.parent(),
 	else if (type=='left')
 	     Y <- cbind(tranfun(Y[,1]), 2-Y[,2])
 	else     Y <- cbind(tranfun(Y[,1]), Y[,2])
+	}
+    else {
+	if (type=='left') Y[,2] <- 2- Y[,2]
+	else if (type=='interval' && all(Y[,3]<3)) Y < Y[,c(1,3)]
 	}
 
     if (!is.null(dlist$scale)) {
@@ -128,11 +132,12 @@ survreg <- function(formula=formula(data), data=sys.parent(),
 				controlvals = controlvals,
 			        dist= dlist, scale=scale,
 			        strata=strata, nstrat=nstrata,
-				pcols, pattr)
+				pcols, pattr, parms=parms)
 	}
     else fit <- survreg.fit(X, Y, weights, offset, 
 			    init=init, controlvals=controlvals,
-			    dist= dlist, scale=scale, nstrat=nstrata, strata)
+			    dist= dlist, scale=scale, nstrat=nstrata, 
+			    strata, parms=parms)
 
     if (is.character(fit))  fit <- list(fail=fit)  #error message
     else {
@@ -161,6 +166,7 @@ survreg <- function(formula=formula(data), data=sys.parent(),
     if (model) fit$model <- m
     if (x)     fit$x <- X
     if (y)     fit$y <- Y
+    if (length(parms)) fit$parms <- parms
     if (any(pterms)) oldClass(fit) <- 'survreg.penal'
     else	     oldClass(fit) <- 'survreg'
     fit
