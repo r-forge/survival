@@ -3,7 +3,7 @@
 .TL
 Give row sums of a matrix, based on a grouping variable.
 .CS
-rowsum(x, group, reorder=T)
+rowsum(x, group, reorder=F)
 .RA
 .AG x
  a matrix or vector of numeric data.  Missing values are allowed.
