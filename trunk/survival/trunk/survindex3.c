@@ -1,4 +1,4 @@
-/*    SCCS %w% $Date: 1999-10-26 14:45:38 $
+/*    SCCS %w% $Date: 2000-03-01 11:46:57 $
 ** A subroutine for summary.survfit
 **
 ** Input --
