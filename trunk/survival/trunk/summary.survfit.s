@@ -1,4 +1,4 @@
-#SCCS $Id: summary.survfit.s,v 5.9 2001-12-31 14:57:52 therneau Exp $
+#SCCS $Id: summary.survfit.s,v 5.10 2002-08-06 13:22:49 therneau Exp $
 #
 # Version with no C code, using approx() to do the subscript
 #  calculations
@@ -19,7 +19,7 @@ summary.survfit <- function(object, times, censored=F,
     surv <- as.matrix(fit$surv)
     if (is.null(fit$strata)) {
 	nstrat <- 1
-	stemp <- rep(1, length(surv))
+	stemp <- rep(1, nrow(surv))
         strata.names <- ""
 	}
     else   {
