@@ -1,4 +1,4 @@
-/* SCCS $Id: rnewton.c,v 4.2 1992-06-27 02:14:59 therneau Exp $  */
+/* SCCS @(#)rnewton.c	1.1 7/1/92  */
 /*
 ** Ridge stabilized Newton iteration
 **
@@ -73,6 +73,7 @@ void    (*dolk)(),
 	fprintf(stderr, "\nCall to rnewton: LL=%f, coef= ", newlk);
 	for (i=0; i<nvar; i++) fprintf(stderr, "%f ", beta[i]);
 	fprintf(stderr, "\n");
+	fflush(stderr);
 	}
 
     (*doimat)(n, nvar, beta, u, imat);
@@ -84,8 +85,13 @@ void    (*dolk)(),
     */
     ierr = cholesky(imat, nvar);
     if (ierr !=0) {
-	if (*maxiter==0) return(ierr);
-
+	if (*maxiter==0) {   /* Bail out */
+	    for (i=0; i<nvar; i++) {
+		imat[i][i] = savediag[i];
+		for (j=0; j<i; j++)  imat[i][j] = imat[j][i];
+		}
+	    return(ierr);
+	    }
 	/*
 	** Turn on ridge stabilization
 	*/
@@ -123,33 +129,34 @@ void    (*dolk)(),
 	halving=0;
 	(*dolk)(n, nvar, newbeta, &newlk);
 	if (debug>0) {
-	    fprintf(stderr, "Iter %d: LL=%f, tau=%f, coef= ",
+	    fprintf(stderr, "Iter %2d: LL=%f, tau=%f, coef= ",
 				    iter, newlk, tau*levenberg);
 	    for (i=0; i<nvar; i++) fprintf(stderr, "%f ", newbeta[i]);
 	    fprintf(stderr, "\n");
+	    fflush(stderr);
 	    }
 
-	if ((eps + newlk) > loglik[1])  tau /= 2*POWER;
-	else do {   /* step halving */
+	if ((eps + newlk) <= loglik[1]) do {   /* step halving */
 	    halving++;
-	    if (halving > 5) {
+	    if (halving > 20) {    /*stop an infinite loop */
 		for (i=0; i<nvar; i++) newbeta[i] = beta[i];
-		newlk = loglik[1];
 		levenberg=1;
+		tau *= POWER;
 		goto retry;  /*this ain't working -- try ridging! */
 		}
 	    for (i=0; i<nvar; i++)
 		newbeta[i] = (newbeta[i] + beta[i]) /2;
 	    (*dolk)(n, nvar, newbeta, &newlk);
-	    tau *= POWER;
 
 	    if (debug>0) {
 		fprintf(stderr, "Halving! LL=%f, tau=%f, coef= ",
 					 newlk, tau*levenberg);
 		for (i=0; i<nvar; i++) fprintf(stderr, "%f ", newbeta[i]);
 		fprintf(stderr, "\n");
+		fflush(stderr);
 		}
 	    } while ( (eps + newlk) <= loglik[1]) ;
+	tau /= 2*POWER;
 
 	(*doimat)(n, nvar, newbeta, u, imat);
 	for (i=0; i<nvar; i++)  savediag[i] = imat[i][i];
@@ -165,6 +172,8 @@ retry:  if (levenberg) {
 		    imat[i][i] = savediag[i] + fabs(savediag[i])* tau;
 		ierr = cholesky(imat, nvar);
 		tau *= POWER;
+		if (debug>0 && ierr !=0)
+			fprintf(stderr, "\tBump tau to %f\n", tau);
 		}  while (ierr !=0);
 	    tau /= POWER;
 	    }

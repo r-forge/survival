@@ -1,7 +1,8 @@
-#SCCS $Date: 1992-06-27 02:15:00 $ $Id: survreg.s,v 4.6 1992-06-27 02:15:00 therneau Exp $
+#SCCS $Id: survreg.s,v 4.7 1992-07-10 09:18:12 therneau Exp $
 survreg <- function(formula=formula(data), data=sys.parent(),
 	subset, na.action,
-	link=c('log', 'identity'), dist=c("extreme", "logistic", "exp"),
+	link=c('log', 'identity'),
+	dist=c("extreme", "logistic", "gaussian", "exponential"),
 	scale,
 	eps=.0001, init, iter.max=10,
 	model=F, x=F, y=F, ...) {
@@ -9,7 +10,7 @@ survreg <- function(formula=formula(data), data=sys.parent(),
     call <- match.call()
     m <- match.call(expand=F)
     m$dist <- m$link <- m$model <- m$x <- m$y <- m$... <-  NULL
-    m$eps <- m$inf.ratio <- m$init <- m$iter.max <- m$n.table <- NULL
+    m$eps <- m$init <- m$iter.max <- NULL
     m$scale <- NULL
 
     Terms <- if(missing(data)) terms(formula, 'strata')
@@ -33,10 +34,12 @@ survreg <- function(formula=formula(data), data=sys.parent(),
     linkfun <- glm.links["link", link][[1]]
     if (type== 'counting') stop ("Invalid survival type")
     else if (type=='interval') {
-	if (any(Y[,3]==4))
+	if (any(Y[,3]==3))
 	     Y <- cbind(linkfun(Y[,1:2]), Y[,3])
 	else Y <- cbind(linkfun(Y[,1]), Y[,3])
 	}
+    else if (type=='right')
+	     Y <- cbind(linkfun(Y[,1]), 2-Y[,2])
     else     Y <- cbind(linkfun(Y[,1]), Y[,2])
 
     if (missing(init)) init <- NULL
@@ -48,37 +51,44 @@ survreg <- function(formula=formula(data), data=sys.parent(),
     else if (dist=="logistic")
 	sfit <- survreg.fit(X, Y, offset, init=init, iter.max=iter.max,
 			    eps = eps, fun='logisticfit', scale=scale)
-    else if (dist=="exp")
+    else if (dist=="exponential")
 	sfit <- survreg.fit(X, Y, offset, init=init, iter.max=iter.max,
 			    eps = eps, fun='exvalue', scale=1)
 
-    else stop(paste ("Unknown method", dist))
+    else stop(paste ("Unknown distribution", dist))
 
     if (is.character(sfit))  fit <- list(fail=sfit)  #error message
     else {
-	# There are certainly more clever ways to do this, but ....
+	# There may be more clever ways to do this, but ....
 	#  In order to make it look like IRLS, and get all the components
 	#  that I need for glm inheritance, do one step of weighted least
 	#  squares.
-	if (missing(scale)) scale <- sfit$coef[nvar+1]
+	if (missing(scale)) scale <- exp(as.vector(sfit$coef[nvar+1]))
 	eta <- c(X %*% sfit$coef[1:nvar]) + offset
 	wt<- -sfit$deriv[,3]
 	fit <- lm.wfit(X, eta + sfit$deriv[,2]/wt, wt, "qr", ...)
 
-	na.action <- attr(m, "na.action")
-	if (length(na.action)) fit$na.action <- na.action
 	if (link=='log') fit$fitted.values <- exp(fit$fitted.values)
 	fit$family <- c(name=dist, link=link, "")
 	fit$linear.predictors <- eta
-	fit$deviance <- -2*sfit$loglik[1]
-	fit$null.deviance <- -2*sfit$null[1]
+	fit$deviance <- sfit$loglik[1]
+	fit$null.deviance <- sfit$null[1]
 	fit$iter <- sfit$iter
 	fit$scale<- scale
-	fit$var  <- solve(sfit$imat)
+
+	# If singular.ok=T, there may be NA coefs.  The var matrix should
+	#   be an inversion of the "non NA" portion.
+	good <- c(!is.na(fit$coef),T)
+	var <- matrix(0, nvar+1, nvar+1)
+	var[good,good] <- solve(sfit$imat[good,good])
+	fit$var <- var
+
 	fit$flag <- sfit$flag
-	fit$dresiduals <- sign(fit$residuals)*sqrt(-2*sfit$deriv[,1])
+	fit$dresiduals <- sign(fit$residuals)*sqrt(sfit$deriv[,1])
 	}
 
+    na.action <- attr(m, "na.action")
+    if (length(na.action)) fit$na.action <- na.action
     attr(fit, "class") <-  c("survreg", "glm", "lm")
     fit$terms <- Terms
     fit$formula <- as.vector(attr(Terms, "formula"))
