@@ -1,4 +1,4 @@
-#SCCS $Id: plot.cox.zph.s,v 4.6 1996-08-13 15:48:23 therneau Exp $
+#SCCS $Id: plot.cox.zph.s,v 4.7 2001-05-08 09:17:46 therneau Exp $
 plot.cox.zph <- function(x, resid=T, se=T, df=4, nsmo=40, var, ...) {
     xx <- x$x
     yy <- x$y
@@ -11,6 +11,8 @@ plot.cox.zph <- function(x, resid=T, se=T, df=4, nsmo=40, var, ...) {
     pmat <- lmat[1:nsmo,]       # for prediction
     xmat <- lmat[-(1:nsmo),]
     qmat <- qr(xmat)
+    if (qmat$rank < df) 
+	 stop("Spline fit is singular, try a smaller degrees of freedom")
 
     if (se) {
 	bk <- backsolve(qmat$qr[1:df, 1:df], diag(df))
