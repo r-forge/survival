@@ -2,7 +2,7 @@
 <!entity % S-OLD "INCLUDE">
 ]
 >
-<-- SCCS $Id: Surv.sgml,v 1.4 2001-07-13 15:22:42 therneau Exp $ -->
+<!-- SCCS $Id: Surv.sgml,v 1.5 2001-09-18 08:26:43 splus Exp $ -->
 <s-function-doc>
 <s-topics>
    <s-topic>Surv</s-topic>
