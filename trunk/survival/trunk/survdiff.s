@@ -1,4 +1,4 @@
-#SCCS $Date: 1992-04-14 18:07:56 $ $Id: survdiff.s,v 4.5 1992-04-14 18:07:56 grill Exp $
+#SCCS $Date: 1992-06-01 09:26:55 $ $Id: survdiff.s,v 4.6 1992-06-01 09:26:55 therneau Exp $
 survdiff <- function(formula, data, subset, rho=0) {
     call <- match.call()
     m <- match.call(expand=F)
@@ -78,10 +78,10 @@ survdiff <- function(formula, data, subset, rho=0) {
 	chi  <- sum(solve(matrix(xx$var.e, ncol=ngroup-1), temp2) * temp2)
 	}
 
-    na.action <- attr(m, "na.action")
-    if (length(na.action)) fit$na.action <- na.action
     rval <-list(n= n, obs = observed, exp=expected,
 		    chisq= chi)
+    na.action <- attr(m, "na.action")
+    if (length(na.action)) rval$na.action <- na.action
     attr(rval, "class") <- 'survdiff'
     rval
     }
