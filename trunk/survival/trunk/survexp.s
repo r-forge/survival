@@ -1,4 +1,4 @@
-#SCCS $Id: survexp.s,v 4.9 1992-04-20 17:14:33 therneau Exp $
+#SCCS $Id: survexp.s,v 4.10 1992-05-28 21:46:33 therneau Exp $
 survexp <- function(entry, birth, sex,
 		      times=round(182.6 * 0:8),
 		      data=sys.parent(), subset, na.action,
@@ -8,36 +8,21 @@ survexp <- function(entry, birth, sex,
 
     type <- match.arg(type)
 
-    #
-    # Mimic the processing of a formula.  It is tempting to just build a
-    #  formula and then use it, but then constants in the arg list don't
-    #  come through.  And if you paste together I(entry) + ..., then the
-    #  date attribute gets lost.
-    # So evaluate, and then do the formula.  I could do the na.action and
-    #  etc "by hand", but then miss out on global changes to S
-    #
-    if (missing(entry)) stop("The entry argument is required")
-    if (missing(birth)) stop("The birth argument is required")
-    if (missing(sex))   stop("The sex argument is required")
-    entry <- eval(call[['entry']], data)
-    birth <- eval(call[['birth']], data)
-    sex   <- eval(call[['sex']], data)
-    nused <- length(sex)
-    if (length(birth) != nused || length(entry) != nused)
-	stop("First 3 arguments must be the same length")
-
     m <- call
     if (type=='individual') {
-	times <- eval(call[["times"]], data)
-	if (length(times) != nused) stop("Wrong length for \"times\"")
-	m$formula <- formula("~entry + birth + sex + times")
+	if (missing(times))
+	    stop ("The 'times' argument is required for individual survival")
+	temp <- c("entry", "birth", "sex", "times")
 	}
     else {
+	temp <- c("entry", "birth", "sex")
 	if (any(is.na(times))) stop("Missing values not allowed in 'times'")
-	m$formula <- formula("~ entry + birth + sex")
 	}
+    temp2 <- NULL
+    for (i in temp) temp2 <- c(temp2, deparse(call[[i]]))
+    m$formula <- formula(paste("~", paste(temp2, collapse="+")))
     m[[1]] <- as.name("model.frame")
-    m <- m[match(c("", "formula", "subset", "na.action"),
+    m <- m[match(c("", "formula", "subset", "na.action", "data"),
 		     names(m), 0)]
     m <- eval(m)
 
@@ -46,6 +31,7 @@ survexp <- function(entry, birth, sex,
     sex   <- m[[3]]
     if (type=='individual') times <- m[[4]]
     else    times <- as.integer(sort(unique(times)))
+    n <- length(entry)
     if (!inherits(entry, "date")) stop ("'Entry' must be a date")
     if (!inherits(birth, "date")) {
 	# Assume that they gave an age
@@ -96,14 +82,14 @@ survexp <- function(entry, birth, sex,
 	    }
 	}
     if (type != 'matrix') nsurv <- 1
-    else                  nsurv <- nused
+    else                  nsurv <- n
     temp <-  .C("survexp", as.integer(ntime),
 			    as.integer(times),
 			    as.integer(dd),
 			    ages,
 			    as.integer(years),
 			    as.single(expected),
-			    as.integer(nused),
+			    as.integer(n),
 			    as.integer(entry),
 			    as.integer(birth),
 			    as.integer(sex),
@@ -112,10 +98,10 @@ survexp <- function(entry, birth, sex,
 			    as.integer(type=='individual'),
 			    surv= double(ntime*nsurv))
 
-    if (type != 'matrix') xx <- list(time=times, surv=temp$surv, n=nused)
+    if (type != 'matrix') xx <- list(time=times, surv=temp$surv, n=n)
     else     xx <-  list(time=times,
-			 surv=matrix(temp$surv, ncol=nused, byrow=F),
-			 n=nused)
+			 surv=matrix(temp$surv, ncol=n, byrow=F),
+			 n=n)
     xx$call <- call
     if(!is.null(tj <- attr(m, 'na.action')))
 	xx$na.action <- tj
