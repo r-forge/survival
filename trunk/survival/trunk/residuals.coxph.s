@@ -1,4 +1,4 @@
-#SCCS $Id: residuals.coxph.s,v 4.9 1992-09-23 16:26:08 therneau Exp $
+#SCCS $Id: residuals.coxph.s,v 4.10 1992-11-24 14:01:53 therneau Exp $
 residuals.coxph <-
   function(object, type=c("martingale", "deviance", "score", "schoenfeld",
 			  "dbeta", "dfbetas"),
@@ -73,19 +73,20 @@ residuals.coxph <-
 			    double(n*nvar))
 	if (ny==2) indx <- temp$indx[1:(temp$n)] #unique death times
 	else       indx <- temp$indx[(n+1):(n+temp$n)]  #col 2 of y
-	if (length(strats)) {
-	    rr <- matrix(temp$resid, ncol=nvar)[1:(temp$n),,drop=F]
+	if (length(strats)==0) {
+	    rr <- matrix(temp$resid, ncol=nvar)[1:(temp$n),]
 	    }
 	else  {
 	    #put the resids in time order, rather than time within strata
 	    ord2  <- order(y[indx, ny-1])
 	    indx  <- indx[ord2]
-	    rr   <- matrix(temp$resid, ncol=nvar)[ord2,,drop=F]
-	    attr(rr, "strata")  <- strats[ord][indx]
+	    rr   <- matrix(temp$resid, ncol=nvar)[ord2,]
+	    attr(rr, "strata")  <- strat[ord][indx]
 	    }
 	time <- c(y[indx, ny-1])  # 'c' kills all of the attributes
-	dimnames(rr)<- list(time, names(object$coef))
-	return(drop(rr))
+	if (is.matrix(rr)) dimnames(rr)<- list(time, names(object$coef))
+	else               names(rr) <- time
+	return(rr)
 	}
 
     if (type=='score') {
