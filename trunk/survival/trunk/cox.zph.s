@@ -1,4 +1,4 @@
-# SCCS $Id: cox.zph.s,v 1.13 1995-12-27 16:18:45 therneau Exp $
+# SCCS $Id: cox.zph.s,v 5.1 1998-08-30 15:05:59 therneau Exp $
 #  Test proportional hazards
 #
 cox.zph <- function(fit, transform='km', global=T) {
@@ -58,7 +58,7 @@ cox.zph <- function(fit, transform='km', global=T) {
     dimnames(r2) <- list(times, names(fit$coef))
     temp <-list(table=Z.ph, x=ttimes, y=r2 + outer(rep(1,ndead), fit$coef),
     var=fit$var, call=call, transform=tname)
-    class(temp) <- "cox.zph"
+    oldClass(temp) <- "cox.zph"
     temp
     }
 
