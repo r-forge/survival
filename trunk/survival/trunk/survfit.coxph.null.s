@@ -1,4 +1,4 @@
-#SCCS  $Id: survfit.coxph.null.s,v 4.10 1994-08-25 10:57:59 therneau Exp $
+#SCCS  $Id: survfit.coxph.null.s,v 4.11 1997-04-18 16:33:09 therneau Exp $
 survfit.coxph.null <-
   function(object, newdata, se.fit=T, conf.int=.95, individual=F,
 	    type=c('tsiatis', 'kaplan-meier'),
@@ -114,6 +114,6 @@ survfit.coxph.null <-
 	}
 
     temp$call <- call
-    attr(temp, 'class') <- c("survfit.cox", "survfit")
+    attr(temp, 'class') <- c("survfit.coxph", "survfit")
     temp
     }
