@@ -1,4 +1,4 @@
-# @(#)strata.s	4.9 07/21/93
+# SCCS $Id: strata.s,v 5.2 1998-08-30 15:43:24 therneau Exp $
 # Create a strata variable, possibly from many objects
 #
 strata <- function(..., na.group=F, shortlabel=F) {
