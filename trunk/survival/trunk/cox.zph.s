@@ -1,4 +1,4 @@
-# SCCS $Id: cox.zph.s,v 5.3 2002-06-18 14:11:48 therneau Exp $
+# SCCS $Id: cox.zph.s,v 5.4 2003-12-29 13:37:35 therneau Exp $
 #  Test proportional hazards
 #
 cox.zph <- function(fit, transform='km', global=T) {
@@ -14,8 +14,9 @@ cox.zph <- function(fit, transform='km', global=T) {
     if (nvar==1) times <- as.numeric(names(sresid))
     else         times <- as.numeric(dimnames(sresid)[[1]])
 
-    if (missing(transform) && attr(fit$y, 'type') != 'right')
-	    transform <- 'identity'
+#    Next line no longer necessary, survfit.km can handle (start,stop] data
+#    if (missing(transform) && attr(fit$y, 'type') != 'right')
+#	    transform <- 'identity'
     if (is.character(transform)) {
 	tname <- transform
 	ttimes <- switch(transform,
