@@ -1,4 +1,4 @@
-# SCCS $Id: cox.zph.s,v 1.5 1992-04-30 16:37:46 therneau Exp $
+# SCCS $Id: cox.zph.s,v 1.6 1992-05-19 20:53:25 therneau Exp $
 #  Do the Z:PH test on a Cox model fit
 #
 cox.zph <- function(fit, ranks=T, global=T) {
@@ -18,7 +18,7 @@ cox.zph <- function(fit, ranks=T, global=T) {
     corel <- cor(times, sresid)
     n <- length(times)
     Z.ph <- .5*log((1+corel)/(1-corel))*sqrt(n-3)
-    Z.ph <- rbind(corel, Z.ph, 2*pnorm(-abs(Z.ph)))
-    dimnames(Z.ph) <- list(c("rho", "Z:ph", "p"), varnames)
+    Z.ph <- cbind(corel, Z.ph, 2*pnorm(-abs(Z.ph)))
+    dimnames(Z.ph) <- list(varnames, c("rho", "Z:ph", "p"))
     Z.ph
     }
