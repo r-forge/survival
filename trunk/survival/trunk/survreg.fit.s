@@ -1,5 +1,5 @@
 # 
-#  SCCS $Id: survreg.fit.s,v 5.9 1999-02-08 20:25:35 therneau Exp $
+#  SCCS $Id: survreg.fit.s,v 5.10 2000-07-10 14:43:42 therneau Exp $
 #
 survreg.fit<- function(x, y, weights, offset, init, controlvals, dist, 
 		       scale=0, nstrat=1, strata, parms=NULL) {
@@ -57,7 +57,7 @@ survreg.fit<- function(x, y, weights, offset, init, controlvals, dist,
     #   derivatives at z=0 for the 4 censoring types
     #   Used below for starting estimates
     derfun <- function(y, eta, sigma, density, parms) {
-	ny <<- ncol(y)
+	ny <- ncol(y)
 	status <- y[,ny]
 	z <- (y[,1] - eta)/sigma
 	dmat <- density(z,parms)

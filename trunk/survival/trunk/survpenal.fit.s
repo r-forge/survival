@@ -1,5 +1,5 @@
 # 
-#  SCCS $Id: survpenal.fit.s,v 1.7 2000-06-12 07:50:50 therneau Exp $
+#  SCCS $Id: survpenal.fit.s,v 1.8 2000-07-10 14:43:41 therneau Exp $
 # fit a penalized parametric model
 #
 survpenal.fit<- function(x, y, weights, offset, init, controlvals, dist, 
@@ -58,7 +58,7 @@ survpenal.fit<- function(x, y, weights, offset, init, controlvals, dist,
     #   derivatives at z=0 for the 4 censoring types
     #   Used below for starting estimates
     derfun <- function(y, eta, sigma, density, parms) {
-	ny <<- ncol(y)
+	ny <- ncol(y)
 	status <- y[,ny]
 	z <- (y[,1] - eta)/sigma
 	dmat <- density(z,parms)

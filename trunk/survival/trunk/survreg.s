@@ -1,5 +1,5 @@
 #
-# SCCS $Id: survreg.s,v 5.7 2000-06-13 10:03:10 therneau Exp $
+# SCCS $Id: survreg.s,v 5.8 2000-07-10 14:43:43 therneau Exp $
 #  The newest version of survreg, that accepts penalties and strata
 #
 setOldClass(c('survreg.penal', 'survreg'))
@@ -97,7 +97,7 @@ survreg <- function(formula=formula(data), data=sys.parent(),
 	}
     else {
 	if (type=='left') Y[,2] <- 2- Y[,2]
-	else if (type=='interval' && all(Y[,3]<3)) Y < Y[,c(1,3)]
+	else if (type=='interval' && all(Y[,3]<3)) Y <- Y[,c(1,3)]
 	}
 
     if (is.null(dlist$itrans)) itrans <- function(x) x
