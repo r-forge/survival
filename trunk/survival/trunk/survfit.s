@@ -1,4 +1,4 @@
-#SCCS $Date: 1992-04-17 17:35:26 $ $Id: survfit.s,v 4.3 1992-04-17 17:35:26 therneau Exp $
+#SCCS $Date: 1992-08-06 16:32:16 $ $Id: survfit.s,v 4.4 1992-08-06 16:32:16 therneau Exp $
 survfit <- function (formula, data, weights, subset, na.action, ...) {
     call <- match.call()
     # Real tricky -- find out if the first arg is "Surv(...)" without
@@ -37,7 +37,7 @@ survfit <- function (formula, data, weights, subset, na.action, ...) {
 	if (length(ll) == 0) X <- factor(rep(1,n))
 	else {
 	    temp <-  rep(1, length(ll))
-	    strat <- attr(Terms, 'specials')$strata
+	    strat <- untangle.specials(Terms, 'strata',1)$terms
 	    if (length(strat)) temp[strat] <- 0
 	    lname <- ifelse(temp==1, paste(ll,'=', sep=''), "")
 	    temp <- paste("'",lname, "', ","as.character(m[['", ll, "']])", sep='')
