@@ -1,5 +1,6 @@
-/*  SCCS $Id: survdiff2.c,v 5.2 1998-08-30 16:28:53 therneau Exp $ */
+/*  SCCS $Id: survdiff2.c,v 5.3 1998-10-27 17:38:59 therneau Exp $ */
 #include <math.h>
+#include "survS.h"
 #include "survproto.h"
 
 void survdiff2(long   *nn,     long   *nngroup,    long   *nstrat, 

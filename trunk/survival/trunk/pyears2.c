@@ -1,4 +1,4 @@
-/*  SCCS $Id: pyears2.c,v 5.1 1998-08-30 14:52:52 therneau Exp $
+/*  SCCS $Id: pyears2.c,v 5.2 1998-10-27 17:36:28 therneau Exp $
 /*
 **  Person-years calculations.
 **     same as pyears1, but no expected rates
@@ -28,8 +28,8 @@
 ** Scratch     allocated on the fly
 **      scratch[edim]
 */
-#include "survproto.h"
 #include "survS.h"
+#include "survproto.h"
 
 /* names that begin with "s" will be re-declared in the main body */
 void pyears2(long   *sn,      long   *sny,   long   *sdoevent, 

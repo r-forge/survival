@@ -1,4 +1,4 @@
-/*  SCCS $Id: survfit2.c,v 5.1 1998-08-30 14:52:59 therneau Exp $
+/*  SCCS $Id: survfit2.c,v 5.2 1998-10-27 17:39:00 therneau Exp $
 /*
 ** Fit the survival curve
 **  Input
@@ -20,6 +20,7 @@
 **    strata[0: (n-1)]= last obs strata 1,2, etc
 */
 #include <math.h>
+#include "survS.h"
 #include "survproto.h"
 void survfit2(long   *sn,     double *y,        long   *ny, 
 	      double *wt,     long   *strata,   long   *method, 

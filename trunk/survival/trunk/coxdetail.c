@@ -1,4 +1,4 @@
-/*  SCCS $Id: coxdetail.c,v 5.1 1998-08-30 14:52:37 therneau Exp $
+/*  SCCS $Id: coxdetail.c,v 5.2 1998-10-27 17:32:08 therneau Exp $
 /*
 ** Return all of the internal peices of a cox model
 **
@@ -44,6 +44,7 @@
 **          living within tied times.
 */
 #include <math.h>
+#include "survS.h"
 #include "survproto.h"
 
 void coxdetail(long   *nusedx,   long   *nvarx,    long   *ndeadx, 

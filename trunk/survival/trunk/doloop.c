@@ -1,4 +1,4 @@
-/*  SCCS $Id: doloop.c,v 5.1 1998-08-30 14:52:49 therneau Exp $
+/*  SCCS %% $Date: 1998-10-27 17:36:26 $
 /*
 ** Program to mimic a set of nested do loops
 **
@@ -30,6 +30,7 @@
 **                                  otherwise the value of the innermost loop
 **
 */
+#include "survS.h"
 #include "survproto.h"
 
 static int maxval, minval;

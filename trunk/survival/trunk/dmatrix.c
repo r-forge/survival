@@ -1,9 +1,9 @@
-/*  SCCS $Id: dmatrix.c,v 5.1 1998-08-30 14:52:48 therneau Exp $
+/*  SCCS $Id: dmatrix.c,v 5.2 1998-10-27 17:36:25 therneau Exp $
 /*
 ** set up ragged arrays, with #of columns and #of rows
 */
-#include "survproto.h"
 #include "survS.h"
+#include "survproto.h"
 
 double **dmatrix(double *array, int ncol, int nrow)
     {

@@ -1,4 +1,4 @@
-/*  SCCS $Id: pyears3.c,v 5.1 1998-08-30 14:52:54 therneau Exp $
+/*  SCCS $Id: pyears3.c,v 5.2 1998-10-27 17:36:28 therneau Exp $
 /*
 **  Person-years calculations, leading to expected survival for a cohort.
 **    The output table depends only on factors, not on continuous.
@@ -30,8 +30,8 @@
 **      nsurv[ntime,ngrp]   number of subjects per cell of "esurv"
 */
 #include <math.h>
-#include "survproto.h"
 #include "survS.h"
+#include "survproto.h"
 
 /* names that begin with "s" will be re-declared in the main body */
 void pyears3(long   *sdeath,    long   *sn,    long   *sedim, 

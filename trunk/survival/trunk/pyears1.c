@@ -1,4 +1,4 @@
-/*  SCCS $Id: pyears1.c,v 5.1 1998-08-30 14:52:51 therneau Exp $
+/*  SCCS $Id: pyears1.c,v 5.2 1998-10-27 17:36:27 therneau Exp $
 /*
 **  Person-years calculations, in its most general
 **
@@ -42,8 +42,8 @@
 **      scratch[edim + odim]
 */
 #include<math.h>
-#include "survproto.h"
 #include "survS.h"
+#include "survproto.h"
 
 /* names that begin with "s" will be re-declared in the main body */
 void pyears1(long   *sn,      long   *sny,      long   *sdoevent, 

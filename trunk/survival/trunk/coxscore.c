@@ -1,4 +1,4 @@
-/*  SCCS $Id: coxscore.c,v 5.1 1998-08-30 14:52:47 therneau Exp $
+/*  SCCS $Id: coxscore.c,v 5.2 1998-10-27 17:34:49 therneau Exp $
 /*
 ** Compute the score residuals for a Cox model
 **
@@ -23,6 +23,7 @@
 **                      censor within time.
 */
 #include <stdio.h>
+#include "survS.h"
 #include "survproto.h"
 
 void coxscore(long   *nx,      long   *nvarx,    double *y, 

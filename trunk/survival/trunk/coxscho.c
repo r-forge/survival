@@ -1,4 +1,4 @@
-/*  SCCS $Id: coxscho.c,v 5.1 1998-08-30 14:52:45 therneau Exp $
+/*  SCCS $Id: coxscho.c,v 5.2 1998-10-27 17:34:50 therneau Exp $
 /*
 ** Return the Schoenfeld residuals.
 **
@@ -31,6 +31,7 @@
 **          living within tied times.
 */
 #include <math.h>
+#include "survS.h"
 #include "survproto.h"
 
 void coxscho(long   *nusedx,    long   *nvarx,    double *y, 

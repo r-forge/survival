@@ -1,4 +1,4 @@
-/*  SCCS $Id: coxfit_null.c,v 5.1 1998-08-30 14:52:40 therneau Exp $
+/*  SCCS $Id: coxfit_null.c,v 5.2 1998-10-27 17:34:48 therneau Exp $
 /*
 ** Special case: fit the "Null" model.  All that is needed are the loglik
 **     and the residual  -- 90% of the work is the residual
@@ -22,6 +22,7 @@
 **  the data must be sorted by ascending time within strata
 */
 #include <math.h>
+#include "survS.h"
 #include "survproto.h"
 
 void coxfit_null(long   *nusedx,    long   *method,   double *time, 

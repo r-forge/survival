@@ -1,4 +1,4 @@
-/*     SCCS $Id: survindex2.c,v 5.1 1998-08-30 14:53:01 therneau Exp $
+/*     SCCS $Id: survindex2.c,v 5.2 1998-10-27 17:39:01 therneau Exp $
 /* A subroutine for surv.fit.print
 **
 ** Input --
@@ -25,6 +25,7 @@
 **      indx2:  when =1 indicates a time less than any survival.  When =2
 **                 indicates an exact tie.
 */
+#include "survS.h"
 #include "survproto.h"
 
 void survindex2(long   *n,     double *stime,   long   *strata, 
