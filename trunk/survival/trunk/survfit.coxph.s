@@ -1,10 +1,12 @@
-#SCCS $Id: survfit.coxph.s,v 4.14 1993-05-28 08:21:26 therneau Exp $
+#SCCS $Id: survfit.coxph.s,v 4.15 1993-06-17 16:08:53 therneau Exp $
 survfit.coxph <-
   function(object, newdata, se.fit=T, conf.int=.95, individual=F,
 	    type=c('tsiatis', 'kaplan-meier'),
 	    conf.type=c('log', 'log-log', 'plain', 'none'))
 		 {
 
+    if(!is.null((object$call)$weights))
+	stop("Survfit cannot (yet) compute the result for a weighted model")
     call <- match.call()
     Terms <- terms(object)
     strat <- attr(Terms, "specials")$strata
