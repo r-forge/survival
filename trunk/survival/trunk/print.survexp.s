@@ -1,4 +1,4 @@
-#SCCS $Id: print.survexp.s,v 4.9 1994-04-08 15:25:10 therneau Exp $
+#SCCS $Id: print.survexp.s,v 4.10 1994-05-23 08:01:31 therneau Exp $
 print.survexp <- function(fit, scale=1, digits=3, naprint=F, ...) {
     if (!inherits(fit, 'survexp'))
 	    stop("Invalid data")
@@ -36,7 +36,7 @@ print.survexp <- function(fit, scale=1, digits=3, naprint=F, ...) {
 	nstrat <- length(fit$strata)
 	levs <- names(fit$strata)
 	if (nrow(fit$surv)==1) {
-	    mat <- cbind(c(fit$n.risk), c(fit$surv), c(fit$std.err))
+	    mat <- cbind(c(fit$n.risk), c(fit$surv), c(fit$std.err*fit$surv))
 	    dimnames(mat) <- list(levs, c("n.risk", tname))
 	    cat(" Survival at time", fit$time, "\n")
 	    prmatrix(mat)
@@ -45,7 +45,8 @@ print.survexp <- function(fit, scale=1, digits=3, naprint=F, ...) {
 	    for (i in 1:nstrat) {
 		cat("       ", levs[i], "\n")
 		mat <- cbind(fit$time/scale, fit$n.risk[,i], fit$surv[,i])
-		if (!is.null(fit$std.err)) mat<- cbind(mat, fit$std.err[,i])
+		if (!is.null(fit$std.err)) mat<- cbind(mat,
+			   fit$std.err[,i] * fit$surv[,i])
 		if (!naprint) mat <- mat[!is.na(mat[,3]),,drop=F]
 		prmatrix(mat, rowlab=rep("",nrow(mat)),
 				collab=c("Time", "n.risk", tname))
