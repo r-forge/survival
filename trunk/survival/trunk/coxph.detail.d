@@ -21,12 +21,18 @@ a matrix with one row for each event time and one column for each variable
 in the Cox model, containing the weighted mean of the variable at that time,
 over all subjects still at risk at that time.  The weights are the risk
 weights exp(x %*% fit$coef).
+.RC nrisk
+number of subjects at risk.
+.RC hazard
+the hazard increment.
 .RC score
 the contribution to the score vector (first derivative of the log
 partial likelihood) at each time point.
-.RC var
+.RC imat
 the contribution to the information matrix (second derivative of the
 log partial likelihood) at each time point.
+.RC varhaz
+the variance of the hazard increment.
 .RC x, y, weights, strata
 input data for the model
 .DT
