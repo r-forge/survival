@@ -1,4 +1,4 @@
-#SCCS $Date: 1992-12-30 14:16:35 $ $Id: Surv.s,v 4.12 1992-12-30 14:16:35 therneau Exp $
+#SCCS $Date: 1993-03-14 19:31:17 $ $Id: Surv.s,v 4.13 1993-03-14 19:31:17 therneau Exp $
 # Package up surivival type data as a structure
 #
 Surv <- function(time, time2, event,
@@ -83,24 +83,27 @@ Surv <- function(time, time2, event,
     ss
     }
 
-print.Surv <- function(xx, quote=F, ...) {
+print.Surv <- function(xx, quote=F, ...)
+    invisible(print(as.character.Surv, quote=quote, ...))
+
+as.character.Surv <- function(xx) {
     class(xx) <- NULL
     type <- attr(xx, 'type')
     if (type=='right') {
 	temp <- xx[,2]
 	temp <- ifelse(is.na(temp), "?", ifelse(temp==0, "+"," "))
-	print(paste(format(xx[,1]), temp, sep=''), quote=quote)
+	paste(format(xx[,1]), temp, sep='')
 	}
     else if (type=='counting') {
 	temp <- xx[,3]
 	temp <- ifelse(is.na(temp), "?", ifelse(temp==0, "+"," "))
-	print(paste('(', format(xx[,1]), ',', format(xx[,2]), temp,
-			 ']', sep=''), quote=quote)
+	paste('(', format(xx[,1]), ',', format(xx[,2]), temp,
+			 ']', sep='')
 	}
     else if (type=='left') {
 	temp <- xx[,2]
 	temp <- ifelse(is.na(temp), "?", ifelse(temp==0, "<"," "))
-	print(paste(temp, format(xx[,1]), sep=''), quote=quote)
+	paste(temp, format(xx[,1]), sep='')
 	}
     else {   #interval type
 	stat <- xx[,3]
@@ -108,8 +111,7 @@ print.Surv <- function(xx, quote=F, ...) {
 	temp2 <- ifelse(stat==3,
 			 paste("[", format(xx[,1]), ", ",format(xx[,2]), sep=''),
 			 format(xx[,1]))
-	print(ifelse(is.na(stat), "NA", paste(temp2, temp, sep='')),
-			       quote=quote)
+	ifelse(is.na(stat), "NA", paste(temp2, temp, sep=''))
 	}
     }
 
