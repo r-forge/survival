@@ -7,9 +7,9 @@ Print number of observations, number of events,
 	mean survival and its standard error,  and the median survival
 	with confidence limits for the median.
 .CS
-print.survfit(fit, scale=1)
+print.survfit(x, scale=1)
 .RA
-.AG fit
+.AG x
 the result of a call to the survfit function.
 .OA
 .AG scale
