@@ -1,4 +1,4 @@
-/* SCCS $Id: pystep.c,v 4.1 1993-12-02 21:36:44 therneau Exp $  */
+/* SCCS $Id: pystep.c,v 4.2 1993-12-15 13:30:55 therneau Exp $  */
 /*
 ** Returns the amount of time that will be spent in the current "cell",
 **  along with the index of the cell (treating a multi-way array as linear).
@@ -54,28 +54,37 @@ double  data[],
     for (i=0; i<nc; i++) {
 	if (fac[i]==1) *index += (data[i]-1) * kk;
 	else {
-	    if (fac[i]>0) dtemp = fac[i]*dims[i];
+	    if (fac[i]>1) dtemp = 1 + (fac[i]-1)*dims[i];
 	    else          dtemp = dims[i];
-	    for (j=1; j<dtemp; j++) if (data[i] < cuts[i][j]) break;
-	    if (edge==0 || j<dtemp) {
-		temp = cuts[i][j] - data[i];
-		if (temp <= 0) shortfall = step;
-		else if (temp <maxtime)  maxtime = temp;
-		}
+	    for (j=0; j<dtemp; j++) if (data[i] < cuts[i][j]) break;
 
-	    j--;
-	    if (fac[i]>1 ) {  /* return to actual indices, & interpolate */
-		*wt = 1.0 - (j%fac[i])/ (double)fac[i];
-		j /= fac[i];
-		*index2 = kk;
+	    if (j==0) {  /* less than first cut */
+		temp = cuts[i][j] - data[i];  /* time to next cutpoint */
+		if (edge==0 && temp > shortfall)
+		    if (temp > step) shortfall = step;
+		    else             shortfall = temp;
+		if (temp < maxtime)  maxtime = temp;
 		}
-
-	    temp = cuts[i][j] - data[i];   /*if positive, we're < first cut */
-	    if (edge==0 && temp > shortfall) {
-		if (temp < step)  shortfall = temp;
-		else              shortfall = step;
+	    else if (j==dtemp){  /*bigger than last cutpoint */
+		if (edge==0) {
+		    temp = cuts[i][j] - data[i];  /* time to upper limit */
+		    if (temp <0) shortfall = step;
+		    else if (temp < maxtime) maxtime = temp;
+		    }
+		if (fac[i] >1) j = dims[i] -1;   /*back to normal indices */
+		else  j--;
 		}
-	    else *index += j*kk;
+	    else {
+		temp = cuts[i][j] - data[i];  /* time to next cutpoint */
+		if (temp < maxtime)  maxtime = temp;
+		j--;
+		if (fac[i] >1) { /*interpolate the year index */
+		    *wt = 1.0 - (j%fac[i])/ (double)fac[i];
+		    j /= fac[i];
+		    *index2 = kk;
+		    }
+		}
+	    *index += j*kk;
 	    }
 	kk *= dims[i];
 	}

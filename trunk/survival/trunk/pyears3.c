@@ -1,10 +1,10 @@
-/* SCCS $Id: pyears3.c,v 4.1 1993-12-02 21:36:43 therneau Exp $  */
+/* SCCS $Id: pyears3.c,v 4.2 1993-12-15 13:30:54 therneau Exp $  */
 /*
 **  Person-years calculations, leading to expected survival for a cohort.
 **    The output table depends only on factors, not on continuous.
 **
 **  Input:
-**      conditional: 1=conditional surv (no weights), 0=weighted surv
+**      death        1=conditional surv, 0=cohort
 **      n            number of subjects
 **
 **    expected table
@@ -68,6 +68,7 @@ double  *sx,
 	    cumhaz;   /*total hazard to date for the subject */
     double  timeleft,
 	    thiscell,
+	    width,
 	    etime,
 	    et2;
     int     index,
@@ -110,7 +111,7 @@ double  *sx,
 	** add up hazard
 	*/
 	for (j=0; j<ntime && timeleft >0; j++) {
-	    thiscell = times[j] - time;
+	    width = thiscell = times[j] - time;
 	    if (thiscell > timeleft) thiscell = timeleft;
 	    index =j + ntime*group;
 
@@ -129,9 +130,15 @@ double  *sx,
 printf("time=%5.1f, rate1=%6e, rate2=%6e, wt=%3.1f\n", et2, expect[indx], expect[indx2], wt);
 */
 		}
-	    if (death==0) esurv[index] += exp(-(cumhaz+hazard));
-	    else          esurv[index] += hazard;
-	    wvec[index] += exp(-cumhaz);
+	    if (times[j]==0) esurv[index]=wvec[index]=1;
+	    else if (death==0) {
+		esurv[index] += exp(-(cumhaz+hazard)) * width;
+		wvec[index]  += exp(-cumhaz) * thiscell;
+		}
+	    else {
+		esurv[index] += hazard * width;
+		wvec[index] +=  thiscell;
+		}
 	    nsurv[index] ++;
 	    cumhaz += hazard;
 
@@ -142,6 +149,6 @@ printf("time=%5.1f, rate1=%6e, rate2=%6e, wt=%3.1f\n", et2, expect[indx], expect
 
     for (i=0; i<ntime*ngrp; i++) {
 	if (death==0) esurv[i] /= wvec[i];
-	else          esurv[i] = exp(-esurv[i]/nsurv[i]);
+	else          esurv[i] = exp(-esurv[i]/wvec[i]);
 	}
     }
