@@ -1,4 +1,4 @@
-/* SCCS $Id: survival_i.c,v 4.2 1992-11-18 15:07:22 splus Exp $  */
+/* SCCS $Id: survival_i.c,v 4.3 1992-11-19 09:15:19 therneau Exp $  */
 #include "S.h"
 #include "cdefs.h"
 #if defined(IRIS4D) || defined(DECSTATION) /* ( */
@@ -30,15 +30,15 @@ x_h survival_init[]  = {
 {SYMBOL(agfit2),(long)agfit2,NULL},
 {SYMBOL(agfit_null),(long)agfit_null,NULL},
 {SYMBOL(aghaz2),(long)aghaz2,NULL},
-{SYMBOL(agres12),(long)aghaz2,NULL},
-{SYMBOL(agres22),(long)aghaz2,NULL},
+{SYMBOL(agres12),(long)agres12,NULL},
+{SYMBOL(agres22),(long)agres22,NULL},
 {SYMBOL(agsurv1),(long)agsurv1,NULL},
 {SYMBOL(agsurv2),(long)agsurv2,NULL},
 {SYMBOL(coxfit2),(long)coxfit2,NULL},
 {SYMBOL(coxfit_null),(long)coxfit_null,NULL},
 {SYMBOL(coxhaz2),(long)coxhaz2,NULL},
-{SYMBOL(coxres12),(long)coxhaz2,NULL},
-{SYMBOL(coxres22),(long)coxhaz2,NULL},
+{SYMBOL(coxres12),(long)coxres12,NULL},
+{SYMBOL(coxres22),(long)coxres22,NULL},
 {SYMBOL(survdiff2),(long)survdiff2,NULL},
 {SYMBOL(survexp2),(long)survexp2,NULL},
 {SYMBOL(survfit2),(long)survfit2,NULL},
