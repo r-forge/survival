@@ -1,8 +1,8 @@
-# SCCS $Id: coxpenal.fit.s,v 1.2 1998-10-31 21:46:41 therneau Exp $
+# SCCS $Id: coxpenal.fit.s,v 1.3 1998-11-02 19:52:55 therneau Exp $
 #
 # General penalized likelihood
 #
-coxpenal.fit <- function(x, y, strata, offset, init, iter.max,
+coxpenal.fit <- function(x, y, strata, offset, init, iter.max, outer.max,
 			eps,  toler.chol, weights, method, rownames, 
 			pcols, pattr, assign)
     {
@@ -284,10 +284,10 @@ coxpenal.fit <- function(x, y, strata, offset, init, iter.max,
     #
     #  Now for the actual fit
     #
-    iter <- iter2 <- 0
+    iter2 <- 0
     iterfail <- NULL
     thetasave <- unlist(thetalist)
-    repeat {
+    for (outer in 1:outer.max) {
         coxfit <- .C(routines[2], 
 		        iter=as.integer(iter.max),
 			as.integer(n),
@@ -305,7 +305,7 @@ coxpenal.fit <- function(x, y, strata, offset, init, iter.max,
 		        fcoef = as.double(finit),
 			fdiag = double(nfrail+nvar))
 
-        iter <- iter+1
+	iter <- outer
 	iter2 <- iter2 + coxfit$iter
 	if (coxfit$iter >=iter.max) iterfail <- c(iterfail, iter)
 
