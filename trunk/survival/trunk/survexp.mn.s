@@ -1,4 +1,4 @@
-# SCCS $Id: survexp.mn.s,v 4.3 1998-12-17 17:49:45 therneau Exp $
+# SCCS $Id: survexp.mn.s,v 4.4 2000-06-12 09:42:00 boos Exp $
 #
 # Create the Minnesota total hazards table
 #   The raw numbers below are q* 10^5.  Note that there are 24 leap years/100
@@ -65,7 +65,7 @@ survexp.mn  <- {
 	cutpoints=list(0:109 * 365.24, NULL, mdy.date(1,1, 197:200*10)),
 	summary = function(R) {
 		     x <- c(format(round(min(R[,1]) /365.24, 1)),
-			    format(round(max(R[,1]) /355.24, 1)),
+			    format(round(max(R[,1]) /365.24, 1)),
 			    sum(R[,2]==1), sum(R[,2]==2))
 		     x2<- as.character(as.date(c(min(R[,3]), max(R[,3]))))
 

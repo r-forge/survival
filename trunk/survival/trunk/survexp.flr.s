@@ -1,4 +1,4 @@
-# SCCS $Id: survexp.flr.s,v 4.5 1999-02-02 18:32:12 therneau Exp $
+# SCCS $Id: survexp.flr.s,v 4.6 2000-06-12 09:41:45 boos Exp $
 #
 # Create the Florida hazards table, by race
 #   The raw numbers below are q* 10^5.  Note that there are 24 leap years/100
@@ -150,7 +150,7 @@ survexp.flr  <- {
 	cutpoints=list(0:109 * 365.24, NULL, NULL, mdy.date(1,1, 197:200*10)),
 	summary = function(R) {
 		     x <- c(format(round(min(R[,1]) /365.24, 1)),
-			    format(round(max(R[,1]) /355.24, 1)),
+			    format(round(max(R[,1]) /365.24, 1)),
 			    sum(R[,2]==1), sum(R[,2]==2),
 			    sum(R[,3]==1), sum(R[,3]==2), sum(R[,3]==3))
 		     x2<- as.character(as.date(c(min(R[,4]), max(R[,4]))))

@@ -1,4 +1,4 @@
-# SCCS $Id: survexp.oldmn.s,v 1.1 1998-12-17 11:27:39 therneau Exp $
+# SCCS $Id: survexp.oldmn.s,v 1.2 2000-06-12 09:42:34 boos Exp $
 #
 # Copy of the Minnesota table before the 1990 data update
 #
@@ -50,7 +50,7 @@ survexp.oldmn  <- {
 	cutpoints=list(0:109 * 365.24, NULL, mdy.date(1,1, 197:200*10)),
 	summary = function(R) {
 		     x <- c(format(round(min(R[,1]) /365.24, 1)),
-			    format(round(max(R[,1]) /355.24, 1)),
+			    format(round(max(R[,1]) /365.24, 1)),
 			    sum(R[,2]==1), sum(R[,2]==2))
 		     x2<- as.character(as.date(c(min(R[,3]), max(R[,3]))))
 
