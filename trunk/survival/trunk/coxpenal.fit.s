@@ -1,4 +1,4 @@
-# SCCS $Id: coxpenal.fit.s,v 1.3 1998-11-02 19:52:55 therneau Exp $
+# SCCS $Id: coxpenal.fit.s,v 1.4 1998-11-30 12:06:11 therneau Exp $
 #
 # General penalized likelihood
 #
@@ -41,7 +41,7 @@ coxpenal.fit <- function(x, y, strata, offset, init, iter.max, outer.max,
 
     sy <- as.double(y[sorted,])
     offsort <- offset[sorted]
-    ndead <- sum(y[,ncol(y)])
+    n.eff <- sum(y[,ncol(y)])  #effective n for a Cox model is #events
     #
     # are there any sparse frailty terms?
     # 
@@ -111,8 +111,8 @@ coxpenal.fit <- function(x, y, strata, offset, init, iter.max, outer.max,
 	pfun1 <- sparse.attr$pfun
 	expr1 <- expression({
 	    coef <- coxlist1$coef
-	    if (is.null(extra1)) temp <- pfun1(coef, theta1, ndead)
-	    else  temp <- pfun1(coef, theta1, ndead, extra1)
+	    if (is.null(extra1)) temp <- pfun1(coef, theta1, n.eff)
+	    else  temp <- pfun1(coef, theta1, n.eff, extra1)
 
 	    if (!is.null(temp$recenter)) 
 		    coxlist1$coef <- coxlist1$coef - as.double(temp$recenter)
@@ -145,9 +145,9 @@ coxpenal.fit <- function(x, y, strata, offset, init, iter.max, outer.max,
 		pen.col <- pcols[[i]]
 		coef <- coxlist2$coef[pen.col]
 		if (is.null(extralist[[i]]))
-			temp <- ((pattr[[i]])$pfun)(coef, thetalist[[i]],ndead)
+			temp <- ((pattr[[i]])$pfun)(coef, thetalist[[i]],n.eff)
 		else    temp <- ((pattr[[i]])$pfun)(coef, thetalist[[i]],
-						ndead,extralist[[i]])
+						n.eff,extralist[[i]])
 		if (!is.null(temp$recenter))
 		    coxlist2$coef[pen.col] <- coxlist2$coef[pen.col]- 
 			                               temp$recenter
@@ -224,10 +224,11 @@ coxpenal.fit <- function(x, y, strata, offset, init, iter.max, outer.max,
     #
     # Manufacture the list of calls to cfun, with appropriate arguments
     #
-    temp1 <- c('x', 'coef', 'plik', 'loglik', 'status', 'df', 'trH')
-    temp2 <- c('frailx', 'coxfit$fcoef', 'loglik1',  'coxfit$loglik', 'sstat')
+    temp1 <- c('x', 'coef', 'plik', 'loglik', 'status', 'neff', 'df', 'trH')
+    temp2 <- c('frailx', 'coxfit$fcoef', 'loglik1',  'coxfit$loglik', 'sstat',
+	       'n.eff')
     temp3 <- c('xx[,pen.col]', 'coxfit$coef[pen.col]','loglik1',
-	       'coxfit$loglik', 'sstat')
+	       'coxfit$loglik', 'sstat', 'n.eff')
     calls <- vector('expression', length(cfun))
     cargs <- lapply(pattr, function(x) x$cargs)
     for (i in 1:length(cfun)) {
