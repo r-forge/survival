@@ -1,4 +1,4 @@
-#SCCS $Date: 2000-03-01 11:28:20 $ $Id: summary.survfit.s,v 5.2 2000-03-01 11:28:20 boos Exp $
+#SCCS @(#)summary.survfit.s	1.8 03/02/00
 summary.survfit <- function(fit, times, censored=F, scale=1, extend=F, ...) {
     if (!inherits(fit, 'survfit'))
 	    stop("Invalid data")

@@ -1,4 +1,4 @@
-#SCCS $Date: 2000-03-01 11:24:24 $ $Id: print.survfit.s,v 4.13 2000-03-01 11:24:24 boos Exp $
+#SCCS $Id: print.survfit.s,v 4.14 2000-03-02 19:21:17 boos Exp $
 print.survfit <- function(x, scale=1, 
 			  digits = max(options()$digits - 4, 3), ...) {
 
@@ -68,7 +68,6 @@ print.survfit <- function(x, scale=1,
     plab <- c("n", "events", "mean", "se(mean)", "median")
     if (!is.null(x$conf.int))
 	    plab2<- paste(x$conf.int, c("LCL", "UCL"), sep='')
-
     #Four cases: strata Y/N  by  ncol(surv)>1 Y/N
     #  Repeat the code, with minor variations, for each one
     if (is.null(x$strata)) {
