@@ -1,4 +1,4 @@
-# SCCS $Id: frailty.controlgauss.s,v 1.2 1998-11-02 19:53:20 therneau Exp $
+# SCCS $Id: frailty.controlgauss.s,v 1.3 1998-11-21 17:50:29 therneau Exp $
 #
 # The control function for REML on a gaussian
 #
@@ -26,7 +26,7 @@ frailty.controlgauss <- function(opt, iter, old, fcoef, trH, loglik){
 	# save history of the iteration, and get the next theta
 	if (iter==1) {
 	    history <- c(theta=theta, resid=resid, fsum=fsum, trace=trH)
-	    if (is.null(opt$init ) || length(opt$init) <2) {
+	    if (is.null(opt$init )) {
 		if (resid>0)  theta <- theta*3
 		else          theta <- theta/3  	        }
 	    else theta <- opt$init[2]
