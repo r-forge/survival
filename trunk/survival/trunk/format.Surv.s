@@ -1,4 +1,4 @@
-# SCCS $Id: format.Surv.s,v 4.6 1998-12-22 08:54:21 therneau Exp $
+# SCCS $Id: format.Surv.s,v 4.7 1998-12-22 09:00:01 therneau Exp $
 #
 format.Surv <- function(x, ...) format(as.character.Surv(x), ...)
 
@@ -8,7 +8,6 @@ format.Surv <- function(x, ...) format(as.character.Surv(x), ...)
 
 if (version$major >= 5) {
     data.frameAux.Surv <- function(x, ...) data.frameAux.AsIs(x, ...)
-    }
-else {
+    } else {
     as.data.frame.Surv <- as.data.frame.model.matrix
     }
