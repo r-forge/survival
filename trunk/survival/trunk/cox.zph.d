@@ -3,7 +3,7 @@
 .TL
 Test the proportional hazards assumption
 .CS
-cox.zph(fit, transform='km', global=T, x=F)
+cox.zph(fit, transform='km', global=T)
 .AG fit
 the result of fitting a Cox regression model, using the coxph function.
 .AG transform
@@ -16,6 +16,7 @@ should a global chisquare test be done, in additoin to the
 if true, then the result will be a list containing the test table (a matrix),
 x and y.  If false then only the test table is returned.
 .RT
+an object of class `cox.zph', with components:
 .AG table
 a matrix with one row for each variable, and optionally a last row for
 the global test.
@@ -30,10 +31,11 @@ the transformed time axis.
 the matrix of scaled Schoenfeld residuals.  There will be one column per
 variable and one row per event.  The row labels contain the original event
 times, which will be the same as `x' for the identity transform.
+.AG call
+the calling sequence for the routine.
 .pp
 The computations require the original `x' matrix of the Cox model fit.
 Thus it saves time if the `x=T' option is used in coxph.
-
 This function would usually be executed in conjunction with a plot of the
 scaled Schoenfeld residuals versus survival time.  The plot gives an
 estimate of the time-dependent coefficient beta(t).

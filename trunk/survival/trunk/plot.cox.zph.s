@@ -1,15 +1,17 @@
-#SCCS $Id: plot.cox.zph.s,v 4.1 1993-03-04 11:58:02 therneau Exp $
-plot.cox.zph <- function(x, resid=T, se=T, df=4, nsmo=40) {
-    d <- nrow(x$y)
-    nvar <- ncol(x$y)
-    pred.x <- seq(from=min(x$x), to=max(x$x), length=nsmo)
-    temp <- c(pred.x, x$x)
+#SCCS $Id: plot.cox.zph.s,v 4.2 1993-03-05 08:17:06 therneau Exp $
+plot.cox.zph <- function(x, resid=T, se=T, df=4, nsmo=40, var) {
+    xx <- x$x
+    yy <- x$y
+    d <- nrow(yy)
+    df <- max(df)     #error proofing
+    nvar <- ncol(yy)
+    pred.x <- seq(from=min(xx), to=max(xx), length=nsmo)
+    temp <- c(pred.x, xx)
     lmat <- ns(temp, df=df, intercept=T)
     pmat <- lmat[1:nsmo,]       # for prediction
     xmat <- lmat[-(1:nsmo),]
     qmat <- qr(xmat)
 
-browser()
     if (se) {
 	bk <- backsolve(qmat$qr[1:df, 1:df], diag(df))
 	xtx <- bk %*% t(bk)
@@ -17,12 +19,29 @@ browser()
 	seval <- ((pmat%*%temp) *pmat) %*% rep(1, df)
 	}
 
-    ylab <- paste("Beta(t) for", dimnames(x$y)[[2]])
-    if (x$transform=='identity') xlab <- "Time"
-    else                         xlab <- paste(x$transform, '(time)', sep='')
+    ylab <- paste("Beta(t) for", dimnames(yy)[[2]])
+    if (missing(var)) var <- 1:nvar
+    else {
+	if (is.character(var)) var <- match(var, dimnames(yy)[[2]])
+	if  (any(is.na(var)) || max(var)>nvar || min(var) <1)
+	    stop("Invalid variable requested")
+	}
 
-    for (i in 1:nvar) {
-	y <- x$y[,i]
+    #
+    # Figure out a 'good' set of x-axis labels.  Find 8 equally spaced
+    #    values on the 'transformed' axis.  Then adjust until they correspond
+    #    to rounded 'true time' values.  Avoid the edges of the x axis, or
+    #    approx() may give a missing value
+    xtime <- as.numeric(dimnames(yy)[[1]])
+    apr1  <- approx(xx, xtime, seq(min(xx), max(xx), length=17)[2*(1:8)])
+    temp <- signif(apr1$y,2)
+    apr2  <- approx(xtime, xx, temp)
+    xaxisval <- apr2$y
+    xaxislab <- rep("",8)
+    for (i in 1:8) xaxislab[i] <- format(temp[i])
+
+    for (i in var) {
+	y <- yy[,i]
 	yhat <- pmat %*% qr.coef(qmat, y)
 	if (resid) yr <-range(yhat, y)
 	else       yr <-range(yhat)
@@ -33,8 +52,9 @@ browser()
 	    yr <- range(yr, yup, ylow)
 	    }
 
-	plot(range(x$x), yr, type='n', xlab=xlab, ylab=ylab[i])
-	if (resid) points(x$x, y)
+	plot(range(xx), yr, type='n', xlab="Time", ylab=ylab[i], xaxt='n')
+	axis(1, xaxisval, xaxislab)
+	if (resid) points(xx, y)
 	lines(pred.x, yhat)
 	if (se) {
 	    lines(pred.x, yup,lty=2)

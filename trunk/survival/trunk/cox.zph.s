@@ -1,9 +1,8 @@
-# SCCS $Id: cox.zph.s,v 1.9 1993-03-04 11:57:38 therneau Exp $
+# SCCS $Id: cox.zph.s,v 1.10 1993-03-05 08:17:05 therneau Exp $
 #  Test proportional hazards
 #
 cox.zph <- function(fit, transform='km', global=T) {
-    if (is.character(transform)) tname<- transform
-    else        tname <- deparse(substitute(transform))
+    call <- match.call()
     if (!inherits(fit, 'coxph')) stop ("Argument must be the result of coxph")
     if (inherits(fit, 'coxph.null'))
 	stop("The are no score residuals for a Null model")
@@ -16,7 +15,7 @@ cox.zph <- function(fit, transform='km', global=T) {
     else         times <- as.numeric(dimnames(sresid)[[1]])
 
     if (is.character(transform)) {
-	times <- switch(transform,
+	ttimes <- switch(transform,
 			       'identity'= times,
 			       'rank'    = rank(times),
 			       'km' = {
@@ -26,8 +25,8 @@ cox.zph <- function(fit, transform='km', global=T) {
 				    },
 			       stop("Unrecognized transform"))
 	}
-    else times <- transform(times)
-    xx <- times - mean(times)
+    else ttimes <- transform(times)
+    xx <- ttimes - mean(ttimes)
 
     r2 <- sresid %*% fit$var * ndead
     test <- xx %*% r2        # time weighted col sums
@@ -43,8 +42,9 @@ cox.zph <- function(fit, transform='km', global=T) {
 	}
     else dimnames(Z.ph) <- list(varnames, c("rho", "chisq", "p"))
 
-    dimnames(r2) <- dimnames(sresid)
-    temp <-list(table=Z.ph, x=times, y=r2, var=fit$var, transform=tname)
+    dimnames(r2) <- list(times, names(fit$coef))
+    temp <-list(table=Z.ph, x=ttimes, y=r2 + outer(rep(1,ndead), fit$coef),
+    var=fit$var, call=call)
     class(temp) <- "cox.zph"
     temp
     }
