@@ -1,4 +1,4 @@
-# SCCS $Id: survConcordance.s,v 1.1 2004-03-05 12:59:20 therneau Exp $
+# SCCS $Id: survConcordance.s,v 1.2 2004-03-05 13:46:54 therneau Exp $
 # Compute the concordance between a survival time x
 #  and a continuous variable y
 survConcordance <- function(formula=formula(data), data=sys.parent(),
@@ -33,7 +33,7 @@ survConcordance <- function(formula=formula(data), data=sys.parent(),
     x <- x[ord]
     #
     #  The C code uses a balanced binary tree of the unique X values (this
-    #     idea is courtesy Brad Bloom).
+    #     idea is courtesy Brad Broom).
     #   
     x2 <- sort(unique(x))
     n2 <- length(x2)

@@ -1,5 +1,5 @@
 /*
-**    SCCS  $Id: survConcordance.c,v 1.1 2004-03-05 12:59:29 therneau Exp $
+**    SCCS  $Id: survConcordance.c,v 1.2 2004-03-05 13:46:54 therneau Exp $
 **
 **  For each observation, we want to know, for the subset of observations
 **     with longer survival (and only those)
@@ -42,8 +42,8 @@ void survConcordance(Sint *np,    double *time,  Sint *status,
 
     /* 
     ** The heart of the algorithm is to think of the ordered list of
-    **   unique values as a balanced binary tree.  (Credit to Brad Bloom
-    **   for this idea).
+    **   unique values as a balanced binary tree.  (Credit to Brad Broom
+    **   of Rice U for this idea).
     **  For any node k, below it to the left all values are < x2[k],
     **    and below to the right all values are > x2[k].  (Draw a picture).
     **  The root of the tree is element k= floor((n2-1)/2), with value x2[k].
@@ -59,12 +59,14 @@ void survConcordance(Sint *np,    double *time,  Sint *status,
     **    to all the survival times above it.
     **  If the time is censored, all those above are "incomparable".
     **  Otherwise, we need to find the position of x[i], among x[1: (i-1)]
-    **  We do this by updating the counts in the binary tree.
+    **  We do this by updating the counts in the binary tree.  The count
+    **  vector contains the number of x[0 to i] that are in or below any
+    **  given node k of the binary tree.
     ** 
     **  Tied death times are a nuisance; we have to refrain from updating
     **   the counts until the end of each set of them.  Thus a vector
     **   count1 (up to date) and count2 (lagged).
-    **  nr = sum(# values to the right, each time I take a left branch)
+    **  nright = sum(# values to the right, each time I take a left branch)
     */
 
     tdeath =0;     /* current count of tied deaths */
