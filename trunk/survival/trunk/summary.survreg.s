@@ -1,4 +1,4 @@
-#SCCS $Date: 1992-03-04 16:48:29 $ $Id: summary.survreg.s,v 4.1 1992-03-04 16:48:29 therneau Exp $
+#SCCS $Date: 1992-03-30 02:51:50 $ $Id: summary.survreg.s,v 4.2 1992-03-30 02:51:50 therneau Exp $
 summary.surv.reg <-
  function(cox, table = T, coef = T, conf.int = 0.95, scale = 1, digits=3)
     {
@@ -11,11 +11,10 @@ summary.surv.reg <-
 	cat(" Coxreg failed.", cox$fail, "\n")
 	return()
 	}
-    omit <- attr(cox$n, 'omit')
+    omit <- cox$na.action
     if (length(omit))
-	cat("N=", cox$n, " (", length(omit), " deleted due to missing)\n",
-				sep="")
-    else cat("N=", cox$n, "\n")
+	cat("  n=", cox$n, " (", naprint(omit), ")\n", sep="")
+    else cat("  n=", cox$n, "\n")
 
     if (is.null(cox$coef)) {   # Null model
 	cat ("   Null model\n")
