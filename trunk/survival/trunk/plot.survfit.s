@@ -1,14 +1,16 @@
-#SCCS $Id: plot.survfit.s,v 4.8 1992-08-07 17:21:06 therneau Exp $
+#SCCS $Id: plot.survfit.s,v 4.9 1993-03-26 17:04:13 therneau Exp $
 plot.survfit<- function(surv, conf.int,  mark.time=T,
-		 mark=3,col=1,lty=1, lwd=1, cex=1,log=F,yscale=1,
+		 mark=3,col=1,lty=1, lwd=1, cex=1,log=F, yscale=1,
 		 xscale=1,
 		 xlab="", ylab="", xaxs='i', ...) {
 
     if (!inherits(surv, 'survfit'))
 	  stop("First arg must be the result of survfit")
 
+    stime <- surv$time / xscale
+    ssurv <- surv$surv
     if (missing(conf.int)) {
-	if (is.null(surv$strata)) conf.int <-T
+	if (is.null(surv$strata) && !is.matrix(ssurv)) conf.int <-T
 	else conf.int <- F
 	}
 
@@ -23,23 +25,26 @@ plot.survfit<- function(surv, conf.int,  mark.time=T,
     if (is.null(surv$n.event)) mark.time <- F   #expected survival curve
 
     # set default values for missing parameters
-    mark <- rep(mark, length=nstrat)
-    col  <- rep(col, length=nstrat)
-    lty  <- rep(lty, length=nstrat)
-    lwd  <- rep(lwd, length=nstrat)
+    if (is.matrix(ssurv)) ncurve <- nstrat * ncol(ssurv)
+    else                  ncurve <- nstrat
+    mark <- rep(mark, length=ncurve)
+    col  <- rep(col, length=ncurve)
+    lty  <- rep(lty, length=ncurve)
+    lwd  <- rep(lwd, length=ncurve)
 
     if (is.numeric(mark.time)) mark.time <- sort(mark.time[mark.time>0])
-    stime <- surv$time / xscale
+    if (missing(xaxs)) temp <- 1.04*max(stime)
+    else               temp <- max(stime)
     #
     # for log plots we have to be tricky about the y axis scaling
     #
     if   (log) {
-	    plot(c(0, max(stime)),
-	       yscale*c(.99,min(.1,surv$surv[surv$surv>0],na.rm=T)),
+	    plot(c(0, temp),
+	       yscale*c(.99,min(.1,ssurv[!is.na(ssurv) &ssurv>0])),
 	       type ='n', log='y', xlab=xlab, ylab=ylab, xaxs=xaxs,...)
 	    }
      else
-	 plot(c(0,max(stime)), yscale*c(0,1),
+	 plot(c(0, temp), yscale*c(0,1),
 	      type='n', xlab=xlab, ylab=ylab, xaxs=xaxs, ...)
 
     if (yscale !=1) par(usr=par("usr")/ c(1,1,yscale, yscale))
@@ -51,35 +56,66 @@ plot.survfit<- function(surv, conf.int,  mark.time=T,
     yend _ NULL
 
     for (j in unique(stemp)) {
-	i _ i+1
 	who _ (stemp==j)
 	xx _ c(0,stime[who])
-	yy _ c(1,surv$surv[who])
-	lines(xx, yy, lty=lty[i], col=col[i], lwd=lwd[i], type='s')
+	deaths <- c(-1, surv$n.event[who])
+	if (is.matrix(ssurv)) {
+	    for (k in 1:ncol(ssurv)) {
+		i _ i+1
+		yy _ c(1,ssurv[who,k])
+		lines(xx, yy, lty=lty[i], col=col[i], lwd=lwd[i], type='s')
 
-	if (is.numeric(mark.time)) {
-	    nn <- length(xx)
-	    indx <- mark.time
-	    for (k in seq(along=mark.time))
-		indx[k] <- sum(mark.time[k] > xx)
-	    points(mark.time[indx<nn], yy[indx[indx<nn]],
-		   pch=mark[i],col=col[i],cex=cex)
+		if (is.numeric(mark.time)) {
+		    nn <- length(xx)
+		    indx <- mark.time
+		    for (k in seq(along=mark.time))
+			indx[k] <- sum(mark.time[k] > xx)
+		    points(mark.time[indx<nn], yy[indx[indx<nn]],
+			   pch=mark[i],col=col[i],cex=cex)
+		    }
+		else if (mark.time==T && any(deaths==0))
+		    points(xx[deaths==0], yy[deaths==0],
+			   pch=mark[i],col=col[i],cex=cex)
+		xend _ c(xend,max(xx))
+		yend _ c(yend,min(yy))
+
+		if (conf.int==T && !is.null(surv$upper)) {
+		    if (ncurve==1) lty[i] <- lty[i] +1
+		    yy _ c(1,surv$upper[who,k])
+		    lines(xx,yy, lty=lty[i], col=col[i], lwd=lwd[i], type='s')
+		    yy _ c(1,surv$lower[who,k])
+		    lines(xx,yy, lty=lty[i], col=col[i], lwd=lwd[i], type='s')
+		    }
+		}
 	    }
-	else if (mark.time==T && any(surv$n.event[who]==0))
-	    points(stime[who & surv$n.event==0],
-		   surv$surv[who & surv$n.event==0],
-		   pch=mark[i],col=col[i],cex=cex)
-	xend _ c(xend,max(xx))
-	yend _ c(yend,min(yy))
 
-	if (conf.int==T && !is.null(surv$upper)) {
-	    if (nstrat==1) lty[i] <- lty[i] +1
-	    yy _ c(1,surv$upper[who])
-	    lines(xx,yy, lty=lty[i], col=col[i], lwd=lwd[i], type='s')
-	    yy _ c(1,surv$lower[who])
-	    lines(xx,yy, lty=lty[i], col=col[i], lwd=lwd[i], type='s')
+	else {
+	    i <- i+1
+	    yy _ c(1,surv$surv[who])
+	    lines(xx, yy, lty=lty[i], col=col[i], lwd=lwd[i], type='s')
+
+	    if (is.numeric(mark.time)) {
+		nn <- length(xx)
+		indx <- mark.time
+		for (k in seq(along=mark.time))
+		    indx[k] <- sum(mark.time[k] > xx)
+		points(mark.time[indx<nn], yy[indx[indx<nn]],
+		       pch=mark[i],col=col[i],cex=cex)
+		}
+	    else if (mark.time==T && any(deaths==0))
+		points(xx[deaths==0], yy[deaths==0],
+		       pch=mark[i],col=col[i],cex=cex)
+	    xend _ c(xend,max(xx))
+	    yend _ c(yend,min(yy))
+
+	    if (conf.int==T && !is.null(surv$upper)) {
+		if (ncurve==1) lty[i] <- lty[i] +1
+		yy _ c(1,surv$upper[who])
+		lines(xx,yy, lty=lty[i], col=col[i], lwd=lwd[i], type='s')
+		yy _ c(1,surv$lower[who])
+		lines(xx,yy, lty=lty[i], col=col[i], lwd=lwd[i], type='s')
+		}
 	    }
-
 	}
     invisible(list(x=xend, y=yend))
 }
