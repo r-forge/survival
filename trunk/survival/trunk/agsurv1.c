@@ -1,4 +1,4 @@
-/*  SCCS $Id: agsurv1.c,v 5.1 1998-08-30 14:51:58 therneau Exp $
+/*  SCCS $Id: agsurv1.c,v 5.2 1998-10-27 17:29:49 therneau Exp $
 /*
 ** Fit the survival curve, the special case of an Anderson-Gill style data
 **   This program differs from survfit in several key ways:
@@ -46,6 +46,7 @@
 **  Input must be sorted by (event before censor) within stop time within strata,
 */
 #include <math.h>
+#include "survS.h"
 #include "survproto.h"
 
 void agsurv1(long   *sn,     long   *snvar,  double *y,      double *score, 

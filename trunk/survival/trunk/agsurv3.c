@@ -1,4 +1,4 @@
-/*  SCCS $Id: agsurv3.c,v 5.2 1998-09-25 23:45:26 therneau Exp $
+/*  SCCS $Id: agsurv3.c,v 5.3 1998-10-27 17:29:51 therneau Exp $
 /*
 ** Create the cohort survival curve(s) for a set of subjects.
 **
@@ -47,8 +47,8 @@
 **  cx and cy must be sorted by (event before censor) within stop time
 */
 #include <math.h>
-#include "survproto.h"
 #include "survS.h"
+#include "survproto.h"
 
 static double   *y,
 		*nscore,
@@ -59,7 +59,7 @@ static double   *y,
 		**used,
 		**tvar;
 static double   *strata,
-		xtime,
+		time,
 		**imat,
 		*mean;
 static int      death,
@@ -183,11 +183,11 @@ S_EVALUATOR
 		a[i] =0;
 		a2[i]=0;
 		}
-	    xtime = stop[person];
+	    time = stop[person];
 	    nrisk =0;
 	    deaths=0;
 	    for (k=person; k<cn; k++) {
-		if (start[k] < xtime) {
+		if (start[k] < time) {
 		    nrisk++;
 		    weight = score[k];
 		    denom += weight;
@@ -195,7 +195,7 @@ S_EVALUATOR
 			a[i] += weight*(oldx[i][k]);
 			}
 		     }
-		if (stop[k]==xtime && event[k]==1) {
+		if (stop[k]==time && event[k]==1) {
 		    kk=k;
 		    deaths++;
 		    e_denom += weight;
@@ -210,7 +210,7 @@ S_EVALUATOR
 	    */
 	    if (method <3) for (i=0; i<nvar2; i++) mean[i] = a[i]/denom;
 	    if (method==1) {
-		for (psave=person; psave<cn && stop[psave]==xtime; psave++) 
+		for (psave=person; psave<cn && stop[psave]==time; psave++) 
 		/*
 		** kalbfleisch estimator requires iteration;
 		*/
@@ -244,11 +244,11 @@ S_EVALUATOR
 
 	    else if (method==2) {
 		addup(itime, deaths/denom, deaths/(denom*denom));
-		for (; person<cn && stop[person]==xtime; person++);
+		for (; person<cn && stop[person]==time; person++);
 		}
 	    else {
 		temp =0;  haz=0; varhaz=0;
-		for (k=person; k<cn && stop[k]==xtime; k++) {
+		for (k=person; k<cn && stop[k]==time; k++) {
 		    if (event[k]==1) {
 			downwt = temp++/deaths;
 			d2 = (denom - downwt*e_denom);
@@ -261,7 +261,7 @@ S_EVALUATOR
 		    person++;
 		    }
 		}
-	    start[itime] = xtime;
+	    start[itime] = time;
 	    stop[itime] = nrisk;
 	    event[itime]= deaths;
 	    itime++;
@@ -305,7 +305,7 @@ double haz, var;
 	totvar =0;
 	for (i=pstart; i<n && strata[i]==ic; i++) {
 	    nn++;
-	    if (y[i] >= xtime) {
+	    if (y[i] >= time) {
 		temp =  -haz*nscore[i];  /*increment to the individual hazard*/
 		if  (death==0) {
 		    wt += isurv[i];

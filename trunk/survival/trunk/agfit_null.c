@@ -1,4 +1,4 @@
-/*  SCCS $Id: agfit_null.c,v 5.1 1998-08-30 14:51:51 therneau Exp $
+/*  SCCS $Id: agfit_null.c,v 5.2 1998-10-27 17:29:48 therneau Exp $
 /*
 ** Fit a "null" model.  We just need the loglik
 **
@@ -17,6 +17,7 @@
 **
 */
 #include <math.h>
+#include "survS.h"
 #include "survproto.h"
 
 void agfit_null(long   *n,      long   *method,   double *start, double *stop, 

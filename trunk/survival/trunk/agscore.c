@@ -1,4 +1,4 @@
-/*  SCCS $Id: agscore.c,v 5.1 1998-08-30 14:51:56 therneau Exp $
+/*  SCCS $Id: agscore.c,v 5.2 1998-10-27 17:29:48 therneau Exp $
 /*
 ** Do the score residuals
 **
@@ -20,6 +20,7 @@
 **      a       vector of length 3*nvar
 */
 #include <stdio.h>
+#include "survS.h"
 #include "survproto.h"
 
 void agscore(long   *nx,       long   *nvarx,      double *y,
