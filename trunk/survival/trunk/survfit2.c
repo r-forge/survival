@@ -1,4 +1,4 @@
-/* SCCS $Id: survfit2.c,v 4.7 1993-05-03 14:39:12 therneau Exp $
+/* SCCS $Id: survfit2.c,v 4.8 1993-05-04 09:39:24 therneau Exp $
 /*
 ** Fit the survival curve
 **  Input
@@ -46,6 +46,7 @@ double risksum[];
     time =y;
     status = y+n;
     strata[n-1] =1;   /*just in case the parent routine forgot */
+
     /*
     **  initialize a couple of arrays
     **    mark(i) contains the number of deaths at this particular time point
@@ -56,7 +57,7 @@ double risksum[];
 	else                                     mark[i+1]=  1;
     mark[0]=1;
 
-    temp =0;
+    temp =0;                  /* second pass */
     for (i=n-1; i>=0; i--) {
 	if (strata[i]==1) sum =0;
 	sum  += wt[i];
@@ -77,45 +78,42 @@ double risksum[];
     km =1;
     hazard  =0;
     varhaz  =0;
-    surv[0]=1.0;
-    varh[0] = 0.0;
     for(i=0; i<n; i++) {
-	if (mark[i] <0) continue;    /*extra data line */
 	if (mark[i] >0) {
 	    if (*method==1) {
-	       km *= (risksum[i] - mark[i]) / risksum[i];
-	       surv[nsurv] = km;;
-
+		km *= (risksum[i] - mark[i]) / risksum[i];
 		if (*error==1 )
 		     varhaz += mark[i]/(risksum[i]*(risksum[i]-mark[i]));
 		else varhaz += mark[i]/(risksum[i]*risksum[i]);
-		varh[nsurv] = varhaz;
 		}
 	    else  if (*method==2) {
 		hazard += mark[i]/risksum[i];
-		surv[nsurv] = exp(-hazard);
+		km = exp(-hazard);
 		if (*error==1 )
 		     varhaz += mark[i]/(risksum[i]*(risksum[i]-mark[i]));
 		else varhaz += mark[i]/(risksum[i]*risksum[i]);
-		varh[nsurv] = varhaz;
 		}
 
 	    else  if (*method==3) {
 		for (j=0; j<mark[i]; j++) {
-		    hazard += 1/(risksum[i] -j);
+		    temp = risksum[i] -j;
+		    hazard += 1/temp;
 		    if (*error==1 )
-			 varhaz += 1/(risksum[i]*(risksum[i]-1));
-		    else varhaz += 1/(risksum[i]*risksum[i]);
+			 varhaz += 1/(temp*(temp-1));
+		    else varhaz += 1/(temp*temp);
 		    }
-		surv[nsurv] = exp(-hazard);
-		varh[nsurv] = varhaz;
+		km = exp(-hazard);
 		}
 	    }
 
-	time[nsurv] = time[i];
-	mark[nsurv] = mark[i];
-	risksum[nsurv] = risksum[i];
-	nsurv++;
+	if (mark[i] >=0) {
+	    time[nsurv] = time[i];
+	    mark[nsurv] = mark[i];
+	    risksum[nsurv] = risksum[i];
+	    surv[nsurv] = km;;
+	    varh[nsurv] = varhaz;
+	    nsurv++;
+	    }
 
 	if (strata[i]==1) {
 	    strata[nstrat]= nsurv;
@@ -127,10 +125,6 @@ double risksum[];
 	    km=1;
 	    hazard  =0;
 	    varhaz  =0;
-	    }
-	else if (nsurv < n) {
-	    surv[nsurv] = surv[nsurv-1];
-	    varh[nsurv] = varh[nsurv-1];
 	    }
 	}
 
