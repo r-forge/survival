@@ -1,4 +1,4 @@
-# SCCS $Id: residuals.coxph.s,v 4.27 1997-05-08 09:03:50 therneau Exp $
+# SCCS $Id: residuals.coxph.s,v 4.28 1998-07-20 13:33:40 therneau Exp $
 residuals.coxph <-
   function(object, type=c("martingale", "deviance", "score", "schoenfeld",
 			  "dfbeta", "dfbetas", "scaledsch"),
@@ -63,7 +63,11 @@ residuals.coxph <-
     # Now I have gotton the data that I need-- do the work
     #
     if (type=='schoenfeld') {
-	if (ny==2)  y <- cbind(-1,y)
+	if (ny==2) {
+	    mintime <- min(y[,1])
+	    if (mintime < 0) y <- cbind(2*mintime -1, y)
+	    else             y <- cbind(-1,y)
+	    }
 	temp <- .C("coxscho", n=as.integer(n),
 			    as.integer(nvar),
 			    as.double(y),

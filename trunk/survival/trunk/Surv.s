@@ -1,4 +1,4 @@
-#SCCS $Date: 1997-11-25 10:22:59 $ $Id: Surv.s,v 4.19 1997-11-25 10:22:59 therneau Exp $
+#SCCS $Date: 1998-07-20 13:33:38 $ $Id: Surv.s,v 4.20 1998-07-20 13:33:38 therneau Exp $
 # Package up surivival type data as a structure
 #
 Surv <- function(time, time2, event,
@@ -23,13 +23,11 @@ Surv <- function(time, time2, event,
 
     if (ng==1) {
 	if (!is.numeric(time)) stop ("Time variable is not numeric")
-	else if (any(time[who]<0))  stop ("Time variable must be >= 0")
 	ss <- cbind(time, 1)
 	dimnames(ss) <- list(NULL, c("time", "status"))
 	}
     else if (type=='right' || type=='left') {
 	if (!is.numeric(time)) stop ("Time variable is not numeric")
-	else if (any(time[who]<0))  stop ("Time variable must be >= 0")
 	if (length(time2) != nn) stop ("Time and status are different lengths")
 	if (is.logical(time2)) status <- 1*time2
 	    else  if (is.numeric(time2)) {

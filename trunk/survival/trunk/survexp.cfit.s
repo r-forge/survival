@@ -1,4 +1,4 @@
-# SCCS $Id: survexp.cfit.s,v 4.5 1995-03-14 13:12:14 therneau Exp $
+# SCCS $Id: survexp.cfit.s,v 4.6 1998-07-20 13:33:41 therneau Exp $
 #
 #  Do expected survival based on a Cox model
 #   A fair bit of the setup work is identical to survfit.coxph, i.e.,
@@ -46,7 +46,11 @@ survexp.cfit <- function(x, y, death, individual, cox, se.fit, method) {
     #  First sort the old data set
     # Also, expand y to (start, stop] form.  This leads to slower processing,
     #  but I only have to program one case instead of 2.
-    if (ncol(cy) ==2) cy <- cbind(-1, cy)
+    if (ncol(cy) ==2) {
+	mintime <- min(cy[,1])
+	if (mintime < 0) cy <- cbind(2*mintime-1, cy)
+	else	       cy <- cbind(-1, cy)
+	}
     ord <- order(cy[,2], -cy[,3])
     cy  <- cy[ord,]
     score <- exp(cox$linear.predictors[ord])
