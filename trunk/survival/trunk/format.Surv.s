@@ -1,3 +1,5 @@
+# SCCS $Id: format.Surv.s,v 4.2 1994-10-09 19:25:05 therneau Exp $
+#
 # These two functions operate with the newer data.frame code, found on statlib
 #   (Eventually part of S, I assume)
 #
