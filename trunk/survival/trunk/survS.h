@@ -1,16 +1,20 @@
-/* SCCS $Id: survS.h,v 5.2 1998-09-01 09:46:28 therneau Exp $
+/* SCCS $Id: survS.h,v 5.3 1998-12-22 09:11:11 therneau Exp $
 /*
-** The next line is needed on Sun: S.h includes time.h, which defines
-**   the variable "time", a variable name that I use often.
-** But on Linux, you must leave the line out: time.h does not define "time",
-**   and "select.h" (also pulled in by S.h) depends on time.h.
-** Real solution: offer the user something other than S.h, which defines
-**   what he needs without including the zillion .h files a compile of S needs!
+**   The S.h file defines a few things that I need, and hundreds that I don't.
+** In particular, on some architectures, it defines a variable "time"
+** which of course conflicts with lots of my C-code, 'time' being a natural
+** variable name for survival models.
+**   Thanks to Brian Ripley for suggesting a machine independent way of
+** fixing this.
+**
+** The S_alloc function changed it's argument list from version 4 to 5, and
+**   the ALLOC macro allows me to have common C code for the two versions,
+**   with only this file "survS.h" changed.
 */
-
-/* #if (defined(SUNOS))   ok- this didn't work, how do we do it? */
-#define _TIME_H   /* a hack to stop inclusion of time.h */
-/*  #endif  */
 
 #include "S.h"
 #define ALLOC(a,b) S_alloc(a,b,S_evaluator)
+
+#ifdef time
+#undef time
+#endif
