@@ -1,4 +1,4 @@
-#SCCS $Id: residuals.coxph.s,v 4.20 1994-01-19 14:27:43 therneau Exp $
+#SCCS $Id: residuals.coxph.s,v 4.21 1994-04-08 15:23:09 therneau Exp $
 residuals.coxph <-
   function(object, type=c("martingale", "deviance", "score", "schoenfeld",
 			  "dfbeta", "dfbetas", "scaledsch"),
@@ -26,19 +26,10 @@ residuals.coxph <-
 		stop("invalid terms component of object")
 	strats <- attr(Terms, "specials")$strata
 	if (is.null(y)  ||  (is.null(x) && type!= 'deviance')) {
-	    m <- object$model
-	    if (is.null(m)) m <- model.frame(object)
-
-	    if (is.null(x) && type!= 'deviance') {
-		if (length(strats)) {
-		    temp <- untangle.specials(Terms, 'strata', 1)
-		    x <- model.matrix(Terms[-temp$terms], m)[,-1,drop=F]
-		    strat <- strata(m[temp$vars], shortlabel=T)
-		    }
-		else x <- model.matrix(Terms, m)[,-1,drop=F]   #remove column of 1's though
-		}
-	    if (is.null(y)) y <- model.extract(m, 'response')
-	    weights <- model.extract(m, 'weights')
+	    temp <- coxph.getdata(object, y=T, x=T, strata=T)
+	    y <- temp$y
+	    x <- temp$x
+	    if (length(stats)) strat <- temp$strata
 	    }
 
 	ny <- ncol(y)
