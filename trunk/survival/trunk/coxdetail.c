@@ -1,4 +1,4 @@
-/* SCCS $Id: coxdetail.c,v 4.1 1993-01-07 13:33:27 therneau Exp $
+/* SCCS $Id: coxdetail.c,v 4.2 1993-01-12 23:24:55 therneau Exp $
 /*
 ** Return all of the internal peices of a cox model
 **
@@ -15,12 +15,14 @@
 **                       vector can be identically zero, since the nth person's
 **                       value is always assumed to be = to 1.
 **       score(n)     :the risk score for the subject
-**       ndeath(n)    :first element contains the method
+**       means        :first element contains the method
 **
 **  returned parameters
 **       ndead        :the number of unique death times
 **       score        :the indices of the unique time points
-**       ndeath       :the number of deaths at each time point
+**       y[1, ]       :the number of deaths at each time point
+**       y[2, ]       :the number at risk at each time point
+**       y[3, ]       :the sum of risk scores
 **       means(nv,nd) :the matrix of weighted means, one col per unique event
 **                                              time
 **       u(nv,nd)     :the score vector components, one per unique event time
@@ -45,12 +47,11 @@
 double **dmatrix();
 
 void coxdetail(nusedx, nvarx, ndeadx, y, covar2, strata,  score,
-		  ndeath, means2, u2, var, work)
+		  means2, u2, var, work)
 
 long    *nusedx,
 	*nvarx,
 	*ndeadx,
-	*ndeath,
 	strata[];
 double  *covar2,
 	*u2,
@@ -62,7 +63,7 @@ double  *work,
 {
     register int i,j,k,person;
     int     nused, nvar;
-    int    ndead;
+    int     nrisk, ndead;
     double **covar, **cmat;    /*ragged arrays */
     double **means;
     double **u;
@@ -82,7 +83,7 @@ double  *work,
 
     nused = *nusedx;
     nvar  = *nvarx;
-    method= *ndeath;
+    method= *means2;
     ndead = *ndeadx;
     /*
     **  Set up the ragged arrays
@@ -142,8 +143,10 @@ double  *work,
 		}
 	    time = stop[person];
 	    deaths=0;
+	    nrisk =0;
 	    for (k=person; k<nused; k++) {
 		if (start[k] < time) {
+		    nrisk++;
 		    weight = score[k];
 		    denom += weight;
 		    for (i=0; i<nvar; i++) {
@@ -190,7 +193,9 @@ double  *work,
 		if (strata[k]==1) break;
 		}
 	    score[ideath] = person;
-	    ndeath[ideath] = deaths;
+	    start[ideath] = deaths;
+	    stop[ideath]  = nrisk;
+	    event[ideath] = denom;
 	    ideath++;
 	    }
 	}   /* end  of accumulation loop */

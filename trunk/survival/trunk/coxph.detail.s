@@ -1,4 +1,4 @@
-#SCCS $Id: coxph.detail.s,v 4.1 1993-01-07 13:33:25 therneau Exp $
+#SCCS  $Id: coxph.detail.s,v 4.2 1993-01-12 23:24:54 therneau Exp $
 coxph.detail <-  function(object) {
     method <- object$method
     if (method!='breslow' && method!='efron')
@@ -44,18 +44,18 @@ coxph.detail <-  function(object) {
     # sort the data
     x <- x[ord,]
     y <- y[ord,]
+    storage.mode(y) <- 'double'
     score <- exp(object$linear.predictor)[ord]
 
     ndeath <- sum(y[,3])
     ff <- .C("coxdetail", as.integer(n),
 			  as.integer(nvar),
 			  ndeath= as.integer(ndeath),
-			  as.double(y),
+			  y = y,
 			  as.double(x),
 			  as.integer(newstrat),
 			  index =as.double(score),
-			  nevent= as.integer(c(method=='efron', integer(ndeath))),
-			  means= double(ndeath*nvar),
+			  means= c(method=='efron', double(ndeath*nvar)),
 			  u = double(ndeath*nvar),
 			  i = double(ndeath*nvar*nvar),
 			  double(nvar*(3 + 2*nvar)) )
@@ -76,6 +76,9 @@ coxph.detail <-  function(object) {
 	names(var) <- time
 	}
 
-    list(time = time, means=means, nevent=ff$nevent[keep],
-	 score= score,  var=var)
+    dimnames(ff$y) <- NULL
+    temp <- list(time = time, means=means, nevent=ff$y[keep,1],
+	 nrisk = ff$y[keep,2], sumrisk= ff$y[,3], score= score,  imat=var)
+    if (length(strats)) temp$strata <- strat[keep]
+    temp
     }
