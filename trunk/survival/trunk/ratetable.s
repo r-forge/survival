@@ -1,4 +1,4 @@
-# SCCS $Id: ratetable.s,v 5.1 1998-08-30 15:36:40 therneau Exp $
+# SCCS $Id: ratetable.s,v 5.2 1998-09-25 23:20:19 therneau Exp $
 #
 # This is a 'specials' function for pyears
 #   it is a stripped down version of as.matrix(data.frame(...))
@@ -8,8 +8,7 @@
 ratetable <- function(...) {
     args <- list(...)
     nargs <- length(args)
-    ll <- 1:nargs
-    for (i in ll) ll[i] <- length(args[[i]])
+    ll <- sapply(args, length)
     n <- max(ll)
     levlist <- vector("list", nargs)
     x <- matrix(0,n,nargs)
