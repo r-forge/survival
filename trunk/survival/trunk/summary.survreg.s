@@ -1,4 +1,4 @@
-# SCCS $Id: summary.survreg.s,v 4.8 1992-11-19 17:37:08 therneau Exp $
+# SCCS $Id: summary.survreg.s,v 4.9 1992-12-30 14:21:45 therneau Exp $
 summary.survreg<- function(object, correlation = T)
 {
     if (!is.null(object$fail)) {
@@ -64,6 +64,6 @@ summary.survreg<- function(object, correlation = T)
 	scale= scale, df = c(p, rdf), deviance.resid = dresid,
 	var=object$var, correlation = correl, deviance = deviance(object),
 	null.deviance = object$null.deviance, iter = object$iter,
-	nas = nas, parms=pprint),
+	nas = nas, parms=pprint, loglik=object$loglik[2]),
 	class = "summary.survreg")
     }
