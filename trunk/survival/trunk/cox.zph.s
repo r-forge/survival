@@ -1,4 +1,4 @@
-# SCCS $Id: cox.zph.s,v 5.2 1998-09-25 22:44:00 therneau Exp $
+# SCCS $Id: cox.zph.s,v 5.3 2002-06-18 14:11:48 therneau Exp $
 #  Test proportional hazards
 #
 cox.zph <- function(fit, transform='km', global=T) {
@@ -37,6 +37,7 @@ cox.zph <- function(fit, transform='km', global=T) {
 	}
     else {
 	tname <- deparse(substitute(transform))
+        if (length(tname) >1) tname <- 'user'
 	ttimes <- transform(times)
 	}
     xx <- ttimes - mean(ttimes)
