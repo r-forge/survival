@@ -1,4 +1,4 @@
-/* SCCS $Id: survreg.c,v 4.4 1992-11-19 10:41:35 therneau Exp $    */
+/* $Id: survreg.c,v 4.5 1992-11-19 17:40:44 therneau Exp $  */
 /*
 ** Fit one of several censored data distributions
 **
@@ -288,9 +288,10 @@ double  beta[],
 	}
     }
 
-void survreg_g(nx, y, ny, eta, beta, deriv, dist)
+void survreg_g(nx, y, ny, eta, beta, deriv, ncol, dist)
 long    *nx,
 	*ny,
+	*ncol,
 	*dist;
 double  eta[],
 	*deriv;
@@ -371,7 +372,7 @@ double  beta[],
 		dg[person]  = -(ufun[2] - funs[2])/(temp*sigma);
 		ddg[person] = (ufun[3] - funs[3])*sig2/temp -
 						     dg[person]*dg[person];
-		if (pfixed[0]==0) {
+		if (*ncol==5) {
 		    dsig[person] = (z*funs[2] - zu*ufun[2])/temp;
 		    ddsig[person]= ((zu*zu*ufun[3] - z*z*funs[3])
 				      +(zu*ufun[2] - z*funs[2])) /temp -
