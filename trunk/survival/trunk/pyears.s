@@ -1,4 +1,4 @@
-#SCCS  $Id: pyears.s,v 4.6 1996-11-21 16:57:23 therneau Exp $
+#SCCS  $Id: pyears.s,v 4.7 1997-11-18 14:16:03 therneau Exp $
 pyears <- function(formula=formula(data), data=sys.parent(),
 	weights, subset, na.action,
 	ratetable=survexp.us, scale=365.25,  expect=c('event', 'pyears'),
@@ -38,7 +38,7 @@ pyears <- function(formula=formula(data), data=sys.parent(),
 	rtemp <- match.ratetable(m[,rate], ratetable)
 	R <- rtemp$R
 	if (!is.null(rtemp$call)) {  #need to drop some dimensions from ratetable
-	    ratetable <- eval(parse(text=temp$call))
+	    ratetable <- eval(parse(text=rtemp$call))
 	    }
 	}
     else {
@@ -143,17 +143,29 @@ pyears <- function(formula=formula(data), data=sys.parent(),
 			offtable=double(1)) [10:13]
 	}
 
-    out <- list(call = call,
+    if (prod(odims) ==1) {  #don't make it an array
+	out <- list(call=call, pyears=temp$pyears/scale, n=temp$pn,
+		    offtable=temp$offtable/scale)
+	if (length(rate)) {
+	    out$expected <- temp$pexpect
+	    if (expect=='pyears') out$expected <- out$expected/scale
+	    if (!is.null(rtemp$summ)) out$summary <- rtemp$summ
+	    }
+	if (is.Surv(Y)) out$event <- temp$pcount
+	}
+    else {
+	out <- list(call = call,
 		pyears= array(temp$pyears/scale, dim=odims, dimnames=outdname),
 		n     = array(temp$pn,     dim=odims, dimnames=outdname),
 		offtable = temp$offtable/scale)
-    if (length(rate)) {
-        out$expected <- array(temp$pexpect, dim=odims, dimnames=outdname)
-	if (expect=='pyears') out$expected <- out$expected/scale
-	if (!is.null(rtemp$summ)) out$summary <- rtemp$summ
+	if (length(rate)) {
+	    out$expected <- array(temp$pexpect, dim=odims, dimnames=outdname)
+	    if (expect=='pyears') out$expected <- out$expected/scale
+	    if (!is.null(rtemp$summ)) out$summary <- rtemp$summ
+	    }
+	if (is.Surv(Y))
+		out$event <- array(temp$pcount, dim=odims, dimnames=outdname)
 	}
-    if (is.Surv(Y))
-	out$event    <- array(temp$pcount, dim=odims, dimnames=outdname)
     na.action <- attr(m, "na.action")
     if (length(na.action))  out$na.action <- na.action
     if (model) out$model <- m
