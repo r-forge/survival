@@ -1,4 +1,4 @@
-/*    SCCS $Id: survindex2.c,v 2.2 1992-08-10 14:17:08 grill Exp $
+/*    SCCS $Id: survindex2.c,v 2.3 1992-08-26 08:51:42 grill Exp $
 ** A subroutine for surv.fit.print
 **
 ** Input --
@@ -40,7 +40,7 @@ double stime[],
     register int i,j;
     int nn;
     int current_strata;
-    double star_time;
+    double start_time;
 
     current_strata = strata[0];
     nn=0;
