@@ -1,4 +1,4 @@
-#SCCS  $Id: survfit.coxph.null.s,v 4.9 1994-06-22 13:44:09 therneau Exp $ % G%
+#SCCS  $Id: survfit.coxph.null.s,v 4.10 1994-08-25 10:57:59 therneau Exp $
 survfit.coxph.null <-
   function(object, newdata, se.fit=T, conf.int=.95, individual=F,
 	    type=c('tsiatis', 'kaplan-meier'),
