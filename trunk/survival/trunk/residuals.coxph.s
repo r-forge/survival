@@ -1,4 +1,4 @@
-#SCCS $Id: residuals.coxph.s,v 4.25 1995-10-25 17:00:10 therneau Exp $
+# SCCS $Id: residuals.coxph.s,v 4.26 1995-11-09 07:55:29 therneau Exp $
 residuals.coxph <-
   function(object, type=c("martingale", "deviance", "score", "schoenfeld",
 			  "dfbeta", "dfbetas", "scaledsch"),
@@ -124,12 +124,24 @@ residuals.coxph <-
 	    dimnames(rr) <- list(names(object$resid), names(object$coef))
 	    }
 	else rr[ord] <- resid
+
+	if      (otype=='dfbeta') {
+	    if (is.matrix(rr)) rr <- rr %*% vv
+	    else               rr <- rr * vv
+	    }
+	else if (otype=='dfbetas') {
+	    if (is.matrix(rr))  rr <- (rr %*% vv) %*% diag(sqrt(1/diag(vv)))
+	    else                rr <- rr * sqrt(vv)
+	    }
 	}
 
     #
     # Multiply up by case weights, if requested
     #
-    if (!is.null(weights) & weighted) rr <- rr * weights
+    if (!is.null(weights) & weighted) {
+	weights[ord] <- weights
+	rr <- rr * weights
+	}
 
     #Expand out the missing values in the result
     if (!is.null(object$na.action)) {
@@ -147,16 +159,7 @@ residuals.coxph <-
 
     # Deviance residuals are computed after collapsing occurs
     if (type=='deviance')
-	rr <- sign(rr) *sqrt(-2* (rr+
+	sign(rr) *sqrt(-2* (rr+
 			      ifelse(status==0, 0, status*log(status-rr))))
-
-    if      (otype=='dfbeta') {
-	if (is.matrix(rr)) rr %*% vv
-	else               rr * vv
-	}
-    else if (otype=='dfbetas') {
-	if (is.matrix(rr)) (rr %*% vv) %*% diag(sqrt(1/diag(vv)))
-	else                rr * sqrt(vv)
-	}
-    else  rr
+    else rr
     }
