@@ -1,4 +1,4 @@
-/* SCCS $Id: survival_i.c,v 4.4 1993-01-13 00:26:55 therneau Exp $  */
+/* SCCS $Id: survival_i.c,v 4.5 1993-01-21 09:43:08 therneau Exp $  */
 #include "S.h"
 #include "cdefs.h"
 #if defined(IRIS4D) || defined(DECSTATION) /* ( */
@@ -9,14 +9,14 @@ extern vector *model_frame();
 extern void agexact();
 extern void agfit2();
 extern void agfit_null();
-extern void aghaz2();
+extern void agmart();
 extern void agres12();
 extern void coxdetail();
 extern void agsurv1();
 extern void agsurv2();
 extern void coxfit2();
 extern void coxfit_null();
-extern void coxhaz2();
+extern void coxmart();
 extern void coxres12();
 extern void coxscho();
 extern void survdiff2();
@@ -29,14 +29,14 @@ x_h survival_init[]  = {
 {SYMBOL(agexact),(long)agexact,NULL},
 {SYMBOL(agfit2),(long)agfit2,NULL},
 {SYMBOL(agfit_null),(long)agfit_null,NULL},
-{SYMBOL(aghaz2),(long)aghaz2,NULL},
+{SYMBOL(agmart),(long)agmart,NULL},
 {SYMBOL(agres12),(long)agres12,NULL},
 {SYMBOL(coxdetail),(long)coxdetail,NULL},
 {SYMBOL(agsurv1),(long)agsurv1,NULL},
 {SYMBOL(agsurv2),(long)agsurv2,NULL},
 {SYMBOL(coxfit2),(long)coxfit2,NULL},
 {SYMBOL(coxfit_null),(long)coxfit_null,NULL},
-{SYMBOL(coxhaz2),(long)coxhaz2,NULL},
+{SYMBOL(coxmart),(long)coxmart,NULL},
 {SYMBOL(coxres12),(long)coxres12,NULL},
 {SYMBOL(coxscho),(long)coxscho,NULL},
 {SYMBOL(survdiff2),(long)survdiff2,NULL},
