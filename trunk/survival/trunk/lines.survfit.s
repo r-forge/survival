@@ -1,4 +1,4 @@
-# SCCS $Id: lines.survfit.s,v 4.8 1994-12-14 14:51:24 therneau Exp $
+# SCCS $Id: lines.survfit.s,v 4.9 1997-03-28 12:18:24 therneau Exp $
 lines.survfit <- function(x, type='s', mark=3, col=1, lty=1, lwd=1,
 		       mark.time =T, xscale=1, yscale=1,  ...) {
     if (inherits(x, 'survexp')) {
@@ -8,7 +8,7 @@ lines.survfit <- function(x, type='s', mark=3, col=1, lty=1, lwd=1,
     if (is.numeric(mark.time)) mark.time <- sort(unique(mark.time[mark.time>0]))
 
     if (is.null(x$strata)) {
-	if (is.matrix(x$surv)) ncurv <- ncol(x$surv)
+	if (is.matrix(x$surv)) ncurve <- ncol(x$surv)
 	else ncurve <- 1
 	nstrat <- 1
 	strata <- length(x$surv)/nstrat
