@@ -1,6 +1,8 @@
 .BG D
 .FN survexp.us
 .TL
+Census Data Sets for the Expected Survival and Person Years Functions
+.DN
 Census data sets for the expected survival and person years functions
 .PP
 .AG us
@@ -42,14 +44,15 @@ the denominator is based on 24 leap years per century.)
 .PP
 Each table is stored as an array, with additional attributes, and
 can be subset and manipulated as standard S arrays.
-Interpolation between calander years is done "on the fly" by the survexp
+Interpolation between calendar years is done "on the fly" by the survexp
 routine.  Judging from past experience, the 1990 data should become
 available in 1995 or 96.
 .PP
 Some of the deficiencies, e.g. 1970 Arizona non-white, are a result of
 local conditions.  The data probably exists, but we don't have a copy
 it in the library.
-.PP In November 1994 all of the tables were augmented to contain extrapolated
+.PP 
+In November 1994 all of the tables were augmented to contain extrapolated
 values for 1990 and 2000.  The details can be found in technical report 55.
 .KW survival
 .WR

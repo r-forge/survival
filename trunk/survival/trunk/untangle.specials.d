@@ -1,11 +1,11 @@
 .BG
 .FN untangle.specials
 .TL
-Help process the 'specials' argument of the terms function.
+Help Process the `specials' Argument of the `terms' Function.
 .DN
-Given a terms structure and a desired special name, this return an index
-appropriate for subscripting the terms structure and another appropriate for
-the data frame.
+Given a `terms' structure and a desired special name, this returns an
+index appropriate for subscripting the `terms' structure and another
+appropriate for the data frame.
 .CS
 untangle.specials(tt, special, order=1)
 .RA

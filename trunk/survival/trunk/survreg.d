@@ -1,6 +1,8 @@
 .BG
 .FN survreg
 .TL
+Regression for a Parametric Survival Model
+.DN 
 Regression for a parametric survival model
 .CS
 survreg(formula, data=sys.parent(), subset, na.action,
@@ -11,7 +13,7 @@ a formula expression as for other regression models.
 See the documentation for `lm' and `formula' for details.
 .OA
 .AG data
-optional data frame in which to interpret the variables occuring in the
+optional data frame in which to interpret the variables occurring in the
 formula.
 .AG subset
 subset of the observations to be used in the fit.
@@ -29,7 +31,7 @@ standard.
 a list of fixed parameters.  For the t-distribution for instance this is
 the degrees of freedom; most of the distributions have no parameters.
 .AG init
-optional vector of initial values for the paramters.
+optional vector of initial values for the parameters.
 .AG scale
 optional fixed value for the scale.  If set to <=0 then the scale is
 estimated.
@@ -45,13 +47,15 @@ if TRUE, then the y vector (or survival times) is returned.
 other arguments which will be passed to `survreg.control'.
 .RT
 an object of class `survreg' is returned.
-.SH Note
+.SH NOTE
 This routine underwent significant changes from survival4 to survival5.
-.SH Computation
+.SH COMPUTATION
 The routine uses a Newton-Raphson iteration with step halving, 
 with provision for general penalized term.
-Fisher scoring is used for itermediate steps where the information matrix
+Fisher scoring is used for intermediate steps where the information matrix
 is not positive definite.
+.SA
+`survreg.object'
 .EX
 survreg(Surv(futime, fustat) ~ ecog.ps + rx, fleming, dist='lognormal')
 .KW survival

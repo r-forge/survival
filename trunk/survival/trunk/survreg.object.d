@@ -2,11 +2,11 @@
 .FN survreg.object
 .TL
 Parametric Survival Model Object
-.PP
+.DN
 This class of objects is returned by the `survreg' function
 to represent a fitted parametric survival model.
 Objects of this class have methods for the functions `print',
-`summary', `predict', and 'residuals'.
+`summary', `predict', and `residuals'.
 .SH COMPONENTS
 The following components must be included in a legitimate `survreg' object.
 .AG coefficients
@@ -18,7 +18,7 @@ The names of the coefficients are the names of the
 single-degree-of-freedom effects (the columns of the
 model matrix).
 If the model is over-determined there will
-be missing values in the coefficients corresponding to inestimable
+be missing values in the coefficients corresponding to non-estimable
 coefficients.
 .AG icoef
 coefficients of the baseline model, which will contain the intercept
@@ -47,11 +47,11 @@ the distribution used in the fit.
 .PP
 The object will also have the following components found in 
 other model results (some are optional):
-`linear predictors', `weights', 'x', 'y', 'model', 
+`linear predictors', `weights', `x', `y', `model', 
 `call', `terms' and `formula'.
 See `lm.object'.
 .SA
-`survreg'
+`survreg', `lm.object'
 .KW regression
 .KW survival
 .WR

@@ -1,7 +1,7 @@
 .BG
 .FN survsum
 .TL
-Kaplan-Meier survival curve and percentages at selected times
+Kaplan-Meier Survival Curve and Percentages at Selected Times
 .DN
 Calculates Kaplan-Meier survival percentages, standard error, and number 
 at risk at specified times for defined groups.  Test for difference between
@@ -14,8 +14,8 @@ ttl="K-M Survival",...)
 .RA
 .AG formula
 a formula expression as for other survival models, of the  form
-Surv(time,  status) ~ predictors.  Same formula expression as used 
-in 'survfit'. See help file for survfit.  Maximum of 6 groups.
+`Surv(time,  status) ~ predictors'.  Same formula expression as used 
+in `survfit'. See help file for survfit.  Maximum of 6 groups.
 .OA
 .AG data
 a data.frame in which to interpret the variables named in the formula.
@@ -24,7 +24,7 @@ a specified vector of positive times at which to compute the survival
 percentages, standard errors, and numbers at risk.  A maximum of four 
 times can be specified.
 .AG xlim
-a vector of the form: c(x1,x2).  The approximate minimum and maximum values 
+a vector of the form: `c(x1,x2)'.  The approximate minimum and maximum values 
 to  be  put  on  x-axis.  Default sets x1=0 and x2=maximum time value.
 .AG tlines
 a logical value indicating whether vertical lines and labels should be drawn
@@ -36,25 +36,26 @@ a scalar to be used to divide the x axis.  A value of 365, for instance, would
 be used to convert from days to years.
 .AG yscale
 a scalar to be used to multiply the y axis.  The default value of 100 is used
-to get a percent scale.  'yscale=1' would set the y axis from 0 to 1.
+to get a percent scale.  `yscale=1' would set the y axis from 0 to 1.
 .AG mark.time
 controls the labeling of the curves.  If set to True then curves are 
-marked at each censoring time.  If mark.time is a numeric vector, then curves
+marked at each censoring time.  If `mark.time' is a numeric vector, then curves
 are marked at these specified time points.
 .AG mark
 vector of mark parameters, which will be used to  label the  curves.  The
-'lines' help file contains examples of the possible marks.  The 
-vector is resued cyclically if it  is shorter than the number of curves.
+`lines' help file contains examples of the possible marks.  The 
+vector is reused cyclically if it  is shorter than the number of curves.
 .AG cex
-parameter available to change the size of "mark".   Not a vector; all marks
+parameter available to change the size of `mark'.   Not a vector; all marks
 have the same size.
 .AG xlab
 character string label for the x axis.
 .AG ylab
 character string label for the y axis.
 .AG lgd
-legend placement.  "tr"=top right corner of the plot, "under"=under the plot,
-"n" omits the legend.  The default is: "bl"=bottom left corner of the plot.
+legend placement.  `"tr"'=top right corner of the plot,
+`"under"'=under the plot, `"n"' omits the legend.  The default is:
+`"bl"'=bottom left corner of the plot.
 .AG ttl
 title to be printed in the center top.
 .AG ...
@@ -85,18 +86,18 @@ The total number of points and events is reported for each group.  For each
 specified time point, group survival percentages (followed by standard error
 and number left at risk) are computed.
 .PP
-The test for a difference bewteen survival curves uses the chisquare 
-statistic from the 'survdiff' function with rho=0.  This is the log-rank test.
+The test for a difference between survival curves uses the chisquare
+statistic from the `survdiff' function with `rho=0'.  This is the
+log-rank test.
 .SH AUTHOR
 Mark Dietrich, Mayo Clinic Section of Medical Research Statistics
 summer student 1992.
 .SA
-Surv survdiff survexp survfit
+`Surv', `survdiff', `survexp', `survfit'
 .EX
 survsum (Surv (futime,dead)~sex+dose,data=blood.Dat,sptms=c(20,30,45),
 xlim=c(0,50))
 ##groups are all combinations of 'sex' and 'dose', specified times are 20, 30,
 and 45.  
 .KW survival
-
 .WR

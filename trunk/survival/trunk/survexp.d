@@ -6,41 +6,51 @@ Compute Expected Survival
 Returns either the expected survival of a cohort of subjects, or the
 individual expected survival for each subject.
 .CS
-survexp(formula, data, weights, subset, na.action,
- times, cohort=T, conditional=F,
- ratetable=survexp.us, scale=1, se.fit, model=F, x=F, y=F)
+survexp(formula, data, weights, subset, na.action, times, cohort=T,
+        conditional=F, ratetable=survexp.us, scale=1, npoints,
+        se.fit=<<see below>>, model=F, x=F, y=F)
 .RA
 .AG formula
-a formula object.  The response variable will be a vector of follow-up times,
-and is optional.  The predictors will consist of optional grouping variables
-separated by + operators (exactly as in `survfit'), along with a
-`ratetable()' term.  This latter matches each subject to his/her expected
-cohort.
+formula object.  The response variable is a vector of follow-up times
+and is optional.  The predictors consist of optional grouping variables
+separated by the `+' operator (as in `survfit'), along with a `ratetable' 
+term.  The `ratetable' term matches each subject to his/her expected cohort.
 .OA
-.AG data, weights, subset, na.action
-as in other modeling routines.
-Weights are currently ignored.
+.AG data
+data frame in which to interpret the variables named in
+the `formula', `subset' and `weights' arguments.
+.AG weights
+case weights.
+.AG subset
+expression indicating a subset of the rows of `data' to be used in the fit.
+.AG na.action
+function to filter missing data. This is applied to the model frame after 
+`subset' has been applied.  Default is `options()$na.action'. A possible
+value for `na.action' is `na.omit', which deletes observations that contain
+one or more missing values.
 .AG times
-an optional vector of times at which the resulting survival curve should
-be evaluated.  If absent, the result will be reported for each unique value
-of the vector of follow-up times.
+vector of follow-up times at which the resulting survival curve is 
+evaluated.  If absent, the result will be reported for each unique 
+value of the vector of follow-up times supplied in `formula'.
 .AG cohort
-If false, each subject is treated as a subgroup of size 1.
+logical value: if `FALSE', each subject is treated as a subgroup of size 1.
+The default is `TRUE'.
 .AG conditional
-If `y' is missing in the formula, this argument is ignored.  Otherwise it
-is an indicator of whether y includes death times, which leads to conditional
-expected survival, or y includes only the potential censoring times.
+logical value: if `TRUE', the follow-up times supplied in `formula'
+are death times and conditional expected survival is computed.
+If `FALSE', the follow-up times are potential censoring times. 
+If follow-up times are missing in `formula', this argument is ignored.  
 .AG ratetable
-a table of event rates, such as survexp.uswhite, or a fitted Cox model.
+a table of event rates, such as `survexp.uswhite', or a fitted Cox model.
 .AG scale
-a scaling for the results.  As most rate tables are in units/day, a
-value of 365.24 would cause the output to be reported in years.
+numeric value to scale the results.  If `ratetable' is in units/day,
+`scale = 365.25' causes the output to be reported in years.
 .AG npoints
-calculate intermediate results at npoints values, evenly spaced on the range
-of `y'.  The usual (exact) calculation is done at each unique 'y' value;
-for very large data sets this may incur too much storage for the scratch
-array.
-For a prediction from a Cox model this arument is ignored.
+number of points at which to calculate intermediate results, evenly spaced 
+over the range of the follow-up times.  The usual (exact) calculation is done 
+at each unique follow-up time. For very large data sets specifying `npoints' 
+can reduce the amount of memory and computation required.
+For a prediction from a Cox model `npoints' is ignored.
 .AG se.fit
 compute the standard error of the predicted survival.
 The default is to compute this whenever the routine can, which at this time
@@ -51,15 +61,15 @@ model frame, the model matrix, and/or the vector of response times will be
 returned as components of the final result, with the same names as the
 flag arguments.
 .RT
-if cohort=T an object of class `survexp', otherwise a vector of per-subject
+if `cohort=T' an object of class `survexp', otherwise a vector of per-subject
 expected survival values.  The former contains the number of subjects at
 risk and the expected survival for the cohort at each requested time.
 .DT
-Individual expected survival is ususally used in models or testing, to
-`correct' for the age and sex composition of a group of subjects.  For
-instance, assume that birth date, entry date onto the study,sex and
+Individual expected survival is usually used in models or testing, to
+'correct' for the age and sex composition of a group of subjects.  For
+instance, assume that birth date, entry date into the study, sex and
 actual survival time are all known for a group of subjects.
-The uswhite population tables contain expected death rates
+The `survexp.uswhite' population tables contain expected death rates
 based on calendar year, sex and age.  Then
 .Cs
 haz <- -log(survexp(death.time ~ ratetable(sex=sex, year=entry.dt, age=(birth.dt-entry.dt)), cohort=F))
@@ -82,7 +92,7 @@ between these subjects and the population at large.  There are three common
 methods of computing cohort survival.
 In the "exact method" of Ederer the cohort is not censored; this corresponds
 to having no response variable in the formula.  Hakulinen recommends censoring
-the cohort at the anticipated censoring time of each patient, and Verhuel
+the cohort at the anticipated censoring time of each patient, and Verheul
 recommends censoring the cohort at the actual observation time of each
 patient.
 The last of these is the conditional method.
@@ -90,18 +100,18 @@ These are obtained by using the respective time values as the
 follow-up time or response in the formula.
 .SH REFERENCES
 G. Berry.  The analysis of mortality by the subject-years method.
-Biometrics 1983, 39:173-84.
+\fIBiometrics\fP 1983, 39:173-84.
 .br
 F Ederer, L Axtell, and S Cutler.  The relative survival rate: a statistical
-methodology. Natl Cnacer Inst Monogr 1961, 6:101-21.
+methodology. \fINatl Cancer Inst Monogr\fP 1961, 6:101-21.
 .br
 T. Hakulinen.  Cancer survival corrected for heterogeneity in patient
-withdrawal.  Biometrics 1892, 38:933.
+withdrawal.  \fIBiometrics\fP 1982, 38:933.
 .br
-H. Verheul, E. Dekker, P. Bossuyt, A. Moulijn, and A. Dunning.  Backround
-mortality in clinical survival studies.  Lancet 1993, 341:872-5.
+H. Verheul, E. Dekker, P. Bossuyt, A. Moulijn, and A. Dunning.  Background
+mortality in clinical survival studies.  \fILancet\fP 1993, 341:872-5.
 .SA
-survfit, survexp.us, survexp.fit, personyr, date
+`survfit', `survexp.us', `survexp.fit', `pyears', `date'
 .EX
 efit <- survexp( ~ ratetable(sex=sex, year=entry.dt, age=entry.dt-birth.dt))
 plot(survfit(Surv(futime, status) ~1))
