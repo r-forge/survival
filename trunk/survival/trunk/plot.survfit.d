@@ -6,7 +6,7 @@ Plot Method for `survfit'
 plot.survfit(survfit, conf.int=<<see below>>, mark.time=T,
  mark=3, col=1, lty=1, lwd=1, cex=1, log=F, xscale=1, yscale=1, 
  firstx=0, firsty=1, xmax, ymin=0, fun,
- xlab="", ylab="", xaxs="S", ...)
+ xlab="", ylab="", xaxs=<<see below>>, ...)
 .RA
 .AG survfit
 an object of class `survfit', usually returned by the `survfit' function.
@@ -35,23 +35,23 @@ a vector of numeric values for line widths. The default value is 1.
 a numeric value specifying the size of the marks.
 Not a vector; all marks have the same size.
 .AG log
-a logical value, if `TRUE' the y axis wll be on a log scale.
-Alternately, one of the standard character strings "x", "y", or "xy"
-can be given to specific logarithmic horizontal and/or vertical axes.
-.AG xscale
-scale the x-axis values before plotting.
-If time were in days, then a value of
-365.25 will give labels in years instead of the original days.
+a logical value, if TRUE the y axis wll be on a log scale.
 .AG yscale
-will be used to multiply the labels on the y axis.
+a numeric value used to multiply the labels on the y axis.
 A value of 100, for instance, would be used to give a percent scale.
 Only the labels are
 changed, not the actual plot coordinates, so that adding a curve with
 "`lines(surv.exp(...))'", say, 
 will perform as it did without the `yscale' argument.
+.AG xscale
+a numeric value used like 'yscale' for labels on the x axis. 
+A value of 365.25 will give labels in years instead of the original days. 
 .AG firstx, firsty
 the starting point for the survival curves.  If either of these is set to
 `NA' the plot will start at the first time point of the curve.
+.PP
+If 'new.start' argument is used in 'survfit', 'firstx' is set to the
+value of 'new.start'.
 .AG xmax
 the maximum horizontal plot coordinate.  This can be used to shrink the range
 of a plot.  It shortens the curve before plotting it, so that unlike using the
@@ -68,21 +68,22 @@ For example `fun=log' is an alternative way to draw a log-survival curve
 (but with the axis labeled with log(S) values),
 and `fun=sqrt' would generate a curve on square root scale.
 Four often used transformations can be specified with a character
-argument instead: `"log"' is the same as using the `log=T' option,
-`"event"' plots cumulative events (f(y) = 1-y), 
-`"cumhaz"' plots the cumulative hazard function (f(y) = -log(y)), and
-`"cloglog"' creates a complimentary log-log survival plot (f(y) =
+argument instead: "log" is the same as using the `log=T' option,
+"event" plots cumulative events (f(y) = 1-y), 
+"cumhaz" plots the cumulative hazard function (f(y) = -log(y)), and
+"cloglog" creates a complimentary log-log survival plot (f(y) =
 log(-log(y)) along with log scale for the x-axis). 
 .AG xlab
 label given to the x-axis.
 .AG ylab
 label given to the y-axis.
 .AG xaxs
-either `"S"' for a survival curve or a standard x axis style as listed in `par'.
-Survival curves are usually displayed with the curve touching the y-axis,
-but not touching the bounding box of the plot on the other 3 sides.
-Type `"S"' accomplishes this by manipulating the plot range and then using
-the `"i"' style internally.
+the x axis style, as listed in 'par'. Survival curves are traditionally 
+drawn with the curve touching the bounding box on the left edge, but 
+not touching it on the right edge.  This corresponds to neither of the 
+two standard S axis styles of "e" (neither touches) or "i" (both 
+touch).  If 'xaxis' is missing or NULL the internal axis style is used 
+(xaxs='i') but only after the right endpoint has been extended by 5%. 
 .RT
 a list with components `x' and `y', containing the coordinates of the last point
 on each of the curves (but not the confidence limits).  
@@ -94,9 +95,9 @@ The `log=T' option does extra work to avoid log(0), and to try to create a
 pleasing result.  If there are zeros, they are plotted by default at
 0.8 times the smallest non-zero value on the curve(s).
 .SH BUGS
-Survival curve objects created from a `coxph' model does not include
-the censoring times. Therefore, specifying `mark.time=T' does not work.
-If you want to mark censoring times on the curve(s) resulting 
+Specifying 'mark.time=T' does not work if 'survfit' was created from  
+a 'coxph' model.  In this case, censoring times are not marked on the  
+curve(s).  If you want to mark censoring times on the curve(s) resulting  
 from a `coxph' fit, provide a vector of times as the `mark.time' argument 
 in the call to `plot.survfit' or `lines.survfit'. 
 .SA
@@ -110,6 +111,8 @@ title("Kaplan-Meier Curves\nfor AML Maintenance Study")
 lsurv2 <- survfit(Surv(time, status) ~ group, leukemia, type='fleming')
 plot(lsurv2, lty=2:3, fun="cumhaz",
 	xlab="Months", ylab="Cumulative Hazard")
-.KW survival
+.KW survival4
 .KW hplot
 .WR
+
+

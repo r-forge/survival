@@ -11,10 +11,10 @@ Plot Method for <s-expression>survfit</s-expression>
 </s-title>
 <s-usage>
 <s-old-style-usage>
-plot.survfit(survfit, conf.int=&lt;&lt;see below&gt;&gt;, mark.time=T, mark=3, 
-             col=1, lty=1, lwd=1, cex=1, log=F, xscale=1, yscale=1, 
-             firstx=0, firsty=1, xmax, ymin=0, fun, 
-             xlab="", ylab="", xaxs=&lt;&lt;see below&gt;&gt;, ...) 
+plot.survfit(survfit, conf.int=&lt;&lt;see below&gt;&gt;, mark.time=T, 
+ mark=3, col=1, lty=1, lwd=1, cex=1, log=F, xscale=1, yscale=1,  
+ firstx=0, firsty=1, xmax, ymin=0, fun, 
+ xlab="", ylab="", xaxs=&lt;&lt;see below&gt;&gt;, ...) 
 </s-old-style-usage>
 </s-usage>
 <s-args-required>
@@ -24,14 +24,14 @@ an object of class <s-expression>survfit</s-expression>, usually returned by the
 </s-args-required>
 <s-args-optional>
 <s-arg name="conf.int">
-determines whether confidence intervals will be plotted. 
-The default is to do so if there is only 1 curve, i.e., no strata. 
+determines whether confidence intervals will be plotted.  The default is to 
+do so if there is only 1 curve, i.e., no strata. 
 </s-arg>
 <s-arg name="mark.time">
 controls the labeling of the curves.  If set to <s-expression>FALSE</s-expression>, no labeling is done. 
 If <s-expression>TRUE</s-expression>, then curves are marked at each censoring time which is not also  
-a death time.  If <s-expression>mark.time</s-expression> is a numeric vector, 
-then curves are marked at the specified time points. 
+a death time.  If <s-expression>mark.time</s-expression> is a 
+numeric vector, then curves are marked at the specified time points. 
 </s-arg>
 <s-arg name="mark">
 vector of mark parameters, which will be used to label the curves. 
@@ -59,17 +59,21 @@ a logical value, if TRUE the y axis wll be on a log scale.
 <s-arg name="yscale">
 a numeric value used to multiply the labels on the y axis. 
 A value of 100, for instance, would be used to give a percent scale. 
-Only the labels are changed, not the actual plot coordinates, 
-so that adding a curve with "<s-expression>lines(surv.exp(...))</s-expression>", say, 
+Only the labels are 
+changed, not the actual plot coordinates, so that adding a curve with 
+"<s-expression>lines(surv.exp(...))</s-expression>", say,  
 will perform as it did without the <s-expression>yscale</s-expression> argument. 
 </s-arg>
 <s-arg name="xscale">
-a numeric value used like <s-expression>yscale</s-expression> for labels on the x axis. 
-A value of 365.25 will give labels in years instead of the original days. 
+a numeric value used like <s-expression>yscale</s-expression> for labels on the x axis.  
+A value of 365.25 will give labels in years instead of the original days.  
 </s-arg>
-<s-arg name="firstx,firsty">
+<s-arg name="firstx, firsty">
 the starting point for the survival curves.  If either of these is set to 
 <s-expression>NA</s-expression> the plot will start at the first time point of the curve. 
+<br><br>
+If <s-expression>new.start</s-expression> argument is used in <s-expression>survfit</s-expression>, <s-expression>firstx</s-expression> is set to the 
+value of <s-expression>new.start</s-expression>. 
 </s-arg>
 <s-arg name="xmax">
 the maximum horizontal plot coordinate.  This can be used to shrink the range 
@@ -90,10 +94,10 @@ For example <s-expression>fun=log</s-expression> is an alternative way to draw a
 and <s-expression>fun=sqrt</s-expression> would generate a curve on square root scale. 
 Four often used transformations can be specified with a character 
 argument instead: "log" is the same as using the <s-expression>log=T</s-expression> option, 
-"event" plots cumulative events (f(y) = 1-y), 
+"event" plots cumulative events (f(y) = 1-y),  
 "cumhaz" plots the cumulative hazard function (f(y) = -log(y)), and 
 "cloglog" creates a complimentary log-log survival plot (f(y) = 
-log(-log(y)) along with log scale for the x-axis). 
+log(-log(y)) along with log scale for the x-axis).  
 </s-arg>
 <s-arg name="xlab">
 label given to the x-axis. 
@@ -102,17 +106,17 @@ label given to the x-axis.
 label given to the y-axis. 
 </s-arg>
 <s-arg name="xaxs">
-the x axis style, as listed in <s-expression>par</s-expression>. Survival curves are traditionally 
-drawn with the curve touching the bounding box on the left edge, but 
-not touching it on the right edge.  This corresponds to neither of the 
-two standard S axis styles of "e" (neither touches) or "i" (both 
-touch).  If <s-expression>xaxis</s-expression> is missing or NULL the internal axis style is used 
-(xaxs=<s-expression>i</s-expression>) but only after the right endpoint has been extended by 5%. 
+the x axis style, as listed in <s-expression>par</s-expression>. Survival curves are traditionally  
+drawn with the curve touching the bounding box on the left edge, but  
+not touching it on the right edge.  This corresponds to neither of the  
+two standard S axis styles of "e" (neither touches) or "i" (both  
+touch).  If <s-expression>xaxis</s-expression> is missing or NULL the internal axis style is used  
+(xaxs=<s-expression>i</s-expression>) but only after the right endpoint has been extended by 5%.  
 </s-arg>
 </s-args-optional>
 <s-value>
-a list with components <s-expression>x</s-expression> and <s-expression>y</s-expression>, containing the coordinates of the last 
-point on each of the curves (but not the confidence limits). 
+a list with components <s-expression>x</s-expression> and <s-expression>y</s-expression>, containing the coordinates of the last point 
+on each of the curves (but not the confidence limits).   
 This may be useful for labeling. 
 </s-value>
 <s-side-effects>
@@ -126,9 +130,9 @@ pleasing result.  If there are zeros, they are plotted by default at
 </s-section>
 <s-section name=" BUGS">
 
-Specifying <s-expression>mark.time=T</s-expression> does not work if <s-expression>survfit</s-expression> was created from  
-a <s-expression>coxph</s-expression> model.  In this case, censoring times are not marked on the  
-curve(s).  If you want to mark censoring times on the curve(s) resulting  
+Specifying <s-expression>mark.time=T</s-expression> does not work if <s-expression>survfit</s-expression> was created from   
+a <s-expression>coxph</s-expression> model.  In this case, censoring times are not marked on the   
+curve(s).  If you want to mark censoring times on the curve(s) resulting   
 from a <s-expression>coxph</s-expression> fit, provide a vector of times as the <s-expression>mark.time</s-expression> argument  
 in the call to <s-expression>plot.survfit</s-expression> or <s-expression>lines.survfit</s-expression>.  
 </s-section>
@@ -141,8 +145,8 @@ plot(leukemia.surv, lty = 2:3)
 legend(100, .9, c("Maintenance", "No Maintenance"), lty = 2:3) 
 title("Kaplan-Meier Curves\nfor AML Maintenance Study") 
 lsurv2 &lt;- survfit(Surv(time, status) ~ group, leukemia, type='fleming') 
-plot(lsurv2, lty=2:3, fun="cumhaz", xlab="Months", 
-     ylab="Cumulative Hazard") 
+plot(lsurv2, lty=2:3, fun="cumhaz", 
+	xlab="Months", ylab="Cumulative Hazard") 
 </s-example>
 </s-examples>
 <s-keywords>
