@@ -1,18 +1,46 @@
-#SCCS $Id: plot.survfit.s,v 4.11 1994-12-14 14:51:23 therneau Exp $
+#SCCS $Date: 1997-04-23 16:30:19 $ $Id: plot.survfit.s,v 4.12 1997-04-23 16:30:19 therneau Exp $
 plot.survfit<- function(surv, conf.int,  mark.time=T,
-		 mark=3,col=1,lty=1, lwd=1, cex=1,log=F, yscale=1,
-		 xscale=1,
+		 mark=3,col=1,lty=1, lwd=1, cex=1,log.=F, yscale=1,
+		 xscale=1,  ptype=c('surv', 'event', 'cumhaz'),
 		 xlab="", ylab="", xaxs='i', ...) {
 
     if (!inherits(surv, 'survfit'))
 	  stop("First arg must be the result of survfit")
 
-    stime <- surv$time / xscale
-    ssurv <- surv$surv
+    ptype <- match.arg(ptype)
     if (missing(conf.int)) {
 	if (is.null(surv$strata) && !is.matrix(ssurv)) conf.int <-T
 	else conf.int <- F
 	}
+
+    if (log. & ptype!='surv') 
+	    stop("The log option is valid only for ptype='surv'")
+    if (ptype=='event') {
+	firsty <- 0
+	ssurv <- 1-surv$surv
+	ymax <- 1
+	if (!is.null(surv$upper)) {
+	    surv$upper <- 1-surv$upper
+	    surv$lower <- 1-surv$lower
+	    }
+        }
+    else if (ptype=='cumhaz') {
+	firsty <- 0
+	ssurv <- -log(surv$surv)
+	ymax <- max(ssurv[!is.inf(ssurv)])
+	if (!is.null(surv$upper)) {
+	    surv$upper <- -log(surv$upper)
+	    surv$lower <- -log(surv$lower)
+	    if (conf.int) ymax <- max(surv$lower[!is.inf(surv$lower)], ymax,
+				      na.rm=T)
+	    }
+        }
+    else {
+	firsty <- 1
+	ssurv <- surv$surv
+	ymax <- 1
+        }
+    stime <- surv$time / xscale
 
     if (is.null(surv$strata)) {
 	nstrat <- 1
@@ -38,7 +66,7 @@ plot.survfit<- function(surv, conf.int,  mark.time=T,
     #
     # for log plots we have to be tricky about the y axis scaling
     #
-    if   (log) {
+    if   (log.) {
 	    ymin <- min(.1,ssurv[!is.na(ssurv) &ssurv>0])
 	    ssurv[!is.na(ssurv) &ssurv==0] <- ymin
 	    plot(c(0, temp),
@@ -46,7 +74,7 @@ plot.survfit<- function(surv, conf.int,  mark.time=T,
 	       type ='n', log='y', xlab=xlab, ylab=ylab, xaxs=xaxs,...)
 	    }
      else
-	 plot(c(0, temp), yscale*c(0,1),
+	 plot(c(0, temp), yscale*c(0,ymax),
 	      type='n', xlab=xlab, ylab=ylab, xaxs=xaxs, ...)
 
     if (yscale !=1) par(usr=par("usr")/ c(1,1,yscale, yscale))
@@ -70,7 +98,7 @@ plot.survfit<- function(surv, conf.int,  mark.time=T,
 	if (is.matrix(ssurv)) {
 	    for (k in 1:ncol(ssurv)) {
 		i _ i+1
-		yy _ c(1,ssurv[who,k])
+		yy _ c(firsty, ssurv[who,k])
 		nn <- length(xx)
 		whom <- c(match(unique(yy[-nn]), yy), nn)
 		lines(xx[whom], yy[whom], lty=lty[i], col=col[i], lwd=lwd[i], type='s')
@@ -90,9 +118,9 @@ plot.survfit<- function(surv, conf.int,  mark.time=T,
 
 		if (conf.int==T && !is.null(surv$upper)) {
 		    if (ncurve==1) lty[i] <- lty[i] +1
-		    yy _ c(1,surv$upper[who,k])
+		    yy _ c(firsty, surv$upper[who,k])
 		    lines(xx,yy, lty=lty[i], col=col[i], lwd=lwd[i], type='s')
-		    yy _ c(1,surv$lower[who,k])
+		    yy _ c(firsty, surv$lower[who,k])
 		    lines(xx,yy, lty=lty[i], col=col[i], lwd=lwd[i], type='s')
 		    }
 		}
@@ -100,7 +128,7 @@ plot.survfit<- function(surv, conf.int,  mark.time=T,
 
 	else {
 	    i <- i+1
-	    yy _ c(1,ssurv[who])
+	    yy _ c(firsty, ssurv[who])
 	    nn <- length(xx)
 	    whom <- c(match(unique(yy[-nn]), yy), nn)
 	    lines(xx[whom], yy[whom], lty=lty[i], col=col[i], lwd=lwd[i], type='s')
@@ -120,9 +148,9 @@ plot.survfit<- function(surv, conf.int,  mark.time=T,
 
 	    if (conf.int==T && !is.null(surv$upper)) {
 		if (ncurve==1) lty[i] <- lty[i] +1
-		yy _ c(1,surv$upper[who])
+		yy _ c(firsty, surv$upper[who])
 		lines(xx,yy, lty=lty[i], col=col[i], lwd=lwd[i], type='s')
-		yy _ c(1,surv$lower[who])
+		yy _ c(firsty, surv$lower[who])
 		lines(xx,yy, lty=lty[i], col=col[i], lwd=lwd[i], type='s')
 		}
 	    }

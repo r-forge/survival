@@ -4,8 +4,8 @@
 Plot method for survfit.
 .CS
 plot.survfit(survfit, conf.int=<<see below>>, mark.time=T,
- mark=3, col=1, lty=1, lwd=1, cex=1, log=F, yscale=1, xscale=1, xlab="",
- ylab="", xaxs='i', ...)
+ mark=3, col=1, lty=1, lwd=1, cex=1, log=F, yscale=1, xscale=1, 
+ type=c('surv', 'event', 'cumhaz'), xlab="", ylab="", xaxs='i', ...)
 .RA
 .AG survfit
 structure returned by survfit.
@@ -41,6 +41,10 @@ changed, not the actual plot coordinates, so that adding a curve with
 .AG xscale
 will be used in a similar manner for labels on the x axis.  A value of
 365.25 will give labels in years instead of the original days.
+.AG type
+the type of curve to be drawn, either a survival curve, the probability
+of having an event by time t (1-survival) or the cumulative hazard
+(-log(survival)).
 .AG xlab
 label given to the x-axis.
 .AG ylab
