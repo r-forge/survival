@@ -1,4 +1,4 @@
-#  SCCS $Id: residuals.coxph.s,v 5.1 1998-08-30 15:37:49 therneau Exp $
+#  SCCS $Id: residuals.coxph.s,v 5.2 2000-02-26 12:11:27 therneau Exp $
 residuals.coxph <-
   function(object, type=c("martingale", "deviance", "score", "schoenfeld",
 			  "dfbeta", "dfbetas", "scaledsch"),
@@ -6,8 +6,15 @@ residuals.coxph <-
     {
     type <- match.arg(type)
     otype <- type
-    if (type=='dfbeta' || type=='dfbetas') type <- 'score'
-    if (type=='scaledsch') type<-'schoenfeld'
+    if (type=='dfbeta' || type=='dfbetas') {
+	type <- 'score'
+	weighted <- T      # we know the "right answer" for dfbetas
+	}
+    if (type=='scaledsch') {
+	type<-'schoenfeld'
+	if (weighted) 
+	   stop("Schoenfeld residuals can be scaled or weighted, but not both")
+	}
     n <- length(object$residuals)
     rr <- object$residual
     y <- object$y
@@ -81,6 +88,11 @@ residuals.coxph <-
 
 	if (nvar==1) rr <- temp$resid[deaths]
 	else rr <- matrix(temp$resid[deaths,], ncol=nvar) #pick rows, and kill attr
+	if (!is.null(weights) & weighted) {
+	    weights[ord] <- weights
+	    rr <- rr * weights[deaths]
+	    }
+
 	if (length(strats)) attr(rr, "strata")  <- table((strat[ord])[deaths])
 	time <- c(y[deaths,2])  # 'c' kills all of the attributes
 	if (is.matrix(rr)) dimnames(rr)<- list(time, names(object$coef))
