@@ -1,5 +1,6 @@
-#SCCS $Date: 1999-02-06 23:25:21 $ $Id: print.survfit.s,v 4.11 1999-02-06 23:25:21 therneau Exp $
-print.survfit <- function(x, scale=1, digits = max(options()$digits - 4, 3), ...) {
+#SCCS $Id: print.survfit.s,v 4.12 1999-02-06 23:27:10 therneau Exp $
+print.survfit <- function(x, scale=1, 
+			  digits = max(options()$digits - 4, 3), ...) {
 
     if (!is.null(cl<- x$call)) {
 	cat("Call: ")
@@ -30,7 +31,8 @@ print.survfit <- function(x, scale=1, digits = max(options()$digits - 4, 3), ...
 	if (is.matrix(surv)) {
 	    n <- nrow(surv)
 	    mean <- dif.time * rbind(1, surv)
-	    temp <- (apply(mean[(n+1):2,,drop=F], 2, cumsum))[n:1,,drop=F]
+	    if (n==1) temp <- mean[2,,drop=F]
+	    else temp <- (apply(mean[(n+1):2,,drop=F], 2, cumsum))[n:1,,drop=F]
 	    varmean <- c(hh %*% temp^2)
 	    med <- apply(surv, 2, minmin, stime)
 	    if (!is.null(upper)) {
