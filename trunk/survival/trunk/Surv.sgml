@@ -55,7 +55,7 @@ The default is <s-expression>"right"</s-expression> or <s-expression>"counting"<
 argument is absent or present, respectively. 
 </s-arg>
 <s-arg name="origin">
-hazard function origin for counting process data.  Most often 
+vector or value to be subtracted from the time values.  Most often 
 used in a model containing time dependent strata  
 to align the subjects properly when they change from one strata to 
 another. 
