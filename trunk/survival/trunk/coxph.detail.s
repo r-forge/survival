@@ -1,4 +1,4 @@
-#SCCS  $Id: coxph.detail.s,v 4.7 1994-04-08 15:27:56 therneau Exp $
+#SCCS  $Id: coxph.detail.s,v 4.8 1994-11-09 09:41:25 therneau Exp $
 coxph.detail <-  function(object) {
     method <- object$method
     if (method!='breslow' && method!='efron')
@@ -24,7 +24,7 @@ coxph.detail <-  function(object) {
 	}
 
     nvar <- ncol(x)
-    if (ncol(y)==2) y <- cbind(0,y)
+    if (ncol(y)==2) y <- cbind(-1,y)
     if (is.null(strat)) {
 	ord <- order(y[,2], -y[,3])
 	newstrat <- rep(0,n)
