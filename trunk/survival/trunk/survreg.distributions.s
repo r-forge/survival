@@ -131,12 +131,13 @@ t = list(
 				ifelse(status==3, temp2, 0))
 			2*(best-loglik)
 			},
-    print = function(parms, fixed)
+    print = function(parms, fixed) {
 	    tt <- if (fixed[1])
 		     paste("Dispersion (scale) fixed at", format(exp(parms[1])))
 		else paste("Dispersion (scale) =",
 					       format(exp(parms[1])))
 	    if (fixed[2]) paste(tt, ", df fixed at", format(parms[2]))
 	    else tt
-    ),
+	    }
+    )
  )
