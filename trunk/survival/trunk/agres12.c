@@ -1,4 +1,4 @@
-/* SCCS: $Id: agres12.c,v 1.2 1992-03-30 02:26:10 therneau Exp $
+/* SCCS: $Id: agres12.c,v 1.3 1992-05-01 16:28:44 splus Exp $
 /*
 ** Do the score residuals
 **
@@ -20,7 +20,7 @@
 **      a       vector of length nvar
 */
 #include <stdio.h>
-extern double **matrix();
+extern double **dmatrix();
 
 void agres1(nx, nvarx, y, covar2, strata, score,
 		hazard, cumhaz, resid2)
@@ -54,8 +54,8 @@ double  y[],
     /*
     **  Set up the ragged arrays
     */
-    covar=  matrix(covar2, n, nvar);
-    resid = matrix(resid2, n, nvar);
+    covar=  dmatrix(covar2, n, nvar);
+    resid = dmatrix(resid2, n, nvar);
     a = (double *)S_alloc(nvar, sizeof(double));
 
     for (person=0; person<n; person++) {
