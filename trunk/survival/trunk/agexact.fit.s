@@ -1,6 +1,6 @@
-#SCCS $Id: agexact.fit.s,v 4.17 1998-09-25 23:40:18 therneau Exp $
+#SCCS $Id: agexact.fit.s,v 4.18 1998-10-29 19:14:46 therneau Exp $
 agexact.fit <- function(x, y, strata, offset, iter.max,
-			eps, weights, init, method, rownames)
+			eps, toler.chol, weights, init, method, rownames)
     {
     if (!is.matrix(x)) stop("Invalid formula for cox fitting function")
     if (!is.null(weights) && any(weights!=1))
@@ -59,6 +59,7 @@ agexact.fit <- function(x, y, strata, offset, iter.max,
 		   double(2*nvar*nvar +nvar*4 + n),
 		   integer(2*n),
 		   as.double(eps),
+		   as.double(toler.chol),
 		   sctest=double(1) )
 
     var <- matrix(agfit$imat,nvar,nvar)

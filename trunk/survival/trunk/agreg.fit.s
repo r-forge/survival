@@ -1,6 +1,6 @@
-#SCCS $Id: agreg.fit.s,v 4.16 1998-09-25 22:47:27 therneau Exp $
+#SCCS $Id: agreg.fit.s,v 4.17 1998-10-29 19:15:16 therneau Exp $
 agreg.fit <- function(x, y, strata, offset, init, iter.max,
-			eps, weights, method, rownames)
+			eps, toler.chol, weights, method, rownames)
     {
     n <- nrow(y)
     nvar <- ncol(x)
@@ -83,6 +83,7 @@ agreg.fit <- function(x, y, strata, offset, init, iter.max,
 		       double(2*nvar*nvar +nvar*3 + n),
 		       integer(n),
 		       as.double(eps),
+		       as.double(toler.chol),
 		       sctest=as.double(method=='efron') )
 
 	var <- matrix(agfit$imat,nvar,nvar)
