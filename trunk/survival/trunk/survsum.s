@@ -1,9 +1,9 @@
-# $Id: survsum.s,v 1.1 1992-08-14 15:37:12 grill Exp $
+# $Id: survsum.s,v 1.2 1992-09-25 13:11:15 sicks Exp $
 # written by Mark Dietrich
 survsum <- function	
 		(formula,data=sys.parent(),sptms=NULL,xlim,tlines=T,log=F,
 		xscale=1,yscale=100,mark.time=F,mark=3,cex=1,xlab="Time",
-		ylab="Survival (%)",lgd="bl",ttl="",...) {
+		ylab="Survival (%)",lgd="bl",ttl="K-M Survival",...) {
 #
 	ltms <- length (sptms)			##number of specified times
 #
@@ -194,9 +194,10 @@ survsum <- function
 #
 	par (fig = c(0,1,.5,1))
 #
-	mtext(ttl,side=3,outer=T,adj=1)
-	plot (a,b,type="n",xaxt="n",yaxt="n",xlab="",ylab="",bty="n")
-	title("K-M Survival")
+# jds -- switch ttl and "K-M Survival"
+	if (!missing(ttl)) 
+		mtext("K-M Survival",side=3,outer=T,adj=1)
+	plot (a,b,type="n",xaxt="n",yaxt="n",xlab="",ylab="",bty="n",main=ttl)
 #
 	x1 <- c(rep(-5,n+1),-5,20)
 	y1 <- c(90,ys,90,105)
