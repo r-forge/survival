@@ -1,4 +1,4 @@
-# SCCS $Id: survfit.turnbull.s,v 1.3 2004-05-04 15:22:25 therneau Exp $
+# SCCS $Id: survfit.turnbull.s,v 1.4 2004-12-08 17:30:49 therneau Exp $
 # Compute the K-M for left/right/interval censored data via Turnbull's
 #      slow EM calculation
 #
@@ -196,14 +196,13 @@ survfit.turnbull <- function(x, y, casewt=rep(1,n),
 	who <- (tfit$time < mintime & tfit$n.event >0)
 	if (any(who)) {
 	    indx <- match(mintime, tfit$time)  # first "real" time
-	    tfit$surv[who] <- tfit$surv[indx]
+#	    tfit$surv[who] <- tfit$surv[indx]
 	    tfit$n.event[who] <- 0
-	    if (!is.null(tfit$std.err)) {
-		tfit$std.err[who] <- tfit$std.err[indx]
-		tfit$lower[who]   <- tfit$lower[indx]
-		tfit$upper[who]   <- tfit$upper[indx]
-		}
-	    #remove any duplicate times
+#	    if (!is.null(tfit$std.err)) {
+#		tfit$std.err[who] <- tfit$std.err[indx]
+#		tfit$lower[who]   <- tfit$lower[indx]
+#		tfit$upper[who]   <- tfit$upper[indx]
+#		}
 	    }
 	tfit
 	}		
