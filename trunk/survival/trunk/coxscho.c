@@ -1,4 +1,4 @@
-/* SCCS $Id: coxscho.c,v 4.1 1993-01-12 23:38:19 therneau Exp $
+/* SCCS $Id: coxscho.c,v 4.2 1993-01-19 14:24:35 therneau Exp $
 /*
 ** Return the Schoenfeld residuals.
 **
@@ -67,7 +67,7 @@ double  *covar2,
     **  Set up the ragged arrays
     */
     covar= dmatrix(covar2, nused, nvar);
-    a = work + 2*nvar*nvar;
+    a = work;
     a2= a+nvar;
     start =y;
     stop  =y + nused;
