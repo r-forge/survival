@@ -1,5 +1,5 @@
 # 
-#  SCCS $Id: survpenal.fit.s,v 1.5 1999-02-07 22:05:00 therneau Exp $
+#  SCCS $Id: survpenal.fit.s,v 1.6 1999-02-08 20:25:34 therneau Exp $
 # fit a penalized parametric model
 #
 survpenal.fit<- function(x, y, weights, offset, init, controlvals, dist, 
@@ -303,8 +303,8 @@ survpenal.fit<- function(x, y, weights, offset, init, controlvals, dist,
     coef <- c(coef[1], rep(vars, nstrat))
     # get a better initial value for the mean using the "glim" trick
     deriv <- derfun(y, yy, exp(vars), sd$density, parms)
-    coef[1] <- sum(weights* (deriv$dg + deriv$ddg*(yy -offset))) /
-		                        sum(weights*deriv$ddg)
+    wt <-  -1*deriv$ddg*weights
+    coef[1] <- sum(weights*deriv$dg + wt*(yy -offset)) / sum(wt)
 
     # Now the fit proper (intercept only)
     temp <- 1 +nstrat2

@@ -1,5 +1,5 @@
 # 
-#  SCCS $Id: survreg.fit.s,v 5.8 1999-02-07 22:04:45 therneau Exp $
+#  SCCS $Id: survreg.fit.s,v 5.9 1999-02-08 20:25:35 therneau Exp $
 #
 survreg.fit<- function(x, y, weights, offset, init, controlvals, dist, 
 		       scale=0, nstrat=1, strata, parms=NULL) {
@@ -106,8 +106,8 @@ survreg.fit<- function(x, y, weights, offset, init, controlvals, dist,
 	
 	# get a better initial value for the mean using the "glim" trick
 	deriv <- derfun(y, yy, exp(vars), sd$density, parms)
-	coef[1] <- sum(weights* (deriv$dg + deriv$ddg*(yy -offset))) /
-		                        sum(weights*deriv$ddg)
+	wt <-  -1*deriv$ddg*weights
+	coef[1] <- sum(weights*deriv$dg + wt*(yy -offset)) / sum(wt)
 
 	# Now the fit proper (intercept only)
 	nvar2 <- 1 +nstrat2
@@ -161,6 +161,7 @@ survreg.fit<- function(x, y, weights, offset, init, controlvals, dist,
 	}
 
     # Now for the fit in earnest
+
     fit <- .C(fitter,
 		   iter = as.integer(iter.max),
 		   n = as.integer(n),
