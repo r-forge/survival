@@ -1,6 +1,6 @@
-#   SCCS $Id: frailty.controlaic.s,v 1.2 1998-11-21 17:48:48 therneau Exp $
+#   SCCS $Id: frailty.controlaic.s,v 1.3 1999-01-14 16:35:51 therneau Exp $
 # Control function to minimize the AIC
-#  the optional paramater "caic" chooses corrected aic (default)
+#  the optional paramater "caic" chooses corrected aic (default=F)
 # n is the "effective" sample size
 #
 
@@ -13,7 +13,7 @@ frailty.controlaic <- function(parms, iter, old, n, df, loglik) {
     
     # by default, do the corrected AIC
     if (length(parms$caic)) correct <- parms$caic
-    else correct <- T
+    else correct <- F
 
     if (n < df+2) dfc <- (df -n) + (df+1)*df/2 -1  #avoid pathology
     else          dfc <- -1 + (df+1)/(1- ((df+2)/n))
