@@ -1,4 +1,4 @@
-#SCCS $Id: residuals.coxph.s,v 4.19 1993-08-20 10:56:13 therneau Exp $
+#SCCS $Id: residuals.coxph.s,v 4.20 1994-01-19 14:27:43 therneau Exp $
 residuals.coxph <-
   function(object, type=c("martingale", "deviance", "score", "schoenfeld",
 			  "dfbeta", "dfbetas", "scaledsch"),
@@ -18,8 +18,9 @@ residuals.coxph <-
     if (method=='exact' && (type=='score' || type=='schoenfeld'))
 	stop(paste(type, 'residuals are not available for the exact method'))
 
-    if (type != 'martingale') {
-	# I need Y, and perhaps the X matrix, score, and strata
+    if (type == 'martingale') rr <- object$residual
+    else {
+	# I need Y, and perhaps the X matrix (and strata)
 	Terms <- object$terms
 	if (!inherits(Terms, 'terms'))
 		stop("invalid terms component of object")
@@ -33,7 +34,6 @@ residuals.coxph <-
 		    temp <- untangle.specials(Terms, 'strata', 1)
 		    x <- model.matrix(Terms[-temp$terms], m)[,-1,drop=F]
 		    strat <- strata(m[temp$vars], shortlabel=T)
-		    nstrat <- as.numeric(strat)
 		    }
 		else x <- model.matrix(Terms, m)[,-1,drop=F]   #remove column of 1's though
 		}
@@ -45,6 +45,7 @@ residuals.coxph <-
 	status <- y[,ny,drop=T]
 
 	if (type != 'deviance') {
+	    nstrat <- as.numeric(strat)
 	    nvar <- ncol(x)
 	    if (is.null(strat)) {
 		ord <- order(y[,ny-1], -status)
