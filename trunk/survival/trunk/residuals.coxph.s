@@ -1,4 +1,4 @@
-#SCCS $Id: residuals.coxph.s,v 4.8 1992-09-20 23:25:43 therneau Exp $
+#SCCS $Id: residuals.coxph.s,v 4.9 1992-09-23 16:26:08 therneau Exp $
 residuals.coxph <-
   function(object, type=c("martingale", "deviance", "score", "schoenfeld",
 			  "dbeta", "dfbetas"),
@@ -96,7 +96,7 @@ residuals.coxph <-
 	    hazard <- ifelse(temp==1, cumhaz, diff(c(0, cumhaz)))
 	    }
 	else {  # I need to call a routine
-	    aghaz <- .C("aghaz",
+	    aghaz <- .C("aghaz2",
 			   as.integer(n),
 			   as.double(y[,1]),
 			   as.double(y[,2]),
