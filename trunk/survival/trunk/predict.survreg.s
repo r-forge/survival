@@ -1,4 +1,4 @@
-# SCCS $Id: predict.survreg.s,v 4.3 1992-03-24 23:29:14 therneau Exp $
+# SCCS $Id: predict.survreg.s,v 4.4 1992-03-25 01:33:35 therneau Exp $
 #What do I need to do predictions --
 #
 #linear predictor:  exists
@@ -91,7 +91,7 @@ function(object, newdata, type=c("lp", "risk", "expected", "terms"),
     else {  #terms
 	attr(x, "constant") <- rep(0, ncol(x))
 	asgn <- object$assign
-	terms <- match.arg(terms, labels(object))
+	terms <- match.arg(terms, labels.lm(object))
 	asgn <- asgn[terms]
 	if (se.fit) {
 	    temp <- Build.terms(x, object$coef, object$var, asgn, F)
