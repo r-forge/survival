@@ -1,4 +1,4 @@
-# SCCS $Id: lines.survfit.s,v 4.17 2001-12-31 09:32:21 therneau Exp $
+# SCCS $Id: lines.survfit.s,v 4.18 2002-08-08 07:54:07 therneau Exp $
 lines.survfit <- function(x, type='s', mark=3, col=1, lty=1, lwd=1,
 			  mark.time =T, xscale=1, 
 			  firstx=0, firsty=1, xmax, fun,
@@ -30,24 +30,12 @@ lines.survfit <- function(x, type='s', mark=3, col=1, lty=1, lwd=1,
 
     if (is.numeric(mark.time)) mark.time<- sort(unique(mark.time[mark.time>0]))
 
-    if (is.matrix(x$surv)) {
-	ncol.per.strat <- ncol(x$surv)
-	ncurve <- ncol(x$surv)
-	coffset <- nrow(x$surv)*(1:ncurve -1)     #within matrix offset
-        }
-    else {
-	ncol.per.strat <- 1
-	ncurve <- 1
-	coffset <- 0
-        }
-
     if (is.null(x$strata)) {
 	nstrat <- 1
 	stemp <- rep(1, length(x$time))
 	}
     else {
 	nstrat <- length(x$strata)
-	ncurve <- ncurve * nstrat
 	stemp <- rep(1:nstrat, x$strata)
 	}
 
@@ -107,6 +95,19 @@ lines.survfit <- function(x, type='s', mark=3, col=1, lty=1, lwd=1,
 	}
 	stime <- stime/xscale
     	
+    if (is.matrix(ssurv)) {
+	ncol.per.strat <- ncol(ssurv)
+	ncurve <- ncol(ssurv)
+	coffset <- nrow(ssurv)*(1:ncurve -1)     #within matrix offset
+        }
+    else {
+	ncol.per.strat <- 1
+	ncurve <- 1
+	coffset <- 0
+        }
+
+    if (!is.null(x$strata)) ncurve <- ncurve * nstrat
+
     if (!missing(fun)) {
 	if (is.character(fun)) {
 	    tfun <- switch(fun,
@@ -176,14 +177,14 @@ lines.survfit <- function(x, type='s', mark=3, col=1, lty=1, lwd=1,
 	    yy <- c(firsty, ssurv[who])
 	    yyu<- c(firsty, supper[who])
 	    yyl<- c(firsty, slower[who])
-	    deaths <- c(-1, x$n.event[who])
+	    deaths <- c(-1, x$n.event[seq(soffset[i]+1, length=strata[i])])
 	    }
 	else {
 	    xx <- time[who]
 	    yy <- ssurv[who]
 	    yyu<- supper[who]
 	    yyl<- slower[who]
-	    deaths <- x$n.event[who]
+	    deaths <- x$n.event[seq(soffset[i]+1, length=strata[i])]
 	    }
 	nn <- length(xx)
 
