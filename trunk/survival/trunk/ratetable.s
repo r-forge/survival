@@ -1,4 +1,4 @@
-#SCCS $Id: ratetable.s,v 4.6 1994-03-19 14:00:23 therneau Exp $
+#SCCS $Id: ratetable.s,v 4.7 1994-11-22 21:17:02 therneau Exp $
 #
 # This is a 'specials' function for pyears
 #   it is a stripped down version of as.matrix(data.frame(...))
@@ -106,3 +106,7 @@ Ops.ratetable <- function(e1, e2) {
     NextMethod(.Generic)
     }
 
+as.matrix.ratetable <- function(x) {
+    attributes(x) <- attributes(x)[c("dim", "dimnames")]
+    x
+    }
