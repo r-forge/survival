@@ -1,4 +1,4 @@
-/* SCCS   */
+/* SCCS   $Id: agfit5.c,v 1.3 2001-11-26 07:25:39 therneau Exp $ */
 /* A reentrant version of the agfit program, for random effects modeling
 **   with reasonable efficiency (I hope).  The important arrays are saved
 **   from call to call so as to speed up the process.  The x-matrix itself
