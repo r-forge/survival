@@ -1,4 +1,4 @@
-#SCCS $Id: summary.survfit.s,v 5.8 2001-12-31 09:32:23 therneau Exp $
+#SCCS $Id: summary.survfit.s,v 5.9 2001-12-31 14:57:52 therneau Exp $
 #
 # Version with no C code, using approx() to do the subscript
 #  calculations
@@ -116,8 +116,9 @@ summary.survfit <- function(object, times, censored=F,
 	    #
 	    temp1 <- approx(c(mintime, stime), 0:length(stime), xout=ptimes,
 			    method='constant', f=0, rule=2)$y
-	    indx1[[i]] <- ifelse(temp1==0, 1, 1+ who[temp1])
+	    indx1[[i]] <- ifelse(temp1==0, 1, 1+ who[pmax(1,temp1)])
 	    n.event[[i]] <- cfun(temp1+1, fit$n.event[who])
+
 	    if (!is.null(fit$n.censor))
 		    n.censor[[i]] <- cfun(temp1+1, fit$n.censor[who])
 	    if (is.null(fit$n.enter)) temp2 <- 0
@@ -127,12 +128,11 @@ summary.survfit <- function(object, times, censored=F,
 		}
 
 	    n.risk[[i]] <- ifelse(temp1==0, fit$n.risk[who[1]] - temp2,
-				            fit$n.risk[c(1,who)[temp1+1]])
-            # Why not just "who[temp1]" instead of c(1,who)[temp1+1] in the
+				            fit$n.risk[who[pmax(1,temp1)]])
+            # Why not just "who[temp1]" instead of who[pmax(1,temp1)] in the
             #  line just above?  When temp1 has zeros, the first expression
             #  gives a vector that is shorter than temp1, and the ifelse
-            #  doesn't work right due to mismatched lengths.  c(2,who) would
-            #  work just as well, since I don't care what gets filled in.
+            #  doesn't work right due to mismatched lengths.  
 	    }
 
 	# Now create the output list
