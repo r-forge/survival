@@ -1,4 +1,4 @@
-#SCCS $Id: survfit.km.s,v 4.11 1993-06-17 12:24:33 therneau Exp $
+#SCCS $Id: survfit.km.s,v 4.12 1996-09-17 16:52:17 therneau Exp $
 survfit.km <- function(x, y, casewt=rep(1,n),
 	    type=c('kaplan-meier', 'fleming-harrington', 'fh2'),
 	    error=c('greenwood', "tsiatis"), se.fit=T,
@@ -67,7 +67,8 @@ survfit.km <- function(x, y, casewt=rep(1,n),
 	std.err <- sqrt(surv$varhaz[ntime])
 	temp$std.err <- std.err
 	events <- temp$n.event >0
-	n.lag <- rep(temp$n.risk[events],diff(c(ntime[events], 1+max(ntime))))
+	n.lag <- rep(c(temp$n.risk[1], temp$n.risk[events]),
+	              diff(c(ntime[1], ntime[events], 1+max(ntime))))
 	std.low <- switch(conf.lower,
 			'usual'   = std.err,
 			'peto'    = sqrt((1-temp$surv)/ temp$n.risk),
