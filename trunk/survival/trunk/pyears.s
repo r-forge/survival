@@ -1,4 +1,4 @@
-#SCCS  @(#)pyears.s	5.1 08/30/98
+#SCCS  $Id: pyears.s,v 5.4 1999-02-19 16:46:55 therneau Exp $
 pyears <- function(formula=formula(data), data=sys.parent(),
 	weights, subset, na.action,
 	ratetable=survexp.us, scale=365.25,  expect=c('event', 'pyears'),
@@ -33,17 +33,32 @@ pyears <- function(formula=formula(data), data=sys.parent(),
     rate <- attr(Terms, "specials")$ratetable
     if (length(rate) >1 )
 	stop ("Can have only 1 ratetable() call in a formula")
-    else if (length(rate)==1) {
+    else if (length(rate) == 0 && !missing(ratetable)) {
+	# add a 'ratetable' call to the internal formula
+        # The dummy function stops an annoying warning message "Looking for
+        #  'formula' of mode function, ignored one of mode ..."
+	xx <- function(x) formula(x)
+    
+	if(is.ratetable(ratetable))   varlist <- attr(ratetable, "dimid")
+	else stop("Invalid rate table")
+
+	ftemp <- deparse(substitute(formula))
+	formula <- xx( paste( ftemp, "+ ratetable(",
+			  paste( varlist, "=", varlist, collapse = ","), ")"))
+	Terms <- if (missing(data)) terms(formula, "ratetable")
+	         else               terms(formula, "ratetable", data = data)
+	rate <- attr(Terms, "specials")$ratetable
+	}
+
+    if (length(rate)==1) {
 	ovars <- (dimnames(attr(Terms, 'factors'))[[1]])[-c(1, rate)]
 	rtemp <- match.ratetable(m[,rate], ratetable)
 	R <- rtemp$R
-	if (!is.null(rtemp$call)) {  #need to drop some dimensions from ratetable
+	if (!is.null(rtemp$call)) {#need to drop some dimensions from ratetable
 	    ratetable <- eval(parse(text=rtemp$call))
 	    }
 	}
-    else {
-	ovars <- (dimnames(attr(Terms, 'factors'))[[1]])[-1]
-	}
+    else ovars <- (dimnames(attr(Terms, 'factors'))[[1]])[-1]
 
     # Now process the other (non-ratetable) variables
     if (length(ovars)==0)  {
