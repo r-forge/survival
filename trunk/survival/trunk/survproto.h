@@ -1,5 +1,5 @@
 /*
-**  SCCS $Id: survproto.h,v 5.2 1998-10-28 08:40:13 therneau Exp $
+**  SCCS @(#)survproto.h	5.2 10/28/98
 ** prototypes of all the survival functions
 **  along with a few macros
 */
@@ -163,11 +163,6 @@ double pystep(int nc,        int  *index,  int  *index2,   double *wt,
 	      double *data,  long *fac,    long *dims,     double **cuts, 
 	      double step,   int  edge);
 
-int rnewton(int    *maxiter,   int  n,        int  nvar,        double *beta, 
-	    double *u,         double **imat, double loglik[2], double eps,
-	    void (*dolk)(),    void (*doimat)(),  double *tol_chol,
-	    double *newbeta,   double *savediag,  int debug);
-
 void survdiff2(long   *nn,     long   *nngroup,    long   *nstrat, 
 	       double *rho,    double *time,       long   *status, 
 	       long   *group,  long   *strata,	   double *obs, 
@@ -183,9 +178,23 @@ void survindex2(long   *n,     double *stime,   long   *strata,
 		long   *ntime, double *time,    long   *nstrat, 
 		long   *indx,  long   *indx2);
 
-void survreg(long   *maxiter,    long   *nx,    long   *nvarx, 
-	     double *y,          long   *ny,    double *covar2, 
-	     double *offset2,    double *beta,  long   *npx, 
-	     double *parmsx,     double *u,     double *imatx, 
+void survreg2(long   *maxiter,   long   *nx,    long   *nvarx, 
+	     double *y,          long   *ny,    double *covar2, double *wtx,
+	     double *offset2,    double *beta,  long   *nstratx, 
+	     long   *stratax,    double *ux,    double *imatx, 
 	     double *loglik,     long   *flag,  double *eps,
-	     double *tol_chol,   double *deriv, long   *dist);
+	     double *tol_chol,   long   *dist,  long   *ddebug);
+
+void survreg3(long   *nx,      double *y,     long *ny,   double *eta, 
+	      long   *nstratx, long *strata,  double *vars,
+	      double *deriv,   long *ncol,    long   *dist);
+
+void survreg4(long   *maxiter,   long   *nx,       long   *nvarx, 
+	      double *y,         long   *ny,       double *covar2, 
+	      double *wt2,       double *offset2,  double *beta,  
+	     long   *nstratx,    long   *stratax,  double *ux,    
+	     double *imatx,      double *jmatx,
+	     double *loglik,     long   *flag,     double *eps,
+	     double *tol_chol,   long   *dist,     long   *ddebug,
+             long *ptype2,  	 long   *pdiag2,
+	     long *nfrail2,      long   *frail2,   double *fdiag2);
