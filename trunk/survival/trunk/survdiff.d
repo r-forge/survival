@@ -14,9 +14,7 @@ a formula expression as for other survival models, of the form
 must consist of a single `offset(sp)' term, where sp is a vector giving the
 survival probability of each subject.  For a k-sample test, each unique
 combination of predictors defines a subgroup.
-To cause missing values in the predictors to be treated as a separate
-group, rather than being omitted, use the `strata' function with its
-`na.group=T' argument.
+A `strata' term may be used to produce a stratified test.
 .OA
 .AG data
 an optional data frame in which to interpret the variables occurring in the
@@ -31,10 +29,16 @@ a list with components:
 the number of subjects in each group.
 .AG obs
 the weighted observed number of events in each group.
+If there are strata, this will be a matrix with one column per stratum.
 .AG exp
 the weighted expected number of events in each group.
+If there are strata, this will be a matrix with one column per stratum.
 .AG chisq
 the chisquare statistic for a test of equality.
+.AG var
+the variance matrix of the test.
+.AG strata
+optionally, the number of subjects contained in each stratum.
 .SH METHOD
 This function implements the G-rho family of
 Harrington and Fleming (1982), with weights on each death of (S(t))^rho,
@@ -45,6 +49,9 @@ of the Gehan-Wilcoxon test.
 .PP
 If the right hand side of the formula consists only of an offset term,
 then a one sample test is done.
+To cause missing values in the predictors to be treated as a separate
+group, rather than being omitted, use the `factor' function with its
+`exclude' argument.
 .SH REFERENCE
 Harrington, D. P. and Fleming, T. R. (1982).
 A class of rank test procedures for censored survival data.
@@ -55,6 +62,7 @@ Biometrika
 `survdiff.print'.
 .EX
 survdiff(Surv(futime, fustat) ~ rx)
+survdiff(Surv(time, status) ~ pat.karno + strata(inst), data=cancer)
 
 expect <- survexp(entry, birth, sex, futime)
 survdiff(Surv(futime, fustat) ~ offset(expect$surv))  #One sample log-rank

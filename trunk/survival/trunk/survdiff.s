@@ -1,22 +1,17 @@
-#SCCS $Date: 1996-01-06 21:17:35 $ $Id: survdiff.s,v 4.9 1996-01-06 21:17:35 therneau Exp $
-survdiff <- function(formula, data, subset, rho=0) {
+#SCCS $Date: 1996-01-07 01:35:50 $ $Id: survdiff.s,v 4.10 1996-01-07 01:35:50 therneau Exp $
+survdiff <- function(formula, data, subset, na.action, rho=0) {
     call <- match.call()
     m <- match.call(expand=F)
     m$rho <- NULL
 
-    if (!inherits(formula,"formula")) {
-	# The dummy function stops an annoying warning message "Looking for
-	#  'formula' of mode function, ignored one of mode ..."
-	if (inherits(formula,"Surv")) {
-	    xx <- function(x) formula(x)
-	    m$formula <- xx(paste(deparse(substitute(formula)), 1, sep="~"))
-	    }
-	else stop("Invalid formula")
-	}
+    Terms <- if(missing(data)) terms(formula, 'strata')
+	     else              terms(formula, 'strata', data=data)
+    m$formula <- Terms
     m[[1]] <- as.name("model.frame")
     m <- eval(m, sys.parent())
-    Terms <- attr(m, 'terms')
     y <- model.extract(m, response)
+    if (!inherits(y, "Surv")) stop("Response must be a survival object")
+    if (attr(y, 'type') != 'right') stop("Right censored data only")
     ny <- ncol(y)
     n <- nrow(y)
 
@@ -38,58 +33,51 @@ survdiff <- function(formula, data, subset, rho=0) {
 	    num <-  var - observed
 	    }
 	chi <- num*num/var
+	rval <-list(n= n, obs = observed, exp=expected, var=var,
+			chisq= chi)
 	}
 
-    else {
-	#k sample test
-	ll <- attr(Terms, 'term.labels')
-	if (length(ll) == 0) strats <- factor(rep(1,n))
-	else {
-	    temp <-  rep(1, length(ll))
-	    strat <- attr(Terms, 'specials')$strata
-	    if (length(strat)) temp[strat] <- 0
-	    lname <- ifelse(temp==1, paste(ll,'=', sep=''), "")
-	    temp <- paste("'",lname, "', ","as.character(m[['", ll, "']])", sep='')
-	    temp <- paste(temp, collapse=", ', ',")
-	    temp <- paste("paste(", temp, ",sep='')")
-	    strats <- factor(eval(parse(text=temp)))
+    else { #k sample test
+	strats <- attr(Terms, "specials")$strata
+	if (length(strats)) {
+	    temp <- untangle.specials(Terms, 'strata', 1)
+	    dropx <- temp$terms
+	    if (length(temp$vars)==1) strata.keep <- m[[temp$vars]]
+	    else strata.keep <- strata(m[,temp$vars], shortlabel=T)
 	    }
-	strat2 <- as.numeric(strats)
-	ngroup <- max(strat2)
-	if (ngroup <2) stop ("There is only 1 group")
+	else strata.keep <- rep(1,nrow(m))
 
-	if (ny!=2) stop("Surf.diff does not apply to interval time data (yet)")
-	ord <- order(y[,1])
+	#Now create the group variable
+	if (length(strats)) ll <- attr(Terms[-dropx], 'term.labels')
+	else                ll <- attr(Terms, 'term.labels')
+	if (length(ll) == 0) stop("No groups to test")
+	else groups <- strata(m[ll])
 
-	xx <- .C("survdiff2", as.integer(n),
-		       as.integer(ngroup),
-		       as.double(rho),
-		       as.double(y[ord,1]),
-		       as.integer(y[ord,2]),
-		       as.integer(strat2[ord]),
-		       observed = double(ngroup),
-		       expected = double(ngroup),
-		       var.e    = double((ngroup-1) * (ngroup-1)),
-		       double(ngroup), double(n))
-	n <- table(strats)
-	expected <- xx$expected
-	observed <- xx$observed
-	var  <- matrix(xx$var.e, ncol=ngroup-1)
-	var  <- cbind(apply(var,1,sum),var)
-	var  <- rbind(apply(var,2,sum),var)
-	df   <- (expected >0)            #remove groups with exp=0
+	fit <- survdiff.fit(y, groups, strata.keep, rho)
+	if (is.matrix(fit$observed)){
+	    otmp <- apply(fit$observed,1,sum)
+	    etmp <- apply(fit$expected,1,sum)
+	    }
+	else {
+	    otmp <- fit$observed
+	    etmp <- fit$expected
+	    }
+	df   <- (etmp >0)                #remove groups with exp=0
 	if (sum(df) <2) chi <- 0         # No test, actually
 	else {
-	    temp2 <- ((observed-expected)[df])[-1]
-	    vv <- (var[df,df])[-1,-1, drop=F]
+	    temp2 <- ((otmp - etmp)[df])[-1]
+	    vv <- (fit$var[df,df])[-1,-1, drop=F]
 	    chi <- sum(solve(vv, temp2) * temp2)
 	    }
+
+	rval <-list(n= table(groups), obs = fit$observed,
+		    exp = fit$expected, var=fit$var,  chisq=chi)
+	if (length(strats)) rval$strata <- table(strata.keep)
 	}
 
-    rval <-list(n= n, obs = observed, exp=expected, var=var,
-		    chisq= chi)
     na.action <- attr(m, "na.action")
     if (length(na.action)) rval$na.action <- na.action
+    rval$call <- call
     attr(rval, "class") <- 'survdiff'
     rval
     }

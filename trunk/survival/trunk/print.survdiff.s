@@ -1,11 +1,10 @@
-#SCCS $Date: 1996-01-06 21:17:36 $ $Id: print.survdiff.s,v 4.8 1996-01-06 21:17:36 therneau Exp $
-print.survdiff <- function(diff.list, digits=4, ...) {
+#SCCS $Date: 1996-01-07 01:35:51 $ $Id: print.survdiff.s,v 4.9 1996-01-07 01:35:51 therneau Exp $
+print.survdiff <- function(fit, digits=max(options()$digits-4,3), ...) {
 
-    fit <- diff.list
     saveopt <-options(digits=digits)
     on.exit(options(saveopt))
 
-    if (!inherits(diff.list, 'survdiff'))
+    if (!inherits(fit, 'survdiff'))
 	stop("Object is not the result of survdiff")
     if (!is.null(cl<- fit$call)) {
 	cat("Call:\n")
@@ -13,7 +12,7 @@ print.survdiff <- function(diff.list, digits=4, ...) {
 	cat("\n")
 	}
 
-    omit <- diff.list$na.action
+    omit <- fit$na.action
     if (length(omit)) cat("n=", sum(fit$n), ", ", naprint(omit),
 					  ".\n\n", sep='')
 
@@ -24,10 +23,19 @@ print.survdiff <- function(diff.list, digits=4, ...) {
 	print(temp)
 	}
     else {
-	df <- (sum(1*(fit$exp>0))) -1
-	temp <- cbind(fit$n, fit$obs, fit$exp, ((fit$obs-fit$exp)^2)/ fit$exp)
+	if (is.matrix(fit$obs)){
+	    otmp <- apply(fit$obs,1,sum)
+	    etmp <- apply(fit$exp,1,sum)
+	    }
+	else {
+	    otmp <- fit$obs
+	    etmp <- fit$exp
+	    }
+	df <- (sum(1*(etmp>0))) -1
+	temp <- cbind(fit$n, otmp, etmp, ((otmp-etmp)^2)/ etmp,
+					 ((otmp-etmp)^2)/ diag(fit$var))
 	dimnames(temp) <- list(names(fit$n), c("N", "Observed", "Expected",
-					   "(O-E)^2/E"))
+				  "(O-E)^2/E", "(O-E)^2/V"))
 	print(temp)
 	cat("\n Chisq=", format(round(fit$chisq,1)),
 		 " on", df, "degrees of freedom, p=",
