@@ -1,4 +1,4 @@
-#SCCS %#% $Date: 1992-07-13 22:07:10 $
+#SCCS %#% 7/13/92
 print.survreg <- function(x, ...)
 {
     if(!is.null(cl <- x$call)) {
@@ -28,7 +28,8 @@ print.survreg <- function(x, ...)
     omit <- x$na.action
     if (length(omit))
 	cat("  n=", nobs, " (", naprint(omit), ")\n", sep="")
-    cat("\nScale estimate:", format(x$scale), "\n")
+    sd <- survreg.distributions[[x$family[1]]]
+    cat("\n", sd$print(x$parms, x$fixed), "\n", sep='')
     cat("Degrees of Freedom:", nobs, "Total;", rdf, "Residual\n")
     cat("Residual Deviance:", format(x$deviance), "\n")
     invisible(x)
