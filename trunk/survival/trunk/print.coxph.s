@@ -1,4 +1,4 @@
-# SCCS $Id: print.coxph.s,v 4.2 1992-08-05 13:45:12 therneau Exp $
+# SCCS $Id: print.coxph.s,v 4.3 1992-08-05 14:41:05 therneau Exp $
 print.coxph <-
  function(cox, digits=3, ...)
     {
@@ -8,7 +8,7 @@ print.coxph <-
 	cat("\n")
 	}
     if (!is.null(cox$fail)) {
-	cat(" Coxrph failed.", cox$fail, "\n")
+	cat(" Coxph failed.", cox$fail, "\n")
 	return()
 	}
     savedig <- options(digits = digits)
