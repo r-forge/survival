@@ -1,17 +1,21 @@
-#SCCS $Id: residuals.coxph.s,v 4.10 1992-11-24 14:01:53 therneau Exp $
+#SCCS $Id: residuals.coxph.s,v 4.11 1993-01-12 23:37:14 therneau Exp $
 residuals.coxph <-
   function(object, type=c("martingale", "deviance", "score", "schoenfeld",
-			  "dbeta", "dfbetas"),
+			  "dbeta", "dfbetas", "scaledsch"),
 	    collapse=F)
     {
     type <- match.arg(type)
     otype <- type
     if (type=='dbeta' || type=='dfbetas') type <- 'score'
+    if (type=='scalesch') type<-'schoenfeld'
     n <- length(object$residuals)
     rr <- object$residual
     y <- object$y
     x <- object$x
     strat <- object$strata
+    method <- object$method
+    if (method=='exact' && (type=='score' || type=='schoenfeld'))
+	stop(paste(type, 'residuals are not available for the exact method'))
 
     if (type != 'martingale') {
 	# I need Y, and perhaps the X matrix, score, and strata
@@ -53,9 +57,6 @@ residuals.coxph <-
 	    x <- x[ord,]
 	    y <- y[ord,]
 	    score <- exp(object$linear.predictor)[ord]
-
-	    if (ny ==3) subs <- paste("agres", 1:2, "2", sep='')
-	    else        subs <- paste("coxres",1:2, "2", sep='')
 	    }
 	}
 
@@ -63,67 +64,61 @@ residuals.coxph <-
     # Now I have gotton the data that I need-- do the work
     #
     if (type=='schoenfeld') {
-	temp <- .C(subs[2], n=as.integer(n),
+	if (ny==2)  y <- cbind(0,y)
+	temp <- .C("coxscho", n=as.integer(n),
 			    as.integer(nvar),
-			    indx = as.double(y),
-			    x,
-			    as.integer(newstrat),
+			    as.double(y),
+			    resid= x,
 			    score,
-			    resid=double(n*nvar),
-			    double(n*nvar))
-	if (ny==2) indx <- temp$indx[1:(temp$n)] #unique death times
-	else       indx <- temp$indx[(n+1):(n+temp$n)]  #col 2 of y
-	if (length(strats)==0) {
-	    rr <- matrix(temp$resid, ncol=nvar)[1:(temp$n),]
-	    }
-	else  {
-	    #put the resids in time order, rather than time within strata
-	    ord2  <- order(y[indx, ny-1])
-	    indx  <- indx[ord2]
-	    rr   <- matrix(temp$resid, ncol=nvar)[ord2,]
-	    attr(rr, "strata")  <- strat[ord][indx]
-	    }
-	time <- c(y[indx, ny-1])  # 'c' kills all of the attributes
+			    as.integer(newstrat),
+			    as.integer(method=='efron'),
+			    double(2*nvar))
+
+	deaths <- y[,3]==1
+	rr <- temp$resid[deaths,]
+	if (length(strats)) attr(rr, "strata")  <- strat[deaths]
+	time <- c(y[deaths,2])  # 'c' kills all of the attributes
 	if (is.matrix(rr)) dimnames(rr)<- list(time, names(object$coef))
 	else               names(rr) <- time
+
+	if (otype=='scaledsch') {
+	    if (nvar==1) rr <- rr*object$var + object$coef
+	    else         rr <- rr %*%object$var + outer(rep(1,nrow(rr)),
+							     object$coef)
+	    }
 	return(rr)
 	}
 
     if (type=='score') {
-	# I need the hazard
-	if (ny==2) { #I can get the hazard from the residuals
-	    cumhaz <- (status[ord] - rr[ord])/ score
-	    temp <- c(1, newstrat[-n])  #marks first obs of new strata
-	    hazard <- ifelse(temp==1, cumhaz, diff(c(0, cumhaz)))
+	if (ny==2) {
+	    temp <- .C("coxres12", as.integer(n),
+				as.integer(nvar),
+				as.double(y),
+				x=x,
+				as.integer(newstrat),
+				score,
+				as.integer(method=='efron'),
+				double(2*nvar))
+	    resid <- (rep(rr[ord],nvar) * x) - temp$x
 	    }
-	else {  # I need to call a routine
-	    aghaz <- .C("aghaz2",
-			   as.integer(n),
-			   as.double(y[,1]),
-			   as.double(y[,2]),
-			   as.integer(y[,3]),
-			   score,
-			   as.integer(newstrat),
-			   hazard=double(n), cumhaz=double(n))
-	    hazard <- aghaz$hazard
-	    cumhaz <- aghaz$cumhaz
+	else {
+	    temp <- .C("agres12", as.integer(n),
+				as.integer(nvar),
+				as.double(y),
+				x,
+				as.integer(newstrat),
+				score,
+				as.integer(method=='efron'),
+				resid=double(n*nvar),
+				double(nvar*2))
+	    resid <- temp$resid
 	    }
-	temp <- .C(subs[1], as.integer(n),
-			    as.integer(nvar),
-			    as.double(y),
-			    x,
-			    as.integer(newstrat),
-			    score,
-			    hazard,
-			    cumhaz,
-			    resid=double(n*nvar),
-			    wmean= double(n*nvar))
 	if (nvar >1) {
 	    rr <- matrix(0, n, nvar)
-	    rr[ord,] <- matrix(temp$resid, ncol=nvar)
+	    rr[ord,] <- matrix(resid, ncol=nvar)
 	    dimnames(rr) <- list(names(object$resid), names(object$coef))
 	    }
-	else rr[ord] <- temp$resid
+	else rr[ord] <- resid
 	}
 
     #Expand out the missing values in the result

@@ -1,6 +1,6 @@
-/* SCCS  $Id: coxres12.c,v 4.3 1992-08-31 10:04:51 therneau Exp $      */
+/* SCCS  $Id: coxres12.c,v 4.4 1993-01-12 23:37:14 therneau Exp $      */
 /*
-** Do the score residuals
+** Does only the  integral(xbar(t) dM_i(t)) part of the score residuals
 **
 ** Input
 **      nx      number of subjects
@@ -10,94 +10,89 @@
 **      covar2  the matrix of covariates, rows=variables, columns=subjects
 **                (the S executive stores matrices in the Fortran ordering)
 **      score   the vector of subject scores, i.e., exp(beta*z)
-**      hazard  carried forward from the cumhaz routine
-**      cumhaz  carried forward from the cumhaz routine
+**      method  ==1 for efron method
 **
 ** Output
-**      resid2  matrix of score residuals, same "shape" of matrix as covar2
+**      x is replaced with the appropriate value
 **
 ** Scratch
-**      wmean2  matrix of the same size as resid2
+**      scratch,  from which a and a2 are carved
 */
 #include <stdio.h>
 extern double **dmatrix();
 
-void coxres12(nx, nvarx, y, covar2, strata, score,
-		hazard, cumhaz, resid2, wmean2)
+void coxres12(nx, nvarx, y, covar2, strata, score, method, scratch)
 long    nx[1],
 	nvarx[1],
+	*method,
 	strata[];
 double  y[],
 	*covar2,
-	score[],
-	hazard[],
-	cumhaz[],
-	*wmean2,
-	*resid2;
+	*scratch,
+	score[];
 
     {
     register int i,j, k;
     register double temp;
     int n, nvar;
+    int deaths;
     double *time, *status;
-
-    double **covar,
-	   **resid,
-	   **wmean;
+    double *a, *a2;
+    double denom, efron_wt;
+    double **covar;
+    double hazard;
 
     n = *nx;
     nvar  = *nvarx;
     time = y;
     status = y+n;
+    a = scratch;
+    a2 = a+nvar;
     /*
-    **  Set up the ragged arrays
+    **  Set up the ragged array
     */
     covar=  dmatrix(covar2, n, nvar);
-    wmean = dmatrix(wmean2, n, nvar);
-    resid = dmatrix(resid2, n, nvar);
 
-    /*
-    ** set up the matrix of weighted means
-    **  use the first row of resid as a temp variable
-    */
-    for (i=n-1; i>=0; i--) {
+    efron_wt=0;
+    deaths=0;
+    for (i=0; i<nvar; i++) a2[i] =0;
+    strata[n-1] =1;  /*failsafe */
+    for (i=n-1; i >=0; i--) {
 	if (strata[i]==1) {
-	    temp =0;
-	    for (j=0; j<nvar; j++)  resid2[j] =0;
+	    denom =0;
+	    for (j=0; j<nvar; j++) a[j] =0;
 	    }
-	temp += score[i];
+
+	denom += score[i];
+	if (status[i]==1) {
+	    deaths++;
+	    efron_wt += score[i];
+	    for (j=0; j<nvar; j++) a2[j] += score[i]*covar[j][i];
+	    }
 	for (j=0; j<nvar; j++) {
-	    resid2[j] += covar[j][i]* score[i];
-	    wmean[j][i] = resid2[j]/temp;
+	    a[j] += score[i] * covar[j][i];
+	    covar[j][i] =0;
 	    }
-	}
 
-    /* correct for tied times */
-    for (i=0; i<n; ) {
-	for (k=i+1; k<n && time[k]==time[i]; k++) {
-	    for (j=0; j<nvar; j++)
-		wmean[j][k] = wmean[j][i];
-	    if (strata[k]==1) break;
-	    }
-	i=k;
-	}
+	if (deaths>0 && (i==0 || strata[i-1]==1 || time[i]!=time[i-1])){
+	    /* last obs of a set of tied death times */
+	    hazard = deaths/ denom;
+	    temp = *method * (deaths-1) / 2.0;
+	    for (j=0; j<nvar; j++)    /*create the weighted mean in a2 */
+		a2[j] = (a[j]-temp*a2[j]) / (denom - temp*efron_wt);
 
-    /*
-    ** Now do the actual residuals
-    */
-    for (i=0; i<n; i++)
-	for (j=0; j<nvar; j++)
-	    resid[j][i]= status[i]*(covar[j][i]-wmean[j][i]) -
-			      covar[j][i] * cumhaz[i] * score[i];
-
-    for (i=0; i<n; i++) {
-	temp = hazard[i];     /*size of the hazard function's jump */
-	if (temp>0) {
 	    for (k=i; k<n; k++) {
-		for (j=0; j<nvar; j++)
-		    resid[j][k] += wmean[j][i] * temp * score[k];
-		if (strata[k]==1) break;
+		if (time[k]==time[i]) {
+		    for (j=0; j<nvar; j++)
+			covar[j][k] = a2[j]*(status[k] - score[k]*hazard);
+		    }
+		else {
+		    for (j=0; j<nvar; j++) covar[j][k] -= a2[j]*score[k]*hazard;
+		    }
 		}
+	    efron_wt =0;
+	    deaths =0;
+	    for (j=0; j<nvar; j++)  a2[j] =0;
 	    }
 	}
-   }
+    }
