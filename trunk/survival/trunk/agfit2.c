@@ -1,4 +1,4 @@
-/* SCCS $Id: agfit2.c,v 4.8 1994-03-09 12:46:59 therneau Exp $  */
+/* SCCS $Id: agfit2.c,v 4.9 1994-05-23 07:22:37 therneau Exp $  */
 /*
 ** Anderson-Gill formulation of the cox Model
 **
@@ -84,6 +84,7 @@ double  *eps;
     register int i,j,k,person;
     int     iter;
     int     nused, nvar;
+    int     endp;
 
     double **covar, **cmat, **imat;  /*ragged array versions*/
     double *a, *newbeta;
@@ -191,7 +192,8 @@ double  *eps;
 	    */
 	    meanwt /= deaths;
 	    itemp = -1;
-	    for (k=person; k<= end[person] && stop[k]==time; k++) {
+	    endp = end[person];
+	    for (k=person; k<= endp && stop[k]==time; k++) {
 		if (event[k]==1) {
 		    itemp++;
 		    temp = itemp*method/deaths;
@@ -263,6 +265,7 @@ double  *eps;
 	for (person=0; person<nused; ) {
 	    if (event[person]==0) person++;
 	    else {
+		endp = end[person];  /* shorter loops than 1 to n */
 		/*
 		** compute the mean and covariance over the risk set (a and c)
 		*/
@@ -279,7 +282,7 @@ double  *eps;
 		    }
 		time = stop[person];
 		deaths=0;
-		for (k=person; k<=end[person]; k++) {
+		for (k=person; k<=endp; k++) {
 		    if (start[k] < time) {
 			risk = exp(score[k]) * weights[k];
 			denom += risk;
@@ -303,7 +306,7 @@ double  *eps;
 
 		itemp = -1;
 		meanwt /= deaths;
-		for (k=person; k<=end[person] && stop[k]==time; k++) {
+		for (k=person; k<=endp && stop[k]==time; k++) {
 		    if (event[k]==1) {
 			itemp++;
 			temp = itemp*method/deaths;
