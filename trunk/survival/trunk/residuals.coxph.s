@@ -1,4 +1,4 @@
-# SCCS $Id: residuals.coxph.s,v 4.26 1995-11-09 07:55:29 therneau Exp $
+# SCCS $Id: residuals.coxph.s,v 4.27 1997-05-08 09:03:50 therneau Exp $
 residuals.coxph <-
   function(object, type=c("martingale", "deviance", "score", "schoenfeld",
 			  "dfbeta", "dfbetas", "scaledsch"),
@@ -155,6 +155,7 @@ residuals.coxph <-
     if (!missing(collapse)) {
 	if (length(collapse) !=n) stop("Wrong length for 'collapse'")
 	rr <- rowsum(rr, collapse)
+	status <- rowsum(status, collapse)
 	}
 
     # Deviance residuals are computed after collapsing occurs
