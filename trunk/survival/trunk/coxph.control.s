@@ -1,8 +1,10 @@
-# SCCS $Id: coxph.control.s,v 5.3 1999-06-24 15:21:57 therneau Exp $
+# SCCS $Id: coxph.control.s,v 5.4 1999-09-22 14:06:55 therneau Exp $
 #
 # Gather all of the control parameters for coxph into one spot
 #
-coxph.control <- function(eps=1e-4, toler.chol =eps/10000, iter.max=10,
+coxph.control <- function(eps=1e-4, 
+			  toler.chol = Machine$double.eps ^ .75, 
+			  iter.max=10,
 			  toler.inf= sqrt(eps), outer.max=10 ) {
     if (iter.max <0) stop("Invalid value for iterations")
     if (eps <=0) stop ("Invalid convergence criteria")
