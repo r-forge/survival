@@ -1,4 +1,4 @@
-# SCCS $Id: survfit.coxph.null.s,v 5.3 1998-11-04 02:03:38 therneau Exp $
+# SCCS $Id: survfit.coxph.null.s,v 5.4 2000-03-02 19:26:08 boos Exp $
 survfit.coxph.null <-
   function(object, newdata, se.fit=T, conf.int=.95, individual=F,
 	    type, vartype,
@@ -86,19 +86,19 @@ survfit.coxph.null <-
     tsurv <- surv$surv[ntime]
     tvar  <- surv$varhaz[ntime]
     if (surv$strata[1] <=1)
-	temp _ list(time=surv$y[ntime,1],
+	temp _ list(n=n, time=surv$y[ntime,1],
 		 n.risk=surv$y[ntime,2],
 		 n.event=surv$y[ntime,3],
-		 surv=tsurv )
+		 surv=tsurv, type=type )
     else {
 	temp <- surv$strata[1:(1+surv$strata[1])]
 	tstrat <- diff(c(0, temp[-1])) #n in each strata
 	names(tstrat) <- levels(stratx)
-	temp _ list(time=surv$y[ntime,1],
+	temp _ list(n=n, time=surv$y[ntime,1],
 		 n.risk=surv$y[ntime,2],
 		 n.event=surv$y[ntime,3],
 		 surv=tsurv,
-		 strata= tstrat)
+		 strata= tstrat, type=type)
 	}
     if (se.fit) temp$std.err <- sqrt(tvar)
 

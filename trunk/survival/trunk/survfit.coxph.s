@@ -1,4 +1,4 @@
-# SCCS $Id: survfit.coxph.s,v 5.4 2000-02-10 07:59:46 therneau Exp $
+# SCCS $Id: survfit.coxph.s,v 5.5 2000-03-02 19:23:21 boos Exp $
 setOldClass(c('survfit.cox', 'survfit'))
 
 survfit.coxph <-
@@ -164,10 +164,11 @@ survfit.coxph <-
 			     as.integer(strata2) )
 	ntime <- 1:surv$nsurv
 	temp <- (matrix(surv$y, ncol=3))[ntime,]
-	temp <- list(time = temp[,1],
+	temp <- list(n=n, time = temp[,1],
 		     n.risk= temp[,2],
 		     n.event=temp[,3],
-		     surv = surv$surv[ntime])
+		     surv = surv$surv[ntime],
+		     type=type)
 	if (se.fit) temp$std.err <- sqrt(surv$varhaz[ntime])
 	}
     else {
@@ -197,19 +198,21 @@ survfit.coxph <-
 	    tvar  <- surv$varhaz[ntime]
 	    }
 	if (surv$strata[1] <=1)
-	    temp _ list(time=surv$y[ntime,1],
+	    temp _ list(n=n,time=surv$y[ntime,1],
 		     n.risk=surv$y[ntime,2],
 		     n.event=surv$y[ntime,3],
-		     surv=tsurv )
+		     surv=tsurv,
+			type=type)
 	else {
 	    temp <- surv$strata[1:(1+surv$strata[1])]
 	    tstrat <- diff(c(0, temp[-1])) #n in each strata
 	    names(tstrat) <- levels(data$strata)
-	    temp _ list(time=surv$y[ntime,1],
+	    temp _ list(n=n, time=surv$y[ntime,1],
 		     n.risk=surv$y[ntime,2],
 		     n.event=surv$y[ntime,3],
 		     surv=tsurv,
-		     strata= tstrat)
+		     strata= tstrat,
+			type=type)
 	    }
 	if (se.fit) temp$std.err <- sqrt(tvar)
 	}
@@ -243,3 +246,6 @@ survfit.coxph <-
     oldClass(temp) <- "survfit.cox"
     temp
     }
+
+
+
