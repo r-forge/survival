@@ -20,7 +20,7 @@ hazards model.
 survfit(formula, data=sys.parent(), weights, subset, na.action,  
         newdata, individual=F, conf.int=.95, se.fit=T,  
         type=&lt;&lt;see below&gt;&gt;, error=&lt;&lt;see below&gt;&gt;, conf.type="log", 
-        conf.lower="usual") 
+        conf.lower="usual", new.start) 
 </s-old-style-usage>
 </s-usage>
 <s-args-required>
@@ -124,6 +124,9 @@ This is especially useful for survival curves with a long flat tail.
 The Peto lower limit is based on the same "effective n" argument as the 
 modified limit, but also replaces the usual Greenwood variance term with 
 a simple approximation.  It is known to be conservative. 
+</s-arg>
+<s-arg name="new.start">
+numeric value specifying a time to start calculating survival information.
 </s-arg>
 </s-args-optional>
 <s-value>
