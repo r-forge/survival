@@ -1,5 +1,5 @@
 #
-# SCCS $Id: survfit.ci.s,v 1.3 2003-12-31 16:04:19 therneau Exp $
+# SCCS $Id: survfit.ci.s,v 1.4 2004-11-23 10:24:14 therneau Exp $
 #
 # Compute the current incidence curve for a data set
 #   A strata() statement identifies the outcomes
@@ -120,17 +120,17 @@ survfit.ci <- function(formula=formula(data), data=sys.parent(),
 	    newsurv <- matrix(1.0, nrow=length(kfit$time), ncol=nstate)
 	    newjump <- 0*newsurv
 	    stemp <- names(kfit$strata)
-	    istart <- cumsum(c(1,strata)) #starting points
-	    for (i in 1:length(strata)) {
+	    istart <- cumsum(c(1,kfit$strata)) #starting points
+	    for (i in 1:length(kfit$strata)) {
 		# j will index the rows in the survival (kfit) object
 		# who will index into the original data
 		j <- seq(from=istart[i], length=kfit$strata[i])
-		who <- (X==stemp[i] & status==2)
+		who <- (X==stemp[i] & status==1)
 		if (any(who)) { # if any deaths
 		    temp <- table(factor(time[who], levels=kfit$time[j]),
 				  state[who], exclude=NA)
 		    tevent <- kfit$n.event[j]
-		    temp <- temp / ifelse(tevent, 1, tevent)  # percents
+		    temp <- temp / ifelse(tevent<1, 1, tevent)  # percents
 		    jumps <- -diff(c(1, kfit$surv[j]))
 		    jumps <- jumps * temp
 		    newsurv[j,] <- apply(jumps, 2, function(x) 1 - cumsum(x))
@@ -325,7 +325,7 @@ survfit.ci <- function(formula=formula(data), data=sys.parent(),
 	#
 	events <- kfit$n.event >0
 	if (ncurve==1) events[1] <- 1
-	else           events[1 + cumsum(c(0, strata[-ncurve]))] <- 1
+	else           events[1 + cumsum(c(0, kfit$strata[-ncurve]))] <- 1
 	zz <- 1:length(events)
 	n.lag <- rep(kfit$n.risk[events], diff(c(zz[events], 1+max(zz))))
 	std.low <- switch(conf.lower,

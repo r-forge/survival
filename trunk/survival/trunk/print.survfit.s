@@ -1,4 +1,4 @@
-#SCCS  $Id: print.survfit.s,v 4.21 2003-04-13 16:51:21 therneau Exp $
+#SCCS  $Id: print.survfit.s,v 4.22 2004-11-23 10:24:14 therneau Exp $
 print.survfit <- function(x, scale=1, 
 			  digits = max(options()$digits - 4, 3), ...) {
 
@@ -91,7 +91,7 @@ survmean <- function(x, scale=1) {
 		else out[i,] <- pfun(x$n, stime, surv[,i], x$n.risk, x$n.event,
 				    x$lower[,i], x$upper[,i], start.time)
 		}
-	    dimnames(out) <- list(NULL, plab)
+	    dimnames(out) <- list(dimnames(surv)[[2]], plab)
 	    }
 	else {
 	    out <- pfun(x$n, stime, surv, x$n.risk, x$n.event, x$lower, 
@@ -106,7 +106,14 @@ survmean <- function(x, scale=1) {
 	if (is.matrix(surv)) {
 	    ns <- ncol(surv)
 	    out <- matrix(0, nstrat*ns, ncols)
-	    dimnames(out) <- list(rep(names(x$strata), rep(ns,nstrat)), plab)
+            if (is.null(dimnames(surv)[[2]]))
+                dimnames(out) <- list(rep(names(x$strata), rep(ns,nstrat)), 
+                                      plab)
+            else {
+                cname <- outer(dimnames(surv)[[2]], names(x$strata), paste,
+                               sep=", ")
+                dimnames(out) <- list(c(cname), plab)
+                }
 	    k <- 0
 	    for (i in 1:nstrat) {
 		who <- (stemp==i)
