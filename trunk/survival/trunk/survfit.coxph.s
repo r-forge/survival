@@ -1,8 +1,8 @@
-#SCCS $Date: 1992-03-04 16:48:36 $ $Id: survfit.coxph.s,v 4.1 1992-03-04 16:48:36 therneau Exp $
 surv.fit.coxreg <-
   function(object, newdata, se.fit=T, conf.int=.95, individual=F,
 	    type=c('tsiatis', 'kaplan-meier'),
-	    conf.type=c('log', 'log-log', 'plain', 'none'), ...) {
+	    conf.type=c('log', 'log-log', 'plain', 'none'))
+		 {
 
     call <- match.call()
     Terms <- terms(object)
@@ -16,20 +16,20 @@ surv.fit.coxreg <-
     if (!se.fit) conf.type <- 'none'
     else conf.type <- match.arg(conf.type)
 
-    if (length(strat) || se.fit ) {  # I need both X and Y
-	x <-object$x
-	y <-object$y
-	strata <- object$strata
+    x <- object$x
+    y <- object$y
+    if (is.null(x) && (length(strat) || se.fit)) {  # I need both X and Y
+	stratum <- object$strata
+	m <- model.frame(object)
 	if (is.null(x)) {   #Both strata and X will be null, or neither
-	    m <- model.frame(object)
 	    if (length(strat)) {
 		if (length(strat)>1) stop("Only one strata() expression allowed")
 		x <- model.matrix(Terms[-strat], m)
-		strata <- m[[(as.character(Terms))[strat]]]
+		stratum <- m[[(as.character(Terms))[strat]]]
 		}
 	    else {
 		x <- model.matrix(Terms, m)
-		strata <- rep(1,n)
+		stratum <- rep(1,n)
 		}
 	    }
 	if (is.null(y)) y <- model.extract(m, 'response')
@@ -37,28 +37,28 @@ surv.fit.coxreg <-
     else {
 	y <- object$y
 	if (is.null(y)) {
-	    y <- eval(resp)
-	    if (!is.null(omit)) y <- y[omit,]
+	    m <- model.frame(object)
+	    y <- model.extract(m, 'response')
 	    }
-	strata <- rep(1,n)
+	stratum <- rep(1,n)
 	}
 
     ny <- ncol(y)
     if (nrow(y) != n) stop ("Mismatched lengths: logic error")
     type <- attr(y, 'type')
     if (type=='counting') {
-	ord <- order(strata, y[,2], -y[,3])
+	ord <- order(stratum, y[,2], -y[,3])
 	if (method=='kaplan-meier')
 	      stop ("KM method not valid for counting type data")
 	}
     else if (type=='right') {
-	ord <- order(strata, y[,1], -y[,2])
+	ord <- order(stratum, y[,1], -y[,2])
 	y <- cbind(0, y)
 	}
     else stop("Cannot handle \"", type, "\" type survival data")
 
     if (length(strat)) {
-	newstrat <- (as.numeric(strata))[ord]
+	newstrat <- (as.numeric(stratum))[ord]
 	newstrat <- as.integer(c(1*(diff(newstrat)!=0), 1))
 	}
     else newstrat <- as.integer(c(rep(0,n-1),1))
@@ -88,7 +88,7 @@ surv.fit.coxreg <-
 		# The case of an agreg, with a multiple line newdata
 		#
 		if (length(strat)) {
-		    strata2 <- factor(x2[,strat], levels=levels(strata))
+		    strata2 <- factor(x2[,strat], levels=levels(stratum))
 		    x2 <- x2[, -strat, drop=F]
 		    }
 		else strata2 <- rep(1, nrow(x2))
@@ -164,7 +164,7 @@ surv.fit.coxreg <-
 	else {
 	    temp <- surv$strata[1:(1+surv$strata[1])]
 	    tstrat <- diff(c(0, temp[-1])) #n in each strata
-	    names(tstrat) <- levels(strata)
+	    names(tstrat) <- levels(stratum)
 	    temp _ list(time=surv$y[ntime,1],
 		     n.risk=surv$y[ntime,2],
 		     n.event=surv$y[ntime,3],
