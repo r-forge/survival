@@ -1,4 +1,4 @@
-# SCCS $Id: coxph.getdata.s,v 4.2 1994-04-15 09:25:52 therneau Exp $
+# SCCS $Id: coxph.getdata.s,v 4.3 1994-09-08 16:51:28 therneau Exp $
 #
 # Reconstruct the Cox model data.  This is done in so many routines
 #  that I extracted it out.
@@ -31,12 +31,16 @@ coxph.getdata <- function(fit, y=T, x=T, stratax=T, offset=F) {
 
 	# strata was saved in the fit if and only if x was
 	if (x && is.null(tx)) {
+	    dropx <- untangle.specials(Terms, 'cluster')$terms
 	    if (stratax) {
 		temp <- untangle.specials(Terms, 'strata', 1)
-		tx <- model.matrix(Terms[-temp$terms], m)[,-1,drop=F]
+		tx <- model.matrix(Terms[-c(dropx,temp$terms)], m)[,-1,drop=F]
 		strat <- strata(m[temp$vars], shortlabel=T)
 		}
-	    else tx <- model.matrix(Terms, m)[,-1,drop=F]   #remove column of 1's though
+	    else {
+		if (length(dropx)) tx <- model.matrix(Terms[-dropx], m)[,-1,drop=F]
+		else               tx <- model.matrix(Terms, m)[,-1,drop=F]
+		}
 	    }
 	}
     else if (offset)
