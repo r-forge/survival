@@ -1,4 +1,4 @@
-# SCCS $Id: lines.survfit.s,v 4.14 1998-09-29 16:14:06 atkinson Exp $
+# SCCS $Id: lines.survfit.s,v 4.15 1999-01-06 07:15:32 therneau Exp $
 lines.survfit <- function(x, type='s', mark=3, col=1, lty=1, lwd=1,
 			  mark.time =T, xscale=1, 
 			  firstx=0, firsty=1, xmax, fun,
@@ -139,17 +139,20 @@ lines.survfit <- function(x, type='s', mark=3, col=1, lty=1, lwd=1,
 	type=='l'
 	dostep <- function(x,y) {
 	    n <- length(x)
-	    # replace verbose horizonal sequences like
-	    # (1, .2), (1.4, .2), (1.8, .2), (2.3, .2), (2.9, .2), (3, .1)
-	    # with (1, .2), (3, .1).  They are slow, and can smear the looks
-	    # of the line type.
-	    dupy <- c(T, diff(y[-n]) !=0, T)
-	    n2 <- sum(dupy)
-
-	    #create a step function
-	    xrep <- rep(x[dupy], c(1, rep(2, n2-1)))
-	    yrep <- rep(y[dupy], c(rep(2, n2-1), 1))
-	    list(x=xrep, y=yrep)
+	    if (n >1) {
+		# replace verbose horizonal sequences like
+		# (1, .2), (1.4, .2), (1.8, .2), (2.3, .2), (2.9, .2), (3, .1)
+		# with (1, .2), (3, .1).  They are slow, and can smear the 
+		# looks of the line type.
+		dupy <- c(T, diff(y[-n]) !=0, T)
+		n2 <- sum(dupy)
+		
+		#create a step function
+		xrep <- rep(x[dupy], c(1, rep(2, n2-1)))
+		yrep <- rep(y[dupy], c(rep(2, n2-1), 1))
+		list(x=xrep, y=yrep)
+		}
+	    else list(x=x, y=y)
 	    }	
 	}
     else dostep <- function(x,y) list(x=x, y=y)
