@@ -1,4 +1,4 @@
-#SCCS $Id: ratetable.s,v 4.7 1994-11-22 21:17:02 therneau Exp $
+#SCCS $Id: ratetable.s,v 4.8 1995-01-24 09:54:49 therneau Exp $
 #
 # This is a 'specials' function for pyears
 #   it is a stripped down version of as.matrix(data.frame(...))
@@ -60,6 +60,7 @@ is.na.ratetable2 <- function(x) {
     attributes(x) <- aa[c("dim", "dimnames")]
     y <- NextMethod("[", drop=F)
     newdim <- attr(y, 'dim')
+    if (is.null(newdim)) stop("Invalid subscript")
     dropped <- (newdim==1)
     if (drop)  change <- (newdim!=aa$dim & !dropped)
     else       change <- (newdim!=aa$dim)
@@ -109,4 +110,10 @@ Ops.ratetable <- function(e1, e2) {
 as.matrix.ratetable <- function(x) {
     attributes(x) <- attributes(x)[c("dim", "dimnames")]
     x
+    }
+
+print.ratetable <- function(x, ...)  {
+    cat ("Rate table with dimension(s):", attr(x, 'dimid'), "\n")
+    attributes(x) <- attributes(x)[c("dim", "dimnames")]
+    NextMethod()
     }
