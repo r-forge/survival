@@ -1,4 +1,4 @@
-# SCCS $Id: frailty.gaussian.s,v 1.4 1999-02-07 22:29:48 therneau Exp $
+# SCCS $Id: frailty.gaussian.s,v 1.5 2000-05-30 08:33:20 therneau Exp $
 # 
 # Defining function for gaussian frailty fits
 #
@@ -104,7 +104,7 @@ frailty.gaussian <- function(x, sparse=(nclass >5), theta, df,
     # If not sparse, give shorter names to the coefficients, so that any
     #   printout of them is readable.
     if (!sparse) {
-	vname <- paste("gamma", levels(x), sep=':')
+	vname <- paste("gauss", levels(x), sep=':')
 	temp <- c(temp, list(varname=vname))
 	}
     attributes(x) <- c(attributes(x), temp)
