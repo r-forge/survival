@@ -9,8 +9,8 @@ and other extensions are incorporated using the counting process formulation
 of Andersen and Gill.
 .CS
 coxph(formula, data=sys.parent(), subset,
-       na.action, weights, eps=0.0001, init,
-       iter.max=10, method=c("efron","breslow","exact"),
+       na.action, weights, control, init,
+       method=c("efron","breslow","exact"),
        singular.ok=T, robust,
        model=F, x=F, y=T)
 .RA
@@ -36,14 +36,14 @@ in the log-likelihood is less than eps.  Default is .0001.
 .AG init
 vector of initial values of the iteration.  Default initial
 value is zero for all variables.
-.AG iter.max
-maximum number of iterations to perform.  Default is 10.
+.AG control
+various parameters that control iteration and convergence, see
+`coxph.control'.
 .AG method
 a character string specifying the method for tie handling.  If there 
 are no tied death times all the methods are equivalent.
-Nearly all Cox regression programs use the Breslow method by default,
-but
-not this one.
+Nearly all Cox regression programs in other packages use the Breslow method 
+by default, but not this one.
 The Efron approximation is used as the default here, as it is much more
 accurate when dealing with tied death times, and is as efficient
 computationally.
