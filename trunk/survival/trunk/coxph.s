@@ -1,10 +1,10 @@
-#SCCS  $Id: coxph.s,v 5.9 1999-06-18 15:50:07 therneau Exp $
+#SCCS $Id: coxph.s,v 5.10 1999-08-26 09:34:44 therneau Exp $
 # Version with general penalized likelihoods
 setOldClass(c('coxph.penal', 'coxph'))
 
 coxph <- function(formula=formula(data), data=sys.parent(),
 	weights, subset, na.action,
-	control, method= c("efron", "breslow", "exact"),
+	init, control, method= c("efron", "breslow", "exact"),
 	singular.ok =T, robust=F,
 	model=F, x=F, y=T, ...) {
 
@@ -97,7 +97,7 @@ coxph <- function(formula=formula(data), data=sys.parent(),
 	else if (method=='exact') fitter <- get("agexact.fit")
 	else stop(paste ("Unknown method", method))
 
-	fit <- fitter(X, Y, strats, offset, control, weights=weights,
+	fit <- fitter(X, Y, strats, offset, init, control, weights=weights,
 			    method=method, row.names(m))
 	}
 
@@ -142,7 +142,8 @@ coxph <- function(formula=formula(data), data=sys.parent(),
 	        }
 	    fit$var <- t(temp) %*% temp
 	    u <- apply(as.matrix(temp0), 2, sum)
-	    fit$rscore <- coxph.wtest(t(temp0)%*%temp0, u, toler.chol)$test
+	    fit$rscore <- coxph.wtest(t(temp0)%*%temp0, u, 
+				             control$toler.chol)$test
 	    }
 	#Wald test
 	if (length(fit$coef) && is.null(fit$wald.test)) {  
@@ -151,7 +152,7 @@ coxph <- function(formula=formula(data), data=sys.parent(),
 	    if (is.null(init)) temp <- fit$coef[nabeta]
 	    else temp <- (fit$coef - init)[nabeta]
 	    fit$wald.test <-  coxph.wtest(fit$var[nabeta,nabeta], temp,
-					  toler.chol)$test
+					  control$toler.chol)$test
 	    }
 	na.action <- attr(m, "na.action")
 	if (length(na.action)) fit$na.action <- na.action
