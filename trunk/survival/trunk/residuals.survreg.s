@@ -1,37 +1,197 @@
-#SCCS $Id: residuals.survreg.s,v 4.7 1998-08-30 15:39:18 therneau Exp $
-residuals.survreg <-
-function(object, type = c("deviance", "pearson", "working", "matrix"))
-{
-    type <- match.arg(type)
-    rr <- switch(type,
-	    working = object$residuals,
-	    pearson = sqrt(object$weights) * object$residuals,
-	    deviance = object$dresiduals,
-	    matrix= {
-		eta <- object$linear.predictors
-		n   <- length(eta)
-		y   <- object$y
-		if (is.null(y))
-		    stop("Program deficiency-- must have y=T for matrix residuals")
-		dist<- match(object$dist, c("extreme", "logistic",
-					    "gaussian", "cauchy"))
-		temp <-.C("survreg_g", as.integer(n),
-				as.double(y),
-				as.integer(ncol(y)),
-				eta,
-				as.double(object$parms),
-				deriv=matrix(double(n*6), ncol=6),
-				as.integer(6),
-				as.integer(dist))$deriv
-		dimnames(temp) <- list(names(object$residuals),
-				       c("loglik", "eta'", "eta''", "sig'",
-					 "sig''", "eta'sig'"))
-		temp
-		}
-	    )
+# SCCS $Id: residuals.survreg.s,v 4.8 1998-11-30 08:30:56 therneau Exp $
+# 
+#  Residuals for survreg objects
+residuals.survreg <- function(object, type=c('response', 'deviance',
+		      'dfbeta', 'dfbetas', 'working', 'ldcase',
+		      'ldresp', 'ldshape', 'matrix'), 
+		      rsigma =T, collapse=F, weighted=F) {
+    type <-match.arg(type)
+    n <- length(object$linear.predictors)
+    Terms <- object$terms
+    if(!inherits(Terms, "terms"))
+	    stop("invalid terms component of  object")
+
+    strata <- attr(Terms, 'specials')$strata
+    coef <- object$coefficients
+    intercept <- attr(Terms, "intercept")
+    response  <- attr(Terms, "response")
+    weights <- object$weights
+    if (is.null(weights)) weighted <- F
+
+    #
+    # What do I need to do the computations?
+    #
+    if (type=='response' || type=='deviance') need.x <-F
+    else need.x <- T
+
+    if (type=='ldshape' || type=='ldcase') need.strata <- T
+    else need.strata <- F
+    
+    need.y <- T
+
+    # grab what I need
+    if (need.strata || (need.y && is.null(object$y)) || 
+	               (need.x && is.null(object$x)) ) {
+	# I need the model frame
+	if (is.null(object$model)) m <- model.frame(object)
+	else m <- object$model
+	}
+
+    
+    if (need.strata && !is.null(strata)) {
+	temp <- untangle.specials(Terms, 'strata', 1)
+	Terms2 <- Terms[-temp$terms]
+	if (length(temp$vars)==1) strata.keep <- m[[temp$vars]]
+	else strata.keep <- strata(m[,temp$vars], shortlabel=T)
+	strata <- as.numeric(strata.keep)
+	nstrata <- max(strata)
+	sigma <- object$scale[strata]
+	}
+    else {
+	strata <- rep(1,n)
+	nstrata <- 1
+	sigma <- object$scale
+	Terms2 <- Terms
+	}
+
+    if (need.x){
+	x <- object$x
+	if (is.null(x)) x <- model.matrix(Terms2, m)
+	}
+	
+    if (need.y) {
+	y <- object$y
+	if (is.null(y)) y <- model.extract(m, 'response')
+	status <- y[,ncol(y)]
+	}
+    #
+    # Grab the distribution
+    #
+    if (is.character(object$dist)) 
+	    dd <- survreg.distributions[[object$dist]]
+    else dd <- object$dist
+    if (is.null(dd$itrans)) {
+	itrans <- dtrans <-function(x)x
+	}
+    else {
+	itrans <- dd$itrans
+	dtrans <- dd$dtrans
+	}
+    if (!is.null(dd$dist))  dd <- survreg.distributions[[dd$dist]]
+    deviance <- dd$deviance
+    dnum <- match(dd$name, c("Extreme value", "Logistic", "Gaussian"))
+    if (is.na(dnum)) {
+	stop("Not finished")
+	}
+
+    nvar <- length(object$coef)
+    if (rsigma) vv <- object$var
+    else        vv <- object$var[1:nvar, 1:nvar]
+
+    #
+    # Now, lay out the code one case at a time.
+    #  There is some repetition this way, but otherwise the code gets
+    #    too complicated.
+    #
+    if (type != 'response') {
+	if (type=='ldshape' || type=='matrix' || rsigma) {
+	    deriv <- .C("survreg3",
+			as.integer(n),
+			as.double(y),
+			as.integer(ncol(y)),
+			as.double(object$linear.predictors),
+			nstrat = as.integer(nstrata),
+			strata = as.integer(strata),
+			vars= as.double(log(object$scale)),
+			deriv = matrix(double(n * 6),nrow=n),
+			as.integer(6),
+			as.integer(dnum))$deriv
+	    }
+	else {
+	    deriv <- .C("survreg3",
+			as.integer(n),
+			as.double(y),
+			as.integer(ncol(y)),
+			as.double(object$linear.predictors),
+			nstrat = as.integer(nstrata),
+			strata = as.integer(strata),
+			vars= as.double(log(object$scale)),
+			deriv = matrix(double(n * 3),nrow=n),
+			as.integer(3),
+			as.integer(dnum))$deriv
+	    }
+	}
+    
+    if (type=='response') {
+	yhat0 <- deviance(y, object$scale[strata], object$parms)
+	rr <-  itrans(yhat0$center) - itrans(object$linear.predictor)
+	}
+
+    else if (type=='deviance') {
+	rr <- (-1)*deriv[,2]/deriv[,3]  #working residuals
+	rr <- sign(rr)* sqrt(2*(yhat0$loglik - deriv[,1]))
+	}
+    
+    else if (type=='dfbeta' || type== 'dfbetas') {
+	score <- x %*% deriv[,2]  # score residuals
+	if (rsigma) score <- cbind(score, deriv[,4])
+	rr <-    score %*% vv
+	if (type=='dfbetas') rr <- rr %*% diag(1/sqrt(diag(vv)))
+	}
+
+    else if (type=='working') rr <- (-1)*deriv[,2]/deriv[,3]
+
+    else if (type=='ldcase'){
+	score <- deriv[,2] * x 
+	if (rsigma) score <- cbind(score, deriv[,4])
+	dfbeta<- score %*% vv
+	rr <- apply(dfbeta*score,1,sum)
+	}
+
+    else if (type=='ldresp') {
+	rscore <-  deriv[,3] *  (x * sigma)
+	if (rsigma) rscore <- cbind(rscore, deriv[,6] * sigma)
+	temp <-  rscore %*% vv
+	rr <- apply(rscore * temp, 1 , sum)
+	}
+
+    else if (type=='ldshape') {
+	sscore <- deriv[,6] *x
+	if (rsigma) sscore <- cbind(sscore,  deriv[,5]) 
+	temp <- sscore %*% vv
+	rr <- apply(sscore * temp, 1, sum)
+	}
+
+   else {  #type = matrix
+	rr <- deriv
+	}
+
+    #
+    # Multiply up by case weights, if requested
+    #
+    if (weighted) rr <- rr * weights
 
     #Expand out the missing values in the result
-    if (!is.null(object$na.action))
-	 naresid(object$na.action, rr)
-    else rr
+    if (!is.null(object$na.action)) {
+	rr <- naresid(object$na.action, rr)
+	if (is.matrix(rr)) n <- nrow(rr)
+	else               n <- length(rr)
+	}
+
+    # Collapse if desired
+    if (!missing(collapse)) {
+	if (length(collapse) !=n) stop("Wrong length for 'collapse'")
+	rr <- rowsum(rr, collapse)
+	}
+
+    rr
     }
+
+	
+
+
+
+
+
+
+
