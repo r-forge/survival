@@ -1,4 +1,4 @@
-#SCCS  $Id: coxph.s,v 4.19 1995-12-22 17:05:17 therneau Exp $
+#SCCS  $Id: coxph.s,v 4.20 1996-08-30 13:38:37 therneau Exp $
 coxph <- function(formula=formula(data), data=sys.parent(),
 	weights, subset, na.action,
 	eps=.0001, init, iter.max=10,
@@ -10,7 +10,7 @@ coxph <- function(formula=formula(data), data=sys.parent(),
     call <- match.call()
     m <- match.call(expand=F)
     m$method <- m$model <- m$x <- m$y <- m$... <-  NULL
-    m$eps <- m$init <- m$iter.max <- m$robust <- NULL
+    m$eps <- m$init <- m$iter.max <- m$robust <- m$singular.ok <- NULL
 
     Terms <- if(missing(data)) terms(formula, c('strata', 'cluster'))
 	     else              terms(formula, c('strata', 'cluster'),data=data)
