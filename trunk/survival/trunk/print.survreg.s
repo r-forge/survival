@@ -1,4 +1,4 @@
-#SCCS %#% $Date: 1992-07-10 09:13:31 $
+#SCCS %#% $Date: 1992-07-13 22:07:10 $
 print.survreg <- function(x, ...)
 {
     if(!is.null(cl <- x$call)) {
@@ -28,7 +28,7 @@ print.survreg <- function(x, ...)
     omit <- x$na.action
     if (length(omit))
 	cat("  n=", nobs, " (", naprint(omit), ")\n", sep="")
-    cat("\nScale estimate:", x$scale, "\n")
+    cat("\nScale estimate:", format(x$scale), "\n")
     cat("Degrees of Freedom:", nobs, "Total;", rdf, "Residual\n")
     cat("Residual Deviance:", format(x$deviance), "\n")
     invisible(x)
