@@ -1,4 +1,4 @@
-#SCCS $Id: survfit.km.s,v 4.8 1993-05-24 11:38:06 therneau Exp $
+#SCCS $Id: survfit.km.s,v 4.9 1993-06-04 17:06:49 therneau Exp $
 survfit.km <- function(x, y, casewt=rep(1,n),
 	    type=c('kaplan-meier', 'fleming-harrington', 'fh2'),
 	    error=c('greenwood', "tsiatis"), se.fit=T,
@@ -73,7 +73,6 @@ survfit.km <- function(x, y, casewt=rep(1,n),
 			'peto'    = sqrt((1-temp$surv)/ temp$n.risk),
 			'modified'= std.err * sqrt(n.lag/temp$n.risk)
 			)
-    browser()
 	zval _ qnorm(1- (1-conf.int)/2, 0,1)
 	if (conf.type=='plain') {
 	    temp1 <- temp$surv + zval* std.err * temp$surv
