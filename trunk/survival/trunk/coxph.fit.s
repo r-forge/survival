@@ -1,4 +1,4 @@
-#SCCS $Date: 1995-12-22 13:05:21 $ $Id: coxph.fit.s,v 4.17 1995-12-22 13:05:21 therneau Exp $
+#SCCS $Date: 1996-04-09 07:41:25 $ $Id: coxph.fit.s,v 4.18 1996-04-09 07:41:25 therneau Exp $
 coxph.fit <- function(x, y, strata, offset, init, iter.max,
 			eps, weights, method, rownames)
     {
@@ -84,8 +84,8 @@ coxph.fit <- function(x, y, strata, offset, init, iter.max,
 		   warning("Ran out of iterations and did not converge")
 	    else if (any((infs > eps) & (infs > sqrt(eps)*abs(coef))))
 		warning(paste("Loglik converged before variable ",
-			  paste((1:nvar)[(infs>eps)],collapse=","),
-			  "; beta may be infinite. "))
+			  paste((1:nvar)[(infs>eps)],collapse=" ,"),
+			  "; beta may be infinite. ", sep=''))
 	    }
 
 	names(coef) <- dimnames(x)[[2]]
