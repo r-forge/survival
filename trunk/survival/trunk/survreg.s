@@ -1,4 +1,4 @@
-#SCCS @(#)survreg.s	4.10 9/20/92
+#SCCS $Id: survreg.s,v 4.12 1992-11-19 17:38:22 therneau Exp $
 survreg <- function(formula=formula(data), data=sys.parent(),
 	subset, na.action,
 	link='log',
@@ -42,7 +42,7 @@ survreg <- function(formula=formula(data), data=sys.parent(),
 	     Y <- cbind(linkfun(Y[,1]), 2-Y[,2])
     else     Y <- cbind(linkfun(Y[,1]), Y[,2])
 
-    controlvals <- ms.control()
+    controlvals <- survreg.control()
     if (!missing(control)) 
 	controlvals[names(control)] <- control
 
@@ -88,6 +88,7 @@ survreg <- function(formula=formula(data), data=sys.parent(),
 	fit$linear.predictors <- eta
 	fit$iter <- sfit$iter
 	fit$parms <- sfit$parms
+	fit$df.residual <- fit$df.residual - sum(!sfit$fixed)
 
 	# If singular.ok=T, there may be NA coefs.  The var matrix should
 	#   be an inversion of the "non NA" portion.
@@ -100,7 +101,7 @@ survreg <- function(formula=formula(data), data=sys.parent(),
 	dev <- sd$deviance(Y, fit$parms, sfit$deriv[,1])
 	fit$dresiduals <- sign(fit$residuals)*sqrt(dev)
 	fit$deviance <- sum(dev)
-	fit$null.deviance <- fit$deviance +2*(sfit$loglik[1]- sfit$ndev[1])
+	fit$null.deviance <- fit$deviance +2*(sfit$loglik[2]- sfit$ndev[2])
 	}
 
     na.action <- attr(m, "na.action")
