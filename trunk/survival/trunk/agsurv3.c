@@ -1,4 +1,4 @@
-/*  SCCS $Id: agsurv3.c,v 5.1 1998-08-30 14:52:01 therneau Exp $
+/*  SCCS $Id: agsurv3.c,v 5.2 1998-09-25 23:45:26 therneau Exp $
 /*
 ** Create the cohort survival curve(s) for a set of subjects.
 **
@@ -59,7 +59,7 @@ static double   *y,
 		**used,
 		**tvar;
 static double   *strata,
-		time,
+		xtime,
 		**imat,
 		*mean;
 static int      death,
@@ -183,11 +183,11 @@ S_EVALUATOR
 		a[i] =0;
 		a2[i]=0;
 		}
-	    time = stop[person];
+	    xtime = stop[person];
 	    nrisk =0;
 	    deaths=0;
 	    for (k=person; k<cn; k++) {
-		if (start[k] < time) {
+		if (start[k] < xtime) {
 		    nrisk++;
 		    weight = score[k];
 		    denom += weight;
@@ -195,7 +195,7 @@ S_EVALUATOR
 			a[i] += weight*(oldx[i][k]);
 			}
 		     }
-		if (stop[k]==time && event[k]==1) {
+		if (stop[k]==xtime && event[k]==1) {
 		    kk=k;
 		    deaths++;
 		    e_denom += weight;
@@ -210,7 +210,7 @@ S_EVALUATOR
 	    */
 	    if (method <3) for (i=0; i<nvar2; i++) mean[i] = a[i]/denom;
 	    if (method==1) {
-		for (psave=person; psave<cn && stop[psave]==time; psave++) 
+		for (psave=person; psave<cn && stop[psave]==xtime; psave++) 
 		/*
 		** kalbfleisch estimator requires iteration;
 		*/
@@ -244,11 +244,11 @@ S_EVALUATOR
 
 	    else if (method==2) {
 		addup(itime, deaths/denom, deaths/(denom*denom));
-		for (; person<cn && stop[person]==time; person++);
+		for (; person<cn && stop[person]==xtime; person++);
 		}
 	    else {
 		temp =0;  haz=0; varhaz=0;
-		for (k=person; k<cn && stop[k]==time; k++) {
+		for (k=person; k<cn && stop[k]==xtime; k++) {
 		    if (event[k]==1) {
 			downwt = temp++/deaths;
 			d2 = (denom - downwt*e_denom);
@@ -261,7 +261,7 @@ S_EVALUATOR
 		    person++;
 		    }
 		}
-	    start[itime] = time;
+	    start[itime] = xtime;
 	    stop[itime] = nrisk;
 	    event[itime]= deaths;
 	    itime++;
@@ -305,7 +305,7 @@ double haz, var;
 	totvar =0;
 	for (i=pstart; i<n && strata[i]==ic; i++) {
 	    nn++;
-	    if (y[i] >= time) {
+	    if (y[i] >= xtime) {
 		temp =  -haz*nscore[i];  /*increment to the individual hazard*/
 		if  (death==0) {
 		    wt += isurv[i];
