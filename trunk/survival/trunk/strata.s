@@ -1,12 +1,14 @@
-#SCCS $Date: 1992-04-14 18:07:51 $ $Id: strata.s,v 4.4 1992-04-14 18:07:51 grill Exp $
+# $Id: strata.s,v 4.5 1992-07-13 21:05:08 therneau Exp $
 # Create a strata variable, possibly from many objects
 #
 strata <- function(..., na.group=F) {
     words <- as.character((match.call())[-1])
     if (!missing(na.group)) words <- words[-1]
     allf <- list(...)
-    if(length(allf) == 1 && is.list(ttt <- unclass(allf[[1]])))
+    if(length(allf) == 1 && is.list(ttt <- unclass(allf[[1]]))) {
 	    allf <- ttt
+	    words <- names(ttt)
+	    }
     nterms <- length(allf)
     what <- allf[[nterms]]
     if(is.null(levels(what)))
