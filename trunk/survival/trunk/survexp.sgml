@@ -1,0 +1,182 @@
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>survexp</s-topic>
+</s-topics>
+<s-title>
+Compute Expected Survival 
+</s-title>
+<s-description>
+Returns either the expected survival of a cohort of subjects, or the 
+individual expected survival for each subject. 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+survexp(formula, data, weights, subset, na.action, times, cohort=T, 
+        conditional=F, ratetable=survexp.us, scale=1, npoints, 
+        se.fit=&lt;&lt;see below&gt;&gt;, model=F, x=F, y=F) 
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="formula">
+formula object.  The response variable is a vector of follow-up times 
+and is optional.  The predictors consist of optional grouping variables 
+separated by the <s-expression>+</s-expression> operator (as in <s-expression>survfit</s-expression>), along with a <s-expression>ratetable</s-expression>  
+term.  The <s-expression>ratetable</s-expression> term matches each subject to his/her expected cohort. 
+</s-arg>
+</s-args-required>
+<s-args-optional>
+<s-arg name="data">
+data frame in which to interpret the variables named in 
+the <s-expression>formula</s-expression>, <s-expression>subset</s-expression> and <s-expression>weights</s-expression> arguments. 
+</s-arg>
+<s-arg name="weights">
+case weights. 
+</s-arg>
+<s-arg name="subset">
+expression indicating a subset of the rows of <s-expression>data</s-expression> to be used in the fit. 
+</s-arg>
+<s-arg name="na.action">
+function to filter missing data. This is applied to the model frame after  
+<s-expression>subset</s-expression> has been applied.  Default is <s-expression>options()$na.action</s-expression>. A possible 
+value for <s-expression>na.action</s-expression> is <s-expression>na.omit</s-expression>, which deletes observations that contain 
+one or more missing values. 
+</s-arg>
+<s-arg name="times">
+vector of follow-up times at which the resulting survival curve is  
+evaluated.  If absent, the result will be reported for each unique  
+value of the vector of follow-up times supplied in <s-expression>formula</s-expression>. 
+</s-arg>
+<s-arg name="cohort">
+logical value: if <s-expression>FALSE</s-expression>, each subject is treated as a subgroup of size 1. 
+The default is <s-expression>TRUE</s-expression>. 
+</s-arg>
+<s-arg name="conditional">
+logical value: if <s-expression>TRUE</s-expression>, the follow-up times supplied in <s-expression>formula</s-expression> 
+are death times and conditional expected survival is computed. 
+If <s-expression>FALSE</s-expression>, the follow-up times are potential censoring times.  
+If follow-up times are missing in <s-expression>formula</s-expression>, this argument is ignored.   
+</s-arg>
+<s-arg name="ratetable">
+table of event rates, such as <s-expression>survexp.uswhite</s-expression>, or a fitted Cox model. 
+</s-arg>
+<s-arg name="scale">
+numeric value to scale the results.  If <s-expression>ratetable</s-expression> is in units/day, 
+<s-expression>scale = 365.25</s-expression> causes the output to be reported in years. 
+</s-arg>
+<s-arg name="npoints">
+number of points at which to calculate intermediate results, evenly spaced  
+over the range of the follow-up times.  The usual (exact) calculation is done  
+at each unique follow-up time. For very large data sets specifying <s-expression>npoints</s-expression>  
+can reduce the amount of memory and computation required. 
+For a prediction from a Cox model <s-expression>npoints</s-expression> is ignored. 
+</s-arg>
+<s-arg name="se.fit">
+logical value indicating whether to compute the standard error of the  
+predicted survival.  The default is to compute standard errors whenever  
+possible, which, at this time, is only for the Ederer method and a Cox  
+model as the rate table. 
+</s-arg>
+<s-arg name="model">
+logical value: if <s-expression>TRUE</s-expression>, the model frame is included as component 
+<s-expression>model</s-expression> in the return object.  
+</s-arg>
+<s-arg name="x">
+logical value: if <s-expression>TRUE</s-expression>, the model matrix is returned as component 
+<s-expression>x</s-expression> in the return object. 
+</s-arg>
+<s-arg name="y">
+logical value: if <s-expression>TRUE</s-expression>, the response in <s-expression>formula</s-expression> is returned as component  
+<s-expression>y</s-expression> in the return object.  
+</s-arg>
+</s-args-optional>
+<s-value>
+if <s-expression>cohort=TRUE</s-expression> an object of class <s-expression>survexp</s-expression>, 
+otherwise a vector of per-subject expected survival values. 
+The former contains the number of subjects at risk 
+and the expected survival for the cohort at each requested time. 
+</s-value>
+<s-details>
+Individual expected survival is usually used in models or testing, to 
+"correct" for the age and sex composition of a group of subjects. 
+For instance, assume that birth date, entry date into the study, 
+sex and actual survival time are all known for a group of subjects. 
+The <s-expression>survexp.uswhite</s-expression> population tables contain expected death rates 
+based on calendar year, sex and age. 
+Then 
+<s-expression>
+haz <- -log(survexp(death.time ~ ratetable(sex=sex, year=entry.dt, 
+            age=(birth.dt-entry.dt)), cohort=F)) 
+</s-expression>
+gives for each subject the total hazard experienced up to their observed 
+death time or censoring time. 
+This probability can be used as a rescaled time value in models: 
+<s-expression>
+glm(status ~ 1 + offset(log(haz)), family=poisson) 
+glm(status ~ x + offset(log(haz)), family=poisson) 
+</s-expression>
+In the first model, a test for intercept=0 is the one sample log-rank 
+test of whether the observed group of subjects has equivalent survival to 
+the baseline population.  The second model tests for an effect of variable 
+<s-expression>x</s-expression> after adjustment for age and sex. 
+<br><br>
+Cohort survival is used to produce an overall survival curve.  This is then 
+added to the Kaplan-Meier plot of the study group for visual comparison 
+between these subjects and the population at large.  There are three common 
+methods of computing cohort survival. 
+In the "exact method" of Ederer the cohort is not censored; this corresponds 
+to having no response variable in the formula.  Hakulinen recommends censoring 
+the cohort at the anticipated censoring time of each patient, and Verheul 
+recommends censoring the cohort at the actual observation time of each 
+patient. 
+The last of these is the conditional method. 
+These are obtained by using the respective time values as the 
+follow-up time or response in the formula. 
+</s-details>
+<s-section name=" REFERENCES">
+
+Berry, G. (1983). The analysis of mortality by the subject-years method. 
+<it>Biometrics</it>
+<bf>39</bf>,173-84. 
+<br><br>
+Ederer, F., Axtell, L. and Cutler, S. (1961). 
+The relative survival rate: a statistical methodology. 
+<it>Natl Cancer Inst Monogr</it>
+<bf>6</bf>,101-21. 
+<br><br>
+Hakulinen, T. (1982). 
+Cancer survival corrected for heterogeneity in patient withdrawal. 
+<it>Biometrics</it>
+<bf>38</bf>, 933. 
+<br><br>
+Verheul, H., Dekker, E., Bossuyt, P., Moulijn, A. and Dunning, A. (1993). 
+Background mortality in clinical survival studies. 
+<it>Lancet</it>
+<bf>341</bf>, 872-875. 
+</s-section>
+<s-see>
+<s-function name="by.sgm">by</s-function>,  <s-function name="do.call.sgm">do.call</s-function>,  <s-function name="pyears.sgm">pyears</s-function>,  <s-function name="survexp.us.sgm">survexp.us</s-function>,  <s-function name="survexp.fit.sgm">survexp.fit</s-function>,  <s-function name="survfit.sgm">survfit</s-function>.   </s-see>
+<s-examples>
+<s-example type = text>
+# Create new data frame with the largest stop value for each patient 
+hearta &lt;- by(heart, IND=heart$id, FUN=function(x)x[x$stop==max(x$stop),]) 
+hearta &lt;- do.call("rbind", hearta) 
+# Estimate of conditional survival  
+survexp(stop ~ ratetable(sex="male", year=year*365.25,  
+          age=(age+48)*365.25), conditional=T, data=hearta) 
+# Estimate of conditional survival stratified by prior surgery 
+survexp(stop ~ surgery + ratetable(sex="male", year=year*365.25,  
+	age=(age+48)*365.25), conditional=T, data=hearta) 
+rm(hearta) 
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>survival4</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

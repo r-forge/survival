@@ -1,0 +1,78 @@
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>summary.coxph</s-topic>
+</s-topics>
+<s-title>
+Summary method for Cox models 
+</s-title>
+<s-description>
+Produces a printed summary of a fitted coxph model 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+summary.coxph(cox, coef=T, conf.int=0.95, scale=1, digits=max(options()$digits - 4, 3)) 
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="cox">
+the result of a coxph fit 
+</s-arg>
+</s-args-required>
+<s-args-optional>
+<s-arg name="coef">
+logical flag: print the table of coefficients? 
+</s-arg>
+<s-arg name="conf.int">
+level for computation of the confidence intervals. 
+If set to FALSE no confidence intervals are printed 
+</s-arg>
+<s-arg name="scale">
+vector of scale factors for the coefficients, defaults to 1. 
+The confidence limits are for the risk change associated with one scale unit. 
+</s-arg>
+<s-arg name="digits">
+number of significant digits to use in the printout. 
+</s-arg>
+</s-args-optional>
+<s-value>
+No value is returned. 
+</s-value>
+<s-side-effects>
+A description of the fit is printed. 
+</s-side-effects>
+<s-see>
+coxph, print.coxph  </s-see>
+<s-examples>
+<s-example type = text>
+&gt; fit &lt;- coxph(Surv(time, status) ~ age + sex, lung) 
+&gt;summary(fit) 
+Call: 
+coxph(formula = Surv(time, status) ~ age + sex, data = lung) 
+  
+  n= 228  
+  
+      coef exp(coef) se(coef)     z      p  
+age  0.017     1.017  0.00922  1.85 0.0650 
+sex -0.513     0.599  0.16745 -3.06 0.0022 
+  
+    exp(coef) exp(-coef) lower .95 upper .95  
+age     1.017      0.983     0.999     1.036 
+sex     0.599      1.670     0.431     0.831 
+  
+Rsquare= 0.06   (max possible= 0.999 ) 
+Likelihood ratio test= 14.1  on 2 df,   p=0.000857 
+Wald test            = 13.5  on 2 df,   p=0.00119 
+Score (logrank) test = 13.7  on 2 df,   p=0.00105 
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>survival</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

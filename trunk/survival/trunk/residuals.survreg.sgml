@@ -1,0 +1,74 @@
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>residuals.survreg</s-topic>
+</s-topics>
+<s-title>
+Compute Residuals for a Parametric Survival Model 
+</s-title>
+<s-description>
+Compute deviance, Pearson, working or matrix residuals for 
+a parametric survival model. 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+residuals.survreg(object, type="deviance") 
+
+</s-old-style-usage>
+</s-usage>
+This is a method for the function <s-expression>residuals</s-expression> for objects inheriting 
+from class <s-expression>"survreg"</s-expression>.  However, as several types of residuals are 
+available for <s-expression>survreg</s-expression> objects, 
+there is an additional optional argument <s-expression>type</s-expression>. 
+<s-args-required>
+<s-arg name="object">
+an object inheriting from class <s-expression>survreg</s-expression>, representing a 
+parametric survival model. 
+Typically this is the output from the <s-expression>survreg</s-expression> function. 
+</s-arg>
+</s-args-required>
+<s-args-optional>
+<s-arg name="type">
+type of residuals, with choices <s-expression>"deviance"</s-expression>, <s-expression>"pearson"</s-expression>, <s-expression>"working"</s-expression> or 
+<s-expression>"matrix"</s-expression>. 
+</s-arg>
+</s-args-optional>
+<s-value>
+A vector of residuals is returned. 
+<br><br>
+The sum of squared deviance residuals add up to the deviance. 
+The Pearson residuals are standardized residuals 
+on the scale of the response. 
+The working residuals reside on the object, 
+and are the residuals from the final IRLS fit. 
+<br><br>
+The matrix type produces a matrix based on derivatives of the log-likelihood 
+function.  Let L be the log-likelihood, p be the linear predictor X %*% coef, 
+and s be log(sigma).  Then the 6 columns of the matrix are L, dL/dp, 
+ddL/(dp dp), dL/ds, ddL/(ds ds) and ddL/(dp ds), where d stands for the 
+derivative and dd the second derivative.  Diagnostics based on these quantities 
+are discussed in Escobar and Meeker (1992). 
+</s-value>
+<s-section name=" REFERENCES">
+
+Escobar, L. A. and Meeker, W. Q. (1992). 
+Assessing influence in regression analysis with censored data. 
+<it>Biometrics</it>
+<bf>48</bf>, 507-528. 
+</s-section>
+<s-examples>
+<s-example type = text>
+fit &lt;- survreg(Surv(days, event) ~ voltage, data = capacitor) 
+rr &lt;- residuals(fit, type = "matrix") 
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>survival4</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

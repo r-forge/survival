@@ -1,0 +1,50 @@
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>is.ratetable</s-topic>
+</s-topics>
+<s-title>
+Verify that an object is of class <s-expression>ratetable</s-expression>. 
+</s-title>
+<s-description>
+The function verifies not only the <s-expression>class</s-expression> attribute, but the 
+structure of the object. 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+is.ratetable(x, verbose=F) 
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="x">
+the object to be verified. 
+</s-arg>
+</s-args-required>
+<s-args-optional>
+<s-arg name="verbose">
+if <s-expression>TRUE</s-expression> and the object is not a ratetable, 
+then return a character string describing the way(s) in which <s-expression>x</s-expression> 
+fails to be a proper ratetable object. 
+</s-arg>
+</s-args-optional>
+<s-value>
+returns <s-expression>TRUE</s-expression> if <s-expression>x</s-expression> is a ratetable, and <s-expression>FALSE</s-expression> or a description if it is not. 
+</s-value>
+<s-details>
+Rate tables are used by the <s-expression>pyears</s-expression> and <s-expression>survexp</s-expression> functions, and normally 
+contain death rates for some population, categorized by age, sex, or other 
+variables.  They have a fairly rigid structure, and the <s-expression>verbose</s-expression> option 
+can help in creating a new rate table. 
+</s-details>
+<s-see>
+<s-function name="pyears.sgm">pyears</s-function>,  <s-function name="survexp.sgm">survexp</s-function>.   </s-see>
+<s-keywords>
+<s-keyword>survival4</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>

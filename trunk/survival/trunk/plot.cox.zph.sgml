@@ -1,0 +1,77 @@
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<s-function-doc>
+<s-topics>
+   <s-topic>plot.cox.zph</s-topic>
+</s-topics>
+<s-title>
+Graphical Test of Proportional Hazards 
+</s-title>
+<s-description>
+Displays a graph of the scaled Schoenfeld residuals, along with a smooth curve. 
+</s-description>
+<s-usage>
+<s-old-style-usage>
+plot.cox.zph(x, resid=T, se=T, df=4, nsmo=40, var, ...) 
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+<s-arg name="x">
+result of the <s-expression>cox.zph</s-expression> function. 
+</s-arg>
+</s-args-required>
+<s-args-optional>
+<s-arg name="resid">
+a logical value, if <s-expression>TRUE</s-expression> the residuals are included on the plot, as well as the smooth fit. 
+</s-arg>
+<s-arg name="se">
+a logical value, if <s-expression>TRUE</s-expression>, confidence bands at two standard errors 
+will be added. 
+</s-arg>
+<s-arg name="df">
+the degrees of freedom for the fitted natural spline, <s-expression>df=2</s-expression> leads 
+to a linear fit. 
+</s-arg>
+<s-arg name="nsmo">
+number of points used to plot the fitted spline. 
+</s-arg>
+<s-arg name="var">
+the set of variables for which plots are desired.  By default, plots are 
+produced in turn for each variable of a model.  Selection of a single variable 
+allows other features to be added to the plot, e.g., a horizontal line at 
+zero or a main title. 
+<br><br>
+This has been superseded by a subscripting method; see the example below. 
+</s-arg>
+<s-arg name="...">
+additional arguments passed to the <s-expression>plot</s-expression> function. 
+</s-arg>
+</s-args-optional>
+<s-side-effects>
+a plot is produced on the current graphics device. 
+</s-side-effects>
+<s-see>
+<s-function name="coxph.sgm">coxph</s-function>,  <s-function name="cox.zph.sgm">cox.zph</s-function>.   </s-see>
+<s-examples>
+<s-example type = text>
+veteran &lt;- data.frame(cancer.vet) 
+vfit &lt;- coxph(Surv(survival,status) ~ therapy + factor(celltype) + 
+              Karn..score + age, data=veteran, x=T) 
+temp &lt;- cox.zph(vfit) 
+plot(temp, var=5)      # Look at Karnofsy score, old way of doing plot 
+plot(temp[5])     # New way with subscripting 
+abline(0, 0, lty=3) 
+# Add the linear fit as well  
+abline(lm(temp$y[,5] ~ temp$x)$coefficients, lty=4, col=3)  
+title(main="VA Lung Study") 
+</s-example>
+</s-examples>
+<s-keywords>
+<s-keyword>survival4</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>
