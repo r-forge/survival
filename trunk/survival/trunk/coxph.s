@@ -1,4 +1,4 @@
-#SCCS $Id: coxph.s,v 5.10 1999-08-26 09:34:44 therneau Exp $
+#SCCS $Id: coxph.s,v 5.11 1999-08-27 12:41:29 therneau Exp $
 # Version with general penalized likelihoods
 setOldClass(c('coxph.penal', 'coxph'))
 
@@ -82,8 +82,11 @@ coxph <- function(formula=formula(data), data=sys.parent(),
 	if (any(ord>1)) stop ('Penalty terms cannot be in an interaction')
 	pcols <- (attr(X, 'assign')[-1])[pterms]  
   
-	if (missing(eps)) eps <- 1e-7
-	if (missing(iter.max)) iter.max <- 20  #penalized are hard sometimes
+	if (missing(control)) { #override some defaults
+	    temp <- list(...)
+	    if (is.null(temp$eps)) control$eps <- 1e-7
+	    if (is.null(temp$iter))control$iter.max <- 20
+	    }
         fit <- coxpenal.fit(X, Y, strats, offset, init=init,
 				control,
 				weights=weights, method=method,

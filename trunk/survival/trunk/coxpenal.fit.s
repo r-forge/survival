@@ -1,4 +1,4 @@
-# SCCS $Id: coxpenal.fit.s,v 1.5 1999-06-18 15:50:06 therneau Exp $
+# SCCS $Id: coxpenal.fit.s,v 1.6 1999-08-27 12:41:30 therneau Exp $
 #
 # General penalized likelihood
 #
@@ -205,6 +205,7 @@ coxpenal.fit <- function(x, y, strata, offset, init, control,
     # "Unpack" the passed in paramter list, 
     #   and make the initial call to each of the external routines
     #
+    eps <- control$eps
     cfun <- lapply(pattr, function(x) x$cfun)
     parmlist <- lapply(pattr, function(x,eps) c(x$cparm, eps2=eps), sqrt(eps))
     extralist<- lapply(pattr, function(x) x$pparm)
@@ -308,7 +309,7 @@ coxpenal.fit <- function(x, y, strata, offset, init, control,
 
 	iter <- outer
 	iter2 <- iter2 + coxfit$iter
-	if (coxfit$iter >=iter.max) iterfail <- c(iterfail, iter)
+	if (coxfit$iter >= control$iter.max) iterfail <- c(iterfail, iter)
 
 	# If any penalties were infinite, the C code has made fdiag=1 out
 	#  of self-preservation (0 divides).  But such coefs are guarranteed
@@ -403,7 +404,7 @@ coxpenal.fit <- function(x, y, strata, offset, init, control,
 	var2  <- dftemp$var2
         }
 
-    if (iter.max >1 && length(iterfail)>0)
+    if (control$iter.max >1 && length(iterfail)>0)
 	    warning(paste("Inner loop failed to coverge for iterations", 
 			  paste(iterfail, collapse=' ')))
     which.sing <- (fdiag[nfrail + 1:nvar] ==0)
