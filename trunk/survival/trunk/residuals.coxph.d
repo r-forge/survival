@@ -25,11 +25,15 @@ If there were 4 individuals represented by 3, 1, 2 and 4 rows of data
 respectively, then `collapse=c(1,1,1, 2, 3,3, 4,4,4,4)' could be used to
 obtain per subject rather than per observation residuals.
 .RT
-The object returned will be a vector for martingale and deviance 
-residuals and matrices for score and schoenfeld residuals.  There will
-be one row of residuals for each row in the input data (without `collapse').
-One column of score and Schoenfeld
-residuals will be returned for each column in the model.matrix.
+For martingale and deviance residuals, the returned object is a vector
+with one element for each subject (without `collapse').
+For score residuals it is a matrix
+with one row per subject and one column per variable.
+The row order will match the input data for the original fit.
+For Schoenfeld residuals, the returned object is a matrix with one row
+for each event and one column per variable.  The rows are ordered by time
+within strata, and an attribute `strata' is attached that contains the
+number of observations in each strata.
 .PP
 The score residuals are each individual's contribution to the score vector.
 Two transformatons of
