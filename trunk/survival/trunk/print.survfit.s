@@ -1,4 +1,4 @@
-#SCCS $Date: 1992-04-14 18:07:35 $ $Id: print.survfit.s,v 4.3 1992-04-14 18:07:35 grill Exp $
+#SCCS 4/14/92 @(#)print.survfit.s	4.3
 print.survfit <- function(fit.list, times, censored=F,
 		       print.it=T,  digits=3, ... ) {
     fit <- fit.list
