@@ -1,5 +1,5 @@
 # 
-#  SCCS $Id: survpenal.fit.s,v 1.6 1999-02-08 20:25:34 therneau Exp $
+#  SCCS $Id: survpenal.fit.s,v 1.7 2000-06-12 07:50:50 therneau Exp $
 # fit a penalized parametric model
 #
 survpenal.fit<- function(x, y, weights, offset, init, controlvals, dist, 
@@ -453,7 +453,7 @@ survpenal.fit<- function(x, y, weights, offset, init, controlvals, dist,
 	    thetasave <- cbind(thetasave, unlist(thetalist))
 	    }
 	else {
-	    temp <- unlist(thetalist)
+	    temp <- as.vector(unlist(thetalist))  #as.vector() for 5.1 bug
 	    coefsave <- cbind(coefsave, fit$coef)
 	    # temp = next guess for theta
 	    # *save = prior thetas and the resultant fits
