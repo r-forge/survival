@@ -1,5 +1,5 @@
 /*
-**  SCCS $Id: survproto.h,v 5.10 2001-06-12 14:23:45 therneau Exp $
+**  SCCS $Id: survproto.h,v 5.11 2002-04-29 14:25:25 therneau Exp $
 ** prototypes of all the survival functions
 **  along with a few macros
 */
@@ -81,7 +81,8 @@ void chsolve3(double **matrix, int n, int m, double *diag, double *y);
 void coxdetail(long   *nusedx,   long   *nvarx,    long   *ndeadx, 
 	       double *y,        double *covar2,   long   *strata,  
 	       double *score,    double *weights,  double *means2, 
-	       double *u2,       double *var,      double *work);
+	       double *u2,       double *var,      long   *rmat,
+	       double *nrisk2,   double *work);
 
 void coxfit2(long   *maxiter,   long   *nusedx,    long   *nvarx, 
 	     double *time,      long   *status,    double *covar2, 
