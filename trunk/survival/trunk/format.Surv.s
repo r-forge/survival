@@ -1,4 +1,4 @@
-# SCCS $Id: format.Surv.s,v 4.2 1994-10-09 19:25:05 therneau Exp $
+# SCCS $Id: format.Surv.s,v 4.3 1995-05-30 16:47:04 therneau Exp $
 #
 # These two functions operate with the newer data.frame code, found on statlib
 #   (Eventually part of S, I assume)
@@ -11,7 +11,9 @@ format.Surv <- function(x) format(as.character.Surv(x))
 # will fail when it can't find as.data.frame.model.matrix.
 # So, for this release of survival, the function below is an exact copy of
 # as.data.frame.model.matrix, as found on statlib 9/94.
-
+#
+#  Changed 5/30/95:  there is a bug in the code I copied: if there are no
+#     row names then row.names == character(0), not NULL
 as.data.frame.Surv <-
     function(x, row.names = NULL, optional = F)
     {
@@ -20,7 +22,8 @@ as.data.frame.Surv <-
 	dn <- dimnames(x)
 	row.names <- dn[[1]]
 	value <- list(x)
-	if(!is.null(row.names)) {
+#       if(!is.null(row.names)) {
+	if(length(row.names)>0) {
 		row.names <- as.character(row.names)
 		if(length(row.names) != nrows)
 			stop(paste("supplied", length(row.names), 
