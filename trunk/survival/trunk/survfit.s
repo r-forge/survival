@@ -1,4 +1,4 @@
-#SCCS $Date: 1998-09-01 11:51:58 $ $Id: survfit.s,v 4.10 1998-09-01 11:51:58 therneau Exp $
+#SCCS $Date: 1998-09-10 07:46:11 $ $Id: survfit.s,v 4.11 1998-09-10 07:46:11 therneau Exp $
 survfit <- function (formula, data, weights, subset, na.action, ...) {
     call <- match.call()
     # Real tricky -- find out if the first arg is "Surv(...)" without
@@ -72,7 +72,8 @@ survfit <- function (formula, data, weights, subset, na.action, ...) {
 	    if (is.character(i)) strat <- rep(names(fit$strata), fit$strata)
 	    else                 strat <- rep(1:length(fit$strata), fit$strata)
 	    keep <- seq(along=strat)[match(strat, i, nomatch=0)>0]
-	    fit$strata  <- fit$strata[i]
+	    if (length(i) <=1) fit$strata <- NULL
+	    else               fit$strata  <- fit$strata[i]
 	    fit$time    <- fit$time[keep]
 	    fit$n.risk  <- fit$n.risk[keep]
 	    fit$n.event <- fit$n.event[keep]
