@@ -1,8 +1,8 @@
-#SCCS 3/4/92 @(#)coxph.s	4.1
+#SCCS  $Id: coxph.s,v 4.6 1992-07-14 00:01:22 therneau Exp $
 coxph <- function(formula=formula(data), data=sys.parent(),
 	subset, na.action,
 	eps=.0001, inf.ratio=200, init, iter.max=10,
-	method= c("breslow", "efron", "exact"),
+	method= c("efron", "breslow", "exact"),
 	model=F, x=F, y=T) {
 
     method <- match.arg(method)
@@ -20,16 +20,26 @@ coxph <- function(formula=formula(data), data=sys.parent(),
     Y <- model.extract(m, "response")
     if (!inherits(Y, "Surv")) stop("Response must be a survival object")
     offset<- attr(Terms, "offset")
-    if (!is.null(offset)) offset <- as.numeric(m[[offset]])
+    tt <- length(offset)
+    offset <- if(tt == 0)
+		    rep(0, nrow(Y))
+	      else if(tt == 1)
+		      m[[offset]]
+	      else {
+		    ff <- frame[[offset[1]]]
+		    for(i in 2:tt)
+			    ff <- ff + frame[[offset[i]]]
+		    ff
+		    }
 
-    attr(Terms,"intercept")<- 0  #Cox model has no explicit intercept term
-    strata <- attr(Terms, "specials")$strata
-    if (length(strata)>1) stop("Only one strata() expression allowed")
-    else if (length(strata)==1) {
-	X <- model.matrix(Terms[-strata], m)
-	strata <- m[[(as.character(Terms))[strata]]]
+    attr(Terms,"intercept")<- 1  #Cox model always has \Lambda_0
+    strats <- attr(Terms, "specials")$strata
+    if (length(strats)) {
+	temp <- untangle.specials(Terms, 'strata', 1)
+	X <- model.matrix(Terms[-temp$terms], m)[,-1,drop=F]
+	strats <- as.numeric(strata(m[temp$vars]))
 	}
-    else X <- model.matrix(Terms, m)
+    else X <- model.matrix(Terms, m)[,-1,drop=F]   #remove column of 1's though
 
     type <- attr(Y, "type")
     if( method=="breslow" || method =="efron") {
@@ -42,7 +52,7 @@ coxph <- function(formula=formula(data), data=sys.parent(),
     else stop(paste ("Unknown method", method))
 
     if (missing(init)) init <- NULL
-    fit <- fitter(X, Y, strata, offset, iter.max=iter.max,
+    fit <- fitter(X, Y, strats, offset, iter.max=iter.max,
 			eps=eps, inf.ratio=inf.ratio, init=init,
 			method=method, row.names(m) )
 
@@ -61,7 +71,7 @@ coxph <- function(formula=formula(data), data=sys.parent(),
 	if (model) fit$model <- m
 	if (x)  {
 	    fit$x <- X
-	    if (length(strata)) fit$strata <- strata
+	    if (length(strats)) fit$strata <- strats
 	    }
 	if (y)     fit$y <- Y
 	}
