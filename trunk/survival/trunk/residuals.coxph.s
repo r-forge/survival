@@ -1,12 +1,12 @@
-#SCCS $Id: residuals.coxph.s,v 4.18 1993-06-29 10:07:17 therneau Exp $
+#SCCS $Id: residuals.coxph.s,v 4.19 1993-08-20 10:56:13 therneau Exp $
 residuals.coxph <-
   function(object, type=c("martingale", "deviance", "score", "schoenfeld",
-			  "dbeta", "dfbetas", "scaledsch"),
+			  "dfbeta", "dfbetas", "scaledsch"),
 	    collapse=F)
     {
     type <- match.arg(type)
     otype <- type
-    if (type=='dbeta' || type=='dfbetas') type <- 'score'
+    if (type=='dfbeta' || type=='dfbetas') type <- 'score'
     if (type=='scaledsch') type<-'schoenfeld'
     n <- length(object$residuals)
     rr <- object$residual
@@ -89,9 +89,11 @@ residuals.coxph <-
 	else               names(rr) <- time
 
 	if (otype=='scaledsch') {
+	    ndead <- sum(deaths)
 	    coef <- ifelse(is.na(object$coef), 0, object$coef)
-	    if (nvar==1) rr <- rr*object$var + coef
-	    else         rr <- rr %*%object$var + outer(rep(1,nrow(rr)),coef)
+	    if (nvar==1) rr <- rr*object$var *ndead + coef
+	    else         rr <- rr %*%object$var * ndead +
+						outer(rep(1,nrow(rr)),coef)
 	    }
 	return(rr)
 	}
@@ -135,6 +137,7 @@ residuals.coxph <-
 	rr <- naresid(object$na.action, rr)
 	if (is.matrix(rr)) n <- nrow(rr)
 	else               n <- length(rr)
+	if (type=='deviance') status <- naresid(object$na.action, status)
 	}
 
     # Collapse if desired
@@ -148,7 +151,7 @@ residuals.coxph <-
 	rr <- sign(rr) *sqrt(-2* (rr+
 			      ifelse(status==0, 0, status*log(status-rr))))
 
-    if      (otype=='dbeta') rr %*% object$var
+    if      (otype=='dfbeta') rr %*% object$var
     else if (otype=='dfbetas') (rr %*% object$var) %*% diag(sqrt(1/diag(object$var)))
     else  rr
     }

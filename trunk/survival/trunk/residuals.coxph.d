@@ -8,7 +8,7 @@ Cox proportional hazards model.
 .CS
 resid(object,
        type=c("martingale", "deviance", "score", "schoenfeld",
-	      "dbeta", "dfbetas"),
+	      "dfbeta", "dfbetas", "scaledsch"),
        collapse)
 .RA
 .AG object
@@ -34,10 +34,11 @@ For Schoenfeld residuals, the returned object is a matrix with one row
 for each event and one column per variable.  The rows are ordered by time
 within strata, and an attribute `strata' is attached that contains the
 number of observations in each strata.
+The scaled Schoenfeld residuals are used in the cox.zph function.
 .PP
 The score residuals are each individual's contribution to the score vector.
 Two transformatons of
-this are often more useful: `dbeta' is the approximate change in the
+this are often more useful: `dfbeta' is the approximate change in the
 coefficient vector if that observation were dropped,
 and 'dfbetas' is the approximate change in the coefficients, scaled by
 the standard error for the coefficients.
