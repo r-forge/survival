@@ -1,4 +1,4 @@
-#SCCS $Date: 1992-09-20 23:25:09 $ $Id: coxph.fit.s,v 4.9 1992-09-20 23:25:09 therneau Exp $
+#SCCS $Date: 1993-01-30 19:37:18 $ $Id: coxph.fit.s,v 4.10 1993-01-30 19:37:18 therneau Exp $
 coxph.fit <- function(x, y, strata, offset, init, iter.max,
 			eps, method, rownames)
     {
@@ -27,14 +27,15 @@ coxph.fit <- function(x, y, strata, offset, init, iter.max,
 	#  (This is why I need the rownames arg- can't use x' names)
 	score <- exp(offset[sorted])
 	coxfit <- .C("coxfit_null", as.integer(n),
+				    as.integer(method=='efron'),
 				    stime,
 				    sstat,
 				    offset[sorted],
 				    newstrat,
 				    loglik=double(1),
-				    cumhaz = double(n) )
+				    resid = double(n) )
 	resid <- double(n)
-	resid[sorted] <- sstat - score*coxfit$cumhaz
+	resid[sorted] <- coxfit$resid
 	names(resid) <- rownames
 
 	list( loglik = coxfit$loglik,
@@ -82,10 +83,15 @@ coxph.fit <- function(x, y, strata, offset, init, iter.max,
 	names(coxfit$coef) <- dimnames(x)[[2]]
 	lp <- c(x %*% coxfit$coef) + offset - sum(coxfit$coef*coxfit$means)
 	score <- exp(lp[sorted])
-	coxhaz <- .C("coxhaz2", as.integer(n), score, coxfit$mark, newstrat,
-		      hazard=double(n), cumhaz=double(n))
+	coxres <- .C("coxmart", as.integer(n),
+				as.integer(method=='efron'),
+				stime,
+				sstat,
+				newstrat,
+				score,
+				resid=double(n))
 	resid <- double(n)
-	resid[sorted] <- sstat - score*coxhaz$cumhaz
+	resid[sorted] <- coxres$resid
 	names(resid) <- rownames
 
 	list(coefficients  = coxfit$coef,

@@ -1,4 +1,4 @@
-#SCCS 8/25/92 @(#)agreg.fit.s	4.8
+#SCCS $Id: agreg.fit.s,v 4.10 1993-01-30 19:37:17 therneau Exp $
 agreg.fit <- function(x, y, strata, offset, init, iter.max,
 			eps, method, rownames)
     {
@@ -29,23 +29,24 @@ agreg.fit <- function(x, y, strata, offset, init, iter.max,
 	score <- as.double(exp(offset[sorted]))
 	agfit <- .C("agfit_null",
 		       as.integer(n),
+		       as.integer(method=='efron'),
 		       sstart, sstop,
 		       sstat,
 		       offset[sorted],
 		       newstrat,
-		       loglik=double(1),
-		       hazard=double(n), cumhaz=double(n))
+		       loglik=double(1))
 
-	aghaz <- .C("aghaz2",
+	agres <- .C("agmart",
 		       as.integer(n),
+		       as.integer(method=='efron'),
 		       sstart, sstop,
 		       sstat,
 		       score,
 		       newstrat,
-		       hazard=double(n), cumhaz=double(n))
+		       resid=double(n))
 
 	resid _ double(n)
-	resid[sorted] <- sstat - score*aghaz$cumhaz
+	resid[sorted] <- agres$resid
 	names(resid) <- rownames
 
 	list(loglik=agfit$loglik,
@@ -92,16 +93,17 @@ agreg.fit <- function(x, y, strata, offset, init, iter.max,
 	names(agfit$coef) <- dimnames(x)[[2]]
 	lp  <- x %*% agfit$coef + offset - sum(agfit$coef *agfit$means)
 	score <- as.double(exp(lp[sorted]))
-	aghaz <- .C("aghaz2",
+	agres <- .C("agmart",
 		       as.integer(n),
+		       as.integer(method=='efron'),
 		       sstart, sstop,
 		       sstat,
 		       score,
 		       newstrat,
-		       hazard=double(n), cumhaz=double(n))
+		       resid=double(n))
 
 	resid _ double(n)
-	resid[sorted] <- sstat - score*aghaz$cumhaz
+	resid[sorted] <- agres$resid
 	names(resid) <- rownames
 
 	list(coefficients  = agfit$coef,
