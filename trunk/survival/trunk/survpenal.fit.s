@@ -1,11 +1,12 @@
 # 
-#  SCCS $Id: survpenal.fit.s,v 1.1 1998-11-25 21:09:46 therneau Exp $
+#  SCCS $Id: survpenal.fit.s,v 1.2 1998-11-30 08:33:03 therneau Exp $
 # fit a penalized parametric model
 #
 survpenal.fit<- function(x, y, weights, offset, init, controlvals, dist, 
 		       scale=0, nstrat=1, strata, pcols, pattr, assign) {
 
     iter.max <- controlvals$iter.max
+    outer.max <- controlvals$outer.max
     eps <- controlvals$rel.tol
     toler.chol <- controlvals$toler.chol
     debug <- controlvals$debug
@@ -313,10 +314,10 @@ survpenal.fit<- function(x, y, weights, offset, init, controlvals, dist,
     #   the sigmas
     if (nstrat2 >0) assign <- c(assign, list(sigma=(1+nvar):nvar2))
 
-    iter <- iter2 <- 0
+    iter2 <- 0
     iterfail <- NULL
     thetasave <- unlist(thetalist)
-    repeat {
+    for (iter in 1:outer.max) {
 	fit <- .C("survreg4",
 		   iter = as.integer(iter.max),
 		   as.integer(n),
@@ -345,7 +346,6 @@ survpenal.fit<- function(x, y, weights, offset, init, controlvals, dist,
 	           fdiag = double(nvar3))
 
 	if (debug>0) browser()
-	iter <- iter+1
 	iter2 <- iter2 + fit$iter
 	if (fit$iter >=iter.max) iterfail <- c(iterfail, iter)
 
@@ -419,7 +419,7 @@ survpenal.fit<- function(x, y, weights, offset, init, controlvals, dist,
 	    init <- coefsave[,which]
 	    thetasave <- cbind(thetasave, temp)
 	    }
-        }
+        }   #end of the iteration loop
 
     if (!need.df) {  #didn't need it iteration by iteration, but do it now
         #get the penalty portion of the second derive matrix
