@@ -1,4 +1,4 @@
-#SCCS $Date: 1992-08-06 17:32:18 $ $Id: coxph.fit.s,v 4.6 1992-08-06 17:32:18 therneau Exp $
+#SCCS $Date: 1992-08-11 08:08:35 $ $Id: coxph.fit.s,v 4.7 1992-08-11 08:08:35 grill Exp $
 coxph.fit <- function(x, y, strata, offset, init, iter.max,
 			eps, method, rownames)
     {
@@ -26,7 +26,7 @@ coxph.fit <- function(x, y, strata, offset, init, iter.max,
 	# A special case: Null model.
 	#  (This is why I need the rownames arg- can't use x' names)
 	score <- exp(offset[sorted])
-	coxfit <- .C("coxfit_null", as.integer(n),
+	coxfit <- .C("coxfit_null2", as.integer(n),
 				    stime,
 				    sstat,
 				    offset[sorted],
@@ -49,7 +49,7 @@ coxph.fit <- function(x, y, strata, offset, init, iter.max,
 	    }
 	else init <- rep(0,nvar)
 
-	coxfit <- .C("coxfit", iter=as.integer(iter.max),
+	coxfit <- .C("coxfit2", iter=as.integer(iter.max),
 		       as.integer(n),
 		       as.integer(nvar), stime,
 		       sstat,
@@ -82,7 +82,7 @@ coxph.fit <- function(x, y, strata, offset, init, iter.max,
 	names(coxfit$coef) <- dimnames(x)[[2]]
 	lp <- c(x %*% coxfit$coef) + offset - sum(coxfit$coef*coxfit$means)
 	score <- exp(lp[sorted])
-	coxhaz <- .C("coxhaz", as.integer(n), score, coxfit$mark, newstrat,
+	coxhaz <- .C("coxhaz2", as.integer(n), score, coxfit$mark, newstrat,
 		      hazard=double(n), cumhaz=double(n))
 	resid <- double(n)
 	resid[sorted] <- sstat - score*coxhaz$cumhaz

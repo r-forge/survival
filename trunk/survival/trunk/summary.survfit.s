@@ -1,4 +1,4 @@
-#SCCS $Date: 1992-07-10 08:10:45 $ $Id: summary.survfit.s,v 1.2 1992-07-10 08:10:45 sicks Exp $
+#SCCS $Date: 1992-08-11 08:12:49 $ $Id: summary.survfit.s,v 1.3 1992-08-11 08:12:49 grill Exp $
 summary.survfit <- function(fit.list, times, censored=F,
 		       print.it=T,  scale=1, digits=3, ... ) {
     fit <- fit.list
@@ -62,7 +62,7 @@ summary.survfit <- function(fit.list, times, censored=F,
 	if (length(times) >1 )
 	    if (any(diff(times)<0)) stop("Times must be in increasing order")
 
-	temp <- .C("survindex", as.integer(n),
+	temp <- .C("survindex2", as.integer(n),
 				  as.double(stime),
 				  as.integer(stemp),
 				  as.integer(length(times)),

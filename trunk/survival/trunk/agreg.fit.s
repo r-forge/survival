@@ -1,4 +1,4 @@
-#SCCS $Date: 1992-08-06 17:32:17 $ $Id: agreg.fit.s,v 4.6 1992-08-06 17:32:17 therneau Exp $
+#SCCS $Date: 1992-08-11 08:06:26 $ $Id: agreg.fit.s,v 4.7 1992-08-11 08:06:26 grill Exp $
 agreg.fit <- function(x, y, strata, offset, init, iter.max,
 			eps, method, rownames)
     {
@@ -27,7 +27,7 @@ agreg.fit <- function(x, y, strata, offset, init, iter.max,
     if (is.null(nvar)) {
 	# A special case: Null model.  Just return obvious stuff
 	score <- as.double(exp(offset[sorted]))
-	agfit <- .C("agfit_null",
+	agfit <- .C("agfit_null2",
 		       as.integer(n),
 		       sstart, sstop,
 		       sstat,
@@ -36,7 +36,7 @@ agreg.fit <- function(x, y, strata, offset, init, iter.max,
 		       loglik=double(1),
 		       hazard=double(n), cumhaz=double(n))
 
-	aghaz <- .C("aghaz",
+	aghaz <- .C("aghaz2",
 		       as.integer(n),
 		       sstart, sstop,
 		       sstat,
@@ -60,7 +60,7 @@ agreg.fit <- function(x, y, strata, offset, init, iter.max,
 	    }
 	else init <- rep(0,nvar)
 
-	agfit <- .C("agfit", iter= as.integer(iter.max),
+	agfit <- .C("agfit2", iter= as.integer(iter.max),
 		       as.integer(n),
 		       as.integer(nvar), sstart, sstop,
 		       sstat,
@@ -92,7 +92,7 @@ agreg.fit <- function(x, y, strata, offset, init, iter.max,
 	names(agfit$coef) <- dimnames(x)[[2]]
 	lp  <- x %*% agfit$coef + offset - sum(agfit$coef *agfit$means)
 	score <- as.double(exp(lp[sorted]))
-	aghaz <- .C("aghaz",
+	aghaz <- .C("aghaz2",
 		       as.integer(n),
 		       sstart, sstop,
 		       sstat,
