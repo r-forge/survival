@@ -1,4 +1,4 @@
-/*  SCCS $Id: agexact.c,v 5.2 1998-10-27 17:25:22 therneau Exp $
+/*  SCCS $Id: agexact.c,v 5.3 2003-07-31 16:21:15 therneau Exp $
 /*
 ** Anderson-Gill formulation of the cox Model
 **   Do an exact calculation of the partial likelihood. (CPU city!)
@@ -97,6 +97,7 @@ void agexact(long *maxiter,  long *nusedx,   long *nvarx,   double *start,
 	for (person=0; person<n; person++) temp += covar[i][person];
 	temp /= n;
 	means[i] = temp;
+	for (person=0; person<n; person++) covar[i][person] -= temp;
 	}
 
     /*
