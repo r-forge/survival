@@ -1,4 +1,4 @@
-#SCCS $Date: 1992-03-25 01:33:56 $ $Id: Surv.s,v 4.4 1992-03-25 01:33:56 therneau Exp $
+#SCCS $Date: 1992-04-02 08:00:39 $ $Id: Surv.s,v 4.5 1992-04-02 08:00:39 therneau Exp $
 # Package up surivival type data as a structure
 #  Eventually allow lots of censored data types
 #
@@ -29,7 +29,7 @@ Surv <- function(time, time2, event,
 	if (is.logical(time2)) status <- 1*time2
 	    else  if (is.numeric(time2)) {
 		who2 <- !is.na(time2)
-		status <- time2 - min(time2[who2])
+		status <- time2 - (max(time2[who2]) -1)
 		if (any(status[who2] !=0  & status[who2]!=1))
 				stop ("Invalid status value")
 		}
@@ -64,12 +64,12 @@ print.Surv <- function(xx, quote=F, ...) {
     if (ncol(xx)==2) {
 	temp <- xx[,2]
 	temp <- ifelse(is.na(temp), "?", ifelse(temp==0, "+"," "))
-	print(paste(xx[,1], temp, sep=''), quote=quote)
+	print(paste(format(xx[,1]), temp, sep=''), quote=quote)
 	}
     else {
 	temp <- xx[,3]
 	temp <- ifelse(is.na(temp), "?", ifelse(temp==0, "+"," "))
-	print(paste('(', xx[,1], ',', xx[,2], temp, ']', sep=''), quote=quote)
+	print(paste('(', format(xx[,1]), ',', xx[,2], temp, ']', sep=''), quote=quote)
 	}
     }
 
