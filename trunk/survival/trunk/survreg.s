@@ -1,11 +1,11 @@
-#SCCS $Id: survreg.s,v 4.12 1992-11-19 17:38:22 therneau Exp $
+#SCCS $Id: survreg.s,v 4.13 1992-12-30 14:19:35 therneau Exp $
 survreg <- function(formula=formula(data), data=sys.parent(),
 	subset, na.action,
 	link='log',
 	dist=c("extreme", "logistic", "gaussian", "exponential",
 	       "rayleigh"),
 	init=NULL,  fixed=list(), control,
-	model=F, x=F, y=F, ...) {
+	model=F, x=F, y=T, ...) {
 
     call <- match.call()
     m <- match.call(expand=F)
@@ -94,7 +94,7 @@ survreg <- function(formula=formula(data), data=sys.parent(),
 	#   be an inversion of the "non NA" portion.
 	var <- 0*sfit$imat
 	good <- c(!is.na(fit$coef), rep(T, ncol(var)-nvar))
-	var[good,good] <- solve(sfit$imat[good,good])
+	var[good,good] <- solve(qr(sfit$imat[good,good], tol=1e-12))
 	fit$var <- var
 	fit$fixed <- sfit$fixed
 	fit$flag <- sfit$flag
@@ -102,6 +102,8 @@ survreg <- function(formula=formula(data), data=sys.parent(),
 	fit$dresiduals <- sign(fit$residuals)*sqrt(dev)
 	fit$deviance <- sum(dev)
 	fit$null.deviance <- fit$deviance +2*(sfit$loglik[2]- sfit$ndev[2])
+	fit$loglik <- c(sfit$ndev[2], sfit$loglik[2])
+	fit$link <- link
 	}
 
     na.action <- attr(m, "na.action")
