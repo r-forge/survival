@@ -1,5 +1,5 @@
-#SCCS $Date: 1993-06-30 12:59:46 $ $Id: rowsum.s,v 4.2 1993-06-30 12:59:46 therneau Exp $
-rowsum <- function(x, group, reorder=T) {
+#SCCS $Date: 1994-02-17 09:53:32 $ $Id: rowsum.s,v 4.3 1994-02-17 09:53:32 therneau Exp $
+rowsum <- function(x, group, reorder=F) {
     if (!is.numeric(x)) stop("x must be numeric")
     if (is.matrix(x)) dd <- dim(x)
     else              dd <- c(length(x), 1)
@@ -10,6 +10,7 @@ rowsum <- function(x, group, reorder=T) {
     na.indicator <- max(1,x[!is.na(x)]) * n   #larger than any possible sum
     x[is.na(x)] <- na.indicator
 
+    if (!is.numeric(group)) group <- as.factor(group)
     storage.mode(x) <- 'double'
     temp <- .C("rowsum", dd= as.integer(dd),
 			 as.double(na.indicator),
