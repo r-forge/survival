@@ -1,4 +1,4 @@
-#SCCS $Date: 1992-04-14 18:06:15 $ $Id: Surv.s,v 4.7 1992-04-14 18:06:15 grill Exp $
+#SCCS $Date: 1992-04-17 17:34:58 $ $Id: Surv.s,v 4.8 1992-04-17 17:34:58 therneau Exp $
 # Package up surivival type data as a structure
 #  Eventually allow lots of censored data types
 #
@@ -76,6 +76,7 @@ Surv <- function(time, time2, event,
 
 print.Surv <- function(xx, quote=F, ...) {
     class(xx) <- NULL
+    type <- attr(xx, 'type')
     if (type=='right') {
 	temp <- xx[,2]
 	temp <- ifelse(is.na(temp), "?", ifelse(temp==0, "+"," "))
