@@ -1,5 +1,5 @@
 #
-# SCCS $Id: survreg.s,v 5.3 1999-02-06 23:40:17 therneau Exp $
+# SCCS $Id: survreg.s,v 5.4 1999-02-25 10:04:04 therneau Exp $
 #  The newest version of survreg, that accepts penalties and strata
 #
 setOldClass(c('survreg.penal', 'survreg'))
@@ -92,6 +92,8 @@ survreg <- function(formula=formula(data), data=sys.parent(),
 	else if (type=='left')
 	     Y <- cbind(tranfun(Y[,1]), 2-Y[,2])
 	else     Y <- cbind(tranfun(Y[,1]), Y[,2])
+	if (!all(is.finite(Y))) 
+	    stop("Invalid survival times for this distribution")
 	}
     else {
 	if (type=='left') Y[,2] <- 2- Y[,2]
@@ -158,6 +160,7 @@ survreg <- function(formula=formula(data), data=sys.parent(),
 
     na.action <- attr(m, "na.action")
     if (length(na.action)) fit$na.action <- na.action
+    fit$df.residual <- n - sum(fit$df)
     fit$terms <- Terms
     fit$formula <- as.vector(attr(Terms, "formula"))
     fit$means <- apply(X,2, mean)
