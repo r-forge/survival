@@ -1,4 +1,4 @@
-/*  SCCS $Id: coxdetail.c,v 5.2 1998-10-27 17:32:08 therneau Exp $
+/*  SCCS $Date: 2002-04-29 14:24:43 $ $Id: coxdetail.c,v 5.3 2002-04-29 14:24:43 therneau Exp $
 /*
 ** Return all of the internal peices of a cox model
 **
@@ -17,18 +17,22 @@
 **       score(n)     :the risk score for the subject
 **       weights(n)   :case weights
 **       means        :first element contains the method
+**       rmat         : if first element =1, then calculate a risk matrix
 **
 **  returned parameters
 **       ndead        :the number of unique death times
-**       score        :the indices of the unique time points
+**       strata       :the indices of the unique time points
 **       y[1, ]       :the number of deaths at each time point
 **       y[2, ]       :the number at risk at each time point
 **       y[3, ]       :the increment in the cum -hazard at t
+**       score        :the weighted number of events at each time point
 **       weights[]    :the increment in the variance of the cum-haz at t
 **       means(nv,nd) :the matrix of weighted means, one col per unique event
 **                                              time
 **       u(nv,nd)     :the score vector components, one per unique event time
 **       var(nd,nv,nv):components of the information matrix
+**       rmat(nd, n)  :has a "1" if subject i is at risk at time j
+**       nrisk2       :the weighted number at risk at each time point
 **
 **  work arrays
 **       a(nvar)
@@ -50,9 +54,10 @@
 void coxdetail(long   *nusedx,   long   *nvarx,    long   *ndeadx, 
 	       double *y,        double *covar2,   long   *strata,  
 	       double *score,    double *weights,  double *means2, 
-	       double *u2,       double *var,      double *work)
+	       double *u2,       double *var,      long   *rmat,
+	       double *nrisk2,   double *work)
 {
-    register int i,j,k,person;
+    int i,j,k,person;
     int     nused, nvar;
     int     nrisk, ndead;
     double **covar, **cmat;    /*ragged arrays */
@@ -72,14 +77,18 @@ void coxdetail(long   *nusedx,   long   *nvarx,    long   *ndeadx,
     double  efron_wt, d2;
     double risk;
     double  meanwt;
+    double  wdeath;
     double  *start,
 	    *stop,
 	    *event;
+    int     rflag;
 
     nused = *nusedx;
     nvar  = *nvarx;
     method= *means2;
     ndead = *ndeadx;
+    rflag = 1- rmat[0];
+
     /*
     **  Set up the ragged arrays
     */
@@ -138,11 +147,12 @@ void coxdetail(long   *nusedx,   long   *nvarx,    long   *ndeadx,
 		    }
 		}
 	    time = stop[person];
-	    deaths=0;
+	    deaths=0; wdeath=0;
 	    nrisk =0;
 	    for (k=person; k<nused; k++) {
 		if (start[k] < time) {
 		    nrisk++;
+		    if (rflag) rmat[ideath*nused +k] =1;
 		    risk = score[k] * weights[k];
 		    denom += risk;
 		    for (i=0; i<nvar; i++) {
@@ -152,6 +162,7 @@ void coxdetail(long   *nusedx,   long   *nvarx,    long   *ndeadx,
 			}
 		    if (stop[k]==time && event[k]==1) {
 			deaths += 1;
+			wdeath += weights[k];
 			efron_wt += risk*event[k];
 			meanwt += weights[k];
 			for (i=0; i<nvar; i++) {
@@ -195,11 +206,13 @@ void coxdetail(long   *nusedx,   long   *nvarx,    long   *ndeadx,
 		person++;
 		if (strata[k]==1) break;
 		}
-	    score[ideath] = person;
-	    start[ideath] = deaths;
-	    stop[ideath]  = nrisk;
-	    event[ideath] = hazard;
-	    weights[ideath]=varhaz;
+	    strata[ideath]= person;     /* index of the death */
+	    score[ideath] = wdeath;     /* weighted number of events */
+	    start[ideath] = deaths;     /* number of deaths */
+	    stop[ideath]  = nrisk;      /* number at risk   */
+	    event[ideath] = hazard;     /* increment to the hazard */
+	    weights[ideath]=varhaz;     /* increment to the hazard variance */
+	    nrisk2[ideath]= denom ;     /* weighted number at risk */
 	    ideath++;
 	    }
 	}   /* end  of accumulation loop */

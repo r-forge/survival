@@ -2,6 +2,7 @@
 <!entity % S-OLD "INCLUDE">
 ]
 >
+<!-- SCCS $Id: coxph.detail.sgml,v 1.2 2002-04-29 14:24:43 therneau Exp $ -->
 <s-function-doc>
 <s-topics>
    <s-topic>coxph.detail</s-topic>
@@ -18,58 +19,93 @@ matrix, at each unique event time.
 coxph.detail(fit) 
 </s-old-style-usage>
 </s-usage>
+
 <s-args-required>
 <s-arg name="fit">
 a Cox model object, i.e., the result of <s-expression>coxph</s-expression>. 
 </s-arg>
 </s-args-required>
+
+<s-args-optional>
+<s-arg name=" riskmat ">
+should the matrix of "at risk" indictators be returned
+</s-arg>
+
 <s-value>
 a list with components: 
 <s-return-component name="time">
 the vector of unique event times 
 </s-return-component>
+
 <s-return-component name="nevent">
 the number of events at each of these time points. 
 </s-return-component>
+
 <s-return-component name="means">
 a matrix with one row for each event time and one column for each variable 
 in the Cox model, containing the weighted mean of the variable at that time, 
 over all subjects still at risk at that time.  The weights are the risk 
 weights, `exp(x %*% fit$coef)'. 
 </s-return-component>
+
 <s-return-component name="nrisk">
 number of subjects at risk. 
 </s-return-component>
+
 <s-return-component name="hazard">
 the hazard increment. 
 </s-return-component>
+
 <s-return-component name="score">
 the contribution to the score vector (first derivative of the log 
 partial likelihood) at each time point. 
 </s-return-component>
+
 <s-return-component name="imat">
 the contribution to the information matrix (second derivative of the 
 log partial likelihood) at each time point. 
 </s-return-component>
+
 <s-return-component name="varhaz">
 the variance of the hazard increment. 
 </s-return-component>
+
+<s-return-component name="riskmat">
+a 0/1 matrix with one row per observation and one column per death time.
+The [i,j] element is 1 if observation i is at risk at time j
+</s-return-component>
+
+<s-return-component name="nevent.wt">
+if the model had case weights, this will contain the weighted number of
+events at each death time.
+</s-return-component>
+
+<s-return-component name="nrisk.wt">
+if the model had case weights, this will contain the weighted number of
+observations at risk at each death time.
+</s-return-component>
+
 <s-return-component name="x, y, weights">
 copies of the input data. 
 </s-return-component>
+
 <s-return-component name="strata">
 only present for a stratified Cox model, this is 
 a table giving the number of time points of component <s-expression>time</s-expression> that 
 were contributed by each of the strata. 
 </s-return-component>
 </s-value>
+
 <s-details>
 This function may be useful for those who wish to investigate new methods or 
 extensions to the Cox model.  The example below shows one way to calculate 
 the Schoenfeld residuals. 
 </s-details>
 <s-see>
-<s-function name="coxph.sgm">coxph</s-function>,  <s-function name="residuals.coxph.sgm">residuals.coxph</s-function>.   </s-see>
+<s-function name="coxph.sgm">coxph</s-function>,  
+<s-function name="residuals.coxph.sgm"></s-function>
+</s-see>
+
 <s-examples>
 <s-example type = text>
 fit &lt;- coxph(Surv(futime, fustat) ~ age + rx + ecog.ps,  
@@ -81,6 +117,7 @@ indx &lt;- match(etime, fitd$time)
 sresid &lt;- fit$x[events,] - fitd$means[indx,] 
 </s-example>
 </s-examples>
+
 <s-keywords>
 <s-keyword>survival4</s-keyword>
 </s-keywords>
