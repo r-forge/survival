@@ -1,13 +1,14 @@
-# SCCS $Id: pspline.s,v 1.3 1998-12-02 13:35:47 therneau Exp $
+# SCCS $Id: pspline.s,v 1.4 1999-02-24 08:59:47 therneau Exp $
 #
 # the p-spline function for a Cox model
 #
-pspline <- function(x, df=4, theta, nterm=2.5*df, degree=3, eps=.1, ...) {
+pspline <- function(x, df=4, theta, nterm=2.5*df, degree=3, eps=.1, 
+		    method, ...) {
     if (!missing(theta)) {
 	method <- 'fixed'
 	if (theta <=0 || theta >=1) stop("Invalid value for theta")
 	}
-    else if (df ==0) {
+    else if (df ==0 || (!missing(method) && method=='aic')) {
 	method <- 'aic'
 	nterm <- 15    #will be ok for up to 6-8 df
 	if (missing(eps)) eps <- 1e-5
@@ -106,7 +107,7 @@ pspline <- function(x, df=4, theta, nterm=2.5*df, degree=3, eps=.1, ...) {
 		     printfun=printfun,
 		     pparm=dmat,
 		     diag =F,
-		     cargs = c('status', 'df', 'plik'),
+		     cargs = c('neff', 'df', 'plik'),
 		     cparm=list(eps=eps, init=c(.5, .95), 
 		                lower=0, upper=1, ...),
 		     varname=xnames,
