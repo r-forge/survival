@@ -1,4 +1,4 @@
-#SCCS $Id: ratetable.s,v 4.4 1993-12-20 10:37:43 therneau Exp $
+#SCCS $Id: ratetable.s,v 4.5 1994-01-06 09:51:35 therneau Exp $
 #
 # This is a 'specials' function for pyears
 #   it is a stripped down version of as.matrix(data.frame(...))
@@ -81,8 +81,8 @@ ratetable <- function(...) {
 	    }
 	}
     else {
-	attributes(y) <- c(attributes(y), aa[c('dimid','factor','cutpoints',
-						'summary', 'class')])
+	aa$dim <- aa$dimnames <- NULL
+	attributes(y) <- c(attributes(y), aa)
 	y
 	}
     }
@@ -94,8 +94,8 @@ Math.ratetable <- function(x, ...) {
 
 Ops.ratetable <- function(e1, e2) {
     #just treat it as an array
-    if (nchar(.Method[1])) class(e1) <- NULL
-    if (nchar(.Method[2])) class(e2) <- NULL
+    if (nchar(.Method[1])) attributes(e1) <- attributes(e1)[c("dim","dimnames")]
+    if (nchar(.Method[2])) attributes(e2) <- attributes(e2)[c("dim","dimnames")]
     NextMethod(.Generic)
     }
 
