@@ -1,9 +1,9 @@
-#SCCS  $Id: coxph.s,v 4.13 1994-04-08 15:22:31 therneau Exp $
+#SCCS  $Id: coxph.s,v 4.14 1994-09-08 16:51:10 therneau Exp $
 coxph <- function(formula=formula(data), data=sys.parent(),
 	weights, subset, na.action,
 	eps=.0001, init, iter.max=10,
 	method= c("efron", "breslow", "exact"),
-	singular.ok =T,
+	singular.ok =T, robust=F,
 	model=F, x=F, y=T) {
 
     method <- match.arg(method)
@@ -12,8 +12,8 @@ coxph <- function(formula=formula(data), data=sys.parent(),
     m$method <- m$model <- m$x <- m$y <- m$... <-  NULL
     m$eps <- m$init <- m$iter.max <- m$n.table <- NULL
 
-    Terms <- if(missing(data)) terms(formula, 'strata')
-	     else              terms(formula, 'strata',data=data)
+    Terms <- if(missing(data)) terms(formula, c('strata', 'cluster'))
+	     else              terms(formula, c('strata', 'cluster'),data=data)
     m$formula <- Terms
     m[[1]] <- as.name("model.frame")
     m <- eval(m, sys.parent())
@@ -36,14 +36,25 @@ coxph <- function(formula=formula(data), data=sys.parent(),
 
     attr(Terms,"intercept")<- 1  #Cox model always has \Lambda_0
     strats <- attr(Terms, "specials")$strata
+    cluster<- attr(Terms, "specials")$cluster
+    dropx <- NULL
+    if (length(cluster)) {
+	if (missing(robust)) robust <- T
+	tempc <- untangle.specials(Terms, 'cluster', 1:10)
+	ord <- attr(Terms, 'order')[tempc$terms]
+	if (any(ord>1)) stop ("Cluster can not be used in an interaction")
+	cluster <- strata(m[tempc$vars], shortlabel=T)  #allow multiples
+	dropx <- tempc$terms
+	}
     if (length(strats)) {
 	temp <- untangle.specials(Terms, 'strata', 1)
-	X <- model.matrix(Terms[-temp$terms], m)[,-1,drop=F]
+	dropx <- c(dropx, temp$terms)
 	if (length(temp$vars)==1) strata.keep <- m[[temp$vars]]
 	else strata.keep <- strata(m[temp$vars], shortlabel=T)
 	strats <- as.numeric(strata.keep)
 	}
-    else X <- model.matrix(Terms, m)[,-1,drop=F]   #remove column of 1's though
+    if (length(dropx)) X <- model.matrix(Terms[-dropx], m)[,-1,drop=F]
+    else               X <- model.matrix(Terms, m)[,-1,drop=F]
 
     type <- attr(Y, "type")
     if( method=="breslow" || method =="efron") {
@@ -73,12 +84,21 @@ coxph <- function(formula=formula(data), data=sys.parent(),
 	   else             stop(msg)
 	   }
 	fit$n <- nrow(Y)
-	na.action <- attr(m, "na.action")
-	if (length(na.action)) fit$na.action <- na.action
 	attr(fit, "class") <-  fit$method
-	fit$method <- NULL
 	fit$terms <- Terms
 	fit$assign <- attr(X, 'assign')
+	if (robust) {
+	    # a little sneaky here: by calling resid before adding the
+	    #   na.action method, I avoid having missings re-inserted
+	    # I also make sure that it doesn't have to reconstruct X and Y
+	    if (missing(cluster)) cluster <- F
+	    fit2 <- c(fit, list(x=X, y=Y, method=method))
+	    if (length(strats)) fit2$strata <- strata.keep
+	    temp <- residuals.coxph(fit2, type='dfbeta', collapse=cluster)
+	    fit$robust.var <- t(temp) %*% temp
+	    }
+	na.action <- attr(m, "na.action")
+	if (length(na.action)) fit$na.action <- na.action
 	if (model) fit$model <- m
 	else {
 	    if (x)  {
@@ -89,6 +109,7 @@ coxph <- function(formula=formula(data), data=sys.parent(),
 	    }
 	}
     if (!is.null(weights) && any(weights!=1)) fit$weights <- weights
+
     fit$formula <- as.vector(attr(Terms, "formula"))
     fit$call <- call
     fit$method <- method
