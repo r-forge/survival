@@ -1,4 +1,4 @@
-#SCCS  $Id: coxph.s,v 4.10 1993-06-17 12:26:18 therneau Exp $
+#SCCS  $Id: coxph.s,v 4.11 1993-09-28 09:22:32 therneau Exp $
 coxph <- function(formula=formula(data), data=sys.parent(),
 	weights, subset, na.action,
 	eps=.0001, init, iter.max=10,
@@ -28,9 +28,9 @@ coxph <- function(formula=formula(data), data=sys.parent(),
 	      else if(tt == 1)
 		      m[[offset]]
 	      else {
-		    ff <- frame[[offset[1]]]
+		    ff <- m[[offset[1]]]
 		    for(i in 2:tt)
-			    ff <- ff + frame[[offset[i]]]
+			    ff <- ff + m[[offset[i]]]
 		    ff
 		    }
 
