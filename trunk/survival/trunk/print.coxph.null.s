@@ -1,4 +1,4 @@
-#SCCS $Date: 1992-03-04 16:48:16 $ $Id: print.coxph.null.s,v 4.1 1992-03-04 16:48:16 therneau Exp $
+#SCCS $Date: 1992-03-30 02:43:03 $ $Id: print.coxph.null.s,v 4.2 1992-03-30 02:43:03 therneau Exp $
 print.coxreg.null <-
  function(cox, digits=3, ...)
     {
@@ -10,9 +10,9 @@ print.coxreg.null <-
 
     cat("Null model\n  log likelihood=", format(cox$loglik),
 		  "  (Breslow approx)\n")
-    omit <- attr(cox$n, 'omit')
+    omit <- cox$na.action
     if (length(omit))
-	cat("  n=", cox$n, " (", length(omit), " deleted due to missing)\n",
+	cat("  n=", cox$n, " (", naprint(omit), ")\n",
 				sep="")
     else cat("  n=", cox$n, "\n")
     }
