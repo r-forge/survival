@@ -1,5 +1,5 @@
-#SCCS $Date: 1992-03-04 16:48:23 $ $Id: print.survfit.s,v 4.1 1992-03-04 16:48:23 therneau Exp $
-print.surv.fit <- function(fit.list, times, censored=F, curves,
+#SCCS $Date: 1992-03-30 02:46:47 $ $Id: print.survfit.s,v 4.2 1992-03-30 02:46:47 therneau Exp $
+print.surv.fit <- function(fit.list, times, censored=F,
 		       print.it=T,  digits=3, ... ) {
     fit <- fit.list
     if (!inherits(fit.list, 'surv.fit'))
@@ -99,7 +99,7 @@ print.surv.fit <- function(fit.list, times, censored=F, curves,
     #
     ncurve <- ncol(surv)
     if (print.it==F) {
-	temp <- list(time=time, n.risk=n.risk, n.event=n.event)
+	temp <- list(time=times, n.risk=n.risk, n.event=n.event)
 	if (ncurve==1) {
 	    temp$surv <- drop(temp$surv)
 	    if (!is.null(std.err)) temp$std.err <- drop(std.err)
