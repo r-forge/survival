@@ -1,7 +1,8 @@
-#SCCS $Id: survexp.s,v 4.4 1992-03-30 02:53:41 therneau Exp $
+#SCCS $Id: survexp.s,v 4.5 1992-03-30 11:23:32 therneau Exp $
 surv.exp <- function(entry, birth, sex, times=round(182.6 * 0:8),
 		      type=c("mean", "individual", "matrix"),
-		      expected=surv.exp.uswhite, interp=F, na.action) {
+		      expected=surv.exp.uswhite, interp=F,
+		      na.action= na.omit) {
     call <- match.call()
     if (!inherits(entry, "date")) stop ("'Entry' must be a date")
     nn <- length(entry)
@@ -16,10 +17,12 @@ surv.exp <- function(entry, birth, sex, times=round(182.6 * 0:8),
 
     # Use na.action to deal with missing values
     if (missing(na.action) &&
-	    !is.null(tj <- attr(data, "na.action")))  na.action <- tj
+	      !is.null(tj <- options("na.action")[[1]])) na.action <- get(tj)
     if (type=='individual') {
 	temp <- list(entry, birth, sex, times)
 	names(temp) <- names(call)[1:4]
+	attr(temp, 'row.names') <- 1:nn
+	attr(temp, 'class') <- "data.frame"
 	m <- na.action(temp)
 	times <- m[[4]]
 	}
@@ -27,6 +30,8 @@ surv.exp <- function(entry, birth, sex, times=round(182.6 * 0:8),
 	if (any(is.na(times))) stop("Missing values not allowed in 'times'")
 	temp <- list(entry, birth, sex)
 	names(temp) <- names(call)[1:3]
+	attr(temp, 'row.names') <- 1:nn
+	attr(temp, 'class') <- "data.frame"
 	m <- na.action(temp)
 	}
     entry <- m[[1]]
