@@ -1,6 +1,6 @@
-# SCCS $Id: print.coxph.s,v 4.10 1998-08-30 15:32:40 therneau Exp $
+# SCCS $Id: print.coxph.s,v 4.11 1998-10-28 08:57:27 therneau Exp $
 print.coxph <-
- function(x, digits=max(options()$digits - 4, 3), ...)
+ function(cox, digits=max(options()$digits - 4, 3), ...)
     {
     if (!is.null(cl<- x$call)) {
 	cat("Call:\n")
@@ -36,7 +36,8 @@ print.coxph <-
     prmatrix(tmp)
 
     logtest <- -2 * (x$loglik[1] - x$loglik[2])
-    df <- sum(!is.na(coef))
+    if (is.null(x$df)) df <- sum(!is.na(coef))
+    else  df <- round(sum(x$df),2)
     cat("\n")
     cat("Likelihood ratio test=", format(round(logtest, 2)), "  on ",
 	df, " df,", " p=", format(1 - pchisq(logtest, df)),  sep="")
@@ -44,5 +45,8 @@ print.coxph <-
     if (length(omit))
 	cat("  n=", x$n, " (", naprint(omit), ")\n", sep="")
     else cat("  n=", x$n, "\n")
+    if (length(x$icc))
+	cat("   number of clusters=", x$icc[1],
+	    "    ICC=", format(x$icc[2:3]), "\n")
     invisible()
     }
