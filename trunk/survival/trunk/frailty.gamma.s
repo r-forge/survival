@@ -1,4 +1,4 @@
-# SCCS $Id: frailty.gamma.s,v 1.3 1999-01-14 09:40:35 therneau Exp $
+# SCCS $Id: frailty.gamma.s,v 1.4 2000-06-10 22:16:50 therneau Exp $
 # 
 # Defining function for gamma frailty fits
 #
@@ -55,7 +55,7 @@ frailty.gamma <- function(x, sparse=(nclass >5), theta, df, eps= 1e-5,
 	df2 <- max(df, .5)      # Stop silly p-values
 	list(coef=c(NA, NA, NA, test, df, 1-pchisq(test, df2)),
 		 history=paste("Variance of random effect=", format(theta),
-	                       "  EM likelihood =", 
+	                       "  I-likelihood =", 
 		         format(round(clog,1), digits=10)))
 	}
 
