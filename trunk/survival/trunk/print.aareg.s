@@ -1,5 +1,5 @@
-# SCCS $Id: print.aareg.s,v 1.2 2002-04-29 14:15:11 therneau Exp $
-print.aareg <- function(x, maxtime, test=c('aalen', 'nrisk')) {
+# SCCS $Id: print.aareg.s,v 1.3 2004-11-04 08:30:12 therneau Exp $
+print.aareg <- function(x, maxtime, test=c('aalen', 'nrisk'), scale=1) {
     if (!inherits(x, 'aareg')) stop ("Must be an addreg object")
     if (!is.null(cl<- x$call)) {
 	cat("Call:\n")
@@ -10,8 +10,9 @@ print.aareg <- function(x, maxtime, test=c('aalen', 'nrisk')) {
     if (missing(test)) test <- x$test
     else test <- match.arg(test)
 
-    if (missing(maxtime)) summ <- summary(x, test=test)
-    else                  summ <- summary(x, maxtime=maxtime, test=test)
+    if (missing(maxtime)) summ <- summary(x, test=test, scale=scale)
+    else                  summ <- summary(x, maxtime=maxtime, test=test,
+                                          scale=scale)
 
     omit <- x$na.action
     if (length(omit))
