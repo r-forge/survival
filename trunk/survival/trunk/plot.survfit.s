@@ -1,4 +1,4 @@
-#SCCS $Id: plot.survfit.s,v 4.5 1992-05-07 09:46:55 therneau Exp $
+#SCCS $Id: plot.survfit.s,v 4.6 1992-05-07 16:41:51 therneau Exp $
 plot.survfit<- function(surv, conf.int,  mark.time=T,
 		 mark=3,col=1,lty=1, lwd=1, cex=1,log=F,yscale=1,
 		 xscale=1,
@@ -28,7 +28,7 @@ plot.survfit<- function(surv, conf.int,  mark.time=T,
     lwd  <- rep(lwd, length=nstrat)
 
     if (is.numeric(mark.time)) mark.time <- sort(mark.time[mark.time>0])
-    stime <- surv$time * xscale
+    stime <- surv$time / xscale
     #
     # for log plots we have to be tricky about the y axis scaling
     #
