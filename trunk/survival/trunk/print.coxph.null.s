@@ -1,4 +1,4 @@
-#SCCS $Date: 1992-04-14 18:07:21 $ $Id: print.coxph.null.s,v 4.3 1992-04-14 18:07:21 grill Exp $
+#SCCS $Date: 1993-05-31 00:15:24 $ $Id: print.coxph.null.s,v 4.4 1993-05-31 00:15:24 therneau Exp $
 print.coxph.null <-
  function(cox, digits=3, ...)
     {
@@ -8,8 +8,7 @@ print.coxph.null <-
 	cat("\n")
 	}
 
-    cat("Null model\n  log likelihood=", format(cox$loglik),
-		  "  (Breslow approx)\n")
+    cat("Null model\n  log likelihood=", format(cox$loglik), "\n")
     omit <- cox$na.action
     if (length(omit))
 	cat("  n=", cox$n, " (", naprint(omit), ")\n",
