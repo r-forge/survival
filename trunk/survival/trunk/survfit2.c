@@ -1,4 +1,4 @@
-/* SCCS $Id: survfit2.c,v 4.3 1992-05-04 10:32:59 therneau Exp $  */
+/* SCCS $Id: survfit2.c,v 4.4 1992-05-07 14:36:07 therneau Exp $
 /*
 ** Fit the survival curve
 **  Input
@@ -105,10 +105,9 @@ double risksum[];
 	risksum[nsurv] = risksum[i];
 	nsurv++;
 
-	/* walk past any tied survival times */
+	/* if there are ties, point to the last one of the set */
 	temp = time[i];
-	for (; i<n && strata[i]!=1 && time[i]==temp; i++);
-	i--;
+	for (; i<(n-1) && strata[i]!=1 && time[i+1]==temp; i++);
 
 	if (strata[i]==1) {
 	    nstrat++;
