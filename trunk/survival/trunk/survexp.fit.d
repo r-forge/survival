@@ -33,6 +33,11 @@ For a large data set, however, this can use an inordinate amount of
 storage and/or compute time.  If the `times' spacing is more coarse than
 this, an actuarial approximation is used which should, however, be extremely
 accurate as long as all of the returned values are > .99.
+.pp
+For a subgroup of size 1 and `times' > `y',
+the conditional method reduces to exp(-h) where
+h is the expected cumulative hazard for the subject over his/her
+observation time.  This is used to compute individual expected survival.
 .SH WARNING
 Most users will call the higher level routine `survexp'.
 Consequently, this function has very few error checks on its input arguments.
