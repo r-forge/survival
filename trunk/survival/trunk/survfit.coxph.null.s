@@ -1,4 +1,4 @@
-#SCCS  $Id: survfit.coxph.null.s,v 4.2 1992-03-11 14:37:58 therneau Exp $ % G%
+#SCCS  $Id: survfit.coxph.null.s,v 4.3 1992-03-30 02:55:05 therneau Exp $ % G%
 surv.fit.coxreg.null <-
   function(object, newdata, se.fit=T, conf.int=.95, individual=F,
 	    type=c('tsiatis', 'kaplan-meier'),
@@ -10,35 +10,26 @@ surv.fit.coxreg.null <-
     call <- match.call()
     Terms <- terms(object)
     strat <- attr(Terms, "specials")$strata
-    resp <-  attr(Terms, "variables")[attr(Terms, "response")]
     n <- object$n
-    omit <- attr(n, 'omit')
     score <- exp(object$linear.predictor)
     method <- match.arg(type)
     if (!se.fit) conf.type <- 'none'
     else conf.type <- match.arg(conf.type)
 
-    if (length(strat) ) {  # I need to fetch the model frame
-	y <-object$y
-	strata <- object$strata
+    y <- object$y
+    strata <- object$strata
+    if (is.null(y) || (length(strat) && is.null(strata))) {
+	# I need the model frame
+	m <- model.frame(object)
 	if (is.null(strata)) {
-	    m <- model.frame(object)
-	    if (length(strat)>1) stop("Only one strata() expression allowed")
 	    strata <- m[[(as.character(Terms))[strat]]]
 	    }
 	if (is.null(y)) y <- model.extract(m, 'response')
 	}
-    else {
-	y <- object$y
-	if (is.null(y)) {
-	    y <- eval(resp)
-	    if (!is.null(omit)) y <- y[omit,]
-	    }
-	strata <- rep(1,n)
-	}
-
+    if (is.null(strata)) strata <- rep(1,n)
     ny <- ncol(y)
     if (nrow(y) != n) stop ("Mismatched lengths: logic error")
+
     type <- attr(y, 'type')
     if (type=='counting') {
 	ord <- order(strata, y[,2], -y[,3])
