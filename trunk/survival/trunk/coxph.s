@@ -1,4 +1,4 @@
-#SCCS  $Id: coxph.s,v 4.22 1997-03-25 10:55:50 therneau Exp $
+#SCCS  $Id: coxph.s,v 4.23 1997-03-28 09:35:06 therneau Exp $
 coxph <- function(formula=formula(data), data=sys.parent(),
 	weights, subset, na.action,
 	eps=.0001, init, iter.max=10,
@@ -87,7 +87,7 @@ coxph <- function(formula=formula(data), data=sys.parent(),
 	attr(fit, "class") <-  fit$method
 	fit$terms <- Terms
 	fit$assign <- attr(X, 'assign')
-	if (robust) {
+	if (robust & length(fit$coef)) {
 	    fit$naive.var <- fit$var
 	    fit$method    <- method
 	    # a little sneaky here: by calling resid before adding the
@@ -130,8 +130,7 @@ coxph <- function(formula=formula(data), data=sys.parent(),
 	    else {
 		temp <- residuals.coxph(fit2, type='dfbeta', weighted=T)
 		fit2$linear.predictors <- 0*fit$linear.predictors
-		temp0 <- residuals.coxph(fit2, type='score', collapse=cluster,
-					 weighted=T)
+		temp0 <- residuals.coxph(fit2, type='score', weighted=T)
 	        }
 	    fit$var <- t(temp) %*% temp
 	    u <- apply(temp0, 2, sum)
@@ -139,11 +138,12 @@ coxph <- function(formula=formula(data), data=sys.parent(),
 	    }
 
 	#Wald test
-	nabeta <- !is.na(fit$coef)
-	if (is.null(init)) temp <- fit$coef[nabeta]
-	else		   temp <- (fit$coef - init)[nabeta]
-	fit$wald.test <-  sum(temp * solve(fit$var[nabeta,nabeta], temp))
-
+	if (length(fit$coef)) {  #not for intercept only models
+	    nabeta <- !is.na(fit$coef)
+	    if (is.null(init)) temp <- fit$coef[nabeta]
+	    else               temp <- (fit$coef - init)[nabeta]
+	    fit$wald.test <-  sum(temp * solve(fit$var[nabeta,nabeta], temp))
+	    }
 	na.action <- attr(m, "na.action")
 	if (length(na.action)) fit$na.action <- na.action
 	if (model) fit$model <- m
