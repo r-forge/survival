@@ -1,4 +1,4 @@
-#SCCS $Date: 1992-07-10 09:26:35 $ $Id: Surv.s,v 4.10 1992-07-10 09:26:35 therneau Exp $
+#SCCS $Date: 1992-11-24 15:13:45 $ $Id: Surv.s,v 4.11 1992-11-24 15:13:45 therneau Exp $
 # Package up surivival type data as a structure
 #
 Surv <- function(time, time2, event,
@@ -94,7 +94,8 @@ print.Surv <- function(xx, quote=F, ...) {
     else if (type=='counting') {
 	temp <- xx[,3]
 	temp <- ifelse(is.na(temp), "?", ifelse(temp==0, "+"," "))
-	print(paste('(', format(xx[,1]), ',', xx[,2], temp, ']', sep=''), quote=quote)
+	print(paste('(', format(xx[,1]), ',', format(xx[,2]), temp,
+			 ']', sep=''), quote=quote)
 	}
     else if (type=='left') {
 	temp <- xx[,2]
