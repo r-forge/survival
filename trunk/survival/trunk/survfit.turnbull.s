@@ -1,4 +1,4 @@
-# SCCS $Id: survfit.turnbull.s,v 1.4 2004-12-08 17:30:49 therneau Exp $
+# SCCS $Id: survfit.turnbull.s,v 1.5 2005-04-18 11:35:29 therneau Exp $
 # Compute the K-M for left/right/interval censored data via Turnbull's
 #      slow EM calculation
 #
@@ -214,7 +214,6 @@ survfit.turnbull <- function(x, y, casewt=rep(1,n),
     surv   <- vector('list', nstrat)
     n.cens <- vector('list', nstrat)
     n.event<- vector('list', nstrat)
-    strata <- integer(nstrat)
 
     uniquex <- sort(unique(x))
     for (i in 1:nstrat) {
@@ -250,6 +249,7 @@ survfit.turnbull <- function(x, y, casewt=rep(1,n),
 		 type='right')
     
     if (nstrat >1) {
+        strata <- unlist(lapply(time, length))
 	names(strata) <- xlev[sort(unique(x))]
 	temp$strata <- strata
 	}
