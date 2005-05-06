@@ -1,4 +1,4 @@
-# SCCS $Id: survfit.coxph.s,v 5.9 2003-10-06 09:42:21 therneau Exp $
+# SCCS $Id: survfit.coxph.s,v 5.10 2005-05-06 13:07:37 therneau Exp $
 setOldClass(c('survfit.cox', 'survfit'))
 
 survfit.coxph <-
@@ -163,7 +163,7 @@ survfit.coxph <-
 			     as.double(newrisk),
 			     as.integer(strata2) )
 	ntime <- 1:surv$nsurv
-	temp <- (matrix(surv$y, ncol=3))[ntime,]
+	temp <- (matrix(surv$y, ncol=3))[ntime,,drop=F]
 	temp <- list(n=n, time = temp[,1],
 		     n.risk= temp[,2],
 		     n.event=temp[,3],
