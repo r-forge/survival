@@ -1,4 +1,4 @@
-#SCCS $Id: survfit.km.s,v 4.17 2001-12-31 09:32:24 therneau Exp $
+#SCCS $Id: survfit.km.s,v 4.18 2005-09-27 16:35:04 therneau Exp $
 #  A version that does more work in S, less in C
 survfit.km <- function(x, y, casewt=rep(1,length(x)),
 		       type=c('kaplan-meier', 'fleming-harrington', 'fh2'),
@@ -77,7 +77,8 @@ survfit.km <- function(x, y, casewt=rep(1,length(x)),
 	    nevent <- as.vector(temp[,2])
 	    ncens  <- as.vector(temp[,1])
 	    nrisk  <- rev(cumsum(rev(temp %*% c(1,1))))
-	    ndead  <- as.vector(table(y[,1], factor(y[,2], levels=0:1)) [,2])
+	    ndead  <- as.vector(table(y[who,1], factor(y[who,2], 
+                                                       levels=0:1)) [,2])
 	    }
 	else {
 	    #    The counting process case
