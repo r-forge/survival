@@ -258,14 +258,16 @@ LDOC = $(DOC:%=%.sgml)            # this keep make from deleting sgml files
 # "make all" to make a local version of S
 #   test it out before you do the install
 #
-all:    doc fun  S.so
+# Added .Data by Eric Lunde 2005-10-07 so that the build process can be done
+# in one step (without having to do Splus CHAPTER -m).
+all:    .Data doc fun  S.so
 
 # only the docs, or only the functions
 doc: $(LDOC) $(HDOC) $(SDOC) $(INDEX)
 fun: $(LFUN) $(LRATE)
 
 $(INDEX): $(HDOC)
-	../../cmd/BUILD_JHELP
+	$(SHOME)/cmd/BUILD_JHELP
 
 
 .Data :
@@ -292,8 +294,9 @@ coxfit2.o: survproto.h
 .Data/survexp.fl .Data/survexp.flr: survexp2000.sdump
 .Data/survexp.az .Data/survexp.azr: survexp2000.sdump
 
-survexp2000.sdump: SCCS/s.survexp2000.sdump
-	sccs get survexp2000.sdump
+# Commented out by Eric Lunde 2005-10-07.  sccs command is no longer needed
+#survexp2000.sdump: SCCS/s.survexp2000.sdump
+#	sccs get survexp2000.sdump
 
 
 
