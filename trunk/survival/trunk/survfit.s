@@ -1,4 +1,4 @@
-#SCCS @(#)survfit.s	4.19 09/08/00
+#SCCS $Id: survfit.s,v 4.21 2005-10-07 22:48:20 lunde Exp $
 survfit <- function (formula, data, weights, subset, na.action, ...) {
     call <- match.call()
     # Real tricky -- find out if the first arg is "Surv(...)" without

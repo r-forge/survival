@@ -1,4 +1,4 @@
-/*  SCCS %% $Date: 1998-10-27 17:36:26 $
+/*  SCCS $Id: doloop.c,v 5.3 2005-10-07 22:48:20 lunde Exp $
 /*
 ** Program to mimic a set of nested do loops
 **

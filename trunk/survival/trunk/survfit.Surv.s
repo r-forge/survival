@@ -1,4 +1,4 @@
-#SCCS 10/26/99 @(#)survfit.Surv.s	1.1
+#SCCS $Id: survfit.Surv.s,v 1.2 2005-10-07 22:48:20 lunde Exp $
 survfit.Surv <- function (formula, data, weights, subset,
 			  na.action, call, ...) {
     #  turn the first arg into a real formula

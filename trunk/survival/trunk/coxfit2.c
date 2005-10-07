@@ -1,4 +1,4 @@
-/*  SCCS @(#)coxfit2.c	5.1 08/30/98
+/*  SCCS $Id: coxfit2.c,v 5.3 2005-10-07 22:48:19 lunde Exp $
 /*
 ** here is a cox regression program, written in c
 **     uses Efron's approximation for ties
