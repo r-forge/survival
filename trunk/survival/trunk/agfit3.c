@@ -1,4 +1,4 @@
-/*  SCCS $Id: agfit3.c,v 1.4 2004-10-12 10:16:17 therneau Exp $
+/* $Id: agfit3.c,v 1.5 2006-02-07 15:06:05 therneau Exp $
 /*
 ** Anderson-Gill formulation of the Cox Model, using smart subsets
 **
@@ -444,14 +444,13 @@ void agfit3( long   *maxiter,  long   *nusedx,  long   *nvarx,
 	*/
 	*flag = cholesky2(imat, nvar, *tol_chol);
 
-	if (fabs(1-(loglik[1]/newlk))<=*eps ) { /* all done */
+	if (fabs(1-(loglik[1]/newlk))<=*eps  && halving==0) { /* all done */
 	    loglik[1] = newlk;
 	    chinv2(imat, nvar);     /* invert the information matrix */
 	    for (i=1; i<nvar; i++)
 		for (j=0; j<i; j++)  imat[i][j] = imat[j][i];
 	    for (i=0; i<nvar; i++)
 		beta[i] = newbeta[i];
-	    if (halving==1) *flag= 1000; /*didn't converge after all */
 	    *maxiter = iter;
 	    return;
 	    }

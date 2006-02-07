@@ -1,4 +1,4 @@
-/* SCCS $Id: coxfit5.c,v 1.4 2001-11-26 07:25:39 therneau Exp $  */
+/* $Id: coxfit5.c,v 1.5 2006-02-07 15:06:06 therneau Exp $  */
 /* A reentrant version of the Coxfit program, for random effects modeling
 **   with reasonable efficiency (I hope).  The important arrays are saved
 **   from call to call so as to speed up the process.  The x-matrix itself
@@ -465,7 +465,7 @@ S_EVALUATOR
 	**   update the betas and test for convergence
 	*/
 	*flag = cholesky3(jmat, nvar2, nf, fdiag, *tolerch);
-	if (fabs(1-(*loglik/newlk))<=*eps ) { /* all done */
+	if (fabs(1-(*loglik/newlk))<=*eps && halving==0) { /* all done */
 	    *loglik = newlk;
 	    for (i=0; i<nvar; i++) {
 	        for (j=0; j<nvar2; j++)  imat[i][j] = jmat[i][j];
@@ -481,7 +481,6 @@ S_EVALUATOR
 		    }
 	        }
 
-	    if (halving==1) *flag= 1000; /*didn't converge after all */
 	    *maxiter = iter;
 	    return;
 	    }

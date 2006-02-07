@@ -1,4 +1,4 @@
-/*  SCCS $Id: coxfit2.c,v 5.3 2005-10-07 22:48:19 lunde Exp $
+/*  $Id: coxfit2.c,v 5.4 2006-02-07 15:06:06 therneau Exp $
 /*
 ** here is a cox regression program, written in c
 **     uses Efron's approximation for ties
@@ -207,7 +207,6 @@ void coxfit2(long   *maxiter,   long   *nusedx,    long   *nvarx,
     /* am I done?
     **   update the betas and test for convergence
     */
-
     for (i=0; i<nvar; i++) /*use 'a' as a temp to save u0, for the score test*/
 	a[i] = u[i];
 
@@ -244,8 +243,12 @@ void coxfit2(long   *maxiter,   long   *nusedx,    long   *nvarx,
 		imat[i][j] =0;
 	    }
 
+	/*
+	** The data is sorted from smallest time to largest
+	** Start at the largest time, accumulating the risk set 1 by 1
+	*/
 	for (person=nused-1; person>=0; person--) {
-	    if (strata[person] == 1) {
+	    if (strata[person] == 1) { /* rezero temps for each strata */
 		efron_wt =0;
 		denom = 0;
 		for (i=0; i<nvar; i++) {
@@ -309,19 +312,18 @@ void coxfit2(long   *maxiter,   long   *nusedx,    long   *nvarx,
 	*/
 	*flag = cholesky2(imat, nvar, *tol_chol);
 
-	if (fabs(1-(loglik[1]/newlk))<=*eps ) { /* all done */
+	if (fabs(1-(loglik[1]/newlk))<=*eps && halving==0) { /* all done */
 	    loglik[1] = newlk;
 	    chinv2(imat, nvar);     /* invert the information matrix */
 	    for (i=1; i<nvar; i++)
 		for (j=0; j<i; j++)  imat[i][j] = imat[j][i];
 	    for (i=0; i<nvar; i++)
 		beta[i] = newbeta[i];
-	    if (halving==1) *flag= 1000; /*didn't converge after all */
 	    *maxiter = iter;
 	    return;
 	    }
 
-	if (iter==*maxiter) break;  /*skip the step halving and etc */
+	if (iter==*maxiter) break;  /*skip the step halving calc*/
 
 	if (newlk < loglik[1])   {    /*it is not converging ! */
 		halving =1;

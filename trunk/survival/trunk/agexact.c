@@ -1,4 +1,4 @@
-/*  SCCS $Id: agexact.c,v 5.3 2003-07-31 16:21:15 therneau Exp $
+/* $Id: agexact.c,v 5.4 2006-02-07 15:06:06 therneau Exp $
 /*
 ** Anderson-Gill formulation of the cox Model
 **   Do an exact calculation of the partial likelihood. (CPU city!)
@@ -340,14 +340,13 @@ void agexact(long *maxiter,  long *nusedx,   long *nvarx,   double *start,
 	*/
 	*flag = cholesky2(imat, nvar, *tol_chol);
 
-	if (fabs(1-(loglik[1]/newlk))<=*eps ) { /* all done */
+	if (fabs(1-(loglik[1]/newlk))<=*eps && halving==0) { /* all done */
 	    loglik[1] = newlk;
 	    chinv2(imat, nvar);     /* invert the information matrix */
 	    for (i=1; i<nvar; i++)
 		for (j=0; j<i; j++)  imat[i][j] = imat[j][i];
 	    for (i=0; i<nvar; i++)
 		beta[i] = newbeta[i];
-	    if (halving==1) *flag= 1000; /*didn't converge after all */
 	    *maxiter = iter;
 	    return;
 	    }
