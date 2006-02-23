@@ -88,6 +88,7 @@ FUN =	aareg                  \
 	print.aareg            \
 	print.coxph.penal	\
 	print.coxph            \
+	print.ratetable         \
 	print.survdiff         \
 	pspline			\
 	pyears			\
