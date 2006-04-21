@@ -1,4 +1,4 @@
-#SCCS $Id: survfit.s,v 4.21 2005-10-07 22:48:20 lunde Exp $
+# $Id: survfit.s,v 4.22 2006-04-21 21:53:31 therneau Exp $
 survfit <- function (formula, data, weights, subset, na.action, ...) {
     call <- match.call()
     # Real tricky -- find out if the first arg is "Surv(...)" without
@@ -82,7 +82,12 @@ survfit <- function (formula, data, weights, subset, na.action, ...) {
 	else {
             if (is.character(i)) strat <- rep(names(fit$strata), fit$strata)
 	    else                 strat <- rep(1:length(fit$strata), fit$strata)
-	    keep <- seq(along=strat)[match(strat, i, nomatch=0)>0]
+            indx <- match(strat, i, nomatch=0) # match each row to "i"
+            # the "order" part of the next line is needed if someone
+            #  writes surv[2:1] to get the curves re-ordered
+            # It assumes that the sort is order preserving (lines in the same
+            #  strata stay in the same relative order to each other).
+            keep <- (which(indx>0))[order(indx[indx>0])]
 	    if (length(i) <=1) fit$strata <- NULL
 	    else               fit$strata  <- fit$strata[i]
 

@@ -43,4 +43,15 @@ agfit5, agexact).  It will likely never catch anyone again, even if I
 didn't fix it.  In a particular data set, beta overshot and step halving
 was invoked.  During step halving, a loglik happened to occur that was
 within eps of the prior step's loglik --- and the routine decided, erroneously,
-that it had converged!
+that it had converged!  (A nice quadratic curve, a first guess x1 to the 
+left of  the desired max of the curve.  The next guess x2 overshot and ends 
+up with a lower loglik, on the right side of the max.  Back up to the 
+midpoint of x1 and x2, and this guess, still to the right of the max (still
+too large) has EXACTLY the same value of y as x1 did, but on the other side
+of the max from x1.  "Last two guesses give the same answer, I'm done" said
+the routine).
+
+21Apr06: Fix problem in [.survfit, pointed out by Thomas Lumley.  If
+fit <- survfit(Surv(time, status) ~ ph.ecog, lung), then fit[2:1] did
+not reorder the output correctly.  I had never tested putting the 
+subscripts in non-increasing order.
