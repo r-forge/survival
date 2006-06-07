@@ -1,4 +1,4 @@
-#  SCCS $Id: survexp.fit.s,v 5.3 2001-12-30 17:33:28 therneau Exp $
+#  $Id: survexp.fit.s,v 5.4 2006-06-07 12:21:36 therneau Exp $
 #  Actually compute the expected survival for one or more cohorts
 #    of subjects.  If each subject is his/her own group, it gives individual
 #    survival
