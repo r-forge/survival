@@ -1,4 +1,4 @@
-# SCCS  $Id: coxph.fit.s,v 5.8 1999-06-24 15:21:57 therneau Exp $
+# $Id: coxph.fit.s,v 5.9 2006-06-07 12:20:41 therneau Exp $
 coxph.fit <- function(x, y, strata, offset, init, control,
 			weights, method, rownames)
     {
