@@ -1,0 +1,20 @@
+#
+#  a script to help the comparison of testall.save and testall.out
+#   (Testall.save is the most recent "good" version, by default, and
+#    testall.out the test run we've just done).
+#
+# First, all make all quotes the same & remove the prompts
+tr \' \" <testall.save | sed -e 's/>[ >]*//' -e 's/^+/ /' > temp1
+tr \' \" <testall.out  | sed -e 's/>[ >]*//' -e 's/^+/ /' > temp2
+diff -b  temp1 temp2 > zed
+
+# At this point "zed" contains the diffs.  Almost all of them are
+#   changes in how S echos the input lines.
+
+# Now get rid of even more stuff: programming lines, blanks, and comments
+sed -e'/<-/d' -e'/[{}+~\!=]/d' -e'/Call/d' -e'/^$/d'< temp1 > temp3
+sed -e'/<-/d' -e'/[{}+~\!=]/d' -e'/Call/d' -e'/^$/d'< temp2 > temp4
+sed -e's/^[ >]*//' -e'/^#/d' < temp3 > temp1
+sed -e's/^[ >]*//' -e'/^#/d' < temp4 > temp2
+
+diff -w temp1 temp2 > zed2

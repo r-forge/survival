@@ -1,0 +1,8 @@
+ 11/23/2004
+
+ Ran the full test suite.
+
+ Only difference in values was from the 1-sample test of survdiff;
+note the Changelog of 6 Jan01 which explains the difference.
+
+ Added tests for aareg and for survfit.ci.

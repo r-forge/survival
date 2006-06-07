@@ -1,0 +1,16 @@
+  Some problems in my code, "found out" by version 5 of Splus
+
+ predict.coxph: had "missing(y)" instead of is.null(y)
+ coxph.fit.s needed "as.double(weights)" in the coxmart call
+ residuals.coxph, as.double(weights) in the score residuals call
+ survfit.coxph.s: same, but for y.  I needed to use storage.mode in this case.
+
+The line "attr(x, 'type') <- NULL" in [.Surv caused problems
+< Warning messages:
+<   looks like the internal reference count was not updated in: attr(x, "type")
+< 	<- NULL
+
+On reflection the line was unneeded, so I removed it.
+
+
+

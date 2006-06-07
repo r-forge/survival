@@ -1,0 +1,14 @@
+7/2001 -- Changes to the test suite and log for S version 6
+
+1. The labels that disappeared (note 2 of Testlog.v5) have come back!
+
+2. Three files had a line
+		options(contrasts='contr.treatment')
+which was technically wrong (should have a second option listed for ordered
+factors) but worked ok since I had no ordered factors.  S6 flags this line
+as an error.  Since they were redundant with setup.s anyway, I removed them.
+
+
+3. n=2 vs n=10?
+
+4. Added more tests, and turned some from printouts to "all.equal" type.

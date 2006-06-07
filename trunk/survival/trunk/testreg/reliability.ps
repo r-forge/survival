@@ -1,0 +1,1736 @@
+%!PS-Adobe-3.0
+%%Title: (S-PLUS Graphics)
+%%Creator: S-PLUS
+%%For: (Terry Therneau)
+%%CreationDate: Tue Nov 23 15:21:47 2004
+%%BoundingBox: 20 11 592 781
+%%Pages: (atend)
+%%DocumentData: Clean7Bit
+%%DocumentNeededResources: (atend)
+%%EndComments
+%%BeginProlog
+150 dict begin gsave
+/bd{bind def}def
+/PVer 3200 def
+% drawing commands
+/I{Coord SetPage 1 setlinecap 1 setlinejoin
+    LineTypes{RastersPerPoint ScaleArray}forall
+    /Helvetica findfont
+    PointSize RastersPerPoint mul Cex mul scalefont setfont
+    /Colors GColors def
+}bd
+/BWOp{
+    bw{currentrgbcolor add add 2.9 gt{1}{0}ifelse setgray}if
+    exec
+    bw{CurSc Sc}if
+}bd
+/IBu{}def
+/B{newpath}bd
+/E{{stroke}BWOp}bd
+/C{currentpoint Penup{newpath}{E}ifelse moveto}bd
+/F{closepath eofill}bd
+/M{moveto}bd
+/L{lineto}bd
+/Pu{load /XEQ exch def /Penup true def}bd
+/Pd{/XEQ{}def /Penup false def}bd
+/Px{currentdict /XEQ known{XEQ}if}bd
+/h{Penup{rmoveto Px}{rlineto}ifelse}bd
+/j{neg Penup{rmoveto Px}{rlineto}ifelse}bd
+/k{exch neg exch Penup{rmoveto Px}{rlineto}ifelse}bd
+/l{neg exch neg exch Penup{rmoveto Px}{rlineto}ifelse}bd
+/m{moveto Penup{Px}if}bd
+/x{0 Penup{rmoveto Px}{rlineto}ifelse}bd
+/y{0 exch Penup{rmoveto Px}{rlineto}ifelse}bd
+/w{neg x}bd
+/z{neg y}bd
+/a{B M dup y exch x neg y closepath}bd
+/b{a eofill}bd
+/c{a E}bd
+/A{PageBegin BackCol 0 ge
+    {CurSc gsave 0 SC Page aload pop
+    exch 4 -1 roll dup 5 1 roll sub 3 1 roll exch dup 4 1 roll sub 4 2 roll b
+    grestore SC}if
+}bd
+/Ph{gsave Pch-x Pch-y rmoveto Show grestore}bd
+/Pc{Pch Ph}bd
+/T{/Adjust exch def gsave translate StringRot rotate 0 0 moveto
+    dup stringwidth pop neg Adjust mul 0 rmoveto
+    currentpoint translate TextShow grestore}bd
+/X{erasepage InPage{PageEnd}if}bd
+/Z{gsave showpage grestore PageEnd}bd
+/W{grestore end}bd
+% parameter setting commands
+/saveAt{Attr begin
+    /Atlinewidth currentlinewidth def
+    /Atfont currentfont def
+    /Atdash currentdash 2 array astore def
+    /AtSc CurSc def
+end}bd
+/restAt{Attr begin
+    Atlinewidth Atfont Atdash AtSc
+    end
+    SC aload pop setdash setfont setlinewidth
+}bd
+/SC{dup dup 0 eq
+    {pop BackIdx
+        {BackCol dup 0 lt {pop 1 setgray} {Sc}ifelse}
+        {/Colors BColor def 1 Sc}ifelse}
+    {/Colors GColors def Sc}ifelse
+    /CurSc exch def
+}bd
+/St{1 sub LineTypes dup 3 1 roll length Rem floor get 0 setdash}bd
+/Sw{abs 2 div RastersPerPoint mul setlinewidth SetClip}bd
+/Sp{dup 42 eq{pop IBu}{Pch exch 0 exch put SetPchSize}ifelse}bd
+/Sx{dup Cex div /Ratio exch def
+     /Cex exch def
+     currentfont Ratio scalefont setfont
+     /Pch-x Pch-x Ratio mul def
+     /Pch-y Pch-y Ratio mul def
+     /Text-y Text-y Ratio mul def}bd
+/So{4 1 roll exch 4 -1 roll Plot astore pop SetClip}bd
+/Sg{4 1 roll exch 4 -1 roll Figure astore pop SetClip}bd
+/Sr{/StringRot exch def}bd
+/Sh{/CharRot exch def}bd
+/Sd{0 eq /ClipToPlot exch def SetClip}bd
+/Iv{/InPage false def/Clip 4 array def/Page 4 array def
+    /Figure [0 0 1 1] def/Plot [0 0 1 1] def/ClipToPlot true def
+    /Cex 1 def/Outline false def
+    /Pch 1 string def/Pch-x 0 def/Pch-y 0 def/Text-y 0 def
+    /LineTypes [ % in default units
+        [] [1 2] [4 4] [8 4] [13 3] [16 2 2 2] [8 2 2 2] [1 13] [6 5] [12 4]
+    ] def
+    /Attr 5 dict def/CurSc 1 def/Penup false def/XEQ{}def
+}bd
+/Rem{2 copy div floor mul sub floor cvi}bd
+/RastersPerPoint{RastersPerInch 72 div}bd
+/ScaleArray{/Factor exch def /Array exch def
+    0 1 Array length 1 sub
+    {dup Array exch get Factor mul Array 3 1 roll put}for}bd
+/Coord{Region aload pop /uy exch def /ux exch def /ly exch def /lx exch def
+    uy ly sub ux lx sub Landscape{exch}if /Width exch def /Height exch def
+    lx ly translate Landscape{90 rotate 0 Height neg translate}if
+    1 RastersPerPoint div dup scale}bd
+/SetPchSize{gsave
+    newpath 0 0 moveto Pch false charpath flattenpath pathbbox
+    exch 3 1 roll
+    add 2 div neg /Pch-y exch def
+    add 2 div neg /Pch-x exch def
+    grestore}bd
+/Show{Outline{false charpath E}{{show}BWOp}ifelse}bd
+/SimpleShow{0 Text-y 2 div neg rmoveto Show}bd
+/FancyShow{
+    /RotDiff exch def
+    /Cos RotDiff cos abs def
+    /Sin RotDiff sin abs def
+    {
+        ( ) dup 0 4 -1 roll put
+        dup stringwidth pop /CharWidth exch def
+        Cos 0 eq{
+            Text-y Sin div
+        }{
+            Sin 0 eq{
+                CharWidth Cos div
+            }{
+                Text-y Sin div dup
+                CharWidth Cos div dup
+                4 1 roll lt{exch pop}{pop}ifelse
+            }ifelse
+        }ifelse 2 div /CharDist exch def
+        CharDist 0 translate 0 0 moveto
+        gsave
+            RotDiff rotate
+            CharWidth 2 div neg Text-y 2 div neg rmoveto
+            Show
+        grestore
+        CharDist 0 translate 0 0 moveto
+    }forall
+}bd
+/TextShow{
+    CharRot StringRot sub dup 0 eq{pop SimpleShow}{FancyShow}ifelse
+}bd
+/BoxClip{/CLW currentlinewidth def
+    2{CLW add 4 1 roll}repeat
+    2{CLW sub 4 1 roll}repeat
+    % initclip
+    saveAt grestore gsave restAt
+    newpath 2 index exch 2 index exch dup 6 index exch
+    moveto 3{lineto}repeat closepath clip newpath}bd
+/Subregion{
+    7 dict begin/A exch def/Uy exch def/Ux exch def/Ly exch def/Lx exch def
+    Ux Lx sub A 0 get mul Lx add
+    Uy Ly sub A 1 get mul Ly add
+    Ux Lx sub A 2 get mul Lx add
+    Uy Ly sub A 3 get mul Ly add end}bd
+/SetFigure{Page aload pop Figure Subregion}bd
+/SetPlot{SetFigure Plot Subregion}bd
+/SetClip{ClipToPlot{SetPlot}{SetFigure}ifelse BoxClip}bd
+/SetPage{0 0 Width Height Page astore RastersPerPoint ScaleArray}bd
+/PageBegin{save /PageContext exch def /InPage true def gsave}bd
+/PageEnd{grestore PageContext restore /InPage false def}bd
+/SImage{
+    dup /Bits exch def 8 exch idiv /PerByte exch def
+    /Ht exch def /Wid exch def
+    1 Wid div 1 Ht div scale
+    /saveSc CurSc def /Colors IColors def
+    /curstr Wid PerByte add 1 sub PerByte idiv string def
+    /MaskByte 16#ff Bits 8 sub bitshift def
+    1 1 Ht{
+        currentfile curstr readhexstring pop pop
+        /CurPos 0 def
+        /Left PerByte def
+        1 1 Wid{
+            Left PerByte eq{
+                /CurByte curstr CurPos get def
+                /MaskMove -8 Bits add def
+                /CurPos CurPos 1 add def
+            }if
+            CurByte MaskMove bitshift MaskByte and
+            dup 0 gt{
+                Sc
+                exch dup 3 1 roll B M 1 z 1 w 1 y F
+            }{pop pop}ifelse
+            Left 1 sub dup /Left exch def 0 le
+            {/Left PerByte def}
+            {/MaskMove MaskMove Bits add def}ifelse
+        }for
+        pop
+    }for
+    /Colors GColors def saveSc Sc
+}bd
+/SImageUneven{
+    /YCorners exch def
+    /XCorners exch def
+    dup /Bits exch def 8 exch idiv /PerByte exch def
+    /Ht exch def /Wid exch def
+    1 Wid div 1 Ht div scale
+    /saveSc CurSc def /Colors IColors def
+    /curstr Wid PerByte add 1 sub PerByte idiv string def
+    /MaskByte 16#ff Bits 8 sub bitshift def
+    1 1 Ht{
+        dup 1 sub /CellBottom YCorners 3 -1 roll get def
+        dup /CellTop YCorners 3 -1 roll get def
+        currentfile curstr readhexstring pop pop
+        /CurPos 0 def
+        /Left PerByte def
+        1 1 Wid{
+            dup 1 sub /CellLeft XCorners 3 -1 roll get def
+            dup /CellRight XCorners 3 -1 roll get def
+            Left PerByte eq{
+                /CurByte curstr CurPos get def
+                /MaskMove -8 Bits add def
+                /CurPos CurPos 1 add def
+            }if
+            CurByte MaskMove bitshift MaskByte and
+            dup 0 gt{
+                Sc
+                CellLeft CellBottom B M CellRight CellBottom L CellRight CellTop L CellLeft CellTop L CellLeft CellBottom L F
+            }{pop}ifelse
+            pop
+            Left 1 sub dup /Left exch def 0 le
+            {/Left PerByte def}
+            {/MaskMove MaskMove Bits add def}ifelse
+        }for
+        pop
+    }for
+    /Colors GColors def saveSc Sc
+}bd
+/Ic {} bd
+/Sc {
+    dup dup 1 lt exch 0 ge and
+    {1 exch sub setgray}  % explicit gray level [0,1)
+    {1 sub Colors dup 3 1 roll length Rem floor get
+     dup type /arraytype eq {aload pop setrgbcolor} {setgray} ifelse
+    } ifelse
+} bd
+% list of fonts not to be reencoded
+/NonStdFonts [
+    /Symbol
+    /ZapfChancery-MediumItalic
+    /ZapfDingbats
+] def
+% fontName -> isNonStdFont -> boolean
+/isNonStdFont {
+    /fontName exch def
+    /val false def
+    NonStdFonts { fontName eq { /val true def } { } ifelse } forall
+    val
+} def
+
+/If {/ISOLatin1Encoding where {pop} {/ISOLatin1Encoding [
+    StandardEncoding 0 144 getinterval aload pop
+    99 -1 roll pop /minus 99 1 roll
+    /dotlessi /grave /acute /circumflex /tilde /macron /breve /dotaccent
+    /dieresis /.notdef /ring /cedilla /.notdef /hungarumlaut /ogonek /caron
+    /space /exclamdown /cent /sterling /currency /yen /brokenbar /section
+    /dieresis /copyright /ordfeminine /guillemotleft /logicalnot /hyphen
+    /registered /macron /degree /plusminus /twosuperior /threesuperior /acute
+    /mu /paragraph /periodcentered /cedilla /onesuperior /ordmasculine
+    /guillemotright /onequarter /onehalf /threequarters /questiondown /Agrave
+    /Aacute /Acircumflex /Atilde /Adieresis /Aring /AE /Ccedilla /Egrave
+    /Eacute /Ecircumflex /Edieresis /Igrave /Iacute /Icircumflex /Idieresis
+    /Eth /Ntilde /Ograve /Oacute /Ocircumflex /Otilde /Odieresis /multiply
+    /Oslash /Ugrave /Uacute /Ucircumflex /Udieresis /Yacute /Thorn /germandbls
+    /agrave /aacute /acircumflex /atilde /adieresis /aring /ae /ccedilla
+    /egrave /eacute /ecircumflex /edieresis /igrave /iacute /icircumflex
+    /idieresis /eth /ntilde /ograve /oacute /ocircumflex /otilde /odieresis
+    /divide /oslash /ugrave /uacute /ucircumflex /udieresis /yacute /thorn
+    /ydieresis] def} ifelse
+
+    /ISOLatin1Encoding-bullet200 where {pop} { /ISOLatin1Encoding-bullet200 [
+    ISOLatin1Encoding 0 255 getinterval aload pop
+    127 -1 roll pop /bullet 127 1 roll ] def } ifelse
+    /EncodedYet Fonts length array def
+    /DoEncode Fonts length array def
+    0 1 Fonts length 1 sub { dup Fonts exch get isNonStdFont { dup DoEncode exch false put } { dup DoEncode exch true put } ifelse } for
+} bd
+/NewFName {
+    dup length dup dup 4 2 roll string cvs
+    3 -1 roll 7 add string dup dup 5 2 roll copy pop (-Latin1) putinterval
+} bd
+/Sf {
+    dup 0 lt /Outline exch def abs 1 sub Fonts dup 3 1 roll length Rem floor
+    dup /FontNumber exch def
+    dup EncodedYet exch get null ne {get NewFName findfont} {
+    dup EncodedYet exch true put get dup findfont dup length dict begin {
+        1 index /FID ne {def} {pop pop} ifelse
+	} forall
+    FontNumber DoEncode exch get true eq {/Encoding ISOLatin1Encoding-bullet200 def} { } ifelse
+    currentdict end exch NewFName exch definefont
+    } ifelse
+    PointSize Cex mul RastersPerPoint mul scalefont dup setfont
+    dup /FontMatrix get /Matrix exch def /FontBBox get aload pop
+    Matrix transform 4 2 roll Matrix transform
+    exch pop add /Text-y exch def pop SetPchSize
+} bd
+%%EndProlog
+%%BeginSetup
+% fixed controlling parameters
+/Landscape true def
+/Region [20.88 11.8008 591.12 780.199] def
+/bw statusdict begin /processcolors where
+{pop processcolors} {1} ifelse end 1 eq
+ def
+/RastersPerInch 300 def
+/PointSize 14 def
+/Fonts [
+	/Helvetica
+	/Courier
+	/Times-Roman
+	/Helvetica-Oblique
+	/Helvetica-Bold
+	/Helvetica-BoldOblique
+	/Courier-Oblique
+	/Courier-Bold
+	/Courier-BoldOblique
+	/Times-Italic
+	/Times-Bold
+	/Times-BoldItalic
+	/Symbol
+	/AvantGarde-Book
+	/AvantGarde-BookOblique
+	/AvantGarde-Demi
+	/AvantGarde-DemiOblique
+	/Bookman-Demi
+	/Bookman-DemiItalic
+	/Bookman-Light
+	/Bookman-LightItalic
+	/Helvetica-Narrow
+	/Helvetica-Narrow-Bold
+	/Helvetica-Narrow-BoldOblique
+	/Helvetica-Narrow-Oblique
+	/NewCenturySchlbk-Roman
+	/NewCenturySchlbk-Bold
+	/NewCenturySchlbk-Italic
+	/NewCenturySchlbk-BoldItalic
+	/Palatino-Roman
+	/Palatino-Bold
+	/Palatino-Italic
+	/Palatino-BoldItalic
+	/ZapfChancery-MediumItalic
+	/ZapfDingbats
+] def
+/GColors [
+	[ 0 0 0 ]
+	[ 1 0 0 ]
+	[ 0 1 0 ]
+	[ 0 0 1 ]
+	[ 1 0 1 ]
+	[ 0.545098 0 0 ]
+	[ 1 0.647059 0 ]
+	[ 0 0.392157 0 ]
+	[ 0 0.933333 0.933333 ]
+	[ 0.580392 0 0.827451 ]
+] def
+/BackIdx true def
+/BackCol -1 def
+/IColors [
+	0.933333
+	0.866667
+	0.8
+	0.733333
+	0.666667
+	0.6
+	0.533333
+	0.466667
+	0.4
+	0.333333
+	0.266667
+	0.2
+	0.133333
+	0.0666667
+	0
+] def
+/Colors GColors def
+% bullet is at 200 (octal) in our modified Latin1 encoding.
+/IBu {Pch 0 8#200 put SetPchSize} def
+/Bu {Pc} def
+
+% all initialization action here
+Iv I
+currentdict /Ic known {Ic} if
+currentdict /If known {If} if
+
+
+%%EndSetup
+
+
+%%Page: 1 1
+%%PageOrientation: Landscape
+A
+1 St
+1 Sw
+1 SC
+0 Sr
+49 Sp
+1 Sx
+0.089641 0.954086 0.150253 0.879209 So
+0 1 0 1 Sg
+0 Sh
+0 Sd
+%%IncludeResource: font Helvetica
+1 Sf
+B
+758 421 m
+250 183 h
+334 244 h
+258 188 h
+268 197 h
+168 122 h
+129 94 h
+109 80 h
+100 73 h
+98 72 h
+104 76 h
+128 93 h
+94 69 h
+154 113 h
+E
+2 SC
+50 Sp
+B
+1067 421 m
+129 183 h
+172 244 h
+132 188 h
+139 197 h
+86 122 h
+66 94 h
+57 80 h
+51 73 h
+50 72 h
+54 76 h
+66 93 h
+48 69 h
+80 113 h
+E
+3 SC
+51 Sp
+B
+390 421 m
+176 183 h
+236 244 h
+183 188 h
+190 197 h
+118 122 h
+91 94 h
+78 80 h
+70 73 h
+69 72 h
+74 76 h
+91 93 h
+66 69 h
+109 113 h
+E
+4 SC
+52 Sp
+B
+407 421 m
+100 183 h
+134 244 h
+103 188 h
+107 197 h
+67 122 h
+52 94 h
+43 80 h
+40 73 h
+40 72 h
+41 76 h
+51 93 h
+38 69 h
+62 113 h
+E
+1 SC
+42 Sp
+1 Sd
+616 357 m
+35 z
+1066 357 m
+35 z
+1515 357 m
+35 z
+1965 357 m
+35 z
+2414 357 m
+35 z
+2864 357 m
+35 z
+E
+616 357 m
+2248 x
+E
+(0.1) 616 252 0.5 T
+(1.0) 1066 252 0.5 T
+(10.0) 1515 252 0.5 T
+(100.0) 1965 252 0.5 T
+(1000.0) 2414 252 0.5 T
+(10000.0) 2864 252 0.5 T
+0 1 0 1 So
+0 Sd
+2768 1732 287 357 c
+0.089641 0.954086 0.150253 0.879209 So
+1 Sd
+287 421 m
+35 w
+287 604 m
+35 w
+287 848 m
+35 w
+287 1036 m
+35 w
+287 1233 m
+35 w
+287 1355 m
+35 w
+287 1449 m
+35 w
+287 1529 m
+35 w
+287 1602 m
+35 w
+287 1674 m
+35 w
+287 1750 m
+35 w
+287 1843 m
+35 w
+287 1912 m
+35 w
+287 2025 m
+35 w
+E
+287 421 m
+1604 y
+E
+( 1) 217 421 1 T
+( 2) 217 604 1 T
+( 5) 217 848 1 T
+(10) 217 1036 1 T
+(20) 217 1233 1 T
+(30) 217 1355 1 T
+(40) 217 1449 1 T
+(50) 217 1529 1 T
+(60) 217 1602 1 T
+(70) 217 1674 1 T
+(80) 217 1750 1 T
+(90) 217 1843 1 T
+(99) 217 2025 1 T
+1 Sp
+0 Sd
+B
+1402 1352 m
+14 x
+7 7 j
+14 z
+7 7 l
+14 w
+7 7 k
+14 y
+7 7 h
+E
+B
+2496 1591 m
+14 x
+7 7 j
+14 z
+7 7 l
+14 w
+7 7 k
+14 y
+7 7 h
+E
+B
+2572 1798 m
+14 x
+7 7 j
+14 z
+7 7 l
+14 w
+7 7 k
+14 y
+7 7 h
+E
+2 SC
+2 Sp
+B
+1465 1012 m
+14 28 j
+28 w
+14 28 h
+E
+B
+1619 1206 m
+14 28 j
+28 w
+14 28 h
+E
+B
+1655 1326 m
+14 28 j
+28 w
+14 28 h
+E
+B
+1660 1416 m
+14 28 j
+28 w
+14 28 h
+E
+B
+1675 1492 m
+14 28 j
+28 w
+14 28 h
+E
+B
+1802 1559 m
+14 28 j
+28 w
+14 28 h
+E
+B
+1819 1622 m
+14 28 j
+28 w
+14 28 h
+E
+B
+2029 1684 m
+14 28 j
+28 w
+14 28 h
+E
+B
+2036 1749 m
+14 28 j
+28 w
+14 28 h
+E
+B
+2075 1823 m
+14 28 j
+28 w
+14 28 h
+E
+B
+2095 1928 m
+14 28 j
+28 w
+14 28 h
+E
+3 SC
+3 Sp
+B
+756 854 m
+28 w
+E
+B
+742 868 m
+28 z
+E
+B
+1031 1043 m
+28 w
+E
+B
+1017 1057 m
+28 z
+E
+B
+1072 1157 m
+28 w
+E
+B
+1058 1171 m
+28 z
+E
+B
+1133 1240 m
+28 w
+E
+B
+1119 1254 m
+28 z
+E
+B
+1279 1307 m
+28 w
+E
+B
+1265 1321 m
+28 z
+E
+B
+1304 1363 m
+28 w
+E
+B
+1290 1377 m
+28 z
+E
+B
+1358 1413 m
+28 w
+E
+B
+1344 1427 m
+28 z
+E
+B
+1381 1458 m
+28 w
+E
+B
+1367 1472 m
+28 z
+E
+B
+1388 1500 m
+28 w
+E
+B
+1374 1514 m
+28 z
+E
+B
+1445 1539 m
+28 w
+E
+B
+1431 1553 m
+28 z
+E
+B
+1469 1576 m
+28 w
+E
+B
+1455 1590 m
+28 z
+E
+B
+1486 1613 m
+28 w
+E
+B
+1472 1627 m
+28 z
+E
+B
+1492 1650 m
+28 w
+E
+B
+1478 1664 m
+28 z
+E
+B
+1566 1687 m
+28 w
+E
+B
+1552 1701 m
+28 z
+E
+B
+1755 1725 m
+28 w
+E
+B
+1741 1739 m
+28 z
+E
+B
+1759 1766 m
+28 w
+E
+B
+1745 1780 m
+28 z
+E
+B
+1768 1813 m
+28 w
+E
+B
+1754 1827 m
+28 z
+E
+B
+1783 1870 m
+28 w
+E
+B
+1769 1884 m
+28 z
+E
+B
+1917 1957 m
+28 w
+E
+B
+1903 1971 m
+28 z
+E
+4 SC
+4 Sp
+B
+582 1095 m
+28 28 j
+E
+B
+582 1067 m
+28 28 h
+E
+B
+868 1294 m
+28 28 j
+E
+B
+868 1266 m
+28 28 h
+E
+B
+904 1421 m
+28 28 j
+E
+B
+904 1393 m
+28 28 h
+E
+B
+990 1520 m
+28 28 j
+E
+B
+990 1492 m
+28 28 h
+E
+B
+993 1607 m
+28 28 j
+E
+B
+993 1579 m
+28 28 h
+E
+B
+1076 1691 m
+28 28 j
+E
+B
+1076 1663 m
+28 28 h
+E
+B
+1117 1781 m
+28 28 j
+E
+B
+1117 1753 m
+28 28 h
+E
+B
+1221 1901 m
+28 28 j
+E
+B
+1221 1873 m
+28 28 h
+E
+Z
+
+%%Page: 2 2
+%%PageOrientation: Landscape
+A
+1 St
+1 Sw
+1 SC
+0 Sr
+42 Sp
+1 Sx
+0.089641 0.954086 0.150253 0.879209 So
+0 1 0 1 Sg
+0 Sh
+0 Sd
+%%IncludeResource: font Helvetica
+1 Sf
+B
+390 421 m
+352 221 h
+470 294 h
+364 228 h
+379 237 h
+236 148 h
+182 113 h
+154 97 h
+141 88 h
+138 86 h
+146 92 h
+E
+1 Sd
+(Weibull Plot for Time) 1671 112 0.5 T
+90 Sr
+90 Sh
+(Percent) 42 1223 0.5 T
+0 Sr
+0 Sh
+715 357 m
+35 z
+1235 357 m
+35 z
+2442 357 m
+35 z
+2961 357 m
+35 z
+E
+715 357 m
+2246 x
+E
+(5) 715 252 0.5 T
+(10) 1235 252 0.5 T
+(50) 2442 252 0.5 T
+(100) 2961 252 0.5 T
+0 1 0 1 So
+0 Sd
+2768 1732 287 357 c
+0.089641 0.954086 0.150253 0.879209 So
+1 Sd
+287 421 m
+35 w
+287 642 m
+35 w
+287 936 m
+35 w
+287 1164 m
+35 w
+287 1401 m
+35 w
+287 1549 m
+35 w
+287 1662 m
+35 w
+287 1759 m
+35 w
+287 1847 m
+35 w
+287 1933 m
+35 w
+287 2025 m
+35 w
+E
+287 421 m
+1604 y
+E
+( 1) 217 421 1 T
+( 2) 217 642 1 T
+( 5) 217 936 1 T
+(10) 217 1164 1 T
+(20) 217 1401 1 T
+(30) 217 1549 1 T
+(40) 217 1662 1 T
+(50) 217 1759 1 T
+(60) 217 1847 1 T
+(70) 217 1933 1 T
+(80) 217 2025 1 T
+43 Sp
+0 Sd
+/Pc Pu B
+1433 1240 m
+482 156 h
+204 160 h
+108 120 h
+92 12 h
+104 35 h
+129 92 h
+Pd
+E
+45 Sp
+/Pc Pu B
+1433 1064 m
+482 200 h
+204 190 h
+108 136 h
+92 13 h
+104 38 h
+129 100 h
+Pd
+/Pc Pu B
+1433 1353 m
+482 136 h
+204 144 h
+108 110 h
+92 12 h
+104 32 h
+129 87 h
+Pd
+E
+42 Sp
+1 Sd
+(Scale) 332 2032 0 T
+(Shape) 332 1938 0 T
+(Right Censored) 332 1843 0 T
+(Left Censored) 332 1748 0 T
+(Interval Censored) 332 1653 0 T
+(Fit) 332 1559 0 T
+(71.69) 1156 2032 1 T
+(1.49) 1156 1938 1 T
+(73) 1156 1843 1 T
+( 5) 1156 1748 1 T
+(89) 1156 1653 1 T
+(ML) 1156 1559 1 T
+Z
+
+%%Page: 3 3
+%%PageOrientation: Landscape
+A
+1 St
+1 Sw
+1 SC
+0 Sr
+42 Sp
+1 Sx
+0.089641 0.954086 0.150253 0.879209 So
+0 1 0 1 Sg
+0 Sh
+1 Sd
+%%IncludeResource: font Helvetica
+1 Sf
+(Time) 1671 112 0.5 T
+90 Sr
+90 Sh
+(Sample Mean Cumulative Failures) 42 1223 0.5 T
+0 Sr
+0 Sh
+287 357 m
+35 z
+986 357 m
+35 z
+1686 357 m
+35 z
+2385 357 m
+35 z
+E
+287 357 m
+2098 x
+E
+(0) 287 252 0.5 T
+(200) 986 252 0.5 T
+(400) 1686 252 0.5 T
+(600) 2385 252 0.5 T
+90 Sr
+90 Sh
+287 421 m
+35 w
+287 807 m
+35 w
+287 1194 m
+35 w
+287 1580 m
+35 w
+287 1966 m
+35 w
+E
+287 421 m
+1545 y
+E
+(0.0) 182 421 0.5 T
+(0.5) 182 807 0.5 T
+(1.0) 182 1194 0.5 T
+(1.5) 182 1580 0.5 T
+(2.0) 182 1966 0.5 T
+0 Sr
+0 1 0 1 So
+0 Sh
+0 Sd
+2768 1732 287 357 c
+0.089641 0.954086 0.150253 0.879209 So
+B
+287 421 m
+213 x
+19 y
+53 x
+19 y
+28 x
+19 y
+10 x
+19 y
+18 x
+18 y
+21 x
+19 y
+77 x
+19 y
+66 x
+19 y
+19 y
+91 x
+19 y
+4 x
+18 y
+125 x
+19 y
+14 x
+19 y
+151 x
+19 y
+17 x
+19 y
+14 x
+19 y
+25 x
+18 y
+38 x
+19 y
+77 x
+19 y
+88 x
+19 y
+10 x
+19 y
+7 x
+19 y
+56 x
+18 y
+14 x
+19 y
+3 x
+19 y
+63 x
+19 y
+35 x
+19 y
+95 x
+19 y
+14 x
+19 y
+7 x
+20 y
+136 x
+19 y
+105 x
+19 y
+63 x
+20 y
+143 x
+19 y
+4 x
+19 y
+77 x
+20 y
+7 x
+19 y
+24 x
+19 y
+11 x
+20 y
+28 x
+20 y
+17 x
+23 y
+63 x
+35 y
+60 x
+45 y
+49 x
+48 y
+17 x
+49 y
+21 x
+59 y
+24 x
+86 y
+1 x
+86 y
+377 x
+E
+3 Sp
+B
+1661 930 m
+28 w
+E
+B
+1647 944 m
+28 z
+E
+B
+2350 1205 m
+28 w
+E
+B
+2336 1219 m
+28 z
+E
+B
+2375 1205 m
+28 w
+E
+B
+2361 1219 m
+28 z
+E
+B
+2378 1205 m
+28 w
+E
+B
+2364 1219 m
+28 z
+E
+B
+2382 1205 m
+28 w
+E
+B
+2368 1219 m
+28 z
+E
+B
+2385 1205 m
+28 w
+E
+B
+2371 1219 m
+28 z
+E
+B
+2410 1205 m
+28 w
+E
+B
+2396 1219 m
+28 z
+E
+B
+2420 1240 m
+28 w
+E
+B
+2406 1254 m
+28 z
+E
+B
+2427 1240 m
+28 w
+E
+B
+2413 1254 m
+28 z
+E
+B
+2438 1240 m
+28 w
+E
+B
+2424 1254 m
+28 z
+E
+B
+2445 1240 m
+28 w
+E
+B
+2431 1254 m
+28 z
+E
+B
+2448 1240 m
+28 w
+E
+B
+2434 1254 m
+28 z
+E
+B
+2508 1285 m
+28 w
+E
+B
+2494 1299 m
+28 z
+E
+B
+2543 1382 m
+28 w
+E
+B
+2529 1396 m
+28 z
+E
+B
+2546 1382 m
+28 w
+E
+B
+2532 1396 m
+28 z
+E
+B
+2553 1382 m
+28 w
+E
+B
+2539 1396 m
+28 z
+E
+B
+2567 1441 m
+28 w
+E
+B
+2553 1455 m
+28 z
+E
+B
+2571 1441 m
+28 w
+E
+B
+2557 1455 m
+28 z
+E
+B
+2574 1441 m
+28 w
+E
+B
+2560 1455 m
+28 z
+E
+B
+2578 1441 m
+28 w
+E
+B
+2564 1455 m
+28 z
+E
+B
+2620 1613 m
+28 w
+E
+B
+2606 1627 m
+28 z
+E
+B
+2627 1613 m
+28 w
+E
+B
+2613 1627 m
+28 z
+E
+B
+2955 1613 m
+28 w
+E
+B
+2941 1627 m
+28 z
+E
+B
+2962 1613 m
+28 w
+E
+B
+2948 1627 m
+28 z
+E
+2 St
+42 Sp
+B
+287 421 m
+304 x
+1 y
+18 x
+10 y
+21 x
+11 y
+77 x
+11 y
+66 x
+12 y
+13 y
+91 x
+12 y
+4 x
+13 y
+125 x
+14 y
+14 x
+13 y
+151 x
+14 y
+17 x
+14 y
+14 x
+14 y
+25 x
+14 y
+38 x
+15 y
+77 x
+14 y
+88 x
+15 y
+10 x
+14 y
+7 x
+15 y
+56 x
+15 y
+14 x
+15 y
+3 x
+15 y
+63 x
+15 y
+35 x
+16 y
+95 x
+15 y
+14 x
+16 y
+7 x
+15 y
+136 x
+16 y
+105 x
+16 y
+63 x
+16 y
+143 x
+16 y
+4 x
+16 y
+77 x
+16 y
+7 x
+16 y
+24 x
+16 y
+11 x
+16 y
+28 x
+17 y
+17 x
+19 y
+63 x
+25 y
+60 x
+29 y
+49 x
+31 y
+17 x
+32 y
+21 x
+36 y
+24 x
+40 y
+1 x
+46 y
+377 x
+E
+B
+287 421 m
+213 x
+56 y
+53 x
+35 y
+28 x
+30 y
+10 x
+29 y
+18 x
+28 y
+21 x
+27 y
+77 x
+26 y
+66 x
+26 y
+25 y
+91 x
+25 y
+4 x
+24 y
+125 x
+25 y
+14 x
+24 y
+151 x
+24 y
+17 x
+24 y
+14 x
+23 y
+25 x
+24 y
+38 x
+23 y
+77 x
+23 y
+88 x
+23 y
+10 x
+23 y
+7 x
+23 y
+56 x
+23 y
+14 x
+22 y
+3 x
+23 y
+63 x
+23 y
+35 x
+22 y
+95 x
+23 y
+14 x
+23 y
+7 x
+23 y
+136 x
+23 y
+105 x
+23 y
+63 x
+22 y
+143 x
+23 y
+4 x
+23 y
+77 x
+22 y
+7 x
+23 y
+24 x
+22 y
+11 x
+23 y
+28 x
+24 y
+17 x
+27 y
+63 x
+45 y
+60 x
+61 y
+49 x
+66 y
+17 x
+64 y
+21 x
+83 y
+24 x
+131 y
+1 x
+127 y
+377 x
+E
+1 St
+1.5 Sx
+1 Sd
+(Valve replacement data) 1671 2282 0.5 T
+Z
+
+%%Page: 4 4
+%%PageOrientation: Landscape
+A
+1 St
+1 Sw
+1 SC
+0 Sr
+49 Sp
+1 Sx
+0.089641 0.954086 0.150253 0.879209 So
+0 1 0 1 Sg
+0 Sh
+0 Sd
+%%IncludeResource: font Helvetica
+1 Sf
+B
+756 421 m
+165 138 h
+247 207 h
+219 184 h
+266 223 h
+191 160 h
+164 138 h
+153 128 h
+153 128 h
+163 137 h
+192 161 h
+E
+2 St
+50 Sp
+B
+390 421 m
+223 138 h
+328 207 h
+279 184 h
+317 223 h
+220 160 h
+164 138 h
+142 128 h
+129 128 h
+129 137 h
+146 161 h
+E
+51 Sp
+B
+1044 421 m
+120 138 h
+192 207 h
+172 184 h
+218 223 h
+185 160 h
+175 138 h
+196 128 h
+196 128 h
+214 137 h
+240 161 h
+E
+1 St
+42 Sp
+1 Sd
+(Time of Cracking \(Hours x 100\)) 1671 112 0.5 T
+90 Sr
+90 Sh
+(Percent) 42 1223 0.5 T
+0 Sr
+0 Sh
+407 357 m
+35 z
+989 357 m
+35 z
+2339 357 m
+35 z
+2920 357 m
+35 z
+E
+407 357 m
+2513 x
+E
+(5) 407 252 0.5 T
+(10) 989 252 0.5 T
+(50) 2339 252 0.5 T
+(100) 2920 252 0.5 T
+0 1 0 1 So
+0 Sd
+2768 1732 287 357 c
+0.089641 0.954086 0.150253 0.879209 So
+1 Sd
+287 421 m
+35 w
+287 559 m
+35 w
+287 766 m
+35 w
+287 950 m
+35 w
+287 1173 m
+35 w
+287 1333 m
+35 w
+287 1471 m
+35 w
+287 1599 m
+35 w
+287 1727 m
+35 w
+287 1864 m
+35 w
+287 2025 m
+35 w
+E
+287 421 m
+1604 y
+E
+( 1) 217 421 1 T
+( 2) 217 559 1 T
+( 5) 217 766 1 T
+(10) 217 950 1 T
+(20) 217 1173 1 T
+(30) 217 1333 1 T
+(40) 217 1471 1 T
+(50) 217 1599 1 T
+(60) 217 1727 1 T
+(70) 217 1864 1 T
+(80) 217 2025 1 T
+1.5 Sx
+(Turbine Data) 1671 2282 0.5 T
+43 Sp
+1 Sx
+0 Sd
+/Pc Pu B
+690 851 m
+299 x
+153 x
+129 x
+112 86 h
+99 x
+88 174 h
+80 x
+73 101 h
+67 x
+62 x
+58 x
+54 337 h
+51 x
+48 154 h
+46 x
+43 x
+41 x
+39 2 h
+37 x
+Pd
+E
+Z
+%%Trailer
+%%Pages: 4
+%%DocumentNeededResources: font Helvetica
+W
+%%EOF

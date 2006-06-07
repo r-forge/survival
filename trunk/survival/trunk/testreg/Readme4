@@ -1,0 +1,89 @@
+ Tested on 22 Nov 2004.
+
+ Three changes from before:
+   All plots are now sent to postscript (a few were still defaulting to motif)
+   The plots and print for the insultating fluids example were changed a
+bit in reliability.s, to more closely match the SAS output.  (Just making
+sure that we can agree).  The "EV Scale and Weibull shape" output changed.
+   One bug in reliability.s was fixed, so one "Problem" message is gone, and
+a listing downstream of it is quite different.
+
+  Nothing that showed a problem with the survival routines.
+
+---------
+  One change was noted by Insightful
+
+Date: Wed, 8 Dec 2004 07:35:12 -0800
+From: Stephen Kaluzny <spk@insightful.com>
+To: Terry Therneau <therneau@mayo.edu>
+Subject: survfit changed
+Content-Disposition: inline
+User-Agent: Mutt/1.2.5.1i
+
+Terry,
+
+Our QA team noticed that the results from survfit changed between
+Survival5 and Survial6.  For some data at least, the length of some
+of the return objects are now one longer.  Is this intentional?
+
+An example from your test suite (testreg/reliability.s):
+
+kfit <- survfit(Surv(time1, time2, type="interval2") ~ 1, data=cracks,
+	weight=n, type="fleming")
+
+> all.equal(kfit.old, kfit.new)
+[1] "Component time: Lengths: 8, 9"     "Component n.risk: Lengths: 8, 9"  
+[3] "Component n.event: Lengths: 8, 9"  "Component n.censor: Lengths: 8, 9"
+[5] "Component surv: Lengths: 8, 9"     "Component std.err: Lengths: 8, 9" 
+[7] "Component lower: Lengths: 8, 9"    "Component upper: Lengths: 8, 9" 
+
+-Stephen
+
+-------------------------------
+
+And here is my long answer:
+
+     The old code has the times wrong, this is fixed in the new.
+     
+     In the new code, I have a special code for a case encountered here,
+and after further thought I'm not sure I like it.  So this is, if you will,
+a "design question".  The new code is technically correct in its answer.
+
+ The reality
+ 
+  1. The correct estimate is .8742515 at time (6.12 + 19.92)/2.  Well, actually
+the MLE only says that the jump is somewhere between 6.12 and 19.92, but
+the generally agreed upon convention is to put it in the middle.
+
+  2. The estimate has other jumps to the left of 6.12, but we don't know
+where.  (There are 5 events before time 6.12)
+
+ Solutions:
+    a. Assume that the 5 events all happened together at (0 + 6.12)/2.  Then
+the first time value would be 3.06, with 5 events and a survival of .97.
+    b. Assume the 5 all happened just moments before 6.12.  This is what the
+older code did.
+    c. Treat the left tail of the curve just like we do the right tail.
+Make surv(6.12) = survival at 13.02, so that the plotting routine will draw
+a horizontal line over towards the left for as far as "we know its horizontal".
+But it won't draw the connection from there to 0.  (There are jumps, but we
+don't know where).  The n.event at 6.12 is 0.
+    d. Throw away the first point- start the curve at 13.02.  This is what
+SAS does.  Definitely subpar.
+
+   The new routine does "c".  It leads to exactly the right plot behavior. 
+On the down side, sum(fit$n.event) does not give the total number of events
+that are known to happen.  That's the part I don't like.  But the current
+result is the best that I know how to give.  I'd let it stand.
+
+--------------------------
+
+Oh, but things get complicated.
+I explained the issue to Beth, and drew a picture.  Based on that picture,
+I realized that the above isn't quite right.
+
+  The 5 subjects had an event some time before 6.12.
+  So, by time 6.12 (or earlier), the survival curve has dropped to (167-5)/167
+  The bit of horizontal line from 6.02 to 13.02 should be at the level of
+.970, not .874.  The extension was right, not the value.
+
