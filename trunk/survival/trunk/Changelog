@@ -36,7 +36,8 @@ would fail.  Pointed out by Cindy Crowson.
 27Sep05: Found and fixed a nasty bug in survfit.  When method='fh2' and
 there were multiple groups I had a subscripting bug, leading to vectors
 that were supposed to be the same length, but weren't, passed into C.
-The curves are obviously wrong -- survival precipitously drops to zero.
+The resulting curves were obviously wrong -- survival precipitously drops 
+to zero.
 
 7Feb06: Fix a problem in the coxph iteration (coxfit2.c, coxfit5, agfit3,
 agfit5, agexact).  It will likely never catch anyone again, even if I 
@@ -55,3 +56,15 @@ the routine).
 fit <- survfit(Surv(time, status) ~ ph.ecog, lung), then fit[2:1] did
 not reorder the output correctly.  I had never tested putting the 
 subscripts in non-increasing order.
+
+26Apr06: Fix bug in summary.survfit, pointed out by Bob Treder.  With
+the times option, the value of n.risk would be wrong for "in between"
+times; e.g., the data had events and/or censoring at times 10,
+20,... and we asked for printout at time 15.  It should give n.risk at time
+20, it was returning the value at time 10. Interestingly, the code had
+a very careful treatment of this case, along with an example in the
+comments, and the "the right answer is" part of the comment was wrong!
+So the code correctly computed an incorrect answer.  Added another
+test case to the test suite, survtest2.
+
+

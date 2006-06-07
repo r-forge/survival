@@ -1,4 +1,4 @@
-#SCCS $Id: summary.survfit.s,v 5.10 2002-08-06 13:22:49 therneau Exp $
+# $Id: summary.survfit.s,v 5.11 2006-06-07 12:23:07 therneau Exp $
 #
 # Version with no C code, using approx() to do the subscript
 #  calculations
@@ -89,7 +89,7 @@ summary.survfit <- function(object, times, censored=F,
 	if (!is.null(fit$n.censor)) n.censor<- vector('list', nstrat)
 	n <- length(stemp)
 	for (i in 1:nstrat) {
-	    who <- (1:n)[stemp==i]
+	    who <- (1:n)[stemp==i]  # the rows of the object for this strata
 	    stime <- fit$time[who]
 
 	    # First, toss any printing times that are outside our range
@@ -109,30 +109,41 @@ summary.survfit <- function(object, times, censored=F,
 	    #  corresponding to the list of "ptimes".  If the input
 	    #  data had stime=c(10,20) and ptimes was c(5,10,15,20),
 	    #  the result would be 1,2,2,3.
-	    # For n.risk we want a slightly different index: 2,2,2,3.
-	    #  The number at risk at time 15 = number at risk at time 10,
-	    #  but the number at risk before time 15 is not 0 (like the
-	    #  survival), it is the number at risk at time 10 - #entered at 10
+	    # For n.risk we want a slightly different index: 2,2,3,3.
+	    #  "In between" times point to the next higher index for n.risk,
+	    #  but the next lower one for survival. (Survival drops at time t,
+	    #  the n.risk immediately afterwords at time t+0: you were at
+	    #  risk just before you die, but not a moment after). The
+	    #  extra point needs to be added at the end.
 	    #
-	    temp1 <- approx(c(mintime, stime), 0:length(stime), xout=ptimes,
+	    ntime <- length(stime)  #number of points
+	    temp1 <- approx(c(mintime, stime), 0:ntime, xout=ptimes,
 			    method='constant', f=0, rule=2)$y
 	    indx1[[i]] <- ifelse(temp1==0, 1, 1+ who[pmax(1,temp1)])
-	    n.event[[i]] <- cfun(temp1+1, fit$n.event[who])
-
-	    if (!is.null(fit$n.censor))
-		    n.censor[[i]] <- cfun(temp1+1, fit$n.censor[who])
-	    if (is.null(fit$n.enter)) temp2 <- 0
-	    else  {
-		temp2 <- fit$n.enter[who[1]]
-		n.enter[[i]] <- cfun(temp1+1, fit$n.enter[who])
-		}
-
-	    n.risk[[i]] <- ifelse(temp1==0, fit$n.risk[who[1]] - temp2,
-				            fit$n.risk[who[pmax(1,temp1)]])
             # Why not just "who[temp1]" instead of who[pmax(1,temp1)] in the
             #  line just above?  When temp1 has zeros, the first expression
             #  gives a vector that is shorter than temp1, and the ifelse
             #  doesn't work right due to mismatched lengths.  
+	    n.event[[i]] <- cfun(temp1+1, fit$n.event[who])
+
+	    if (!is.null(fit$n.censor)) {
+		    n.censor[[i]] <- cfun(temp1+1, fit$n.censor[who])
+		    j <- who[ntime]  #last time point in the data
+		    last.n <- fit$n.risk[j] - (fit$n.event[j]+ fit$n.censor[j])
+		    }
+	    else {
+		# this is for the older survfit objects, which don't contain
+		#  n.censor.  In this case, we don't know how many of the
+		#  people at the last time are censored then & how many go
+		#  on further.  Assume we lose them all.  Note normally
+		#  extend=F, so this number isn't printed anyway.
+		last.n <- 0
+		}
+
+	    temp1 <- approx(stime, 1:ntime, xout=ptimes,
+			    method='constant', f=1, rule=2)$y
+	    n.risk[[i]] <- ifelse(ptimes>max(stime), last.n,
+				  fit$n.risk[who[temp1]])
 	    }
 
 	# Now create the output list
