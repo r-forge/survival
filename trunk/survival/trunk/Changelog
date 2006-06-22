@@ -67,4 +67,8 @@ comments, and the "the right answer is" part of the comment was wrong!
 So the code correctly computed an incorrect answer.  Added another
 test case to the test suite, survtest2.
 
+6Jun06: Sent the suite off to Insightful, so Bob gets the updates.
 
+22Jun06: Update match.ratetable, so that more liberal matches are now
+allowed.  For instance,  'F', 'f', 'female', 'fem', 'FEMA', etc are 
+now all considered matches to the dimname "female" in survexp.us.

@@ -1,4 +1,4 @@
-# SCCS $Id: match.ratetable.s,v 4.5 1997-11-18 14:15:17 therneau Exp $
+# SCCS $Id: match.ratetable.s,v 4.6 2006-06-22 15:13:50 therneau Exp $
 # Do a set of error checks on whether the ratetable() vars match the
 #   actual ratetable
 # This is called by pyears and survexp, but not by users
@@ -29,32 +29,43 @@ match.ratetable <- function(R, ratetable) {
     efac  <- attr(ratetable, 'factor')
     for (i in (1:nd)) {
 	if (const[i]) {   #user put in a constant
-	    temp <- match(levlist[[i]], dtemp[[i]])
-	    if (is.na(temp)) {
-		temp <- as.numeric(levlist[[i]])
-		if (is.na(temp))
-		       stop(paste("Invalid value in ratetable() for variable",
+            if (efac[i] ==0) {  # the index is continuous
+                temp <- as.numeric(levlist[[i]])
+                if (is.na(temp) )
+                    stop(paste("Invalid value in ratetable() for variable",
 				 dimid[i]))
-		if (efac[i]==1) {  # this level is a factor
-		    if (temp<=0 || temp!=floor(temp) || temp >length(dtemp[[i]]))
+                    }
+            else {  # the index is discrete
+                temp <- charmatch(casefold(levlist[[i]]), casefold(dtemp[[i]]))
+		if (is.na(temp)) {
+                    # It doesn't match, but maybe they put in the level number
+                    temp <- as.numeric(levlist[[i]])
+                    if (is.na(temp) || temp <=0 ||
+                        temp!=floor(temp) || temp >length(dtemp[[i]]))
 		       stop(paste("Invalid value in ratetable() for variable",
 				 dimid[i]))
 		    }
-		else stop(paste("Invalid value in ratetable() for variable",
-					dimid[i]))
+                if (temp==0) 
+                    stop(paste("Non-unique ratetable match for variable",
+                               dimid[i]))
 		}
 	    R[,i] <- temp
 	    call <- paste(call, temp)
 	    }
+
 	else if (length(levlist[[i]]) >0) {  #factor or character variable
 	    if (efac[i]!=1) stop(paste("In ratetable(),", dimid[i],
 				     "must be a continuous variable"))
-	    temp <- match(levlist[[i]], dtemp[[i]])
+	    temp <- charmatch(casefold(levlist[[i]]), casefold(dtemp[[i]]))
 	    if (any(is.na(temp)))
 		stop(paste("Levels do not match for ratetable() variable",
 			    dimid[i]))
+            if (any(temp==0)) 
+                stop(paste("Non-unique ratetable match for variable",
+                               dimid[i]))
 	    R[,i] <- temp[R[,i]]
 	    }
+
 	else {   # ratetable() thinks it is a continuous variable
 	    if (efac[i]==1) {   #but it's not-- make sure it is an integer
 		temp <- R[,i]
