@@ -1,4 +1,4 @@
-#SCCS $Id: untangle.specials.s,v 4.3 1998-08-30 16:04:24 therneau Exp $
+# $Id: untangle.specials.s,v 4.4 2006-08-23 21:30:54 therneau Exp $
 untangle.specials <- function(tt, special, order=1) {
 
     spc <- attr(tt, 'specials')[[special]]
@@ -7,7 +7,7 @@ untangle.specials <- function(tt, special, order=1) {
 
     facs <- attr(tt, 'factor')
     fname <- dimnames(facs)
-    ff <- apply(facs[spc,,drop=F], 2, sum)
+    ff <- apply(facs[spc,,drop=FALSE], 2, sum)
     list(vars= (fname[[1]])[spc],
 	     terms= seq(ff)[ff & match(attr(tt, 'order'), order, nomatch=0)])
     }

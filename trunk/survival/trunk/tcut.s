@@ -1,4 +1,4 @@
-# SCCS $Id: tcut.s,v 5.3 1998-11-03 14:11:57 therneau Exp $
+# $Id: tcut.s,v 5.4 2006-08-23 21:30:53 therneau Exp $
 tcut <-  function (x, breaks, labels, scale=1){
     # avoid some problems with dates
     x <- as.numeric(x)
@@ -34,7 +34,7 @@ tcut <-  function (x, breaks, labels, scale=1){
     temp
     }
 
-"[.tcut" <- function(x, ..., drop=F) {
+"[.tcut" <- function(x, ..., drop=FALSE) {
     atts <- attributes(x)
     oldClass(x) <- NULL
     x <- x[..1]
