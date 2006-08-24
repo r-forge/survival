@@ -1,12 +1,12 @@
-# SCCS $Id: anova.survreglist.s,v 1.1 1999-01-18 10:29:49 therneau Exp $
+# SCCS $Id: anova.survreglist.s,v 1.2 2006-08-24 14:36:37 m015733 Exp $
 #  The StatSci function, updated for the new survreg code
 anova.survreglist <- function(object, ..., test = c("Chisq", "none")) {
     diff.term <- function(term.labels, i)
 	    {
 		t1 <- term.labels[[1]]
 		t2 <- term.labels[[2]]
-		m1 <- match(t1, t2, F)
-		m2 <- match(t2, t1, F)
+		m1 <- match(t1, t2, FALSE)
+		m2 <- match(t2, t1, FALSE)
 		if(all(m1)) {
 		    if(all(m2)) return("=")
 		    else return(paste(c("", t2[ - m1]), collapse = "+"))
@@ -24,7 +24,7 @@ anova.survreglist <- function(object, ..., test = c("Chisq", "none")) {
 	UseMethod("anova")
 	}
     forms <- sapply(object, function(x) as.character(formula(x)))
-    subs <- as.logical(match(forms[2,  ], forms[2, 1], F))
+    subs <- as.logical(match(forms[2,  ], forms[2, 1], FALSE))
     if(!all(subs))
 	    warning("Some fit objects deleted because response differs from the first model")
     if(sum(subs) == 1)
@@ -47,7 +47,7 @@ anova.survreglist <- function(object, ..., test = c("Chisq", "none")) {
 		      "-2*LL" = m2loglik, 
 		      Test = effects, 
 		      Df = c(NA, ddf), 
-		      Deviance = c(NA, dm2loglik), check.names = F)
+		      Deviance = c(NA, dm2loglik), check.names = FALSE)
     aod <- as.anova(aod, heading)
     if(test != "none") {
 	n <- length(object[[1]]$residuals)

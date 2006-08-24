@@ -1,4 +1,4 @@
-# SCCS $Id: anova.survreg.s,v 1.1 1999-01-18 10:29:49 therneau Exp $
+# SCCS $Id: anova.survreg.s,v 1.2 2006-08-24 14:32:43 m015733 Exp $
 #  The Statsci anova.survreg, updated for the new code
 anova.survreg <- function(object, ..., test = c("Chisq", "none")) {
     test <- match.arg(test)
@@ -44,7 +44,7 @@ anova.survreg <- function(object, ..., test = c("Chisq", "none")) {
 		 "Terms added sequentially (first to last)")
     aod <- data.frame(Df = df, Deviance = dev, "Resid. Df" = df.res, 
 		      "-2*LL" = loglik, row.names = c("NULL", term.labels), 
-		      check.names = F)
+		      check.names = FALSE)
     attr(aod, "heading") <- heading
     class(aod) <- c("anova", "data.frame")
     if(test == "none")
