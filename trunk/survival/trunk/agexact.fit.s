@@ -1,4 +1,4 @@
-#SCCS $Id: agexact.fit.s,v 4.20 1999-06-24 15:21:56 therneau Exp $
+#SCCS $Id: agexact.fit.s,v 4.21 2006-08-24 14:25:26 m015733 Exp $
 agexact.fit <- function(x, y, strata, offset, init, control,
 			  weights, method, rownames)
     {
@@ -65,7 +65,7 @@ agexact.fit <- function(x, y, strata, offset, init, control,
     var <- matrix(agfit$imat,nvar,nvar)
     coef <- agfit$coef
     if (agfit$flag < nvar) which.sing <- diag(var)==0
-    else which.sing <- rep(F,nvar)
+    else which.sing <- rep(FALSE,nvar)
 
     infs <- abs(agfit$u %*% var)
     if (control$iter.max >1) {

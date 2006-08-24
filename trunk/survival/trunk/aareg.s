@@ -1,4 +1,4 @@
-# SCCS $Id: aareg.s,v 1.3 2004-11-04 07:45:25 therneau Exp $
+# SCCS $Id: aareg.s,v 1.4 2006-08-24 14:23:47 m015733 Exp $
 # Aalen's additive regression model
 #  Originally, this tried to call coxph with certain options.
 #  But we found the passing ... to a model method just doesn't work (for
@@ -8,12 +8,12 @@
 #   yet supported by the downstream printing.
 #
 aareg <- function(formula, data=sys.parent(), weights, subset, na.action,
-                  qrtol=1e-7, nmin, dfbeta=F, taper=1,
+                  qrtol=1e-7, nmin, dfbeta=FALSE, taper=1,
 		  test = c('aalen', 'variance', 'nrisk'),
-		  model=F, x=F, y=F) {
+		  model=FALSE, x=FALSE, y=FALSE) {
     call <- match.call()
 
-    m <- match.call(expand=F)
+    m <- match.call(expand=FALSE)
     temp <- c("", "formula", "data", "weights", "subset", "na.action")
     m <- m[ match(temp, names(m), nomatch=0)]
     special <- c("strata", "cluster")
@@ -47,11 +47,11 @@ aareg <- function(formula, data=sys.parent(), weights, subset, na.action,
     cluster<- attr(Terms, "specials")$cluster
     dropx <- NULL
     if (length(cluster)) {
-	dfbeta <- T
+	dfbeta <- TRUE
 	tempc <- untangle.specials(Terms, 'cluster', 1:10)
 	ord <- attr(Terms, 'order')[tempc$terms]
 	if (any(ord>1)) stop ("Cluster can not be used in an interaction")
-	cluster <- strata(m[,tempc$vars], shortlabel=T)  #allow multiples
+	cluster <- strata(m[,tempc$vars], shortlabel=TRUE)  #allow multiples
 	cluster <- as.numeric(cluster) #labels don't matter, and processing
 	                               # is a bit faster without them
 	dropx <- tempc$terms
@@ -71,8 +71,8 @@ aareg <- function(formula, data=sys.parent(), weights, subset, na.action,
        stop("Strata terms not allowed")
        }
 
-    if (length(dropx)) X <- model.matrix(Terms[-dropx], m)[,-1,drop=F]
-    else               X <- model.matrix(Terms, m)[,-1,drop=F]
+    if (length(dropx)) X <- model.matrix(Terms[-dropx], m)[,-1,drop=FALSE]
+    else               X <- model.matrix(Terms, m)[,-1,drop=FALSE]
     nvar <- ncol(X)
     nused<- nrow(X)
     weights <- model.extract(m, 'weights')
@@ -102,7 +102,7 @@ aareg <- function(formula, data=sys.parent(), weights, subset, na.action,
     status <- status[ord]
     weights <- weights[ord]
     if (x) saveX <- X
-    X <- X[ord,,drop=F]
+    X <- X[ord,,drop=FALSE]
 
     storage.mode(Y) <- 'double'
     ff <- .C("coxdetail", as.integer(nused),
@@ -218,11 +218,11 @@ aareg <- function(formula, data=sys.parent(), weights, subset, na.action,
 		
             # Now collapse dfbeta, first on the deaths, and then on the cluster
             if (nevent > ndeath) {
-                temp1 <- rowsum(temp1, times[deaths], reorder=F)
-                temp0 <- rowsum(temp0, times[deaths], reorder=F)
+                temp1 <- rowsum(temp1, times[deaths], reorder=FALSE)
+                temp0 <- rowsum(temp0, times[deaths], reorder=FALSE)
                 }
-            dmat[,1,] <- rowsum(t(temp0), cluster[ord], reorder= F)
-            dmat[,2,] <- rowsum(t(temp1), cluster[ord], reorder =F)
+            dmat[,1,] <- rowsum(t(temp0), cluster[ord], reorder= FALSE)
+            dmat[,2,] <- rowsum(t(temp1), cluster[ord], reorder =FALSE)
 	    }
 
 	# Compute the test statistic, including the intercept term
@@ -299,9 +299,9 @@ aareg <- function(formula, data=sys.parent(), weights, subset, na.action,
 		    test.dfbeta[,1] <- test.dfbeta[,1] + temp0*twt[i,1]
 		    }
 		dmat[,-1,dindex[i]] <- dmat[,-1, dindex[i]] +
-                                       rowsum(temp1, cluster[ord], reorder=F)
+                                       rowsum(temp1, cluster[ord], reorder=FALSE)
 		dmat[,1, dindex[i]] <- dmat[,1,dindex[i]] +
-			              rowsum(temp0, cluster[ord], reorder=F)
+			              rowsum(temp0, cluster[ord], reorder=FALSE)
 		}
 	    }
         temp <- apply(means*coefficient, 1, sum) # xbar * coef at time t
@@ -331,7 +331,7 @@ aareg <- function(formula, data=sys.parent(), weights, subset, na.action,
 	#   and each term an n by p matrix (one row per person)
 	# The dfbeta one is essentially [sum(term[i])]^2
 	#   the test.dfbeta matrix contains this sum over death times
-	temp <- rowsum(test.dfbeta, cluster, reorder=F)
+	temp <- rowsum(test.dfbeta, cluster, reorder=FALSE)
 	test.var2 <- t(temp) %*% temp
 	}
 
@@ -364,12 +364,12 @@ aareg <- function(formula, data=sys.parent(), weights, subset, na.action,
     ans
     }
 
-"[.aareg" <- function(x, ..., drop=F) {
+"[.aareg" <- function(x, ..., drop=FALSE) {
     if (!inherits(x, 'aareg')) stop ("Must be an aareg object")
 
-    # There is a bug in Splus6, the "=F" on drop is ignored as a
+    # There is a bug in Splus6, the "=FALSE" on drop is ignored as a
     #   default.  Add temporary hack
-    drop <- F
+    drop <- FALSE
 
     i <- ..1
     if (is.matrix(x$coefficient)) {
