@@ -1,4 +1,4 @@
-#  SCCS   $Id: coxpenal.df.s,v 1.2 1999-02-21 16:21:20 therneau Exp $
+#  $Id: coxpenal.df.s,v 1.3 2006-08-24 16:51:24 m015733 Exp $
 #
 # degrees of freedom computation, based on Bob Gray's paper
 #
@@ -53,7 +53,7 @@ coxpenal.df <- function(hmat, hinv, fdiag, assign.list, ptype, nvar,
 	d1 <- fdiag[nr1]
 	d2 <- fdiag[nr2]
 	temp <- t(hinv[nr1,])
-	temp2<- t(hinv[nr2,,drop=F])
+	temp2<- t(hinv[nr2,,drop=FALSE])
 	A.diag <- d1 + c(rep(1,nvar) %*% (temp^2*d2))
 	B  <- hinv[nr1,] %*% (d2 * temp2)
 	C  <- hinv[nr2,] %*% (d2 * temp2)  #see notation in paper
