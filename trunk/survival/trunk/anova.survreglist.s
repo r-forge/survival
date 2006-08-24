@@ -1,4 +1,4 @@
-# SCCS $Id: anova.survreglist.s,v 1.2 2006-08-24 14:36:37 m015733 Exp $
+# $Id: anova.survreglist.s,v 1.3 2006-08-24 16:47:08 m015733 Exp $
 #  The StatSci function, updated for the new survreg code
 anova.survreglist <- function(object, ..., test = c("Chisq", "none")) {
     diff.term <- function(term.labels, i)
