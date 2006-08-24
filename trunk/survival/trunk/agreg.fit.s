@@ -1,4 +1,4 @@
-# SCCS $Id: agreg.fit.s,v 4.23 2001-07-11 15:04:05 therneau Exp $
+# SCCS $Id: agreg.fit.s,v 4.24 2006-08-24 14:30:37 m015733 Exp $
 agreg.fit <- function(x, y, strata, offset, init, control,
 			weights, method, rownames)
     {
@@ -31,10 +31,10 @@ agreg.fit <- function(x, y, strata, offset, init, control,
 	nvar <- 1
 	x <- matrix(1:n, ncol=1)
 	maxiter <- 0
-	nullmodel <- T
+	nullmodel <- TRUE
 	}
     else {
-	nullmodel <- F
+	nullmodel <- FALSE
 	maxiter <- control$iter.max
 	}
 
@@ -68,7 +68,7 @@ agreg.fit <- function(x, y, strata, offset, init, control,
     var <- matrix(agfit$imat,nvar,nvar)
     coef <- agfit$coef
     if (agfit$flag < nvar) which.sing <- diag(var)==0
-	else which.sing <- rep(F,nvar)
+	else which.sing <- rep(FALSE,nvar)
 
     infs <- abs(agfit$u %*% var)
     if (maxiter >1) {
