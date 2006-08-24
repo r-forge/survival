@@ -1,4 +1,4 @@
-#SCCS $Id: Surv.s,v 5.10 2001-12-30 17:03:38 therneau Exp $
+#SCCS $Id: Surv.s,v 5.11 2006-08-24 14:20:44 m015733 Exp $
 # Package up surivival type data as a structure
 #
 Surv <- function(time, time2, event,
@@ -40,7 +40,7 @@ Surv <- function(time, time2, event,
 	    else status <- time2
 	    temp <- (status==0 | status==1)
 	    status <- ifelse(temp, status, NA)
-	    if (!all(temp[who2], na.rm=T))
+	    if (!all(temp[who2], na.rm=TRUE))
 		    warning("Invalid status value, converted to NA")
 	    }
 	else stop("Invalid status value, must be logical or numeric")
@@ -62,7 +62,7 @@ Surv <- function(time, time2, event,
 		else status <- event
 		temp <- (status==0 | status==1)
 		status <- ifelse(temp, status, NA)
-		if (!all(temp[who2], na.rm=T))
+		if (!all(temp[who2], na.rm=TRUE))
 		    warning("Invalid status value, converted to NA")
 		}
 	    else stop("Invalid status value, must be logical or numeric")
@@ -90,7 +90,7 @@ Surv <- function(time, time2, event,
 		   stop("Invalid status value, must be logical or numeric")
 		temp <- (event==0 | event==1| event==2 | event==3)
 		status <- ifelse(temp, event, NA)
-		if (!all(temp, na.rm=T))
+		if (!all(temp, na.rm=TRUE))
 			warning("Status must be 0, 1, 2 or 3; converted to NA")
 		}
 	    if (any(event==3)) {
@@ -118,7 +118,7 @@ Surv <- function(time, time2, event,
     ss
     }
 
-print.Surv <- function(x, quote=F, ...) {
+print.Surv <- function(x, quote=FALSE, ...) {
     print(as.character.Surv(x), quote=quote, ...)
     invisible(x)
     }
@@ -152,11 +152,11 @@ as.character.Surv <- function(xx) {
 	}
     }
 
-"[.Surv" <- function(x, ..., drop=F) {
+"[.Surv" <- function(x, ..., drop=FALSE) {
     # If only 1 subscript is given, the result will still be a Surv object,
     #   and the drop argument is ignored.
-    # Or, if drop=F and subscript 2 is not present, return a Surv object.
-    # I would argue that x[3:4,,drop=F] should return a matrix, since
+    # Or, if drop=FALSE and subscript 2 is not present, return a Surv object.
+    # I would argue that x[3:4,,drop=FALSE] should return a matrix, since
     #  the user has implicitly specified that they want a matrix.
     #  However, [.dataframe calls [.Surv with the extra comma; it's
     #  behavior drives the choice of default.
@@ -166,7 +166,7 @@ as.character.Surv <- function(xx) {
 	type <- attr(x, "type")
 	oldClass(x) <- NULL
 #	attr(x, "type") <- NULL
-	x <- x[..1,, drop=F]
+	x <- x[..1,, drop=FALSE]
 	attr(x, "type") <- type
 	oldClass(x) <- cl
 	x
