@@ -1,4 +1,4 @@
-# SCCS $Id: dsurvreg.s,v 1.1 2001-07-11 07:47:25 therneau Exp $
+# $Id: dsurvreg.s,v 1.2 2006-08-25 21:15:41 m015733 Exp $
 # The density, quantile, and CDF functions for those distributions
 #   supported by survreg
 #
