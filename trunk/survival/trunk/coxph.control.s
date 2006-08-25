@@ -1,4 +1,4 @@
-# SCCS $Id: coxph.control.s,v 5.6 2000-06-12 07:48:56 therneau Exp $
+# $Id: coxph.control.s,v 5.7 2006-08-25 18:38:53 m015733 Exp $
 #
 # Gather all of the control parameters for coxph into one spot
 #
