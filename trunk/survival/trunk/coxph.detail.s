@@ -1,5 +1,5 @@
-#SCCS $Id: coxph.detail.s,v 4.12 2002-04-29 14:24:43 therneau Exp $
-coxph.detail <-  function(object, riskmat=F) {
+# $Id: coxph.detail.s,v 4.13 2006-08-25 18:40:05 m015733 Exp $
+coxph.detail <-  function(object, riskmat=FALSE) {
     method <- object$method
     if (method!='breslow' && method!='efron')
 	stop(paste("Detailed output is not available for the", method,
@@ -16,7 +16,7 @@ coxph.detail <-  function(object, riskmat=F) {
     strats <- attr(Terms, "specials")$strata
 
     if (is.null(y)  ||  is.null(x)) {
-	temp <- coxph.getdata(object, y=T, x=T, strata=T)
+	temp <- coxph.getdata(object, y=TRUE, x=TRUE, strata=TRUE)
 	y <- temp$y
 	x <- temp$x
 	if (length(strats)) strat <- temp$strata

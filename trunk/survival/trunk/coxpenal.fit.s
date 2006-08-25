@@ -1,4 +1,4 @@
-# SCCS $Id: coxpenal.fit.s,v 1.12 2002-03-13 19:51:49 therneau Exp $
+# $Id: coxpenal.fit.s,v 1.13 2006-08-25 18:37:34 m015733 Exp $
 #
 # General penalized likelihood
 #
@@ -30,7 +30,7 @@ coxpenal.fit <- function(x, y, strata, offset, init, control,
 	    newstrat  <- cumsum(table(strata))
 	    }
 	status <- y[,3]
-	andersen <- T
+	andersen <- TRUE
 	routines <- paste('agfit5', c('a', 'b', 'c'), sep='_')
         }
     else {
@@ -44,7 +44,7 @@ coxpenal.fit <- function(x, y, strata, offset, init, control,
 	    newstrat <-  cumsum(table(strata))
 	    }
 	status <- y[,2]
-	andersen <- F
+	andersen <- FALSE
 	routines <- paste('coxfit5', c('a', 'b', 'c'), sep='_')
         }
 
@@ -94,12 +94,12 @@ coxpenal.fit <- function(x, y, strata, offset, init, control,
 
     if (any(sparse)) {
 	sparse.attr <- (pattr[sparse])[[1]]  #can't use [[sparse]] directly
-	                                     # if 'sparse' is a T/F vector
+	                                     # if 'sparse' is a TRUE/FALSE vector
 	fcol <- unlist(pcols[sparse])
 	if (length(fcol) > 1) stop("Sparse term must be single column")
 
 	# Remove the sparse term from the X matrix
-	xx <- x[, -fcol, drop=F]
+	xx <- x[, -fcol, drop=FALSE]
 	for (i in 1:length(assign)){
 	    j <- assign[[i]]
 	    if (j[1] > fcol) assign[[i]] <- j-1
@@ -128,19 +128,19 @@ coxpenal.fit <- function(x, y, strata, offset, init, control,
 		coxlist1 <- list(coef=newcoef, first= -as.double(temp$first),
 				 second = as.double(temp$second),
 				 penalty= -as.double(temp$penalty),
-				 flag   = F)
+				 flag   = FALSE)
 		}
 	    else {
 		coxlist1 <- list(coef=newcoef, first= double(nfrail), 
 				 second = double(nfrail),
 				 penalty= -as.double(temp$penalty),
-				 flag   = T)
+				 flag   = TRUE)
 		}
 	    if (any(sapply(coxlist1, length) != c(rep(nfrail,3), 1, 1)))
 		    stop("Incorrect length in coxlist1")
 	    coxlist1})
 	.Call('init_coxcall1', as.integer(sys.nframe()), as.integer(nfrail),
-	          expr1, copy=c(F,F,F))
+	          expr1, copy=c(FALSE,FALSE,FALSE))
 	}
     else {
 	xx <- x
@@ -165,9 +165,9 @@ coxpenal.fit <- function(x, y, strata, offset, init, control,
 						n.eff,extralist[[i]])
 		if (!is.null(temp$recenter)) 
 		    tcoef[pen.col] <- tcoef[pen.col]-  temp$recenter
-		if (temp$flag) coxlist2$flag[pen.col] <- T
+		if (temp$flag) coxlist2$flag[pen.col] <- TRUE
 		else {
-		    coxlist2$flag[pen.col] <- F
+		    coxlist2$flag[pen.col] <- FALSE
 		    coxlist2$first[pen.col] <- -temp$first
 		    if (full.imat) {
 			tmat <- matrix(coxlist2$second, nvar, nvar)
@@ -185,18 +185,18 @@ coxpenal.fit <- function(x, y, strata, offset, init, control,
 	    coxlist2})
 	if (full.imat) {
 	    coxlist2 <- list(coef=double(nvar), first=double(nvar), 
-		    second= double(nvar*nvar), penalty=0.0, flag=rep(F,nvar))
+		    second= double(nvar*nvar), penalty=0.0, flag=rep(FALSE,nvar))
 	    length2 <- c(nvar, nvar, nvar*nvar, 1, nvar)
 	    }  
 	else {
 	    coxlist2 <- list(coef=double(nvar), first=double(nvar),
-		    second=double(nvar), penalty= 0.0, flag=rep(F,nvar))
+		    second=double(nvar), penalty= 0.0, flag=rep(FALSE,nvar))
 	    length2 <- c(nvar, nvar, nvar, 1, nvar)
 	    }
 	.Call("init_coxcall2", as.integer(sys.nframe()), as.integer(nvar), 
-	      expr2, copy=c(F,F,F))
+	      expr2, copy=c(FALSE,FALSE,FALSE))
         }
-    else full.imat <- F
+    else full.imat <- FALSE
 
     #
     # Set up initial values for the coefficients
@@ -331,7 +331,7 @@ coxpenal.fit <- function(x, y, strata, offset, init, control,
 	# If any penalties were infinite, the C code has made fdiag=1 out
 	#  of self-preservation (0 divides).  But such coefs are guarranteed
 	#  zero so the variance should be too.)
-	temp <- rep(F, nvar+nfrail)
+	temp <- rep(FALSE, nvar+nfrail)
 	if (nfrail>0) temp[1:nfrail] <- coxlist1$flag
 	if (ptype >1) temp[nfrail+ 1:nvar] <- coxlist2$flag
 	fdiag <- ifelse(temp, 0, coxfit$fdiag)
@@ -363,7 +363,7 @@ coxpenal.fit <- function(x, y, strata, offset, init, control,
 	#
 	# Call the control function(s)
 	#
-	done <- T
+	done <- TRUE
 	for (i in 1:length(cfun)) {
 	    pen.col <- pcols[[i]]
 	    temp <- eval(calls[i])
@@ -439,7 +439,7 @@ coxpenal.fit <- function(x, y, strata, offset, init, control,
     if (nfrail >0) {
 	lp <- offset + coxfit$fcoef[frailx]
 	if (nvar >0) {   #sparse frailties and covariates
-	    lp <- lp + x[,-fcol,drop=F] %*%coef - sum(means*coef)
+	    lp <- lp + x[,-fcol,drop=FALSE] %*%coef - sum(means*coef)
 	    list(coefficients  = coef,
 		 var    = var,
 		 var2   = var2,
