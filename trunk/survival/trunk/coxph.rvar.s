@@ -1,4 +1,4 @@
-#SCCS $Id: coxph.rvar.s,v 4.3 1994-01-18 10:30:48 therneau Exp $
+# $Id: coxph.rvar.s,v 4.4 2006-08-25 21:11:05 m015733 Exp $
 coxph.rvar <- function(fit, collapse) {
     rcall <- match.call()
     if (class(fit) != 'coxph')
@@ -7,7 +7,7 @@ coxph.rvar <- function(fit, collapse) {
     if (missing(collapse)) temp <- residuals.coxph(fit, type='dfbeta')
     else temp <- residuals.coxph(fit, type='dfbeta', collapse=collapse)
     if (any(is.na(temp)))
-       if (ncol(temp)==1) temp<- temp[!is.na(temp),,drop=F]
+       if (ncol(temp)==1) temp<- temp[!is.na(temp),,drop=FALSE]
        else               temp <- temp[!is.na(temp %*% rep(1,ncol(temp))),]
     fit$robust.var <- t(temp) %*% temp
     fit$rcall <- rcall

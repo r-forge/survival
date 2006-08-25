@@ -1,6 +1,6 @@
-# SCCS $Id: data.frame.s,v 4.1 1993-03-14 19:33:06 therneau Exp $
+# $Id: data.frame.s,v 4.2 2006-08-25 21:14:42 m015733 Exp $
 data.frame <-
-function(..., row.names = NULL, check.rows = F, check.names = T, na.strings = 
+function(..., row.names = NULL, check.rows = FALSE, check.names = TRUE, na.strings = 
 	"NA")
 {
 	if(check.rows && missing(row.names))
@@ -154,7 +154,7 @@ function(..., row.names = NULL, check.rows = F, check.names = T, na.strings =
 				for(i in 1:length(ni))
 				  call[[i + 1]] <- as.name(ni[i])
 				if(!check.names)
-				  call$check.names <- F
+				  call$check.names <- FALSE
 				call$na.strings <- na.strings
 				xi <- eval(call, xi)
 				new <- seq(from = which, length = length(xi))

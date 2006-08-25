@@ -1,4 +1,4 @@
-# $Id: coxph.fit.s,v 5.9 2006-06-07 12:20:41 therneau Exp $
+# $Id: coxph.fit.s,v 5.10 2006-08-25 21:08:33 m015733 Exp $
 coxph.fit <- function(x, y, strata, offset, init, control,
 			weights, method, rownames)
     {
@@ -32,13 +32,13 @@ coxph.fit <- function(x, y, strata, offset, init, control,
 	#  (This is why I need the rownames arg- can't use x' names)
 	# Set things up for 0 iterations on a dummy variable
 	x <- as.matrix(rep(1.0, n))
-	nullmodel <- T
+	nullmodel <- TRUE
 	nvar <- 1
 	init <- 0
 	maxiter <- 0
 	}
     else {
-	nullmodel <- F
+	nullmodel <- FALSE
 	maxiter <- control$iter.max
 	if (!missing(init) && !is.null(init)) {
 	    if (length(init) != nvar) stop("Wrong length for inital values")
@@ -86,7 +86,7 @@ coxph.fit <- function(x, y, strata, offset, init, control,
 	var <- matrix(coxfit$imat,nvar,nvar)
 	coef <- coxfit$coef
 	if (coxfit$flag < nvar) which.sing <- diag(var)==0
-	else which.sing <- rep(F,nvar)
+	else which.sing <- rep(FALSE,nvar)
 
 	infs <- abs(coxfit$u %*% var)
 	if (maxiter >1) {

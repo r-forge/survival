@@ -1,16 +1,16 @@
-#SCCS  $Id: coxph.s,v 5.13 2001-03-12 08:19:28 therneau Exp $
+# $Id: coxph.s,v 5.14 2006-08-25 21:12:40 m015733 Exp $
 # Version with general penalized likelihoods
 setOldClass(c('coxph.penal', 'coxph'))
 
 coxph <- function(formula=formula(data), data=sys.parent(),
 	weights, subset, na.action, init,
 	control, method= c("efron", "breslow", "exact"),
-	singular.ok =T, robust=F,
-	model=F, x=F, y=T, ...) {
+	singular.ok =TRUE, robust=FALSE,
+	model=FALSE, x=FALSE, y=TRUE, ...) {
 
     method <- match.arg(method)
     call <- match.call()
-    m <- match.call(expand=F)
+    m <- match.call(expand=FALSE)
     temp <- c("", "formula", "data", "weights", "subset", "na.action")
     m <- m[ match(temp, names(m), nomatch=0)]
     special <- c("strata", "cluster")
@@ -42,23 +42,23 @@ coxph <- function(formula=formula(data), data=sys.parent(),
     cluster<- attr(Terms, "specials")$cluster
     dropx <- NULL
     if (length(cluster)) {
-	if (missing(robust)) robust <- T
+	if (missing(robust)) robust <- TRUE
 	tempc <- untangle.specials(Terms, 'cluster', 1:10)
 	ord <- attr(Terms, 'order')[tempc$terms]
 	if (any(ord>1)) stop ("Cluster can not be used in an interaction")
-	cluster <- strata(m[,tempc$vars], shortlabel=T)  #allow multiples
+	cluster <- strata(m[,tempc$vars], shortlabel=TRUE)  #allow multiples
 	dropx <- tempc$terms
 	}
     if (length(strats)) {
 	temp <- untangle.specials(Terms, 'strata', 1)
 	dropx <- c(dropx, temp$terms)
 	if (length(temp$vars)==1) strata.keep <- m[[temp$vars]]
-	else strata.keep <- strata(m[,temp$vars], shortlabel=T)
+	else strata.keep <- strata(m[,temp$vars], shortlabel=TRUE)
 	strats <- as.numeric(strata.keep)
 	}
 
-    if (length(dropx)) X <- model.matrix(Terms[-dropx], m)[,-1,drop=F]
-    else               X <- model.matrix(Terms, m)[,-1,drop=F]
+    if (length(dropx)) X <- model.matrix(Terms[-dropx], m)[,-1,drop=FALSE]
+    else               X <- model.matrix(Terms, m)[,-1,drop=FALSE]
 	
     type <- attr(Y, "type")
     if (type!='right' && type!='counting')
@@ -129,18 +129,18 @@ coxph <- function(formula=formula(data), data=sys.parent(),
 	    if (length(strats)) fit2$strata <- strata.keep
 	    if (length(cluster)) {
 		temp <- residuals.coxph(fit2, type='dfbeta', collapse=cluster,
-					  weighted=T)
+					  weighted=TRUE)
 		# get score for null model
 		if (is.null(init))
 			fit2$linear.predictors <- 0*fit$linear.predictors
 		else fit2$linear.predictors <- c(X %*% init)
 		temp0 <- residuals.coxph(fit2, type='score', collapse=cluster,
-					 weighted=T)
+					 weighted=TRUE)
 		}
 	    else {
-		temp <- residuals.coxph(fit2, type='dfbeta', weighted=T)
+		temp <- residuals.coxph(fit2, type='dfbeta', weighted=TRUE)
 		fit2$linear.predictors <- 0*fit$linear.predictors
-		temp0 <- residuals.coxph(fit2, type='score', weighted=T)
+		temp0 <- residuals.coxph(fit2, type='score', weighted=TRUE)
 	        }
 	    fit$var <- t(temp) %*% temp
 	    u <- apply(as.matrix(temp0), 2, sum)
