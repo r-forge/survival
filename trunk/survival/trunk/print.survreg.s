@@ -1,4 +1,4 @@
-#SCCS  $Id: print.survreg.s,v 4.10 1998-11-30 08:29:16 therneau Exp $
+# $Id: print.survreg.s,v 4.11 2006-08-28 14:34:21 m015733 Exp $
 print.survreg <- function(x, ...)
 {
     if(!is.null(cl <- x$call)) {

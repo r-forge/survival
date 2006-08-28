@@ -1,4 +1,4 @@
-# SCCS $Id: print.aareg.s,v 1.3 2004-11-04 08:30:12 therneau Exp $
+# $Id: print.aareg.s,v 1.4 2006-08-28 14:23:29 m015733 Exp $
 print.aareg <- function(x, maxtime, test=c('aalen', 'nrisk'), scale=1) {
     if (!inherits(x, 'aareg')) stop ("Must be an addreg object")
     if (!is.null(cl<- x$call)) {

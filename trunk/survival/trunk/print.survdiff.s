@@ -1,4 +1,4 @@
-#SCCS $Date: 1997-12-29 12:32:23 $ $Id: print.survdiff.s,v 4.11 1997-12-29 12:32:23 boos Exp $
+# $Date: 2006-08-28 14:31:20 $ $Id: print.survdiff.s,v 4.12 2006-08-28 14:31:20 m015733 Exp $
 print.survdiff <- function(x, digits = max(options()$digits - 4, 3), ...) {
 
     saveopt <-options(digits=digits)

@@ -1,4 +1,4 @@
-#SCCS  $Id: print.survfit.s,v 4.22 2004-11-23 10:24:14 therneau Exp $
+# $Id: print.survfit.s,v 4.23 2006-08-28 14:32:52 m015733 Exp $
 print.survfit <- function(x, scale=1, 
 			  digits = max(options()$digits - 4, 3), ...) {
 
