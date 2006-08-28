@@ -1,4 +1,4 @@
-# SCCS  $Id: survobrien.s,v 4.5 1998-01-13 09:20:10 therneau Exp $
+# $Id: survobrien.s,v 4.6 2006-08-28 18:17:46 m015733 Exp $
 #
 # The test for survival proposed by Peter O'Brien
 #
@@ -26,7 +26,7 @@ survobrien <- function(formula, data= sys.parent()) {
 	}
 
     ord <- order(y[,1])
-    x <- as.matrix(m[ord, cont, drop=F])
+    x <- as.matrix(m[ord, cont, drop=FALSE])
     time <- y[ord,1]
     status <- y[ord,2]
     nvar <- length(cont)
@@ -44,7 +44,7 @@ survobrien <- function(formula, data= sys.parent()) {
 	who <- (time >=i)
 	nrisk <- sum(who)
 
-	temp <- apply(x[who,,drop=F], 2, rank)
+	temp <- apply(x[who,,drop=FALSE], 2, rank)
 	temp <- (2*temp -1)/ (2* nrisk)   #percentiles
 	logit<- log(temp/(1-temp))           #logits
 	deaths <- (status[who]==1 & time[who]==i)
@@ -60,7 +60,7 @@ survobrien <- function(formula, data= sys.parent()) {
 	}
 
     if (any(keepers)){
-	temp <- m[keep.index, keepers, drop=F]
+	temp <- m[keep.index, keepers, drop=FALSE]
 	names(temp) <- kname
 	data.frame(start, stop, event, temp, xx)
         }

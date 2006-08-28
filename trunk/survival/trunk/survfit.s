@@ -1,4 +1,4 @@
-# $Id: survfit.s,v 4.22 2006-04-21 21:53:31 therneau Exp $
+# $Id: survfit.s,v 4.23 2006-08-28 18:15:08 m015733 Exp $
 survfit <- function (formula, data, weights, subset, na.action, ...) {
     call <- match.call()
     # Real tricky -- find out if the first arg is "Surv(...)" without
@@ -21,7 +21,7 @@ survfit <- function (formula, data, weights, subset, na.action, ...) {
     else {
 	# Ok, I have a formula
         # grab the data and process it
-	m <- match.call(expand=F)
+	m <- match.call(expand=FALSE)
 	m$... <- NULL
 
 	Terms <- terms(formula, 'strata')
@@ -65,7 +65,7 @@ survfit <- function (formula, data, weights, subset, na.action, ...) {
 # The subscript function is bundled in here, although used most
 #  often in plotting
 
-"[.survfit" <- function(fit, ..., drop=F) {
+"[.survfit" <- function(fit, ..., drop=FALSE) {
     if (missing(..1)) i<- NULL  else i <- ..1
     if (missing(..2)) j<- NULL  else j <- ..2
     if (is.null(fit$strata)) {
