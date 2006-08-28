@@ -1,5 +1,5 @@
-# SCCS $Id: plot.aareg.s,v 1.4 2002-04-29 14:27:18 therneau Exp $
-plot.aareg <- function(x, se=T, maxtime, type='s', ...) {
+# $Id: plot.aareg.s,v 1.5 2006-08-28 14:13:57 m015733 Exp $
+plot.aareg <- function(x, se=TRUE, maxtime, type='s', ...) {
     if (!inherits(x, 'aareg')) stop ("Must be an aareg object")
 
     if (missing(maxtime)) keep <- 1:length(x$time)
