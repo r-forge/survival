@@ -1,5 +1,5 @@
-# SCCS $Id: lines.aareg.s,v 1.2 2002-04-29 14:15:11 therneau Exp $
-lines.aareg <- function(x, se=F, maxtime, type='s', ...) {
+# $Id: lines.aareg.s,v 1.3 2006-08-28 14:00:11 m015733 Exp $
+lines.aareg <- function(x, se=FALSE, maxtime, type='s', ...) {
     if (!inherits(x, 'aareg')) stop ("Must be an aareg object")
 
     if (missing(maxtime)) keep <- 1:length(x$time)
