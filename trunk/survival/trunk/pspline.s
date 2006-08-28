@@ -1,4 +1,4 @@
-# SCCS $Id: pspline.s,v 1.4 1999-02-24 08:59:47 therneau Exp $
+# $Id: pspline.s,v 1.5 2006-08-28 14:35:15 m015733 Exp $
 #
 # the p-spline function for a Cox model
 #
@@ -41,14 +41,14 @@ pspline <- function(x, df=4, theta, nterm=2.5*df, degree=3, eps=.1,
     xnames <-paste('ps(', xname, ')', 2:nvar, sep='')
 
     pfun <- function(coef, theta, n, dmat) {
-	if (theta >=1) list(penalty= 100*(1-theta), flag=T)
+	if (theta >=1) list(penalty= 100*(1-theta), flag=TRUE)
 	else {
 	    if (theta <= 0) lambda <- 0 
 	    else lambda <- theta / (1-theta)
 	    list(penalty= c(coef %*% dmat %*% coef) * lambda/2,
 		 first  = c(dmat %*% coef) * lambda ,
 		 second = c(dmat * lambda),
-		 flag=F
+		 flag=FALSE
 		 )
 	    }
         }	
@@ -84,16 +84,16 @@ pspline <- function(x, df=4, theta, nterm=2.5*df, degree=3, eps=.1,
 	temp <- list(pfun=pfun,
 		     printfun=printfun,
 		     pparm=dmat,
-		     diag =F,
+		     diag =FALSE,
 		     cparm=list(theta=theta),
 		     varname=xnames,
 		     cfun = function(parms, iter, old)
-			         list(theta=parms$theta, done=T))
+			         list(theta=parms$theta, done=TRUE))
 	}
     else if (method=='df') {
 	temp <- list(pfun=pfun,
 		     printfun=printfun,
-		     diag =F,
+		     diag =FALSE,
 		     cargs=('df'),
 		     cparm=list(df=df, eps=eps, thetas=c(1,0),
 		                dfs=c(1, nterm), guess=1 - df/nterm, ...),
@@ -106,7 +106,7 @@ pspline <- function(x, df=4, theta, nterm=2.5*df, degree=3, eps=.1,
 	temp <- list(pfun=pfun,
 		     printfun=printfun,
 		     pparm=dmat,
-		     diag =F,
+		     diag =FALSE,
 		     cargs = c('neff', 'df', 'plik'),
 		     cparm=list(eps=eps, init=c(.5, .95), 
 		                lower=0, upper=1, ...),
