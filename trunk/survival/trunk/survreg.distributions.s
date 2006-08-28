@@ -1,4 +1,4 @@
-# SCCS $Id: survreg.distributions.s,v 4.7 1999-02-06 23:39:40 therneau Exp $
+# $Id: survreg.distributions.s,v 4.8 2006-08-28 18:20:36 m015733 Exp $
 #
 # Create the survreg.distributions object
 #

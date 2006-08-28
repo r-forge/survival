@@ -1,5 +1,5 @@
 # 
-#  SCCS $Id: survreg.fit.s,v 5.11 2001-01-19 15:41:21 therneau Exp $
+#  $Id: survreg.fit.s,v 5.12 2006-08-28 18:22:25 m015733 Exp $
 #
 survreg.fit<- function(x, y, weights, offset, init, controlvals, dist, 
 		       scale=0, nstrat=1, strata, parms=NULL) {
