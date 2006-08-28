@@ -1,4 +1,4 @@
-# SCCS $Id: frailty.controldf.s,v 1.3 1998-12-02 13:35:32 therneau Exp $
+# $Id: frailty.controldf.s,v 1.4 2006-08-28 13:43:33 m015733 Exp $
 # A function to calibrate the df
 #    very empirical  
 # Find the closest 3 points that span the target value
@@ -14,7 +14,7 @@
 frailty.controldf <- function(parms, iter, old, df) {
     if (iter==0) {  
 	theta <- parms$guess
-	return(list(theta=theta, done=F, 
+	return(list(theta=theta, done=FALSE, 
 		    history=cbind(thetas=parms$thetas, dfs=parms$dfs)))
 	}
 
@@ -30,7 +30,7 @@ frailty.controldf <- function(parms, iter, old, df) {
 	theta <- thetas[1] + (thetas[2]-thetas[1])*(parms$df - dfs[1])/
 						    (dfs[2] - dfs[1])
 	if (parms$df > df) theta <- theta * 1.5 
-	return(list(theta=theta, done=F,
+	return(list(theta=theta, done=FALSE,
 		    history=cbind(thetas=thetas, dfs=dfs), half=0))
 	}
     else{
@@ -45,8 +45,8 @@ frailty.controldf <- function(parms, iter, old, df) {
 	target <- parms$df
 
 	# How am I doing
-	if ( abs( (y[nx]-target)/(y[nx-1]-target)) > .6) doing.well <- F
-	else doing.well <- T
+	if ( abs( (y[nx]-target)/(y[nx-1]-target)) > .6) doing.well <- FALSE
+	else doing.well <- TRUE
 	
 	ord <- order(x)
 	if ((x[1]-x[2])*(y[1]-y[2]) >0)  y <- y[ord]  #monotone up
