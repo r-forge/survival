@@ -1,4 +1,4 @@
-#SCCS $Id: print.summary.survfit.s,v 4.8 2001-12-31 09:32:22 therneau Exp $
+# $Id: print.summary.survfit.s,v 4.9 2006-08-28 14:29:00 m015733 Exp $
 print.summary.survfit <- function(x, 
 				  digits = max(options()$digits - 4, 3), ...) {
     savedig <- options(digits=digits)
@@ -46,7 +46,7 @@ print.summary.survfit <- function(x,
 
     if (!is.null(x$start.time)) {
 	mat.keep <- mat[,1] >= x$start.time
-	mat <- mat[mat.keep,,drop=F]
+	mat <- mat[mat.keep,,drop=FALSE]
 	if (is.null(dim(mat)))
 		stop(paste("No information available using start.time =", x$start.time, "."))
         }
@@ -73,7 +73,7 @@ print.summary.survfit <- function(x,
         }
     else 
 	stop("There are no events to print.  Please use the option ",
-	    "censored=T with the summary function to see the censored ",
+	    "censored=TRUE with the summary function to see the censored ",
 	    "observations.")
     invisible(x)
     }

@@ -1,5 +1,5 @@
-#SCCS $Id: print.survexp.s,v 4.12 1997-12-29 12:32:43 boos Exp $
-print.survexp <- function(x, scale=1, digits = max(options()$digits - 4, 3), naprint=F, ...) {
+# $Id: print.survexp.s,v 4.13 2006-08-28 14:32:08 m015733 Exp $
+print.survexp <- function(x, scale=1, digits = max(options()$digits - 4, 3), naprint=FALSE, ...) {
     if (!inherits(x, 'survexp'))
 	    stop("Invalid data")
     savedig <- options(digits=digits)
@@ -21,7 +21,7 @@ print.survexp <- function(x, scale=1, digits = max(options()$digits - 4, 3), nap
 	mat <- cbind(x$time/scale, x$n.risk, x$surv, x$std.err)
 	if (!naprint) {
 	    miss <- (is.na(mat)) %*% rep(1,ncol(mat))
-	    mat <- mat[miss<(ncol(mat)-2),,drop=F]
+	    mat <- mat[miss<(ncol(mat)-2),,drop=FALSE]
 	    }
 	if (is.matrix(x$surv)) cname <- dimnames(x$surv)[[2]]
 	else                     cname <- "survival"
@@ -47,7 +47,7 @@ print.survexp <- function(x, scale=1, digits = max(options()$digits - 4, 3), nap
 		mat <- cbind(x$time/scale, x$n.risk[,i], x$surv[,i])
 		if (!is.null(x$std.err)) mat<- cbind(mat,
 			   x$std.err[,i] * x$surv[,i])
-		if (!naprint) mat <- mat[!is.na(mat[,3]),,drop=F]
+		if (!naprint) mat <- mat[!is.na(mat[,3]),,drop=FALSE]
 		prmatrix(mat, rowlab=rep("",nrow(mat)),
 				collab=c("Time", "n.risk", tname))
 		cat("\n")

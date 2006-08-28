@@ -1,5 +1,5 @@
-# SCCS $Id: print.coxph.penal.s,v 1.1 1998-10-28 08:54:12 therneau Exp $
-print.coxph.penal <-  function(x, terms=F, maxlabel=25,
+# $Id: print.coxph.penal.s,v 1.2 2006-08-28 14:26:05 m015733 Exp $
+print.coxph.penal <-  function(x, terms=FALSE, maxlabel=25,
 			       digits=max(options()$digits - 4, 3), ...) {
     if (!inherits(x, 'coxph.penal')) stop("Invalid object")
 
@@ -85,7 +85,7 @@ print.coxph.penal <-  function(x, terms=F, maxlabel=25,
     temp <- ifelse(is.na(print1), "", temp)
     dimnames(temp) <- list(substring(pname1,1, maxlabel), 
 			     c("coef","se(coef)", "se2", "Chisq","DF","p"))
-    prmatrix(temp, quote=F)
+    prmatrix(temp, quote=FALSE)
 	
     #
     # Write out the remaider of the info

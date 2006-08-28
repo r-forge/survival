@@ -1,5 +1,5 @@
-# SCCS $Id: print.survreg.penal.s,v 1.1 1998-11-25 21:08:03 therneau Exp $
-print.survreg.penal <-  function(x, terms=F, maxlabel=25,
+# $Id: print.survreg.penal.s,v 1.2 2006-08-28 14:33:42 m015733 Exp $
+print.survreg.penal <-  function(x, terms=FALSE, maxlabel=25,
 			       digits=max(options()$digits - 4, 3), ...) {
     if (!inherits(x, 'survreg.penal')) stop("Invalid object")
 
@@ -85,7 +85,7 @@ print.survreg.penal <-  function(x, terms=F, maxlabel=25,
     temp <- ifelse(is.na(print1), "", temp)
     dimnames(temp) <- list(substring(pname1,1, maxlabel), 
 			     c("coef","se(coef)", "se2", "Chisq","DF","p"))
-    prmatrix(temp, quote=F)
+    prmatrix(temp, quote=FALSE)
 	
     #
     # Write out the remaider of the info

@@ -1,12 +1,12 @@
-#SCCS  $Id: pyears.s,v 5.10 2005-02-08 06:53:45 therneau Exp $
+# $Id: pyears.s,v 5.11 2006-08-28 14:36:18 m015733 Exp $
 pyears <- function(formula=formula(data), data=sys.parent(),
 	weights, subset, na.action,
 	ratetable=survexp.us, scale=365.25,  expect=c('event', 'pyears'),
-	model=F, x=F, y=F, data.frame=F) {
+	model=FALSE, x=FALSE, y=FALSE, data.frame=FALSE) {
 
     expect <- match.arg(expect)
     call <- match.call()
-    m <- match.call(expand=F)
+    m <- match.call(expand=FALSE)
     m$ratetable <- m$model <- m$x <- m$y <- m$scale<- m$expect <- NULL
     m$data.frame <- NULL
 
@@ -180,7 +180,7 @@ pyears <- function(formula=formula(data), data=sys.parent(),
 
         out <- list(call=call,
                     data= df)  
-        model <- x <- y <- F
+        model <- x <- y <- FALSE
         }
 
     else if (prod(odims) ==1) {  #don't make it an array

@@ -1,4 +1,4 @@
-# SCCS $Id: print.summary.survreg.s,v 4.14 1999-02-11 10:00:16 therneau Exp $
+# $Id: print.summary.survreg.s,v 4.15 2006-08-28 14:30:25 m015733 Exp $
 print.summary.survreg <- function(x, digits = max(options()$digits - 4, 3),
 				  ...) {
     correl <- x$correl
@@ -42,7 +42,7 @@ print.summary.survreg <- function(x, digits = max(options()$digits - 4, 3),
             ll <- lower.tri(correl)
             correl[ll] <- format(round(correl[ll], digits=digits))
             correl[!ll] <- ""
-            print(correl[-1,  - p, drop = F], quote = F)
+            print(correl[-1,  - p, drop = FALSE], quote = FALSE)
             }
         }
     cat("\n")
