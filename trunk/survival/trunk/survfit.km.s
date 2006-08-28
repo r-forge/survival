@@ -1,8 +1,8 @@
-#SCCS $Id: survfit.km.s,v 4.18 2005-09-27 16:35:04 therneau Exp $
+# $Id: survfit.km.s,v 4.19 2006-08-28 18:13:42 m015733 Exp $
 #  A version that does more work in S, less in C
 survfit.km <- function(x, y, casewt=rep(1,length(x)),
 		       type=c('kaplan-meier', 'fleming-harrington', 'fh2'),
-		       error=c('greenwood', "tsiatis"), se.fit=T,
+		       error=c('greenwood', "tsiatis"), se.fit=TRUE,
 		       conf.int= .95,
 		       conf.type=c('log',  'log-log',  'plain', 'none'),
 		       conf.lower=c('usual', 'peto', 'modified'),
@@ -27,11 +27,11 @@ survfit.km <- function(x, y, casewt=rep(1,length(x)),
 	n.all <- c(table(x))   # remember the original data size
 	# remove any obs whose end time is <= start.time
 	keep <- (y[,ny-1] >= start.time)
-	if (all(keep==F))
+	if (all(keep==FALSE))
 		stop(paste("start.time =", start.time,
 			   "is greater than all time points."))
 	x <- x[keep]
-	y <- y[keep,,drop=F]  #make sure y remains a matrix
+	y <- y[keep,,drop=FALSE]  #make sure y remains a matrix
 	casewt <- casewt[keep]
         }
     
@@ -118,7 +118,7 @@ survfit.km <- function(x, y, casewt=rep(1,length(x)),
 			            as.integer(ndead),
 			            sum1 = as.double(nrisk),
 			            sum2 = as.double(nevent),
-			copy=c(F,F,T,T))
+			copy=c(FALSE,FALSE,TRUE,TRUE))
 	    hazard <- nevent *tsum$sum1
 	    surv[[i]] <- exp(-cumsum(hazard))
 	    }

@@ -1,10 +1,10 @@
-# SCCS $Id: survfit.turnbull.s,v 1.5 2005-04-18 11:35:29 therneau Exp $
+# $Id: survfit.turnbull.s,v 1.6 2006-08-28 18:16:42 m015733 Exp $
 # Compute the K-M for left/right/interval censored data via Turnbull's
 #      slow EM calculation
 #
 survfit.turnbull <- function(x, y, casewt=rep(1,n),
                        type=c('kaplan-meier', 'fleming-harrington', 'fh2'),
-                       error=c('greenwood', "tsiatis"), se.fit=T,
+                       error=c('greenwood', "tsiatis"), se.fit=TRUE,
                        conf.int= .95,
                        conf.type=c('log',  'log-log',  'plain', 'none'),
                        conf.lower=c('usual', 'peto', 'modified'),
@@ -35,11 +35,11 @@ survfit.turnbull <- function(x, y, casewt=rep(1,n),
 	n.all <- c(table(x))   # remember the original data size
 	# remove any obs whose end time is <= start.time
 	keep <- (y[,ny-1] >= start.time)
-	if (all(keep==F))
+	if (all(keep==FALSE))
 		stop(paste("start.time =", start.time,
 			   "is greater than all time points."))
 	x <- x[keep]
-	y <- y[keep,,drop=F]  #make sure y remains a matrix
+	y <- y[keep,,drop=FALSE]  #make sure y remains a matrix
 	casewt <- casewt[keep]
         }
     n.used <- as.vector(table(x))    # This is for the printout
@@ -125,7 +125,7 @@ survfit.turnbull <- function(x, y, casewt=rep(1,n),
         #   <= the time recorded, and for an interval one that (a, b] contains
         #   the true event time.  This is motivated by data that would come
         #   from repeated visits, and agrees with Turnbull's paper.
-	temp <- matrix(jtimes, nrow=sum(status>1), ncol=njump, byrow=T)
+	temp <- matrix(jtimes, nrow=sum(status>1), ncol=njump, byrow=TRUE)
 	indx <- (1:n)[status>1] #these are the interval and lc rows of the data
         temp1 <- (temp <= y[indx,1])   # logical matrix for the left censored
         temp2 <- ( temp >  y[indx,1] & temp <= y[indx,2]) # same for interval
@@ -148,7 +148,7 @@ survfit.turnbull <- function(x, y, casewt=rep(1,n),
             iter <- iter +1
 	    # partition each left/interval person out over the jumps
 	    jumps <- -diff(c(1, tfit$surv[match(jtimes, tfit$time)])) #KM jumps
-            if (T) { # add Aitken acceleration to speed things up
+            if (TRUE) { # add Aitken acceleration to speed things up
                 # Given 3 points on a sequence, it guesses ahead.  So we use
                 #  a set of 3 to guess ahead, generate 3 more regular EM,
                 #  guess ahead, 3 regular EM, etc. 
@@ -176,9 +176,9 @@ survfit.turnbull <- function(x, y, casewt=rep(1,n),
 	    wt2 <- apply(wt2, 2, sum)
 	    tfit <- survfit.km(tempx, tempy, casewt=c(wt[status<2], wt2), ...)
 
-	    if (F) {
+	    if (FALSE) {
                 # these lines are in for debugging: change the above to 
-                #  " if (T)" to turn on the printing
+                #  " if (TRUE)" to turn on the printing
                 cat("\n Iteration = ", iter, "\n")
 		cat("survival=",
 		    format(round(tfit$surv[tfit$n.event>0],3)),  "\n")
@@ -218,7 +218,7 @@ survfit.turnbull <- function(x, y, casewt=rep(1,n),
     uniquex <- sort(unique(x))
     for (i in 1:nstrat) {
 	who <- (x== uniquex[i])
-	tfit <- doit(y[who,,drop=F], status[who], casewt[who])
+	tfit <- doit(y[who,,drop=FALSE], status[who], casewt[who])
 	time[[i]]   <- tfit$time
 	n.risk[[i]] <- tfit$n.risk
 	surv[[i]]   <- tfit$surv
@@ -229,9 +229,9 @@ survfit.turnbull <- function(x, y, casewt=rep(1,n),
 		std.err <- vector('list', nstrat)
 		conf.lower <- vector('list', nstrat)
 		conf.upper <- vector('list', nstrat)
-		se.fit <- T
+		se.fit <- TRUE
 		}
-	    else se <- F
+	    else se <- FALSE
 	    }
 	if (se.fit) {
 	    std.err[[i]]    <- tfit$std.err

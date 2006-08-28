@@ -1,8 +1,8 @@
-# SCCS $Id: survfit.coxph.s,v 5.10 2005-05-06 13:07:37 therneau Exp $
+# $Id: survfit.coxph.s,v 5.11 2006-08-28 18:12:07 m015733 Exp $
 setOldClass(c('survfit.cox', 'survfit'))
 
 survfit.coxph <-
-  function(object, newdata, se.fit=T, conf.int=.95, individual=F,
+  function(object, newdata, se.fit=TRUE, conf.int=.95, individual=FALSE,
 	    type, vartype,
 	    conf.type=c('log', 'log-log', 'plain', 'none'),
 	    call = match.call()) {
@@ -35,7 +35,7 @@ survfit.coxph <-
 
     # Recreate a copy of the data
     #  (The coxph.getdata routine never returns cluster() terms).
-    data <- coxph.getdata(object, y=T, x=se.fit,
+    data <- coxph.getdata(object, y=TRUE, x=se.fit,
 			           strata=(length(strat)))
     y <- data$y
     ny <- ncol(y)
@@ -91,9 +91,9 @@ survfit.coxph <-
 	    }
 	}
     if (stype==1 && method != vartype)
-	    stop("The type and vartype args must agree for individual=T")
+	    stop("The type and vartype args must agree for individual=TRUE")
     if (stype==1 && method==1)
-	    stop("Only Aalen and F-H estimates available for individual=T")
+	    stop("Only Aalen and F-H estimates available for individual=TRUE")
 
     #
     # Get the second, "new" data set.  By default the new curve is
@@ -115,7 +115,7 @@ survfit.coxph <-
             offset2 <- model.extract(m2, 'offset')
 	    if (is.null(offset2)) offset2 <- 0
             n2 <- nrow(m2)
-            if (stype !=1) x2 <- model.matrix(Terms, m2)[,-1,drop=F]
+            if (stype !=1) x2 <- model.matrix(Terms, m2)[,-1,drop=FALSE]
 	    else {
 		#
 		# The case of an agreg, with a multiple line newdata
@@ -126,7 +126,7 @@ survfit.coxph <-
                     Terms <- Terms[-strata.term$terms] 
 		    }
 		else strata2 <- rep(1, nrow(m2))
-                x2 <- model.matrix(Terms, m2)[,-1,drop=F]
+                x2 <- model.matrix(Terms, m2)[,-1,drop=FALSE]
 		y2 <- model.extract(m2, 'response')
 		if (attr(y2,'type') != type)
 		    stop("Survival type of newdata does not match the fitted model")
@@ -163,7 +163,7 @@ survfit.coxph <-
 			     as.double(newrisk),
 			     as.integer(strata2) )
 	ntime <- 1:surv$nsurv
-	temp <- (matrix(surv$y, ncol=3))[ntime,,drop=F]
+	temp <- (matrix(surv$y, ncol=3))[ntime,,drop=FALSE]
 	temp <- list(n=n, time = temp[,1],
 		     n.risk= temp[,2],
 		     n.event=temp[,3],

@@ -1,6 +1,6 @@
-# SCCS $Id: survfit.coxph.null.s,v 5.6 2001-12-31 09:32:23 therneau Exp $
+# $Id: survfit.coxph.null.s,v 5.7 2006-08-28 18:10:15 m015733 Exp $
 survfit.coxph.null <-
-  function(object, newdata, se.fit=T, conf.int=.95, individual=F,
+  function(object, newdata, se.fit=TRUE, conf.int=.95, individual=FALSE,
 	    type, vartype,
 	    conf.type=c('log', 'log-log', 'plain', 'none'), ...) {
     # May have strata and/or offset terms, linear predictor = offset

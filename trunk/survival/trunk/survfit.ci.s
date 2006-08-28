@@ -1,5 +1,5 @@
 #
-# SCCS $Id: survfit.ci.s,v 1.4 2004-11-23 10:24:14 therneau Exp $
+# $Id: survfit.ci.s,v 1.5 2006-08-28 18:09:32 m015733 Exp $
 #
 # Compute the current incidence curve for a data set
 #   A strata() statement identifies the outcomes
@@ -11,13 +11,13 @@ survfit.ci <- function(formula=formula(data), data=sys.parent(),
 		       weights, subset, na.action,
                        absorb,
 		       type=c("kaplan-meier", "fleming-harrington", "fh2"),
-		       conf.int= .95, se.fit=T,
+		       conf.int= .95, se.fit=TRUE,
 		       conf.type=c('log',  'log-log',  'plain', 'none'),
 		       conf.lower=c('usual', 'peto', 'modified'),
-		       model=F, x=F, y=F) {
+		       model=FALSE, x=FALSE, y=FALSE) {
 
     call <- match.call()
-    m <- match.call(expand=F)
+    m <- match.call(expand=FALSE)
     temp <- c("", "formula", "data", "weights", "subset", "na.action")
     m <- m[ match(temp, names(m), nomatch=0)]
     special <- c("strata", "cluster")
@@ -95,7 +95,7 @@ survfit.ci <- function(formula=formula(data), data=sys.parent(),
     # make sure that the states for status==0 are not tabulated
     #  in our output
     if (is.factor(state)) {
-        temp <- levels(state[status !=0, drop=T])
+        temp <- levels(state[status !=0, drop=TRUE])
         state <- factor(ifelse(status==0, NA, state))
         levels(state) <- temp
         }
@@ -104,7 +104,7 @@ survfit.ci <- function(formula=formula(data), data=sys.parent(),
     if (length(cluster)==0) {
         # this case implicitly assumes one transition/subject
         # use survfit.km to get the # at risk and etc
-	kfit <- survfit.km(X, Y, se.fit=F)
+	kfit <- survfit.km(X, Y, se.fit=FALSE)
         
         # partition out the event type
 	if (is.null(kfit$strata)) {
