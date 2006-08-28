@@ -1,8 +1,8 @@
-#SCCS $Date: 2000-03-01 11:47:51 $ $Id: survfit.formula.s,v 1.2 2000-03-01 11:47:51 boos Exp $
+# $Date: 2006-08-28 18:12:46 $ $Id: survfit.formula.s,v 1.3 2006-08-28 18:12:46 m015733 Exp $
 survfit.formula <- function(formula, data, weights, subset, 
 			    na.action, call, ...) {
     if (missing(call)) call <- match.call()
-    m <- match.call(survfit, call, expand=T)    
+    m <- match.call(survfit, call, expand=TRUE)    
     m <- m[match(c("", "data", "weights", "subset", "na.action"), 
 		 names(m), nomatch=0)]
     
