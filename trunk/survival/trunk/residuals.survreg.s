@@ -1,10 +1,10 @@
-# SCCS $Id: residuals.survreg.s,v 4.12 1999-02-06 23:39:03 therneau Exp $
+# $Id: residuals.survreg.s,v 4.13 2006-08-28 15:35:15 m015733 Exp $
 # 
 #  Residuals for survreg objects
 residuals.survreg <- function(object, type=c('response', 'deviance',
 		      'dfbeta', 'dfbetas', 'working', 'ldcase',
 		      'ldresp', 'ldshape', 'matrix'), 
-		      rsigma =T, collapse=F, weighted=F) {
+		      rsigma =TRUE, collapse=FALSE, weighted=FALSE) {
     type <-match.arg(type)
     n <- length(object$linear.predictors)
     Terms <- object$terms
@@ -16,18 +16,18 @@ residuals.survreg <- function(object, type=c('response', 'deviance',
     intercept <- attr(Terms, "intercept")
     response  <- attr(Terms, "response")
     weights <- object$weights
-    if (is.null(weights)) weighted <- F
+    if (is.null(weights)) weighted <- FALSE
 
     #
     # What do I need to do the computations?
     #
-    if (type=='response' || type=='deviance') need.x <-F
-    else need.x <- T
+    if (type=='response' || type=='deviance') need.x <-FALSE
+    else need.x <- TRUE
 
-    if (type=='ldshape' || type=='ldcase') need.strata <- T
-    else need.strata <- F
+    if (type=='ldshape' || type=='ldcase') need.strata <- TRUE
+    else need.strata <- FALSE
     
-    need.y <- T
+    need.y <- TRUE
 
     # grab what I need
     if (need.strata || (need.y && is.null(object$y)) || 
@@ -42,7 +42,7 @@ residuals.survreg <- function(object, type=c('response', 'deviance',
 	temp <- untangle.specials(Terms, 'strata', 1)
 	Terms2 <- Terms[-temp$terms]
 	if (length(temp$vars)==1) strata.keep <- m[[temp$vars]]
-	else strata.keep <- strata(m[,temp$vars], shortlabel=T)
+	else strata.keep <- strata(m[,temp$vars], shortlabel=TRUE)
 	strata <- as.numeric(strata.keep)
 	nstrata <- max(strata)
 	sigma <- object$scale[strata]

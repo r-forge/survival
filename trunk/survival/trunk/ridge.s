@@ -1,5 +1,5 @@
-# SCCS $Id: ridge.s,v 1.1 1998-12-22 21:38:08 therneau Exp $
-ridge <- function(..., theta, df=nvar/2, eps=.1, scale=T) {
+# $Id: ridge.s,v 1.2 2006-08-28 15:36:02 m015733 Exp $
+ridge <- function(..., theta, df=nvar/2, eps=.1, scale=TRUE) {
     x <- cbind(...)
     nvar <- ncol(x)
     xname <- as.character(parse(text=substitute(cbind(...))))[-1]
@@ -14,29 +14,29 @@ ridge <- function(..., theta, df=nvar/2, eps=.1, scale=T) {
 		list(penalty= sum(coef^2 *scale)*theta/2,
 		     first  = theta*coef*scale,
 		     second = theta*scale,
-		     flag=F)
+		     flag=FALSE)
 		}
     else
 	    pfun <- function(coef,theta, ndead, scale) {
 		list(penalty= sum(coef^2)*theta/2,
 		     first  = theta*coef,
 		     second = theta,
-		     flag=F)
+		     flag=FALSE)
 		}
 
 
     if (!missing(theta)) {
 	temp <- list(pfun=pfun,
-		     diag=T,
+		     diag=TRUE,
 		     cfun=function(parms, iter, history) {
-				list(theta=parms$theta, done=T) }, 
+				list(theta=parms$theta, done=TRUE) }, 
 		     cparm=list(theta= theta),
 		     pparm= vars,
 		     varname=paste('ridge(', xname, ')', sep=''))
 	}
     else {
 	temp <- list(pfun=pfun,
-		     diag=T,
+		     diag=TRUE,
 		     cfun=frailty.controldf,
 		     cargs = 'df',
 		     cparm=list(df=df, eps=eps, thetas=0, dfs=nvar,
