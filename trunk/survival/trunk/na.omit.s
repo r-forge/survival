@@ -1,4 +1,4 @@
-#SCCS $Date: 1992-04-16 10:54:45 $ $Id: na.omit.s,v 4.4 1992-04-16 10:54:45 grill Exp $
+# $Date: 2006-08-28 14:11:33 $ $Id: na.omit.s,v 4.5 2006-08-28 14:11:33 m015733 Exp $
 na.omit <- function(frame)  {
     n <- length(frame)
     omit <- FALSE
@@ -16,7 +16,7 @@ na.omit <- function(frame)  {
 		    omit <- omit | x[, ii]
 	    }
 	}
-    xx <- frame[!omit,  , drop = F]
+    xx <- frame[!omit,  , drop = FALSE]
     if (any(omit)) {
 	temp <- seq(omit)[omit]
 	names(temp) <- row.names(frame)[omit]
@@ -39,7 +39,7 @@ naresid.omit <- function(omit, x) {
 	n <- nrow(x)
 	keep <- rep(NA,n+ length(omit))
 	keep[-omit] <- 1:n
-	x <- x[keep,,drop=F]
+	x <- x[keep,,drop=FALSE]
 	temp <- dimnames(x)[[1]]
 	if (length(temp)) {
 	    temp[omit] <- names(omit)

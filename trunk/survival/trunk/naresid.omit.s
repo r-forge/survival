@@ -1,4 +1,4 @@
-#SCCS $Date: 1992-04-14 18:07:01 $ $Id: naresid.omit.s,v 4.2 1992-04-14 18:07:01 grill Exp $
+# $Date: 2006-08-28 14:12:46 $ $Id: naresid.omit.s,v 4.3 2006-08-28 14:12:46 m015733 Exp $
 naresid.omit <- function(omit, x) {
     if (!length(omit) || !is.numeric(omit))
 	stop("Invalid argument for 'omit'")
@@ -7,7 +7,7 @@ naresid.omit <- function(omit, x) {
 	n <- nrow(x)
 	keep <- rep(NA,n+ length(omit))
 	keep[-omit] <- 1:n
-	x <- x[keep,,drop=F]
+	x <- x[keep,,drop=FALSE]
 	temp <- dimnames(x)[[1]]
 	if (length(temp)) {
 	    temp[omit] <- names(omit)

@@ -1,4 +1,4 @@
-# SCCS $Id: match.ratetable.s,v 4.6 2006-06-22 15:13:50 therneau Exp $
+# $Id: match.ratetable.s,v 4.7 2006-08-28 14:07:03 m015733 Exp $
 # Do a set of error checks on whether the ratetable() vars match the
 #   actual ratetable
 # This is called by pyears and survexp, but not by users
@@ -19,7 +19,7 @@ match.ratetable <- function(R, ratetable) {
     if (nd != length(dimid))
 	stop("The ratetable() call has the wrong number of arguments")
     ord[ord] <- 1:nd   #reverse the index, so "ord" can be on the right-hand
-    R <- R[,ord,drop=F]
+    R <- R[,ord,drop=FALSE]
 
     # Check out the dimensions of R --
     const <- attR[["constants"]][ord]
@@ -80,7 +80,7 @@ match.ratetable <- function(R, ratetable) {
 
     summ <- attr(ratetable, 'summary')
     if (is.null(summ))
-	 list(R= R[,!const, drop=F], call={if(any(const)) call else NULL})
-    else list(R= R[,!const, drop=F], call={if(any(const)) call else NULL},
+	 list(R= R[,!const, drop=FALSE], call={if(any(const)) call else NULL})
+    else list(R= R[,!const, drop=FALSE], call={if(any(const)) call else NULL},
 		summ=summ(R))
     }
