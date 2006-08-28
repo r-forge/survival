@@ -1,8 +1,8 @@
-# $Id: survsum.s,v 1.2 1992-09-25 13:11:15 sicks Exp $
+# $Id: survsum.s,v 1.3 2006-08-28 18:25:48 m015733 Exp $
 # written by Mark Dietrich
 survsum <- function	
-		(formula,data=sys.parent(),sptms=NULL,xlim,tlines=T,log=F,
-		xscale=1,yscale=100,mark.time=F,mark=3,cex=1,xlab="Time",
+		(formula,data=sys.parent(),sptms=NULL,xlim,tlines=TRUE,log=FALSE,
+		xscale=1,yscale=100,mark.time=FALSE,mark=3,cex=1,xlab="Time",
 		ylab="Survival (%)",lgd="bl",ttl="K-M Survival",...) {
 #
 	ltms <- length (sptms)			##number of specified times
@@ -22,7 +22,7 @@ survsum <- function
 #
 	fit <- survfit (formula,data)			##survfit object
 #
-	n.pts <- summary (fit,times=0,print.it=F)$n.risk
+	n.pts <- summary (fit,times=0,print.it=FALSE)$n.risk
 					      ##number of points in each group
 	strat <- fit$strata		      ##
 	gp.name <- names(strat)	      ## the group names
@@ -50,7 +50,7 @@ survsum <- function
 #
 		if (log) {			##conditional: log=True
 #
-	ends <- plot (fit,lty=c(1,2,7,8,3,5),xaxs="i",xscale=xscale,log=T,
+	ends <- plot (fit,lty=c(1,2,7,8,3,5),xaxs="i",xscale=xscale,log=TRUE,
 	,xlab=xlab,ylab=ylab,mark.time=mark.time,mark=mark,cex=cex,las=1,...)
 								         ##Plot
 		} else {			##conditional: log=False
@@ -67,7 +67,7 @@ survsum <- function
 		if (log) {			##conditional: log=True
 #
 	ends <- plot (fit,lty=c(1,2,7,8,3,5),xaxs="i",xlim=xlim,
-	log=T,xscale=xscale,xlab=xlab,ylab=ylab,mark.time=mark.time,mark=mark,
+	log=TRUE,xscale=xscale,xlab=xlab,ylab=ylab,mark.time=mark.time,mark=mark,
 	cex=cex,las=1,...)     						##Plot
 #
 		} else {			##conditional: log=False
@@ -122,7 +122,7 @@ survsum <- function
 	a <- 1:100
 	b <- 1:100
 #
-	plot (a,b,type="n",xlab="",ylab="",bty="n",axes=F)
+	plot (a,b,type="n",xlab="",ylab="",bty="n",axes=FALSE)
 #
 	if (lgd=="bl") {		##conditional: legend at bottom-right
 #
@@ -182,7 +182,7 @@ survsum <- function
 	text (0,-5,paste("LOGRANK TEST (all curves equal): Chi-Square = "
 	,chisq,"   ","df = ",df,"   ","p = ",p),adj=0)
 #
-	mtext(date(),side=1,outer=T,adj=1)		##date
+	mtext(date(),side=1,outer=TRUE,adj=1)		##date
 #
 #------------------------------------------------------------------------------
 #############################
@@ -196,7 +196,7 @@ survsum <- function
 #
 # jds -- switch ttl and "K-M Survival"
 	if (!missing(ttl)) 
-		mtext("K-M Survival",side=3,outer=T,adj=1)
+		mtext("K-M Survival",side=3,outer=TRUE,adj=1)
 	plot (a,b,type="n",xaxt="n",yaxt="n",xlab="",ylab="",bty="n",main=ttl)
 #
 	x1 <- c(rep(-5,n+1),-5,20)
@@ -233,7 +233,7 @@ survsum <- function
                 text(x,80,"no data",adj=0)
         	        } else {		##conditional: time < xmax
 #
-	        mat <- summary.survfit (current.fit,times=ti,print.it=F,
+	        mat <- summary.survfit (current.fit,times=ti,print.it=FALSE,
 					scale=scale)
 #	
 		gps <- mat$strata	##group names used at time

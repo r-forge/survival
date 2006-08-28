@@ -1,5 +1,5 @@
 #
-# SCCS $Id: survreg.s,v 5.8 2000-07-10 14:43:43 therneau Exp $
+# $Id: survreg.s,v 5.9 2006-08-28 18:24:33 m015733 Exp $
 #  The newest version of survreg, that accepts penalties and strata
 #
 setOldClass(c('survreg.penal', 'survreg'))
@@ -7,10 +7,10 @@ setOldClass(c('survreg.penal', 'survreg'))
 survreg <- function(formula=formula(data), data=sys.parent(),
 	weights, subset, na.action, dist='weibull', 
 	init=NULL,  scale=0, control, parms=NULL, 
-	model=F, x=F, y=T, ...) {
+	model=FALSE, x=FALSE, y=TRUE, ...) {
 
     call <- match.call()
-    m <- match.call(expand=F)
+    m <- match.call(expand=FALSE)
     temp <- c("", "formula", "data", "weights", "subset", "na.action")
     m <- m[ match(temp, names(m), nomatch=0)]
     m[[1]] <- as.name("model.frame")
@@ -29,18 +29,18 @@ survreg <- function(formula=formula(data), data=sys.parent(),
     cluster<- attr(Terms, "specials")$cluster
     dropx <- NULL
     if (length(cluster)) {
-        if (missing(robust)) robust <- T
+        if (missing(robust)) robust <- TRUE
         tempc <- untangle.specials(Terms, 'cluster', 1:10)
         ord <- attr(Terms, 'order')[tempc$terms]
         if (any(ord>1)) stop ("Cluster can not be used in an interaction")
-        cluster <- strata(m[,tempc$vars], shortlabel=T)  #allow multiples
+        cluster <- strata(m[,tempc$vars], shortlabel=TRUE)  #allow multiples
         dropx <- tempc$terms
         }
     if (length(strats)) {
         temp <- untangle.specials(Terms, 'strata', 1)
         dropx <- c(dropx, temp$terms)
         if (length(temp$vars)==1) strata.keep <- m[[temp$vars]]
-        else strata.keep <- strata(m[,temp$vars], shortlabel=T)
+        else strata.keep <- strata(m[,temp$vars], shortlabel=TRUE)
         strata <- as.numeric(strata.keep)
 	nstrata <- max(strata)
         }
