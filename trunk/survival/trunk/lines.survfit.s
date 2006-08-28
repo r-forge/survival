@@ -1,8 +1,8 @@
-# SCCS $Id: lines.survfit.s,v 4.19 2004-11-05 10:10:11 therneau Exp $
+# $Id: lines.survfit.s,v 4.20 2006-08-28 14:06:12 m015733 Exp $
 lines.survfit <- function(x, type='s', mark=3, col=1, lty=1, lwd=1,
-			  mark.time =T, xscale=1, 
+			  mark.time =TRUE, xscale=1, 
 			  firstx=0, firsty=1, xmax, fun,
-			  conf.int=F, ...) {
+			  conf.int=FALSE, ...) {
 
     if (missing(firstx)) {
 	if (!is.null(x$start.time)) 
@@ -27,20 +27,20 @@ lines.survfit <- function(x, type='s', mark=3, col=1, lty=1, lwd=1,
 
     if (inherits(x, 'survexp')) {
 	if (missing(type)) type <- 'l'
-	if (!is.numeric(mark.time)) mark.time <- F
+	if (!is.numeric(mark.time)) mark.time <- FALSE
 	}
     if (inherits(x, 'survfit.coxph')) {
-	if (!is.numeric(mark.time)) mark.time <- F
+	if (!is.numeric(mark.time)) mark.time <- FALSE
 	}
 
     if (is.character(conf.int)) {
 	if (conf.int=='only') {
-	    conf.int <- T
-	    plot.surv<- F
+	    conf.int <- TRUE
+	    plot.surv<- FALSE
 	    }
 	else stop("Unrecognized option for conf.int")
 	}
-    else plot.surv <- T  #plot the central curve, not just CI
+    else plot.surv <- TRUE  #plot the central curve, not just CI
 
     if (is.numeric(mark.time)) mark.time<- sort(unique(mark.time[mark.time>0]))
 
@@ -90,11 +90,11 @@ lines.survfit <- function(x, type='s', mark=3, col=1, lty=1, lwd=1,
 	x$n.event <- x$n.event[keepx]
 	if (is.matrix(ssurv)) {
 	    if (length(yzero)) ssurv[yzero,] <- firsty
-	    ssurv <- ssurv[keepy,,drop=F]
+	    ssurv <- ssurv[keepy,,drop=FALSE]
 	    if (!is.null(supper)) {
 		if (length(yzero)) supper[yzero,] <- slower[yzero,] <- firsty
-		supper <- supper[keepy,,drop=F]
-		slower <- slower[keepy,,drop=F]
+		supper <- supper[keepy,,drop=FALSE]
+		slower <- slower[keepy,,drop=FALSE]
 		}
 	    }
 	else {
@@ -166,7 +166,7 @@ lines.survfit <- function(x, type='s', mark=3, col=1, lty=1, lwd=1,
 		# (1, .2), (1.4, .2), (1.8, .2), (2.3, .2), (2.9, .2), (3, .1)
 		# with (1, .2), (3, .1).  They are slow, and can smear the 
 		# looks of the line type.
-		dupy <- c(T, diff(y[-n]) !=0, T)
+		dupy <- c(TRUE, diff(y[-n]) !=0, TRUE)
 		n2 <- sum(dupy)
 		
 		#create a step function
@@ -221,7 +221,7 @@ lines.survfit <- function(x, type='s', mark=3, col=1, lty=1, lwd=1,
 		points(mark.time[indx<nn], yy[indx[indx<nn]],
 		       pch=mark[k],col=col[k], ...)
 		}
-	    else if (mark.time==T) {
+	    else if (mark.time==TRUE) {
 		if ( any(deaths==0)) {
 		    indx <- (deaths==0 & xx>firstx)
 		    points(xx[indx], yy[indx],

@@ -1,6 +1,6 @@
-#SCCS $Id: plot.survfit.s,v 4.21 2003-11-13 13:57:02 therneau Exp $
-plot.survfit<- function(x, conf.int,  mark.time=T,
-			mark=3,col=1,lty=1, lwd=1, cex=1, log=F,
+# $Id: plot.survfit.s,v 4.22 2006-08-28 14:17:28 m015733 Exp $
+plot.survfit<- function(x, conf.int,  mark.time=TRUE,
+			mark=3,col=1,lty=1, lwd=1, cex=1, log=FALSE,
 			xscale=1, yscale=1, 
 			firstx=0, firsty=1,
 			xmax, ymin=0,
@@ -9,7 +9,7 @@ plot.survfit<- function(x, conf.int,  mark.time=T,
 
     if (is.logical(log)) {
 	logy <- log
-	logx <- F
+	logx <- FALSE
 	if (logy) logax <- 'y'
 	else      logax <- ""
         }
@@ -37,8 +37,8 @@ plot.survfit<- function(x, conf.int,  mark.time=T,
 	    stop("First arg must be the result of survfit")
 
     if (missing(conf.int)) {
-	if (is.null(x$strata) && !is.matrix(x$surv)) conf.int <-T
-	else conf.int <- F
+	if (is.null(x$strata) && !is.matrix(x$surv)) conf.int <-TRUE
+	else conf.int <- FALSE
         }
 
     if (is.null(x$strata)) {
@@ -88,11 +88,11 @@ plot.survfit<- function(x, conf.int,  mark.time=T,
 	if (is.matrix(ssurv)) {
 	    if (length(yzero))
 		    ssurv[yzero,] <- firsty
-	    ssurv <- ssurv[keepy,,drop=F]
+	    ssurv <- ssurv[keepy,,drop=FALSE]
 	    if (!is.null(supper)) {
 		if (length(yzero)) supper[yzero,] <- slower[yzero,] <- firsty
-		supper <- supper[keepy,,drop=F]
-		slower <- slower[keepy,,drop=F]
+		supper <- supper[keepy,,drop=FALSE]
+		slower <- slower[keepy,,drop=FALSE]
 	        }
 	    }
 	else {
@@ -118,10 +118,10 @@ plot.survfit<- function(x, conf.int,  mark.time=T,
 			   'logpct'= function(x) 100*x,
 			   stop("Unrecognized function argument")
 			   )
-	    if (fun=='log'|| fun=='logpct') logy <- T
+	    if (fun=='log'|| fun=='logpct') logy <- TRUE
 
 	    if (fun=='cloglog') {
-		logx <- T
+		logx <- TRUE
 		if (logy) logax <- 'xy'
 		else logax <- 'x'
 	        }
@@ -138,7 +138,7 @@ plot.survfit<- function(x, conf.int,  mark.time=T,
 	ymin <- tfun(ymin)
         }
 
-    if (is.null(x$n.event)) mark.time <- F   #expected survival curve
+    if (is.null(x$n.event)) mark.time <- FALSE   #expected survival curve
 
     # set default values for missing parameters
     if (is.matrix(ssurv)) ncurve <- nstrat * ncol(ssurv)
@@ -203,7 +203,7 @@ plot.survfit<- function(x, conf.int,  mark.time=T,
 	    # (1, .2), (1.4, .2), (1.8, .2), (2.3, .2), (2.9, .2), (3, .1)
             # with (1, .2), (3, .1).  They are slow, and can smear the looks
 	    # of the line type.
-	    dupy <- c(T, diff(y[-n]) !=0, T)
+	    dupy <- c(TRUE, diff(y[-n]) !=0, TRUE)
 	    n2 <- sum(dupy)
 
 	    #create a step function
@@ -244,7 +244,7 @@ plot.survfit<- function(x, conf.int,  mark.time=T,
 		    points(mark.time[indx<nn], yy[indx[indx<nn]],
 			   pch=mark[i],col=col[i],cex=cex)
 		    }
-		else if (mark.time==T && any(deaths==zero.one)) {
+		else if (mark.time==TRUE && any(deaths==zero.one)) {
 		    points(xx[deaths==zero.one], 
 			   yy[deaths==zero.one],
 			   pch=mark[i],col=col[i],cex=cex)
@@ -253,7 +253,7 @@ plot.survfit<- function(x, conf.int,  mark.time=T,
 		xend <- c(xend,max(xx))
 		yend <- c(yend,min(yy))
 
-		if (conf.int==T && !is.null(supper)) {
+		if (conf.int==TRUE && !is.null(supper)) {
 		    if (ncurve==1) lty[i] <- lty[i] +1
 		    yy <- c(firsty, supper[who,k])
 		    lines(dostep(xx,yy), lty=lty[i], col=col[i], lwd=lwd[i])
@@ -274,7 +274,7 @@ plot.survfit<- function(x, conf.int,  mark.time=T,
 		points(mark.time[indx<nn], yy[indx[indx<nn]],
 		       pch=mark[i],col=col[i],cex=cex)
 	        }
-	    else if (mark.time==T && any(deaths==zero.one)) {
+	    else if (mark.time==TRUE && any(deaths==zero.one)) {
 		points(xx[deaths==zero.one], 
 		       yy[deaths==zero.one],
 		       pch=mark[i],col=col[i],cex=cex)
@@ -283,7 +283,7 @@ plot.survfit<- function(x, conf.int,  mark.time=T,
 	    xend <- c(xend,max(xx))
 	    yend <- c(yend,min(yy))
 
-	    if (conf.int==T && !is.null(supper)) {
+	    if (conf.int==TRUE && !is.null(supper)) {
 		if (ncurve==1) lty[i] <- lty[i] +1
 		yy <- c(firsty, supper[who])
 		lines(dostep(xx,yy), lty=lty[i], col=col[i], lwd=lwd[i])

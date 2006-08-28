@@ -1,4 +1,4 @@
-#SCCS $Date: 1999-02-15 14:00:51 $ $Id: predict.coxph.s,v 4.11 1999-02-15 14:00:51 therneau Exp $
+# $Date: 2006-08-28 14:20:43 $ $Id: predict.coxph.s,v 4.12 2006-08-28 14:20:43 m015733 Exp $
 #What do I need to do predictions --
 #
 #linear predictor:  exists
@@ -17,8 +17,8 @@
 #   +new  : new X matrix and the old means + I matrix
 predict.coxph <-
 function(object, newdata, type=c("lp", "risk", "expected", "terms"),
-		se.fit=F,
-		terms=labels.lm(object), collapse, safe=F, ...)
+		se.fit=FALSE,
+		terms=labels.lm(object), collapse, safe=FALSE, ...)
 
     {
     type <-match.arg(type)
@@ -44,7 +44,7 @@ function(object, newdata, type=c("lp", "risk", "expected", "terms"),
 	if (type=='terms' || (se.fit && (type=='lp' || type=='risk'))) {
 	    x <- object$x
 	    if (is.null(x)) {
-		x <- model.matrix(Terms2, model.frame(object))[,-1,drop=F]
+		x <- model.matrix(Terms2, model.frame(object))[,-1,drop=FALSE]
 		}
 	    x <- sweep(x, 2, object$means)
 	    }
@@ -58,10 +58,10 @@ function(object, newdata, type=c("lp", "risk", "expected", "terms"),
 	}
     else {
 	if (type=='expected')
-	     m <- model.newframe(Terms, newdata, response=T)
+	     m <- model.newframe(Terms, newdata, response=TRUE)
 	else m <- model.newframe(Terms2, newdata)
 
-	x <- model.matrix(Terms2, m)[,-1,drop=F]
+	x <- model.matrix(Terms2, m)[,-1,drop=FALSE]
 	x <- sweep(x, 2, object$means)
 	if (length(offset)) {
 	    if (type=='expected') offset <- as.numeric(m[[offset]])
@@ -104,11 +104,11 @@ function(object, newdata, type=c("lp", "risk", "expected", "terms"),
 	terms <- match.arg(Terms2, labels.lm(object))
 	asgn <- asgn[terms]
 	if (se.fit) {
-	    temp <- Build.terms(x, coef, object$var, asgn, F)
+	    temp <- Build.terms(x, coef, object$var, asgn, FALSE)
 	    pred <- temp$fit
 	    se   <- temp$se.fit
 	    }
-	else pred<- Build.terms(x, coef, NULL, asgn, F)
+	else pred<- Build.terms(x, coef, NULL, asgn, FALSE)
 	}
 
     if (se.fit) se <- drop(se)

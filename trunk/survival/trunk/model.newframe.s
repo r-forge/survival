@@ -1,4 +1,4 @@
-#SCCS $Date: 1992-04-14 18:06:51 $ $Id: model.newframe.s,v 4.3 1992-04-14 18:06:51 grill Exp $
+# $Date: 2006-08-28 14:10:37 $ $Id: model.newframe.s,v 4.4 2006-08-28 14:10:37 m015733 Exp $
 # This function is called if you want to get a new data frame,
 #   usually for prediction.  It's main problem is to "glue" any
 #   transform specific information back onto the formula, so that
@@ -7,10 +7,10 @@
 #   so  sqrt(age - min(age)) is out of luck.  It also only works for those
 #   transforms that support it by adding data dependent info as an attribute
 #   of their output.
-# If you know this isn't so, then safe=T uses a method that is much longer,
+# If you know this isn't so, then safe=TRUE uses a method that is much longer,
 #   but is guarranteed to work, see predict.gam
 
-model.newframe <- function(object, newdata, safe=F, response=F, ...) {
+model.newframe <- function(object, newdata, safe=FALSE, response=FALSE, ...) {
     if (inherits(object, 'terms'))  Terms <- object
     else {
 	Terms <- object$terms
@@ -44,7 +44,7 @@ model.newframe <- function(object, newdata, safe=F, response=F, ...) {
 	Call[[1]] <- as.name("model.frame")
 	Call$formula <- terms.inner(formula(object))
    #might need to tack on the response here!
-	if (response) stop("Not implimented yet for safe=T, response=T")
+	if (response) stop("Not implimented yet for safe=TRUE, response=TRUE")
 	Call$na.action <- function(x)  x
 	Call <- Call[match(c("", "formula", "data", "subset", "na.action"),
 	    names(Call), 0)]
@@ -59,7 +59,7 @@ model.newframe <- function(object, newdata, safe=F, response=F, ...) {
 	    stop("0 rows in newdata")
 	d1 <- dim(data)
 	if(d1[2] != d2[2])  #newdata missing some variables
-	    data <- data[, names(newdata), drop = F]
+	    data <- data[, names(newdata), drop = FALSE]
 	data[seq(d1[1] + 1, d1[1] + d2[1]),  ] <- newdata  #rbind the new on
 	attr(data, "row.names") <- c(rep("OLD DATA",d1[1]), row.names(newdata))
 	#Now compute the combined model frame, excluding the response

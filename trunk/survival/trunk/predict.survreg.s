@@ -1,9 +1,9 @@
-# SCCS $Id: predict.survreg.s,v 4.12 2002-06-17 10:55:34 therneau Exp $
+# $Id: predict.survreg.s,v 4.13 2006-08-28 14:22:48 m015733 Exp $
 predict.survreg <-
     function(object, newdata, type=c('response', "link", 'lp', 'linear',
 				     'terms', 'quantile','uquantile'),
-				se.fit=F,  terms=labels.lm(object),
-	                        p=c(.1, .9), ripley=F)
+				se.fit=FALSE,  terms=labels.lm(object),
+	                        p=c(.1, .9), ripley=FALSE)
     {
 #
 # What do I need to do predictions ?
@@ -35,8 +35,8 @@ predict.survreg <-
     vv <- object$var[1:nvar, 1:nvar]
     fixedscale <- (nvar == ncol(object$var)) || ripley
 
-    if (missing(newdata) && (type=='terms' || se.fit)) need.x <- T
-    else  need.x <- F
+    if (missing(newdata) && (type=='terms' || se.fit)) need.x <- TRUE
+    else  need.x <- FALSE
 
     if (length(strata) && (type=='quantile' || type=='uquantile') &&
 	      !fixedscale) {
@@ -48,7 +48,7 @@ predict.survreg <-
 	temp <- untangle.specials(Terms, 'strata', 1)
 	dropx <- temp$terms
 	if (length(temp$vars)==1) strata.keep <- m[[temp$vars]]
-	else strata.keep <- strata(m[,temp$vars], shortlabel=T)
+	else strata.keep <- strata(m[,temp$vars], shortlabel=TRUE)
 	strata <- as.numeric(strata.keep)
 	nstrata <- max(strata)
 	    
@@ -60,7 +60,7 @@ predict.survreg <-
 	else if (!missing(newdata)) {
 	    newframe <- model.frame(Terms, newdata, na.action=function(x)x)
 	    if (length(temp$vars)==1) newstrat <- newframe[[temp$vars]]
-	    else newstrat <- strata(newframe[,temp$vars], shortlabel=T)
+	    else newstrat <- strata(newframe[,temp$vars], shortlabel=TRUE)
 	    strata <- match(newstrat, levels(strata.keep))
 	    x <- model.matrix(Terms[-dropx], newframe)
 	    offset <- model.extract(newframe, 'offset')
@@ -185,11 +185,11 @@ predict.survreg <-
 	asgn <- asgn[terms]
 
 	if (se.fit) {
-	    temp <- Build.terms(x, coef, vv, asgn, F)
+	    temp <- Build.terms(x, coef, vv, asgn, FALSE)
 	    pred <- temp$fit
 	    se   <- temp$se.fit
 	    }
-	else pred<- Build.terms(x, coef, NULL, asgn, F)
+	else pred<- Build.terms(x, coef, NULL, asgn, FALSE)
 	const <- attr(pred, 'constant')
 	}
 

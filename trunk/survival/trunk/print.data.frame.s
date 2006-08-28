@@ -1,17 +1,17 @@
-#SCCS $Date: 1994-01-03 07:55:34 $ $Id: print.data.frame.s,v 4.4 1994-01-03 07:55:34 therneau Exp $
+# $Date: 2006-08-28 14:27:37 $ $Id: print.data.frame.s,v 4.5 2006-08-28 14:27:37 m015733 Exp $
 #
 # In order to get objects with attributes to print correctly, I replace the
 #   call to "as.matrix" with a copy of as.matrix.data.frame, one that knows
 #   its output is character, and so calls the appropriate as.character routine
 #
 print.data.frame <-
-function(x, ..., quote = F, right = T)
+function(x, ..., quote = FALSE, right = TRUE)
 {
     if(!length(x))
         cat("NULL data frame with", length(row.names(x)), "rows\n")
 
     else if(!length(row.names(x))) {
-        print.atomic(names(x), quote = F)
+        print.atomic(names(x), quote = FALSE)
         cat("< 0 rows> \n")
         }
     else {
@@ -21,7 +21,7 @@ function(x, ..., quote = F, right = T)
 	class(x) <- NULL
 	p <- DD[2]
 	n <- DD[1]
-	non.numeric <- non.atomic <- F
+	non.numeric <- non.atomic <- FALSE
 	for(j in 1:p) {
 	    xj <- x[[j]]
 
@@ -57,9 +57,9 @@ function(x, ..., quote = F, right = T)
 		else x[[j]] <- format(xj)
 		}
 	    }
-	x <- unlist(x, recursive = F)
+	x <- unlist(x, recursive = FALSE)
 	dim(x) <- c(n, length(x)/n)
-	dimnames(x) <- list(dn[[1]], unlist(collabs, use.names=F))
+	dimnames(x) <- list(dn[[1]], unlist(collabs, use.names=FALSE))
 	class(x) <- "matrix"
 	print(x, ..., quote=quote, right=right)
 	}

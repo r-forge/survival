@@ -1,8 +1,8 @@
-# SCCS $Id: predict.coxph.penal.s,v 5.3 1998-11-25 20:52:45 therneau Exp $
+# $Id: predict.coxph.penal.s,v 5.4 2006-08-28 14:19:16 m015733 Exp $
 predict.coxph.penal <- function(object,  newdata, 
 				type=c("lp", "risk", "expected", "terms"),
-				se.fit=F, terms=labels.lm(object), 
-				collapse, safe=F, ...) {
+				se.fit=FALSE, terms=labels.lm(object), 
+				collapse, safe=FALSE, ...) {
 
     type <- match.arg(type)
     n <- object$n
@@ -10,7 +10,7 @@ predict.coxph.penal <- function(object,  newdata,
     pterms <- object$pterms
     # If there are no sparse terms
     if (!any(pterms==2) || type=='expected' || 
-	(missing(newdata) && se.fit==F && type!='terms')) NextMethod('predict')
+	(missing(newdata) && se.fit==FALSE && type!='terms')) NextMethod('predict')
     else {
 	# treat the sparse term as an offset term
 	#  It gets picked up in the linear predictor, so all I need to
@@ -28,14 +28,14 @@ predict.coxph.penal <- function(object,  newdata,
 	    # I need the X matrix
 	    x <- object$x
 	    if (is.null(x)) {
-		temp <- coxph.getdata(object, y=T, x=T, strata=T)
+		temp <- coxph.getdata(object, y=TRUE, x=TRUE, strata=TRUE)
 		if (is.null(object$y)) object$y <- temp$y
 		if (is.null(object$strata)) object$strata <- temp$strata
 		x <- temp$x
 		}
 	    xvar <- match(sparsename, dimnames(x)[[2]])
 	    indx <- as.numeric(as.factor(x[,xvar]))
-	    object$x <- x[, -xvar, drop=F]
+	    object$x <- x[, -xvar, drop=FALSE]
 	    }
 	
 	if (nvar==1) {
