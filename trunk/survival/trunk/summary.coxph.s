@@ -1,6 +1,6 @@
-#SCCS $Date: 1997-03-25 10:55:51 $ $Id: summary.coxph.s,v 4.8 1997-03-25 10:55:51 therneau Exp $
+# $Date: 2006-08-28 15:39:49 $ $Id: summary.coxph.s,v 4.9 2006-08-28 15:39:49 m015733 Exp $
 summary.coxph <-
- function(cox, table = T, coef = T, conf.int = 0.95, scale = 1,
+ function(cox, table = TRUE, coef = TRUE, conf.int = 0.95, scale = 1,
 			digits = max(options()$digits - 4, 3))
     {
     if (!is.null(cl<- cox$call)) {
