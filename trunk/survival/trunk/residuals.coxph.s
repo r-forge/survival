@@ -1,14 +1,14 @@
-#  SCCS $Id: residuals.coxph.s,v 5.4 2000-09-07 16:45:37 therneau Exp $
+# $Id: residuals.coxph.s,v 5.5 2006-08-28 15:27:04 m015733 Exp $
 residuals.coxph <-
   function(object, type=c("martingale", "deviance", "score", "schoenfeld",
 			  "dfbeta", "dfbetas", "scaledsch"),
-	    collapse=F, weighted=F)
+	    collapse=FALSE, weighted=FALSE)
     {
     type <- match.arg(type)
     otype <- type
     if (type=='dfbeta' || type=='dfbetas') {
 	type <- 'score'
-	if (missing(weighted)) weighted <- T  # different default
+	if (missing(weighted)) weighted <- TRUE  # different default
 	}
     if (type=='scaledsch') type<-'schoenfeld'
 
@@ -33,14 +33,14 @@ residuals.coxph <-
 		stop("invalid terms component of object")
 	strats <- attr(Terms, "specials")$strata
 	if (is.null(y)  ||  (is.null(x) && type!= 'deviance')) {
-	    temp <- coxph.getdata(object, y=T, x=T, strata=T)
+	    temp <- coxph.getdata(object, y=TRUE, x=TRUE, strata=TRUE)
 	    y <- temp$y
 	    x <- temp$x
 	    if (length(strats)) strat <- temp$strata
 	    }
 
 	ny <- ncol(y)
-	status <- y[,ny,drop=T]
+	status <- y[,ny,drop=TRUE]
 
 	if (type != 'deviance') {
 	    nstrat <- as.numeric(strat)

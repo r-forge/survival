@@ -1,4 +1,4 @@
-# SCCS $Id: ratetable.s,v 5.4 2006-02-23 23:00:55 lunde Exp $
+# $Id: ratetable.s,v 5.5 2006-08-28 15:24:02 m015733 Exp $
 #
 # This is a 'specials' function for pyears
 #   it is a stripped down version of as.matrix(data.frame(...))
@@ -37,13 +37,13 @@ is.na.ratetable2 <- function(x) {
     attributes(x) <- list(dim=dim(x))
     as.vector((1 * is.na(x)) %*% rep(1, ncol(x)) >0)
     }
-"[.ratetable2" <- function(x, rows, cols, drop=F) {
+"[.ratetable2" <- function(x, rows, cols, drop=FALSE) {
     if (!missing(cols)) {
        stop("This should never be called!")
        }
     aa <- attributes(x)
     attributes(x) <- aa[c("dim", "dimnames")]
-    y <- x[rows,,drop=F]
+    y <- x[rows,,drop=FALSE]
     attr(y,'constants') <- aa$constants
     attr(y,'levlist')   <- aa$levlist
     oldClass(y) <- 'ratetable2'
@@ -54,10 +54,10 @@ is.na.ratetable2 <- function(x) {
 # Functions to manipulate rate tables
 #
 
-"[.ratetable" <- function(x, ..., drop=T) {
+"[.ratetable" <- function(x, ..., drop=TRUE) {
     aa <- attributes(x)
     attributes(x) <- aa[c("dim", "dimnames")]
-    y <- NextMethod("[", drop=F)
+    y <- NextMethod("[", drop=FALSE)
     newdim <- attr(y, 'dim')
     if (is.null(newdim)) stop("Invalid subscript")
     dropped <- (newdim==1)

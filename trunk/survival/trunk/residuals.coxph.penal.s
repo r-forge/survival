@@ -1,8 +1,8 @@
-# SCCS $Id: residuals.coxph.penal.s,v 1.2 1998-10-31 22:39:10 therneau Exp $
+# $Id: residuals.coxph.penal.s,v 1.3 2006-08-28 15:26:08 m015733 Exp $
 residuals.coxph.penal <- function(object, 
             type=c("martingale", "deviance", "score", "schoenfeld",
 			  "dfbeta", "dfbetas", "scaledsch"),
-	    collapse=F, weighted=F) {
+	    collapse=FALSE, weighted=FALSE) {
       
     type <- match.arg(type)
     # Are there any sparse terms, and if so do I need the X matrix?
@@ -16,12 +16,12 @@ residuals.coxph.penal <- function(object,
 	sparsename <- (names(object$pterms))[object$pterms==2]
 	x <- object$x
 	if (is.null(x)) {
-	    temp <- coxph.getdata(object, y=T, x=T, strata=T)
+	    temp <- coxph.getdata(object, y=TRUE, x=TRUE, strata=TRUE)
 	    if (is.null(object$y)) object$y <- temp$y
 	    if (is.null(object$strata)) object$strata <- temp$strata
 	    x <- temp$x
 	    }
-	object$x <- x[, -match(sparsename, dimnames(x)[[2]]), drop=F]
+	object$x <- x[, -match(sparsename, dimnames(x)[[2]]), drop=FALSE]
     
 	temp <- attr(object$terms, 'term.labels')
 	object$terms <- object$terms[-match(sparsename, temp)]
