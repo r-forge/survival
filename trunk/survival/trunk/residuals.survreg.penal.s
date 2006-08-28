@@ -1,4 +1,4 @@
-# SCCS $Id: residuals.survreg.penal.s,v 1.1 1998-11-30 08:23:06 therneau Exp $
+# $Id: residuals.survreg.penal.s,v 1.2 2006-08-28 15:29:39 m015733 Exp $
 # This routine just stops disastrous arithmetic for models with sparse
 # terms.  A placeholder until the proper sparse terms actions are inserted.
 residuals.survreg.penal <- function(object, ...) {
