@@ -1,4 +1,4 @@
-# SCCS $Id: model.frame.survreg.s,v 1.1 1998-11-25 21:08:04 therneau Exp $
+# $Id: model.frame.survreg.s,v 1.2 2006-08-28 14:09:21 m015733 Exp $
 model.frame.survreg <- function(object, ...) {
     Call <- object$call
     Call[[1]] <- as.name("model.frame")
