@@ -1,4 +1,4 @@
-# SCCS $Id: survexp.oldwnc.s,v 1.2 2000-06-12 09:54:31 boos Exp $
+# $Id: survexp.oldwnc.s,v 1.3 2006-08-28 15:57:20 m015733 Exp $
 #
 # The old WNC table, pre 1990 extrapolation
 #

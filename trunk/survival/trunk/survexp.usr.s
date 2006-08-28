@@ -1,4 +1,4 @@
-# SCCS $Id: survexp.usr.s,v 5.8 2001-12-28 13:09:12 therneau Exp $
+# $Id: survexp.usr.s,v 5.9 2006-08-28 16:00:26 m015733 Exp $
 #
 # Create the US total hazards table, by race
 #   The raw numbers below are q* 10^5.  Note that there are 24 leap years/100

@@ -1,4 +1,4 @@
-# SCCS $Id: survexp.uswhite.s,v 4.7 1995-02-06 22:27:55 therneau Exp $
+# $Id: survexp.uswhite.s,v 4.8 2006-08-28 16:01:05 m015733 Exp $
 #
 # Create the US total hazards table, whites only
 #   The raw numbers below are q* 10^5.  Note that there are 24 leap years/100

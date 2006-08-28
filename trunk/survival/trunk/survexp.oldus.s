@@ -1,4 +1,4 @@
-# SCCS $Id: survexp.oldus.s,v 1.2 2000-06-12 09:53:38 boos Exp $
+# $Id: survexp.oldus.s,v 1.3 2006-08-28 15:55:49 m015733 Exp $
 #
 # A copy of survexp.us, just prior to adding the new 1990 data
 #   The raw numbers below are q* 10^5.  Note that there are 24 leap years/100

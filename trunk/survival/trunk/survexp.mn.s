@@ -1,4 +1,4 @@
-# SCCS $Id: survexp.mn.s,v 4.5 2001-12-28 13:09:11 therneau Exp $
+# $Id: survexp.mn.s,v 4.6 2006-08-28 15:52:46 m015733 Exp $
 #
 # Create the Minnesota total hazards table
 #   The raw numbers below are q* 10^5.  Note that there are 24 leap years/100

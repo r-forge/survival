@@ -1,4 +1,4 @@
-# SCCS $Id: survexp.azr.s,v 4.6 2001-12-28 13:09:10 therneau Exp $
+# $Id: survexp.azr.s,v 4.7 2006-08-28 15:48:06 m015733 Exp $
 #
 # Create the Arizona hazards table, by race
 #   The raw numbers below are q* 10^5.  Note that there are 24 leap years/100

@@ -1,4 +1,4 @@
-# SCCS $Id: summary.ratetable.s,v 1.2 2006-02-23 23:01:48 lunde Exp $
+# $Id: summary.ratetable.s,v 1.3 2006-08-28 15:40:30 m015733 Exp $
 #
 # Print out information about a rate table: it's dimensions and keywords
 #

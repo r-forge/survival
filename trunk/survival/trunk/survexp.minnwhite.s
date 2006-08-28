@@ -1,4 +1,4 @@
-#SCCS $Date: 1993-12-02 21:56:09 $ $Id: survexp.minnwhite.s,v 4.4 1993-12-02 21:56:09 therneau Exp $
+# $Date: 2006-08-28 15:51:55 $ $Id: survexp.minnwhite.s,v 4.5 2006-08-28 15:51:55 m015733 Exp $
 "survexp.minnwhite"<-
 structure(.Data = c(7.52761e-05, 4.84479e-06, 3.86508e-06, 2.6268e-06, 
 	2.14857e-06, 2.06528e-06, 1.98199e-06, 1.89838e-06, 1.78619e-06, 

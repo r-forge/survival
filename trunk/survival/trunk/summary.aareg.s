@@ -1,4 +1,4 @@
-# SCCS $Id: summary.aareg.s,v 1.4 2004-11-04 08:28:36 therneau Exp $
+# $Id: summary.aareg.s,v 1.5 2006-08-28 15:38:21 m015733 Exp $
 # The summary routine for aareg models.
 # A lot of the work below relates to one particular issue: the coeffients
 #  of an aareg model often get "wild" near the end (at the largest times).

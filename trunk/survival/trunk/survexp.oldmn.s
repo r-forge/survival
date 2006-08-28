@@ -1,4 +1,4 @@
-# SCCS $Id: survexp.oldmn.s,v 1.2 2000-06-12 09:42:34 boos Exp $
+# $Id: survexp.oldmn.s,v 1.3 2006-08-28 15:55:11 m015733 Exp $
 #
 # Copy of the Minnesota table before the 1990 data update
 #

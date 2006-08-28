@@ -1,4 +1,4 @@
-#SCCS $Id: survdiff.fit.s,v 1.1 1996-01-07 01:35:22 therneau Exp $
+# $Id: survdiff.fit.s,v 1.2 2006-08-28 15:45:04 m015733 Exp $
 survdiff.fit <- function(y, x, strat, rho=0) {
     #
     # This routine is almost always called from survdiff

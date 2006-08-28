@@ -1,4 +1,4 @@
-# SCCS $Id: survexp.oldusr.s,v 1.2 2000-06-12 09:53:53 boos Exp $
+# $Id: survexp.oldusr.s,v 1.3 2006-08-28 15:56:28 m015733 Exp $
 #
 # A copy of survexp.usr, before updateing the 1990 rates
 #
