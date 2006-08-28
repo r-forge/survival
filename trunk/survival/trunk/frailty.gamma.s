@@ -1,4 +1,4 @@
-# SCCS $Id: frailty.gamma.s,v 1.5 2001-03-12 07:46:10 therneau Exp $
+# $Id: frailty.gamma.s,v 1.6 2006-08-28 13:48:23 m015733 Exp $
 # 
 # Defining function for gamma frailty fits
 #
@@ -8,7 +8,7 @@ frailty.gamma <- function(x, sparse=(nclass >5), theta, df, eps= 1e-5,
     if (sparse)	x <-as.numeric(as.factor(x))
     else{
 	x <- as.factor(x)
-	attr(x,'contrasts') <- function(n,...) contr.treatment(n,F)
+	attr(x,'contrasts') <- function(n,...) contr.treatment(n,FALSE)
         }
     oldClass(x) <- "coxph.penalty"
 
@@ -31,7 +31,7 @@ frailty.gamma <- function(x, sparse=(nclass >5), theta, df, eps= 1e-5,
 	    stop("Method is not 'fixed', but have a theta argument")
 
     pfun<- function(coef, theta, ndeath){
-	if (theta==0) list(recenter=0, penalty=0, flag=T)
+	if (theta==0) list(recenter=0, penalty=0, flag=TRUE)
 	else {
 	      recenter <- log(mean(exp(coef)))
 	      coef <- coef - recenter
@@ -40,7 +40,7 @@ frailty.gamma <- function(x, sparse=(nclass >5), theta, df, eps= 1e-5,
 		   first=   (exp(coef) -1) * nu,
 		   second=  exp(coef) * nu,
 		   penalty= -sum(coef)*nu,   # The exp part sums to a constant
-		   flag=F)
+		   flag=FALSE)
 	           }
 	   }
 
@@ -62,7 +62,7 @@ frailty.gamma <- function(x, sparse=(nclass >5), theta, df, eps= 1e-5,
     if (method=='fixed') {
 	temp <- list(pfun=pfun,
 		     printfun=printfun,
-		     diag =T,
+		     diag =TRUE,
 		     sparse= sparse,
 		     cargs = c("x", "status", "loglik"),		 
 		     cfun = frailty.controlgam,
@@ -71,7 +71,7 @@ frailty.gamma <- function(x, sparse=(nclass >5), theta, df, eps= 1e-5,
     else if (method=='em'){
 	temp <- list(pfun=pfun,
 		     printfun=printfun,
-		     diag =T,
+		     diag =TRUE,
 		     sparse= sparse,
 		     cargs = c("x", "status", "loglik"),		 
 		     cfun = frailty.controlgam,
@@ -81,7 +81,7 @@ frailty.gamma <- function(x, sparse=(nclass >5), theta, df, eps= 1e-5,
     else if (method=='aic') {
 	temp <- list(pfun=pfun,
 		     printfun=printfun,
-		     diag =T,
+		     diag =TRUE,
 		     sparse= sparse,
 		     cargs = c("x", "status", "loglik", "neff","df", "plik"),
 		     cparm=list(eps=eps, lower=0, init=c(.1, 1), ...),
@@ -107,7 +107,7 @@ frailty.gamma <- function(x, sparse=(nclass >5), theta, df, eps= 1e-5,
 	if (missing(eps)) eps <- .1
 	temp <- list(pfun=pfun,
 		     printfun=printfun,
-		     diag =T,
+		     diag =TRUE,
 		     sparse= sparse,
 		     cargs= c('df', "x", "status", "loglik"),
 		     cparm=list(df=df, thetas=0, dfs=0, eps=eps,

@@ -1,4 +1,4 @@
-# SCCS $Id: frailty.controlgauss.s,v 1.3 1998-11-21 17:50:29 therneau Exp $
+# $Id: frailty.controlgauss.s,v 1.4 2006-08-28 13:47:08 m015733 Exp $
 #
 # The control function for REML on a gaussian
 #
@@ -15,7 +15,7 @@ frailty.controlgauss <- function(opt, iter, old, fcoef, trH, loglik){
         }
     
     else {
-	if (is.null(opt$trace)) trace <-F
+	if (is.null(opt$trace)) trace <-FALSE
 	else trace <- opt$trace
 
 	nfrail <- length(fcoef)
@@ -30,7 +30,7 @@ frailty.controlgauss <- function(opt, iter, old, fcoef, trH, loglik){
 		if (resid>0)  theta <- theta*3
 		else          theta <- theta/3  	        }
 	    else theta <- opt$init[2]
-	    list(theta=theta, done=F, history=history)
+	    list(theta=theta, done=FALSE, history=history)
 	    }
 	else {
             history <- rbind(old$history,
@@ -43,7 +43,7 @@ frailty.controlgauss <- function(opt, iter, old, fcoef, trH, loglik){
 		    print(history)
 		    cat("    new theta=", theta, "\n\n")
 		    }
-		list(theta=theta, done=F, history=history)
+		list(theta=theta, done=FALSE, history=history)
 		}
 	    else {
 		done <- (abs(history[iter,2]) < opt$eps)

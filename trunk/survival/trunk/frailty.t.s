@@ -1,4 +1,4 @@
-# SCCS $Id: frailty.t.s,v 1.4 2000-07-10 09:12:58 therneau Exp $
+# $Id: frailty.t.s,v 1.5 2006-08-28 13:52:38 m015733 Exp $
 # 
 # Defining function for t-distribution frailty fits
 #
@@ -12,7 +12,7 @@ frailty.t <- function(x, sparse=(nclass>5), theta, df, eps= 1e-5,  tdf=5,
     else{
 	x <- as.factor(x)
 	oldClass(x) <- "coxph.penalty"
-	attr(x,'contrasts') <- function(n,...) contr.treatment(n,F)
+	attr(x,'contrasts') <- function(n,...) contr.treatment(n,FALSE)
         }
 
     if (tdf <=2) stop("Cannot have df <3 for the t-frailty")
@@ -37,7 +37,7 @@ frailty.t <- function(x, sparse=(nclass>5), theta, df, eps= 1e-5,  tdf=5,
 	    stop("Method is not 'fixed', but have a theta argument")
 
     pfun<- function(coef, theta, ndead, tdf){
-	if (theta==0) list(recenter=0, penalty=0, flag=T)
+	if (theta==0) list(recenter=0, penalty=0, flag=TRUE)
 	else {
 	    sig <- theta* (tdf-2)/tdf  #scale contant^2 in density formula
 	    #
@@ -56,7 +56,7 @@ frailty.t <- function(x, sparse=(nclass>5), theta, df, eps= 1e-5,  tdf=5,
 		 second=  const*(1/temp - (2/(tdf*sig))*coef^2/temp^2),
 		 penalty= sum(.5*log(pi*tdf*sig) + ((tdf+1)/2)*log(temp) +
 		                lgamma(tdf/2) - lgamma((tdf+1)/2)),
-		 flag=F)
+		 flag=FALSE)
 	    }
 	}
 
@@ -75,17 +75,17 @@ frailty.t <- function(x, sparse=(nclass>5), theta, df, eps= 1e-5,  tdf=5,
     if (method=='fixed') {
 	temp <- list(pfun=pfun, pparm=tdf,
 		     printfun=printfun,
-		     diag =T,
+		     diag =TRUE,
 		     sparse= sparse,
 		     cfun = function(parms, iter, old){
-		          list(theta=parms$theta, done=T)},
+		          list(theta=parms$theta, done=TRUE)},
 		     cparm= list(theta=theta, ...))
         }
     
     else if (method=='aic') {
 	temp <- list(pfun=pfun, pparm=tdf,
 		     printfun=printfun,
-		     diag =T,
+		     diag =TRUE,
 		     sparse= sparse,
 		     cargs = c("neff", "df", "plik"),	
 		     cparm=list(lower=0, init=c(.1,1), eps=eps, ...),
@@ -95,7 +95,7 @@ frailty.t <- function(x, sparse=(nclass>5), theta, df, eps= 1e-5,  tdf=5,
 	if (missing(eps)) eps <- .1
 	temp <- list(pfun=pfun, pparm=tdf,
 		     printfun=printfun,
-		     diag =T,
+		     diag =TRUE,
 		     sparse= sparse,
 		     cargs= c('df'),
 		     cparm=list(df=df, eps=eps, thetas=0, dfs=0,
