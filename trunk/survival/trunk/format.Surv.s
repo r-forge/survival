@@ -1,4 +1,4 @@
-# SCCS $Id: format.Surv.s,v 4.7 1998-12-22 09:00:01 therneau Exp $
+# $Id: format.Surv.s,v 4.8 2006-08-28 13:38:48 m015733 Exp $
 #
 format.Surv <- function(x, ...) format(as.character.Surv(x), ...)
 

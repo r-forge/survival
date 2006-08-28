@@ -1,4 +1,4 @@
-# SCCS $Id: frailty.brent.s,v 1.1 1998-10-28 08:51:55 therneau Exp $
+# $Id: frailty.brent.s,v 1.2 2006-08-28 13:40:24 m015733 Exp $
 #
 # Brent's method for finding a maximum
 #  If upper and/or lower is given, it transforms x to stay out of trouble
