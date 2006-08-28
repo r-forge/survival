@@ -1,5 +1,5 @@
 #
-# SCCS $Id: is.ratetable.verbose.s,v 1.1 1995-10-27 12:17:47 therneau Exp $
+# $Id: is.ratetable.verbose.s,v 1.2 2006-08-28 13:57:32 m015733 Exp $
 #   A version of the function that tells you WHY it's not a ratetable
 #
 
@@ -25,5 +25,5 @@ is.ratetable.verbose <- function(x) {
 	if (fac[i]==1 && !is.null(att$cutpoints[[i]]))  return('cutpnt should be null')
 	if (fac[i]>1 && i<nd) return('only the last dim can be interpolated')
 	}
-    T
+    TRUE
     }
