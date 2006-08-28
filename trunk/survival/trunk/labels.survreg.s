@@ -1,2 +1,2 @@
-# SCCS $Id: labels.survreg.s,v 1.1 1999-01-06 07:25:50 therneau Exp $
+# $Id: labels.survreg.s,v 1.2 2006-08-28 13:59:18 m015733 Exp $
 labels.survreg <- labels.lm
