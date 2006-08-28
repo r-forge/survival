@@ -1,11 +1,11 @@
-# SCCS $Id: survConcordance.s,v 1.2 2004-03-05 13:46:54 therneau Exp $
+# $Id: survConcordance.s,v 1.3 2006-08-28 15:43:25 m015733 Exp $
 # Compute the concordance between a survival time x
 #  and a continuous variable y
 survConcordance <- function(formula=formula(data), data=sys.parent(),
                             weights, subset, na.action) {
     call <- match.call()         # save a copy of of the call, as documentation
 
-    m <- match.call(expand=F)
+    m <- match.call(expand=FALSE)
     m[[1]] <- as.name("model.frame")
     m <- eval(m, sys.parent())
     Terms <- terms(formula)
@@ -46,7 +46,7 @@ survConcordance <- function(formula=formula(data), data=sys.parent(),
               as.double(x2),
               integer(2*n2),
               result=integer(5),
-              copy=c(F,F,F,F,F,F,T,T))
+              copy=c(FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,TRUE,TRUE))
     agree <- fit$result[1]
     disagree <- fit$result[2]
     tie2  <- fit$result[3]

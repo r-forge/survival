@@ -1,7 +1,7 @@
-#SCCS $Date: 2001-01-06 11:43:19 $ $Id: survdiff.s,v 5.2 2001-01-06 11:43:19 therneau Exp $
+# $Date: 2006-08-28 15:46:03 $ $Id: survdiff.s,v 5.3 2006-08-28 15:46:03 m015733 Exp $
 survdiff <- function(formula, data, subset, na.action, rho=0) {
     call <- match.call()
-    m <- match.call(expand=F)
+    m <- match.call(expand=FALSE)
     m$rho <- NULL
 
     Terms <- if(missing(data)) terms(formula, 'strata')
@@ -43,7 +43,7 @@ survdiff <- function(formula, data, subset, na.action, rho=0) {
 	    temp <- untangle.specials(Terms, 'strata', 1)
 	    dropx <- temp$terms
 	    if (length(temp$vars)==1) strata.keep <- m[[temp$vars]]
-	    else strata.keep <- strata(m[,temp$vars], shortlabel=T)
+	    else strata.keep <- strata(m[,temp$vars], shortlabel=TRUE)
 	    }
 	else strata.keep <- rep(1,nrow(m))
 
@@ -66,7 +66,7 @@ survdiff <- function(formula, data, subset, na.action, rho=0) {
 	if (sum(df) <2) chi <- 0         # No test, actually
 	else {
 	    temp2 <- ((otmp - etmp)[df])[-1]
-	    vv <- (fit$var[df,df])[-1,-1, drop=F]
+	    vv <- (fit$var[df,df])[-1,-1, drop=FALSE]
 	    chi <- sum(solve(vv, temp2) * temp2)
 	    }
 

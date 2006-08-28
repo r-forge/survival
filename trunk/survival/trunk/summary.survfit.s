@@ -1,10 +1,10 @@
-# $Id: summary.survfit.s,v 5.11 2006-06-07 12:23:07 therneau Exp $
+# $Id: summary.survfit.s,v 5.12 2006-08-28 15:41:39 m015733 Exp $
 #
 # Version with no C code, using approx() to do the subscript
 #  calculations
 
-summary.survfit <- function(object, times, censored=F, 
-			    scale=1, extend=F, ...) {
+summary.survfit <- function(object, times, censored=FALSE, 
+			    scale=1, extend=FALSE, ...) {
     fit <- object
     if (!inherits(fit, 'survfit'))
 	    stop("Invalid data")
@@ -55,13 +55,13 @@ summary.survfit <- function(object, times, censored=F,
 	    n.event <- fit$n.event[who]
 	    n.enter <- fit$n.enter[who]
 	    n.censor <- fit$n.censor[who]
-	    surv <- surv[who,,drop=F]
-	    if (!is.null(std.err)) std.err <- std.err[who,,drop=F]
+	    surv <- surv[who,,drop=FALSE]
+	    if (!is.null(std.err)) std.err <- std.err[who,,drop=FALSE]
 	    if (!is.null(fit$lower)) {
-		lower <- lower[who,,drop=F]
-		upper <- upper[who,,drop=F]
+		lower <- lower[who,,drop=FALSE]
+		upper <- upper[who,,drop=FALSE]
 	        }
-	    strata <- (factor(stemp, labels=strata.names))[who, drop=T]
+	    strata <- (factor(stemp, labels=strata.names))[who, drop=TRUE]
 	    }
         }
 
@@ -136,7 +136,7 @@ summary.survfit <- function(object, times, censored=F,
 		#  n.censor.  In this case, we don't know how many of the
 		#  people at the last time are censored then & how many go
 		#  on further.  Assume we lose them all.  Note normally
-		#  extend=F, so this number isn't printed anyway.
+		#  extend=FALSE, so this number isn't printed anyway.
 		last.n <- 0
 		}
 
@@ -153,11 +153,11 @@ summary.survfit <- function(object, times, censored=F,
 	if (!is.null(fit$n.enter))  n.enter <- unlist(n.enter)
 	if (!is.null(fit$n.censor)) n.censor<- unlist(n.censor)
 	indx1 <- unlist(indx1)
-	surv <- (rbind(1.,surv))[indx1,,drop=F]
-	if (!is.null(std.err)) std.err <- rbind(0.,std.err)[indx1,,drop=F]
+	surv <- (rbind(1.,surv))[indx1,,drop=FALSE]
+	if (!is.null(std.err)) std.err <- rbind(0.,std.err)[indx1,,drop=FALSE]
 	if (!is.null(fit$lower)) {
-	    lower <- rbind(1.,lower)[indx1,,drop=F]
-	    upper <- rbind(1.,upper)[indx1,,drop=F]
+	    lower <- rbind(1.,lower)[indx1,,drop=FALSE]
+	    upper <- rbind(1.,upper)[indx1,,drop=FALSE]
 	    }
 	if (!is.null(fit$strata)) {
 	    scount <- unlist(lapply(newtimes, length))
