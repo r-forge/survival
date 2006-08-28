@@ -1,4 +1,4 @@
-# SCCS $Id: survexp.wnc.s,v 4.6 2001-12-28 13:09:12 therneau Exp $
+# $Id: survexp.wnc.s,v 4.7 2006-08-28 18:07:34 m015733 Exp $
 #
 # Create the WNC hazards table
 #   The raw numbers below are q* 10^5.  Note that there are 24 leap years/100
