@@ -1,4 +1,4 @@
-#SCCS $Id: survfit.Surv.s,v 1.2 2005-10-07 22:48:20 lunde Exp $
+# $Id: survfit.Surv.s,v 1.3 2006-08-28 18:08:31 m015733 Exp $
 survfit.Surv <- function (formula, data, weights, subset,
 			  na.action, call, ...) {
     #  turn the first arg into a real formula
@@ -17,7 +17,7 @@ survfit.Surv <- function (formula, data, weights, subset,
 
     if (missing(call)) call <- match.call()
 
-    m <- match.call(expand=T)
+    m <- match.call(expand=TRUE)
     m <- m[match(c("", "data", "weights", "subset", "na.action"),
 		 names(m), nomatch=0)]
     
