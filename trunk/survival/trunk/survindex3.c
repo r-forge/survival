@@ -1,4 +1,4 @@
-/*    SCCS $Id: survindex3.c,v 1.3 2000-07-09 14:42:15 boos Exp $
+/*    SCCS $Id: survindex3.c,v 1.4 2006-08-30 20:53:47 m015733 Exp $
 ** A subroutine for summary.survfit
 **
 ** Input --
@@ -42,15 +42,15 @@
 */
 #include "survS.h"
 #include "survproto.h"
-void survindex3(long   *n,          double *stime,        long   *strata,
-		long   *ntime,      double *time,         long   *nstrat, 
-		long   *o_n_risk,   long   *o_n_entered,  long   *o_n_censored,
-		long   *o_n_event,  double *o_surv,       double *o_std_err,
-		double *o_upper,    double *o_lower,      long   *n_risk, 
-		long   *n_entered,  long   *n_censored,   long   *n_event,
+void survindex3(Sint   *n,          double *stime,        Sint   *strata,
+		Sint   *ntime,      double *time,         Sint   *nstrat, 
+		Sint   *o_n_risk,   Sint   *o_n_entered,  Sint   *o_n_censored,
+		Sint   *o_n_event,  double *o_surv,       double *o_std_err,
+		double *o_upper,    double *o_lower,      Sint   *n_risk, 
+		Sint   *n_entered,  Sint   *n_censored,   Sint   *n_event,
 		double *surv,       double *std_err,      double *upper,
-		double *lower,      double *new_start, 	  long   *num_extend,
-		long   *times_strata,                     double *temp_times)
+		double *lower,      double *new_start, 	  Sint   *num_extend,
+		Sint   *times_strata,                     double *temp_times)
 
 {
   int i,j,k;

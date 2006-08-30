@@ -1,4 +1,4 @@
-/*  SCCS $Id: coxmart.c,v 5.2 1998-10-27 17:34:49 therneau Exp $
+/*  SCCS $Id: coxmart.c,v 5.3 2006-08-30 20:53:43 m015733 Exp $
 /*
 ** Compute the martingale residual for a Cox model
 **
@@ -21,8 +21,8 @@
 #include "survS.h"
 #include "survproto.h"
 
-void coxmart(long   *sn,     long   *method,    double *time, 
-	     long   *status, long   * strata,   double *score, 
+void coxmart(Sint   *sn,     Sint   *method,    double *time, 
+	     Sint   *status, Sint   * strata,   double *score, 
 	     double *wt,     double *expect)
     {
     register int i,j;

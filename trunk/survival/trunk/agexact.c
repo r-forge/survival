@@ -1,4 +1,4 @@
-/* $Id: agexact.c,v 5.4 2006-02-07 15:06:06 therneau Exp $
+/* $Id: agexact.c,v 5.5 2006-08-30 20:53:38 m015733 Exp $
 /*
 ** Anderson-Gill formulation of the cox Model
 **   Do an exact calculation of the partial likelihood. (CPU city!)
@@ -52,11 +52,11 @@
 #include "survS.h"
 #include "survproto.h"
 
-void agexact(long *maxiter,  long *nusedx,   long *nvarx,   double *start, 
-	     double *stop,   long *event,    double *covar2,double *offset, 
-	     long   *strata, double *means,  double *beta,  double *u, 
-	     double *imat2,  double loglik[2], long *flag,  double *work, 
-	     long   *work2,  double *eps,    double *tol_chol, double *sctest)
+void agexact(Sint *maxiter,  Sint *nusedx,   Sint *nvarx,   double *start, 
+	     double *stop,   Sint *event,    double *covar2,double *offset, 
+	     Sint   *strata, double *means,  double *beta,  double *u, 
+	     double *imat2,  double loglik[2], Sint *flag,  double *work, 
+	     Sint   *work2,  double *eps,    double *tol_chol, double *sctest)
 {
     int i,j,k, l, person;
     int     iter;

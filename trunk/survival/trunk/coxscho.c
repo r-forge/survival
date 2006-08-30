@@ -1,4 +1,4 @@
-/*  SCCS $Id: coxscho.c,v 5.2 1998-10-27 17:34:50 therneau Exp $
+/*  SCCS $Id: coxscho.c,v 5.3 2006-08-30 20:53:44 m015733 Exp $
 /*
 ** Return the Schoenfeld residuals.
 **
@@ -34,9 +34,9 @@
 #include "survS.h"
 #include "survproto.h"
 
-void coxscho(long   *nusedx,    long   *nvarx,    double *y, 
-	     double *covar2,    double *score,    long   *strata,  
-	     long   *method2,   double *work)
+void coxscho(Sint   *nusedx,    Sint   *nvarx,    double *y, 
+	     double *covar2,    double *score,    Sint   *strata,  
+	     Sint   *method2,   double *work)
 {
     int i,k,person;
     int     nused, nvar;

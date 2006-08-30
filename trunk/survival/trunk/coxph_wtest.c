@@ -1,10 +1,10 @@
-/* SCCS $Id: coxph_wtest.c,v 1.1 1998-10-28 08:42:53 therneau Exp $
+/* SCCS $Id: coxph_wtest.c,v 1.2 2006-08-30 20:53:43 m015733 Exp $
 ** C wrapper for the Cholesky-based Wald test routine
 */
 #include "survS.h"
 #include "survproto.h"
 
-void coxph_wtest(long *nvar2, long *ntest, double *var, double *b,
+void coxph_wtest(Sint *nvar2, Sint *ntest, double *var, double *b,
 		 double *solve, double *tolerch) {
     int i,j;
     int nvar, df;

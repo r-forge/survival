@@ -1,4 +1,4 @@
-/* SCCS $Id: survreg3.c,v 1.1 1999-02-06 23:38:21 therneau Exp $
+/* SCCS $Id: survreg3.c,v 1.2 2006-08-30 20:53:48 m015733 Exp $
 /*
 ** This is a version of survreg2.c, but for the "user written" distributions
 **   It get the derivative information for all observations at once.
@@ -50,7 +50,7 @@
 
 static int    nvar, nvar2, nstrat;
 static double **covar;
-static long   *strat ;
+static Sint   *strat ;
 static double *time2, *time1, *status;
 static double *offset;
 static double **imat, **JJ;
@@ -61,12 +61,12 @@ static double **funs, *z;
 static double dolik(int, double *, int);
 
 static int debug;
-void survreg3(long   *maxiter,   long   *nx,    long   *nvarx, 
-	     double *y,          long   *ny,    double *covar2, double *wtx,
-	     double *offset2,    double *beta,  long   *nstratx, 
-	     long   *stratax,    double *ux,    double *imatx, 
-	     double *loglik,     long   *flag,  double *eps,
-	     double *tol_chol,   long   *dist,  long   *ddebug) {
+void survreg3(Sint   *maxiter,   Sint   *nx,    Sint   *nvarx, 
+	     double *y,          Sint   *ny,    double *covar2, double *wtx,
+	     double *offset2,    double *beta,  Sint   *nstratx, 
+	     Sint   *stratax,    double *ux,    double *imatx, 
+	     double *loglik,     Sint   *flag,  double *eps,
+	     double *tol_chol,   Sint   *dist,  Sint   *ddebug) {
     int i,j;	
     int n;
     double *newbeta,	   *savediag;

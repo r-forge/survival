@@ -1,4 +1,4 @@
-/*  $Id: coxfit2.c,v 5.4 2006-02-07 15:06:06 therneau Exp $
+/*  $Id: coxfit2.c,v 5.5 2006-08-30 20:53:42 m015733 Exp $
 /*
 ** here is a cox regression program, written in c
 **     uses Efron's approximation for ties
@@ -53,11 +53,11 @@
 #include "survS.h"
 #include "survproto.h"
 
-void coxfit2(long   *maxiter,   long   *nusedx,    long   *nvarx, 
-	     double *time,      long   *status,    double *covar2, 
-	     double *offset,	double *weights,   long   *strata,
+void coxfit2(Sint   *maxiter,   Sint   *nusedx,    Sint   *nvarx, 
+	     double *time,      Sint   *status,    double *covar2, 
+	     double *offset,	double *weights,   Sint   *strata,
 	     double *means,     double *beta,      double *u, 
-	     double *imat2,     double loglik[2],  long   *flag, 
+	     double *imat2,     double loglik[2],  Sint   *flag, 
 	     double *work,	double *eps,       double *tol_chol,
 	     double *sctest)
 {

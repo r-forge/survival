@@ -1,12 +1,12 @@
-/*  SCCS  $Id: surv_callback.c,v 1.2 2001-01-19 15:41:21 therneau Exp $
+/*  SCCS  $Id: surv_callback.c,v 1.3 2006-08-30 20:53:46 m015733 Exp $
 ** callback routines for the survreg "other" distributions
 **  This is based on appendix A of Chambers
 */
 #include "survS.h"
 #include "survproto.h"
 
-static long nframe;
-static long n;
+static Sint nframe;
+static Sint n;
 static s_object *expr1;   /* Code to be executed */
 static double  *dptr;
 /*

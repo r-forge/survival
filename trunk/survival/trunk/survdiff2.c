@@ -1,11 +1,11 @@
-/*  SCCS $Id: survdiff2.c,v 5.3 1998-10-27 17:38:59 therneau Exp $ */
+/*  SCCS $Id: survdiff2.c,v 5.4 2006-08-30 20:53:46 m015733 Exp $ */
 #include <math.h>
 #include "survS.h"
 #include "survproto.h"
 
-void survdiff2(long   *nn,     long   *nngroup,    long   *nstrat, 
-	       double *rho,    double *time,       long   *status, 
-	       long   *group,  long   *strata,	   double *obs, 
+void survdiff2(Sint   *nn,     Sint   *nngroup,    Sint   *nstrat, 
+	       double *rho,    double *time,       Sint   *status, 
+	       Sint   *group,  Sint   *strata,	   double *obs, 
 	       double *exp,    double *var,        double *risk, 
 	       double *kaplan)
     {

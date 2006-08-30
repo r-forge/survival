@@ -1,4 +1,4 @@
-/* SCCS $Id: survreg4.c,v 1.8 2001-04-18 17:04:43 therneau Exp $
+/* SCCS $Id: survreg4.c,v 1.9 2006-08-30 20:53:48 m015733 Exp $
 /*
 ** The variant of survreg2 for penalized models
 **
@@ -76,27 +76,27 @@ static double dolik(int n, double *beta, int whichcase);
 
 static int    nvar0, nvar, nvar2, nstrat;
 static double **covar, *wt;
-static long   *strat , *frail;
+static Sint   *strat , *frail;
 static double *time2, *time1, *status;
 static double *offset;
 static double **imat, **JJ, **jmat;
 static double *u;
 static int    nf, ptype, pdiag;
 static double *ipen, *upen, logpen;
-static long   *zflag;
+static Sint   *zflag;
 static double *fdiag, *jdiag;
 static double scale;
 
 static int debug;
-void survreg4(long   *maxiter,   long   *nx,       long   *nvarx, 
-	      double *y,         long   *ny,       double *covar2, 
+void survreg4(Sint   *maxiter,   Sint   *nx,       Sint   *nvarx, 
+	      double *y,         Sint   *ny,       double *covar2, 
 	      double *wt2,       double *offset2,  double *beta,  
-	     long   *nstratx,    long   *stratax,  double *ux,    
+	     Sint   *nstratx,    Sint   *stratax,  double *ux,    
 	     double *imatx,      double *jmatx,
-	     double *loglik,     long   *flag,     double *eps,
-	     double *tol_chol,   long   *dist,     long   *ddebug,
-             long *ptype2,  	 long   *pdiag2,
-	     long *nfrail2,      long   *frail2,   double *fdiag2)  {
+	     double *loglik,     Sint   *flag,     double *eps,
+	     double *tol_chol,   Sint   *dist,     Sint   *ddebug,
+             Sint *ptype2,  	 Sint   *pdiag2,
+	     Sint *nfrail2,      Sint   *frail2,   double *fdiag2)  {
 
     int i,j;	
     int n;
@@ -172,8 +172,8 @@ void survreg4(long   *maxiter,   long   *nx,       long   *nvarx,
     if (pdiag==0)  upen = ALLOC(2*i, sizeof(double));
     else           upen = ALLOC(i+j, sizeof(double));
     ipen = upen + i;
-    if (ptype>1)  zflag = ALLOC(nvar, sizeof(long));
-    else          zflag = ALLOC(2, sizeof(long));
+    if (ptype>1)  zflag = ALLOC(nvar, sizeof(Sint));
+    else          zflag = ALLOC(2, sizeof(Sint));
 
     if (debug>0) {
 	fprintf(stderr, "\n----------Enter survreg4-----------\n");

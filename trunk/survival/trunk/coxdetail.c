@@ -1,4 +1,4 @@
-/*  SCCS $Date: 2002-04-29 14:24:43 $ $Id: coxdetail.c,v 5.3 2002-04-29 14:24:43 therneau Exp $
+/*  SCCS $Date: 2006-08-30 20:53:42 $ $Id: coxdetail.c,v 5.4 2006-08-30 20:53:42 m015733 Exp $
 /*
 ** Return all of the internal peices of a cox model
 **
@@ -51,10 +51,10 @@
 #include "survS.h"
 #include "survproto.h"
 
-void coxdetail(long   *nusedx,   long   *nvarx,    long   *ndeadx, 
-	       double *y,        double *covar2,   long   *strata,  
+void coxdetail(Sint   *nusedx,   Sint   *nvarx,    Sint   *ndeadx, 
+	       double *y,        double *covar2,   Sint   *strata,  
 	       double *score,    double *weights,  double *means2, 
-	       double *u2,       double *var,      long   *rmat,
+	       double *u2,       double *var,      Sint   *rmat,
 	       double *nrisk2,   double *work)
 {
     int i,j,k,person;

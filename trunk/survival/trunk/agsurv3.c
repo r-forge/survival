@@ -1,4 +1,4 @@
-/*  SCCS $Id: agsurv3.c,v 5.4 2000-02-09 14:30:21 therneau Exp $
+/*  SCCS $Id: agsurv3.c,v 5.5 2006-08-30 20:53:41 m015733 Exp $
 /*
 ** Create the cohort survival curve(s) for a set of subjects.
 **
@@ -69,12 +69,12 @@ static int      death,
 		n;
 static void    addup();
 
-void agsurv3(long   *sn,    long   *snvar,    long   *sncurve, 
-	     long   *snpt,  long   *sse,      double *score, 
+void agsurv3(Sint   *sn,    Sint   *snvar,    Sint   *sncurve, 
+	     Sint   *snpt,  Sint   *sse,      double *score, 
 	     double *sy,    double *r,        double *coef, 
-	     double *var,   double *cmean,    long   *scn, 
+	     double *var,   double *cmean,    Sint   *scn, 
 	     double *cy,    double *cx,       double *ssurv,
-	     double *varh,  double *sused,    long   *smethod)
+	     double *varh,  double *sused,    Sint   *smethod)
 {
 S_EVALUATOR
     register int i,j,k,l;

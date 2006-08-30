@@ -1,4 +1,4 @@
-/* $Id: agfit5.c,v 1.5 2006-02-07 15:06:05 therneau Exp $ */
+/* $Id: agfit5.c,v 1.6 2006-08-30 20:53:39 m015733 Exp $ */
 /* A reentrant version of the agfit program, for penalized effects modeling
 **   with reasonable efficiency (I hope).  The important arrays are saved
 **   from call to call so as to speed up the process.  The x-matrix itself
@@ -88,18 +88,18 @@ static int    *sort1, *sort2;
 static double *tmean;
 static int    ptype, pdiag, nstrat;
 static double *ipen, *upen, logpen;
-static long   *zflag;
+static Sint   *zflag;
 
 static double **cmatrix(double *, int, int);
 
-void agfit5_a(long *nusedx, long *nvarx, double *yy, 
+void agfit5_a(Sint *nusedx, Sint *nvarx, double *yy, 
 	       double *covar2, double *offset2,
 	       double *weights2, 
-	       long   *strata,  long   *sort,
+	       Sint   *strata,  Sint   *sort,
 	       double *means, double *beta, double *u, 
 	       double *loglik, 
-	       long *methodx, long *ptype2, long *pdiag2,
-	       long *nfrail,  long *frail2)
+	       Sint *methodx, Sint *ptype2, Sint *pdiag2,
+	       Sint *nfrail,  Sint *frail2)
 {
 S_EVALUATOR
     int i,j,k, person;
@@ -166,8 +166,8 @@ S_EVALUATOR
     if (pdiag==0)  upen = Calloc(2*i, double);
     else           upen = Calloc(i+j, double);
     ipen = upen + i;
-    if (ptype>1)  zflag = Calloc(nvar, long);
-    else          zflag = Calloc(2, long);
+    if (ptype>1)  zflag = Calloc(nvar, Sint);
+    else          zflag = Calloc(2, Sint);
 
     if (nf>0) {
 	frail = Calloc(nused, int);
@@ -297,11 +297,11 @@ S_EVALUATOR
 ** This call is used for iteration
 */
 
-void agfit5_b(long *maxiter, long *nusedx, long *nvarx, 
-	       long *strata, double *beta, double *u,
+void agfit5_b(Sint *maxiter, Sint *nusedx, Sint *nvarx, 
+	       Sint *strata, double *beta, double *u,
 	       double *imat2,  double *jmat2, double *loglik, 
-	       long *flag,  double *eps, double *tolerch, long *methodx, 
-	       long *nfrail, double *fbeta, double *fdiag)
+	       Sint *flag,  double *eps, double *tolerch, Sint *methodx, 
+	       Sint *nfrail, double *fbeta, double *fdiag)
 {
 S_EVALUATOR
     int i,j,k, person;
@@ -668,8 +668,8 @@ S_EVALUATOR
     }
 
 
-void agfit5_c(long *nusedx, long *nvar, long *strata,
-	      long *methodx, double *expect) {
+void agfit5_c(Sint *nusedx, Sint *nvar, Sint *strata,
+	      Sint *methodx, double *expect) {
 S_EVALUATOR
     int i, j, k, ksave;
     int p, istrat, indx2;

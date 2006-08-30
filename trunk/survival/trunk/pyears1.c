@@ -1,4 +1,4 @@
-/*  SCCS $Id: pyears1.c,v 5.4 2001-12-30 17:05:04 therneau Exp $
+/*  SCCS $Id: pyears1.c,v 5.5 2006-08-30 20:53:44 m015733 Exp $
 /*
 **  Person-years calculations, in its most general
 **
@@ -47,12 +47,12 @@
 #include "survproto.h"
 
 /* names that begin with "s" will be re-declared in the main body */
-void pyears1(long   *sn,      long   *sny,      long   *sdoevent, 
+void pyears1(Sint   *sn,      Sint   *sny,      Sint   *sdoevent, 
 	     double *sy,      double *weight,       
-             long   *sedim,   long   *efac, 
-	     long   *edims,   double *secut,    double *expect, 
-	     double *sedata,  long   *sodim,    long   *ofac, 
-	     long   *odims,   double *socut,    long   *smethod, 
+             Sint   *sedim,   Sint   *efac, 
+	     Sint   *edims,   double *secut,    double *expect, 
+	     double *sedata,  Sint   *sodim,    Sint   *ofac, 
+	     Sint   *odims,   double *socut,    Sint   *smethod, 
 	     double *sodata,  double *pyears,   double *pn, 
 	     double *pcount,  double *pexpect,  double *offtable)
     {

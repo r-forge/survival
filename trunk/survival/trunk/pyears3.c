@@ -1,4 +1,4 @@
-/*  SCCS $Id: pyears3.c,v 5.2 1998-10-27 17:36:28 therneau Exp $
+/*  SCCS $Id: pyears3.c,v 5.3 2006-08-30 20:53:45 m015733 Exp $
 /*
 **  Person-years calculations, leading to expected survival for a cohort.
 **    The output table depends only on factors, not on continuous.
@@ -34,11 +34,11 @@
 #include "survproto.h"
 
 /* names that begin with "s" will be re-declared in the main body */
-void pyears3(long   *sdeath,    long   *sn,    long   *sedim, 
-	     long   *efac,      long   *edims, double *secut, 
+void pyears3(Sint   *sdeath,    Sint   *sn,    Sint   *sedim, 
+	     Sint   *efac,      Sint   *edims, double *secut, 
 	     double *expect,    double *sx,    double *y, 
-	     long   *sntime,    long   *sngrp, double *times,
-	     double *esurv,     long   *nsurv)
+	     Sint   *sntime,    Sint   *sngrp, double *times,
+	     double *esurv,     Sint   *nsurv)
     {
 S_EVALUATOR
     int i,j,k;

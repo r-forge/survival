@@ -1,4 +1,4 @@
-/*  SCCS $Id: pystep.c,v 5.2 1998-10-27 17:36:29 therneau Exp $
+/*  SCCS $Id: pystep.c,v 5.3 2006-08-30 20:53:46 m015733 Exp $
 /*
 ** Returns the amount of time that will be spent in the current "cell",
 **  along with the index of the cell (treating a multi-way array as linear).
@@ -30,7 +30,7 @@
 #include "survproto.h"
 
 double pystep(int nc,        int  *index,  int  *index2,   double *wt, 
-	      double *data,  long *fac,    long *dims,     double **cuts, 
+	      double *data,  Sint *fac,    Sint *dims,     double **cuts, 
 	      double step,   int  edge)
     {
     int i,j;

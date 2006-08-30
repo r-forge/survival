@@ -1,4 +1,4 @@
-/* $Id: agfit3.c,v 1.5 2006-02-07 15:06:05 therneau Exp $
+/* $Id: agfit3.c,v 1.6 2006-08-30 20:53:38 m015733 Exp $
 /*
 ** Anderson-Gill formulation of the Cox Model, using smart subsets
 **
@@ -51,13 +51,13 @@
 #include "survS.h" 
 #include "survproto.h"
 
-void agfit3( long   *maxiter,  long   *nusedx,  long   *nvarx, 
-	     double *start,    double *stop,    long   *event, 
+void agfit3( Sint   *maxiter,  Sint   *nusedx,  Sint   *nvarx, 
+	     double *start,    double *stop,    Sint   *event, 
 	     double *covar2,   double *offset,  double *weights,
-	     long   *nstrat,   long   *strata,  long   *sort1,
-	     long   *sort2,    double *means,   double *beta, 
+	     Sint   *nstrat,   Sint   *strata,  Sint   *sort1,
+	     Sint   *sort2,    double *means,   double *beta, 
 	     double *u,        double *imat2,   double loglik[2], 
-	     long   *flag,     double *work,   
+	     Sint   *flag,     double *work,   
 	     double *eps,      double *tol_chol, double *sctest)
 {
 

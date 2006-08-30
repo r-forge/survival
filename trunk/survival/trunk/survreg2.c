@@ -1,4 +1,4 @@
-/* SCCS $Id: survreg2.c,v 1.5 1999-02-06 23:40:18 therneau Exp $
+/* SCCS $Id: survreg2.c,v 1.6 2006-08-30 20:53:47 m015733 Exp $
 /*
 ** Fit one of several censored data distributions
 **
@@ -66,7 +66,7 @@ static double dolik(int n, double *beta, int whichcase);
 
 static int    nvar, nvar2, nstrat;
 static double **covar;
-static long   *strat ;
+static Sint   *strat ;
 static double *time2, *time1, *status;
 static double *offset;
 static double **imat, **JJ;
@@ -74,12 +74,12 @@ static double *u, *wt;
 static double scale;
 
 static int debug;
-void survreg2(long   *maxiter,   long   *nx,    long   *nvarx, 
-	     double *y,          long   *ny,    double *covar2, double *wtx,
-	     double *offset2,    double *beta,  long   *nstratx, 
-	     long   *stratax,    double *ux,    double *imatx, 
-	     double *loglik,     long   *flag,  double *eps,
-	     double *tol_chol,   long   *dist,  long   *ddebug) {
+void survreg2(Sint   *maxiter,   Sint   *nx,    Sint   *nvarx, 
+	     double *y,          Sint   *ny,    double *covar2, double *wtx,
+	     double *offset2,    double *beta,  Sint   *nstratx, 
+	     Sint   *stratax,    double *ux,    double *imatx, 
+	     double *loglik,     Sint   *flag,  double *eps,
+	     double *tol_chol,   Sint   *dist,  Sint   *ddebug) {
     int i,j;	
     int n;
     double *newbeta,

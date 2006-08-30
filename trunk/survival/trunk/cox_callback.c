@@ -1,20 +1,20 @@
 /*
-**  SCCS $Id: cox_callback.c,v 1.2 2001-01-19 15:41:15 therneau Exp $
+**  SCCS $Id: cox_callback.c,v 1.3 2006-08-30 20:53:41 m015733 Exp $
 ** callback routines for the coxph frailty interface
 **  This version has been updated to use the "Green book" macros
 */
 #include "survS.h"
 #include "survproto.h" 
 
-static long nframe;
+static Sint nframe;
 static s_object *coef1;  /*sparse frailties */
 static s_object *coef2;  /* coefs for non-sparse penalized terms */
 static s_object *expr1;  /*the evaluation expression for sparse */
 static s_object *expr2;  /* the expression for non-sparse */
 static double *cdata1;   /* pointer to the data portion of coef1 */
 static double *cdata2;
-static long length1;
-static long length2;
+static Sint length1;
+static Sint length2;
 
 /*
 ** The first routine just saves away the location of the calling frame,
@@ -50,14 +50,14 @@ s_object *init_coxcall2(s_object *frame, s_object *ncoef, s_object *expr) {
 ** This part is called by the coxfit4 function, to get the penalty terms
 */
 void cox_callback (int which, double *coef, double *first, 
-	           double *second, double *penalty, long *flag) {
+	           double *second, double *penalty, Sint *flag) {
     S_EVALUATOR
 	int i, j;
     s_object *coxlist;
     s_object **lptr;    /* pointer to the list of elements in coxlist */
     double *dptr;
-    long   *logical;
-    long  n;
+    Sint   *logical;
+    Sint  n;
 
     /* 
     ** Assign the frailty coef in the parent frame,

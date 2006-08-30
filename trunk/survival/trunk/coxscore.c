@@ -1,4 +1,4 @@
-/*  SCCS $Id: coxscore.c,v 5.2 1998-10-27 17:34:49 therneau Exp $
+/*  SCCS $Id: coxscore.c,v 5.3 2006-08-30 20:53:44 m015733 Exp $
 /*
 ** Compute the score residuals for a Cox model
 **
@@ -26,9 +26,9 @@
 #include "survS.h"
 #include "survproto.h"
 
-void coxscore(long   *nx,      long   *nvarx,    double *y, 
-	      double *covar2,  long   *strata,   double *score, 
-	      double *weights, long   *method,   double *resid2,
+void coxscore(Sint   *nx,      Sint   *nvarx,    double *y, 
+	      double *covar2,  Sint   *strata,   double *score, 
+	      double *weights, Sint   *method,   double *resid2,
 	      double *scratch)
     {
     int i,j, k;
