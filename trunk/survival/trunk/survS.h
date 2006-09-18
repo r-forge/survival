@@ -1,4 +1,4 @@
-/* SCCS $Id: survS.h,v 5.6 2004-03-05 07:34:27 therneau Exp $
+/* SCCS $Id: survS.h,v 5.7 2006-09-18 18:47:21 m015733 Exp $
 /*
 **   The S.h file defines a few things that I need, and hundreds that I don't.
 ** In particular, on some architectures, it defines a variable "time"
@@ -30,8 +30,11 @@
 
 /*
 ** This next is to make it easier to have common code with R, where
-** "integers" are int.  In S they are long.
+** "integers" are int.  In S they are long.  In R they are int.
 */
-#ifndef Sint
-#define Sint long 
+#ifdef USING_R
+#include "R.h"
+typedef int Sint;
+#else
+typedef long Sint;
 #endif
