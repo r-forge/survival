@@ -13,6 +13,9 @@
 **    d=3       new x1 = (1/3) [ 1/x1 + 1/(x1 - x2/3) + 1/(x1 - 2*x2/3)]
 **  etc.
 */
+
+#include "survS.h"
+
 void survfit4(Sint *n,	Sint *dd,  double *x1,  double *x2) {
     double temp, temp1, temp2;
     int i,j;
