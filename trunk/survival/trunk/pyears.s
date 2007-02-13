@@ -1,4 +1,4 @@
-# $Id: pyears.s,v 5.11 2006-08-28 14:36:18 m015733 Exp $
+# $Id: pyears.s,v 5.12 2007-02-13 13:28:39 therneau Exp $
 pyears <- function(formula=formula(data), data=sys.parent(),
 	weights, subset, na.action,
 	ratetable=survexp.us, scale=365.25,  expect=c('event', 'pyears'),
@@ -170,17 +170,28 @@ pyears <- function(formula=formula(data), data=sys.parent(),
         #  rate tables
         keep <- (temp$pyears >0)  # what rows to keep in the output
         names(outdname) <- ovars
-        df <- cbind(do.call("expand.grid", outdname)[keep,],
-                    pyears=temp$pyears[keep]/scale,
-                    n = temp$pn[keep])
+        if (length(outdname) ==1) {
+            # if there is only one variable, the call to "do.call" loses
+            #  the variable name, since expand.grid returns a factor
+            df <- data.frame((outdname[[1]])[keep], 
+                             pyears= temp$pyears[keep]/scale,
+                             n = temp$pn[keep])
+            names(df) <- c(names(outdname), 'pyears', 'n')
+            }
+        else {
+            df <- cbind(do.call("expand.grid", outdname)[keep,],
+                             pyears= temp$pyears[keep]/scale,
+                             n = temp$pn[keep])
+            }
         row.names(df) <- 1:nrow(df)
         if (length(rate)) df$expected <- temp$pexpect[keep]
         if (expect=='pyears') df$expected <- df$expected/scale
         if (is.Surv(Y)) df$event <- temp$pcount[keep]
 
         out <- list(call=call,
-                    data= df)  
-        model <- x <- y <- FALSE
+                    data= df, offtable=temp$offtable/scale)  
+        if (length(rate) && !is.null(rtemp$summ))
+            out$summary <- rtemp$summ
         }
 
     else if (prod(odims) ==1) {  #don't make it an array
