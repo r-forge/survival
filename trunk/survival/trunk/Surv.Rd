@@ -1,0 +1,131 @@
+\name{Surv}
+\alias{Surv}
+\alias{is.Surv}
+\title{
+  Create a Survival Object 
+}
+\description{
+Create a survival object, usually used as a response variable in a model 
+formula. 
+}
+\usage{
+Surv(time, event) 
+Surv(time, time2, event, type=&lt;&lt;see below&gt;&gt;, origin=0) 
+is.Surv(x)
+}
+\arguments{
+\item{time}{
+for right censored data, this is the follow up time.  For interval data, the 
+first argument is the starting time for the interval. 
+}
+\item{x}{
+any S-PLUS object. 
+}
+\item{time2}{
+ending time of the interval for interval censored  or counting process  
+data only.  
+Intervals are 
+assumed to be open on the left and closed on the right, (start, end]. 
+For counting process data, 
+\code{event} indicates whether an event 
+occurred at the end of the interval. 
+}
+\item{event}{
+status indicator, normally 0 = alive and 1 = dead.  Other choices are T/F 
+(T = death) or 1/2 (2 = death). 
+For interval censored data, the status indicator is 0 = right censored, 
+1 = event at \code{time}, 2 = left censored, 
+and 3 = interval censored. 
+For left-censored data, the status indicator is T=uncensored, F=censored. 
+Although unusual, the event indicator can be omitted, 
+in which case all subjects are assumed to have an event. 
+}
+\item{type}{
+character string specifying the type of censoring. Possible values 
+are \code{"right"}, \code{"left"},
+\code{"counting"}, 
+\code{"interval"}, 
+or \code{"interval2"}. 
+The default is \code{"right"} 
+or \code{"counting"} 
+depending on whether the \code{time2} 
+argument is absent or present, respectively. 
+}
+\item{origin}{
+vector or value to be subtracted from the time values.  
+This option was intended for resetting the time origin in the case of
+time-dependent strata, but has rarely proven to be useful.
+}
+}
+\value{
+in the case of \code{Surv}, a matrix of 2 or 3 
+columns of class \code{"Surv"} 
+containing \code{time}, 
+\code{time2} (if provided), 
+and \code{status}. 
+
+In the case of \code{is.Surv}, 
+a logical value \code{T} if 
+\code{x} inherits from class 
+\code{"Surv"}, 
+otherwise an \code{F}. 
+}
+\section{Subscripting}{
+Surv objects can be subscripted either as an object, e.g.
+\code{x[1:3]} using a single subscript;
+in which case the \code{drop} argument is ignored;
+or as a matrix, using two arguments.
+If the second subscript is missing and \code{drop=F}
+(the default),
+the result of the subscripting will be a Surv object, e.g., 
+\code{x[1:3,,drop=F]},
+otherwise the result will be a matrix (or vector), in accordance with
+the default behavior for subscripting matrices. 
+}
+\section{Details}{
+In theory it is possible to represent interval censored data without a 
+third column containing the explicit status.  Exact, right censored, 
+left censored and interval censored observation would be represented as 
+intervals of [a,a], [a, infinity), (-infinity,b], and [a,b)  
+respectively; each interval is a pair of time points 
+within which the event is  
+known to have occurred. 
+
+If \code{type="interval2"}, 
+the representation given above is 
+assumed, with \code{NA} taking the place of infinity.  
+If \code{type="interval"}, 
+\code{event} must be given.  
+If \code{event} is \code{0}, 
+\code{1}, or \code{2}, 
+the relevant 
+information is assumed to be contained in \code{time}, 
+the value in \code{time2} 
+is ignored, and the second column of the result contains a 
+placeholder. 
+
+Presently, the only methods allowing interval censored data are the 
+parametric models computed by \code{survreg},  
+so the distinction between open and closed intervals 
+is unimportant.   
+The distinction is important for counting process data and 
+the Cox model. 
+
+The function tries to distinguish between the use of 0/1 and 1/2 coding for 
+left and right censored data using 
+\code{if (max(status)==2)}. 
+If 1/2 coding is used and all the subjects are censored, it will 
+guess wrong.  Use 0/1 coding in this case. 
+}
+\seealso{
+\code{\link{coxph}},  
+\code{\link{survfit}},  
+\code{\link{survreg}}.   
+}
+\examples{
+Surv(leukemia$time, leukemia$status) 
+Surv(heart$start, heart$stop, heart$event) 
+}
+\keyword{survival4}
+% docclass is function
+% Converted by Sd2Rd version 37351.
