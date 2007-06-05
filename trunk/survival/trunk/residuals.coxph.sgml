@@ -16,12 +16,8 @@ Cox proportional hazards model.
 <s-usage>
 <s-old-style-usage>
 residuals.coxph(object, type="martingale", collapse=F, weighted=F) 
-
 </s-old-style-usage>
 </s-usage>
-This is a method for the function <s-expression>residuals</s-expression> for objects inheriting 
-from class <s-expression>"coxph"</s-expression>.  However, as several types of residuals are 
-available for <s-expression>coxph</s-expression> objects, there is an additional optional argument <s-expression>type</s-expression>. 
 <s-args-required>
 <s-arg name="object">
 an object inheriting from class <s-expression>coxph</s-expression>, representing a fitted Cox 

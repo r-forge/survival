@@ -2,7 +2,7 @@
 <!entity % S-OLD "INCLUDE">
 ]
 >
-<!-- SCCS $Id: coxph.detail.sgml,v 1.2 2002-04-29 14:24:43 therneau Exp $ -->
+<!-- SCCS $Id: coxph.detail.sgml,v 1.3 2007-06-05 12:59:39 therneau Exp $ -->
 <s-function-doc>
 <s-topics>
    <s-topic>coxph.detail</s-topic>
@@ -27,9 +27,10 @@ a Cox model object, i.e., the result of <s-expression>coxph</s-expression>.
 </s-args-required>
 
 <s-args-optional>
-<s-arg name=" riskmat ">
+<s-arg name="riskmat">
 should the matrix of "at risk" indictators be returned
 </s-arg>
+</s-args-optional>
 
 <s-value>
 a list with components: 
@@ -119,7 +120,7 @@ sresid &lt;- fit$x[events,] - fitd$means[indx,]
 </s-examples>
 
 <s-keywords>
-<s-keyword>survival4</s-keyword>
+<s-keyword>survival</s-keyword>
 </s-keywords>
 <s-docclass>
 function

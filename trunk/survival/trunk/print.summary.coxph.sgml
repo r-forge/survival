@@ -29,7 +29,6 @@ logical flag: print the table of coefficients?
 <s-arg name="conf.int">
 logical flag: print the table of confidence intervals?
 </s-arg>
-</s-arg>
 <s-arg name="digits">
 number of significant digits to use in the printout. 
 </s-arg>

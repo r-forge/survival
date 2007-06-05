@@ -10,42 +10,38 @@
 Summary method for Cox models 
 </s-title>
 <s-description>
-Produces a printed summary of a fitted coxph model 
+Produces a summary of a fitted coxph model 
 </s-description>
 <s-usage>
 <s-old-style-usage>
-summary.coxph(cox, coef=T, conf.int=0.95, scale=1, digits=max(options()$digits - 4, 3)) 
+summary.coxph(object, conf.int=0.95, scale=1) 
 </s-old-style-usage>
 </s-usage>
 <s-args-required>
-<s-arg name="cox">
+<s-arg name="object">
 the result of a coxph fit 
 </s-arg>
 </s-args-required>
 <s-args-optional>
-<s-arg name="coef">
-logical flag: print the table of coefficients? 
-</s-arg>
 <s-arg name="conf.int">
 level for computation of the confidence intervals. 
-If set to FALSE no confidence intervals are printed 
 </s-arg>
 <s-arg name="scale">
 vector of scale factors for the coefficients, defaults to 1. 
 The confidence limits are for the risk change associated with one scale unit. 
 </s-arg>
-<s-arg name="digits">
-number of significant digits to use in the printout. 
-</s-arg>
 </s-args-optional>
 <s-value>
-No value is returned. 
+An object of class <s-expression>summary.coxph</s-expression>, 
+containing selected elements of the original 
+<s-expression>coxph</s-expression> object, along with
+the components <s-exression>coef</s-expression>, a matrix containing the
+coefficients, standard errors, and test of significance, 
+and <s-expression>cimat</s-expression> a matrix containing the confidence
+intervals.
 </s-value>
-<s-side-effects>
-A description of the fit is printed. 
-</s-side-effects>
 <s-see>
-coxph, print.coxph  </s-see>
+print.summary.coxph, coxph, print.coxph  </s-see>
 <s-examples>
 <s-example type = text>
 &gt; fit &lt;- coxph(Surv(time, status) ~ age + sex, lung) 
