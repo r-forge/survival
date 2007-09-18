@@ -72,3 +72,9 @@ test case to the test suite, survtest2.
 22Jun06: Update match.ratetable, so that more liberal matches are now
 allowed.  For instance,  'F', 'f', 'female', 'fem', 'FEMA', etc are 
 now all considered matches to the dimname "female" in survexp.us.
+
+10May07: Change summary.coxph so that it returns an object of class
+summary.coxph, and add a print method for that object.
+
+9Jul07: In a model with offsets, survreg mistakenly omitted the offset
+from the returned linear.predictor component.

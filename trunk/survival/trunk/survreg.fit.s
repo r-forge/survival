@@ -1,5 +1,5 @@
 # 
-#  $Id: survreg.fit.s,v 5.12 2006-08-28 18:22:25 m015733 Exp $
+#  $Id: survreg.fit.s,v 5.13 2007-09-18 19:12:01 therneau Exp $
 #
 survreg.fit<- function(x, y, weights, offset, init, controlvals, dist, 
 		       scale=0, nstrat=1, strata, parms=NULL) {
@@ -213,8 +213,8 @@ survreg.fit<- function(x, y, weights, offset, init, controlvals, dist,
 		 var    = fit$var,
 		 loglik = loglik, 
 		 iter   = fit$iter,
-		 linear.predictors = c(x %*% fit$coef[1:nvar]),	
-		 df     = length(fit$coef)
+		 linear.predictors = c(x %*% fit$coef[1:nvar] + offset),
+                 df= length(fit$coef)
 		 )
     if (debug>0) {
 	temp$u <- fit$u[1:nvar2]
