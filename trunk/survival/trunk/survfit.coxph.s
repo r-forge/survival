@@ -1,4 +1,4 @@
-# $Id: survfit.coxph.s,v 5.11 2006-08-28 18:12:07 m015733 Exp $
+# $Id: survfit.coxph.s,v 5.12 2007-09-25 13:32:30 therneau Exp $
 setOldClass(c('survfit.cox', 'survfit'))
 
 survfit.coxph <-
@@ -21,7 +21,7 @@ survfit.coxph <-
     score <- exp(object$linear.predictor)
     
     temp <- c('aalen', 'kalbfleisch-prentice', 'efron',
-	           'tsiatis', 'breslow', 'kaplan-meier', 'fleming-harringon',
+	           'tsiatis', 'breslow', 'kaplan-meier', 'fleming-harrington',
 	           'greenwood', 'exact')
     temp2 <- c(2,1,3,2,2,1,3,1,1)
     if (missing(type)) type <- object$method

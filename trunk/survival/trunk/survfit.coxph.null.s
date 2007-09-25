@@ -1,4 +1,4 @@
-# $Id: survfit.coxph.null.s,v 5.7 2006-08-28 18:10:15 m015733 Exp $
+# $Id: survfit.coxph.null.s,v 5.8 2007-09-25 13:32:30 therneau Exp $
 survfit.coxph.null <-
   function(object, newdata, se.fit=TRUE, conf.int=.95, individual=FALSE,
 	    type, vartype,
@@ -14,7 +14,7 @@ survfit.coxph.null <-
     score <- exp(object$linear.predictor)
 
     temp <- c('aalen', 'kalbfleisch-prentice', 'efron',
-	           'tsiatis', 'breslow', 'kaplan-meier', 'fleming-harringon',
+	           'tsiatis', 'breslow', 'kaplan-meier', 'fleming-harrington',
 	           'greenwood', 'exact')
     temp2 <- c(2,1,3,2,2,1,3,1,1)
     if (missing(type)) type <- object$method
