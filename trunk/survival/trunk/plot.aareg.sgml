@@ -53,7 +53,6 @@ aareg
 fit <- aareg(Surv(time, status) ~ age + sex + ph.ecog, data=lung)
 plot(fit[1])   # plot of the intercept term versus time
 plot(fit[3])   # the plot for the 'sex' coefficient
-<s-example>
 </s-example>
 </s-examples>
 <s-keywords>

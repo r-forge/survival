@@ -35,7 +35,7 @@ The confidence limits are for the risk change associated with one scale unit.
 An object of class <s-expression>summary.coxph</s-expression>, 
 containing selected elements of the original 
 <s-expression>coxph</s-expression> object, along with
-the components <s-exression>coef</s-expression>, a matrix containing the
+the components <s-expression>coef</s-expression>, a matrix containing the
 coefficients, standard errors, and test of significance, 
 and <s-expression>cimat</s-expression> a matrix containing the confidence
 intervals.
