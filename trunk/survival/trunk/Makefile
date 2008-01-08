@@ -125,6 +125,7 @@ FUN =	aareg                  \
 	print.survfit          \
 	print.survreg          \
 	print.survreg.penal    \
+	print.summary.coxph	\
 	print.summary.survreg  \
 	print.summary.survfit  \
 	pyears                  \
@@ -182,6 +183,7 @@ DOC  =  aareg	\
 	lines.survfit   \
 	print.survfit   \
 	print.summary.survfit	\
+	print.summary.coxph	\
 	pyears          \
 	residuals.coxph \
 	survdiff        \
