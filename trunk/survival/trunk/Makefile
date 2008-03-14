@@ -135,7 +135,7 @@ FUN =	aareg                  \
 	residuals.survreg.penal \
 	strata               \
 	summary.aareg	     \
-	summary.peyars	     \
+	summary.pyears	     \
 	summary.ratetable    \
 	summary.survfit      \
 	summary.survreg      \
