@@ -1,4 +1,4 @@
-/*  SCCS $Id: pyears2.c,v 5.5 2006-08-30 20:53:45 m015733 Exp $
+/* $Id: pyears2.c,v 5.6 2008-04-24 14:02:01 therneau Exp $ */
 /*
 **  Person-years calculations.
 **     same as pyears1, but no expected rates
@@ -40,7 +40,7 @@ void pyears2(Sint   *sn,      Sint   *sny,   Sint   *sdoevent,
 	     double *offtable)
     {
 S_EVALUATOR
-    register int i,j;
+    int i,j;
     int     n,
 	    ny,
 	    doevent,
@@ -57,6 +57,7 @@ S_EVALUATOR
     int     dostart;
     int     d1;    /* a dummy */
     double  d2;    /* a dummy for pystep */
+    double  eps;   /* round off protection */
 
     n = *sn;
     ny= *sny;
@@ -86,6 +87,29 @@ S_EVALUATOR
 	if (ofac[i]==0) socut += odims[i] +1;
 	}
 
+    /*
+    ** Set the round off error to min(time[time>0]) * 1e-8
+    **   The events are counted in the last cell to which person years are
+    **   added in the while() loop below.  We don't want to "spill over" into
+    **   a next (incorrect) cell due to accumulated round off, in the case
+    **   that a subjects fu time exactly matches one of the cell boundaries.
+    */
+    eps =0; /* guard against the rare case that all(time==0) */
+    for (i=0; i<n; i++) {
+	if (dostart==1) timeleft = stop[i] - start[i];
+	else timeleft= stop[i];
+	if (timeleft >0) {
+	    eps = timeleft;  /* starting guess for min = first non-zero value*/
+	    break;
+	    }
+	}
+    for (; i<n; i++) {
+	if (dostart==1) timeleft = stop[i] - start[i];
+	else timeleft= stop[i];
+	if ((timeleft >0) && (timeleft < eps)) eps = timeleft;
+	}
+    eps *= 1e-8;
+
     *offtable =0;
     for (i=0; i<n; i++) {
 	/*
@@ -109,7 +133,12 @@ S_EVALUATOR
 	**   person-years in the current cell, up to the next cell boundary
 	**   (or the amount of time left, whichever is lesser).
 	*/
-	while (timeleft >0) {
+	if (timeleft <=eps && doevent) {
+	    /* we have to call pystep at least once to set the index */
+	    pystep(odim, &index, &d1, &d2, data, ofac, odims, ocut, 1, 0);
+	    }
+
+	while (timeleft > eps) {
 	    thiscell = pystep(odim, &index, &d1, &d2, data, ofac, odims, ocut,
 				    timeleft, 0);
 	    if (index >=0) {

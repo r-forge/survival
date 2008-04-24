@@ -1,4 +1,4 @@
-/*  SCCS $Id: pyears1.c,v 5.5 2006-08-30 20:53:44 m015733 Exp $
+/* $Id: pyears1.c,v 5.6 2008-04-24 14:02:01 therneau Exp $ */
 /*
 **  Person-years calculations, in its most general
 **
@@ -85,6 +85,7 @@ S_EVALUATOR
     int     dostart;
     double  hazard, cumhaz;
     double  temp, lambda;
+    double  eps;   /* protection against accumulated round off */
 
     n = *sn;
     ny= *sny;
@@ -123,6 +124,29 @@ S_EVALUATOR
 	if (ofac[i]==0) socut += odims[i] +1;
 	}
 
+    /*
+    ** Set the round off error to min(time[time>0]) * 1e-8
+    **   The events are counted in the last cell to which person years are
+    **   added in the while() loop below.  We don't want to "spill over" into
+    **   a next (incorrect) cell due to accumulated round off, in the case
+    **   that a subjects fu time exactly matches one of the cell boundaries.
+    */
+    eps =0; /* guard against the rare case that all(time==0) */
+    for (i=0; i<n; i++) {
+	if (dostart==1) timeleft = stop[i] - start[i];
+	else timeleft= stop[i];
+	if (timeleft >0) {
+	    eps = timeleft;
+	    break;
+	    }
+	}
+    for (; i<n; i++) {
+	if (dostart==1) timeleft = stop[i] - start[i];
+	else timeleft= stop[i];
+	if (timeleft >0 && timeleft < eps) eps = timeleft;
+	}
+    eps *= 1e-8;
+
     *offtable =0;
     for (i=0; i<n; i++) {
 	/*
@@ -143,7 +167,12 @@ S_EVALUATOR
 	/*
 	** add up p-yrs
 	*/
-	while (timeleft >0) {
+	if (timeleft <=eps && doevent) {
+	    /* we have to call pystep at least once to set the indices */
+	    pystep(odim, &index, &indx2, &lwt, data, ofac, odims, ocut, 1, 0);
+	    }
+
+	while (timeleft > eps) {
 	    thiscell = pystep(odim, &index, &indx2, &lwt, data, ofac, odims,
 				     ocut, timeleft, 0);
 	    if (index >=0) {
