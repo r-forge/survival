@@ -1,14 +1,16 @@
 \name{cox.zph}
 \alias{cox.zph}
+\alias{[.cox.zph}
+\alias{print.cox.zph}
 \title{
-  Test the Proportional Hazards Assumption 
+  Test the Proportional Hazards Assumption of a Cox Regression
 }
 \description{
 Test the proportional hazards assumption for a Cox regression model fit 
 (\code{coxph}). 
 }
 \usage{
-cox.zph(fit, transform="km", global=T)
+cox.zph(fit, transform="km", global=TRUE)
 }
 \arguments{
 \item{fit}{
@@ -25,10 +27,11 @@ should a global chi-square test be done, in addition to the
 per-variable tests. 
 }
 \item{x}{
-if true, then the result will be a list containing the test table (a 
-matrix), 
-x and y.  If false then only the test table is returned. 
-}
+  if true, then the result will be a list containing the test table (a 
+  matrix), and the x and y coordinates of the plotted points used
+  in the graph.
+  If false then only the test table is returned. 
+  }
 }
 \value{
 an object of class \code{"cox.zph"}, with components: 
@@ -48,23 +51,23 @@ the transformed time axis.
 \item{y}{
 the matrix of scaled Schoenfeld residuals.  There will be one column per 
 variable and one row per event.  The row labels contain the original event 
-times, which will be the same as \code{x} for the identity transform. 
+times (for the identity transform, these will be the same as \code{x}).
 }
 \item{call}{
 the calling sequence for the routine. 
 
 The computations require the original \code{x} matrix of the Cox model fit. 
-Thus it saves time if the \code{x=T} option is used in \code{coxph}. 
+Thus it saves time if the \code{x=TRUE} option is used in \code{coxph}. 
 This function would usually be followed by both a plot and a print of 
 the 
 result. 
-The plot gives an estimate of the time-dependent coefficient beta(t). 
-If the proportional hazards assumption is true, beta(t) will be a 
+The plot gives an estimate of the time-dependent coefficient \code{beta(t)}. 
+If the proportional hazards assumption is true, \code{beta(t)} will be a 
 horizontal 
-line.  The printout gives a test for slope=0. 
+line.  The printout gives a test for \code{slope=0}. 
 }
 }
-\section{References}{
+\references{
 P. Grambsch and T. Therneau (1994), 
 Proportional hazards tests and diagnostics based on weighted residuals. 
 \emph{Biometrika,}
@@ -75,11 +78,9 @@ Proportional hazards tests and diagnostics based on weighted residuals.
 }
 \examples{
 fit <- coxph(Surv(futime, fustat) ~ age + ecog.ps,  
-             data=ovarian, x=T) 
+             data=ovarian) 
 temp <- cox.zph(fit) 
 print(temp)                  # display the results 
 plot(temp)                   # plot curves 
 }
-\keyword{survival4}
-% docclass is function
-% Converted by Sd2Rd version 37351.
+\keyword{survival}

@@ -1,0 +1,25 @@
+  The date library was created at about the same time and in parallel to
+the chron library (without knowing about each other's efforts).  As one of
+the first S efforts at a date class, it rates as a pretty good attempt,
+but has been superseded in several aspects by both the Splus dateTime class
+and the R date class.  Any new user should use those in preference.
+
+  The routines for expected survival, survexp + any of the US rate tables,
+had a dependence on the date routines, and so the survival functions became
+the last bastion of their use.  This has been removed (2008), and they are
+now stored as a separate library for those who may need them for backwards
+compatability.
+
+  Small soapbox: In one respect the date library is superior to Date.
+As a simple example, let date1 and date2 by date objects, date3 and
+date4 Date objects.  Then date1/date2 generates a number, date3/date4
+an error message.  Now both packages store the dates interally as
+numbers, the difference is in philosophy.  The Date library takes the
+currently fashionable "object oriented" stance of the omniscient
+designer: any actionn of the user that the designer did not forsee must be
+an error.  The date library takes instead the "intellegent user"
+stance: they might actually know what they are doing, and a design should be
+helpful instead of condescending.  My preference is obvious.
+	
+	Terry Therneau
+

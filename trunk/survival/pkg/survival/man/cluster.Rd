@@ -4,32 +4,35 @@
   Identify clusters. 
 }
 \description{
-This is a special function used in the context of the Cox model.  It 
+This is a special function used in the context of survival models.  It 
 identifies correlated groups of observations, and is used on the right hand 
-side of a formula. 
-}
+side of a formula.
+Using \code{cluster()} in a formula implies that
+robust sandwich variance estimators are desired.}
 \usage{
-cluster(x)
+  cluster(x)
 }
 \arguments{
 \item{x}{
-A character, factor, or numeric variable. 
+  A character, factor, or numeric variable. 
 }
-}
+
 \value{
-x 
+  \code{x} 
 }
 \details{
 The function's only action is semantic, to mark a variable as the 
-cluster indicator. 
+cluster indicator.
+The resulting variance is what is known as the ``working independence''
+variance  in a GEE model.
 }
 \seealso{
-\code{\link{coxph}},  \code{\link{Surv}}.   
+\code{\link{coxph}},  \code{\link{survreg}}}.   
 }
 \examples{
-coxph(Surv(futime, fustat) ~ age + cluster(rx), data = ovarian) 
+marginal.model <- coxph(Surv(time, status) ~ rx + cluster(litter), rats)
+frailty.model  <- coxph(Surv(time, status) ~ rx + frailty(litter), rats)
 }
-\keyword{survival4}
+\keyword{survival}
 \keyword{cluster}
-% docclass is function
-% Converted by Sd2Rd version 37351.
+
