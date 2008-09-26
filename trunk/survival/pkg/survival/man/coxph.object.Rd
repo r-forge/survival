@@ -1,5 +1,8 @@
 \name{coxph.object}
 \alias{coxph.object}
+\alias{extractAIC.coxph.penal}
+\alias{print.coxph}
+\alias{summary.coxph}
 \title{
   Proportional Hazards Regression Object 
 }
@@ -66,7 +69,7 @@ the vector of case weights, if one was used.
 the computation method used. 
 }
 \item{na.action}{
-the na.action attribute, if any, that was returned by the na.action 
+the na.action attribute, if any, that was returned by the \code{na.action} 
 routine. 
 
 The object will also contain the following, for documentation see the \code{lm} 
@@ -77,8 +80,4 @@ and/or \code{frame}.
 \seealso{
 \code{\link{coxph}},  \code{\link{coxph.detail}},  \code{\link{cox.zph}},  \code{\link{residuals.coxph}},  \code{\link{survfit}},  \code{\link{survreg}}.   
 }
-\keyword{survival4}
-\keyword{classes}
-\keyword{methods}
-% docclass is function
-% Converted by Sd2Rd version 37351.
+\keyword{survival}

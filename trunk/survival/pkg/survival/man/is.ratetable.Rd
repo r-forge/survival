@@ -1,14 +1,16 @@
 \name{is.ratetable}
 \alias{is.ratetable}
+\alias{Math.ratetable}
+\alias{Ops.ratetable}
 \title{
-  Verify that an object is of class <s-expression>ratetable</s-expression>. 
+  Verify that an object is of class \code{ratetable}. 
 }
 \description{
 The function verifies not only the \code{class} attribute, but the 
 structure of the object. 
 }
 \usage{
-is.ratetable(x, verbose=F)
+is.ratetable(x, verbose=FALSE)
 }
 \arguments{
 \item{x}{
@@ -32,6 +34,9 @@ can help in creating a new rate table.
 \seealso{
 \code{\link{pyears}},  \code{\link{survexp}}.   
 }
-\keyword{survival4}
-% docclass is function
-% Converted by Sd2Rd version 37351.
+\examples{
+is.ratetable(survexp.us)  # True
+is.ratetable(cancer)      # False
+}
+
+\keyword{survival}

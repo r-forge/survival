@@ -1,16 +1,20 @@
 \name{lines.survfit}
 \alias{lines.survfit}
+\alias{points.survfit}
 \title{
-  Add Lines to a Survival Plot 
+  Add Lines or Points to a Survival Plot 
 }
 \description{
-Usually used to add the expected survival curve(s) to a Kaplan-Meier plot 
+Often used to add the expected survival curve(s) to a Kaplan-Meier plot 
 generated with \code{plot.survfit}. 
 }
 \usage{
-lines.survfit(x, type="s", mark=3, col=1, lty=1, lwd=1, mark.time=T, 
-	xscale=1,  firstx=0, firsty=1, xmax, fun, conf.int=F,  ...)
+\method{lines}{survfit}(x, type="s", mark=3, col=1, lty=1,
+lwd=1, mark.time=T, 
+	xscale=1,  firstx=0, firsty=1, xmax, fun, conf.int=FALSE,  ...)
+\method{points}{survfit}(x, ...)
 }
+
 \arguments{
 \item{x}{
 a survival object, generated from the \code{survfit} or \code{survexp} functions. 
@@ -23,6 +27,7 @@ for \code{survfit} objects, and a connected line for \code{survexp} objects.
 vectors giving the mark symbol, color, line type and line width for the 
 added curves. 
 }
+\item{...} {other graphical parameters}
 \item{mark.time}{
 controls the labeling of the curves.   
 If \code{FALSE}, no labeling is done.   
@@ -57,13 +62,13 @@ and "cloglog" creates a complimentary log-log survival plot
 }
 \item{conf.int}{
 if \code{TRUE}, confidence bands for the curves are also plotted. 
-If set to "only", then only the CI bands are plotted, and the curve 
+If set to \code{"only"}, then only the CI bands are plotted, and the curve 
 itself is left off.   
 This can be useful for fine control over the colors or line types of a plot. 
 }
 }
 \value{
-a list with components x and y, containing the coordinates of the 
+a list with components \code{x} and \code{y}, containing the coordinates of the 
 last point on each of the curves (but not of the confidence limits). 
 This may be useful for labeling. 
 }
@@ -74,18 +79,22 @@ one or more curves are added to the current plot.
 \code{\link{lines}},  \code{\link{par}},  \code{\link{plot.survfit}},  \code{\link{survfit}},  \code{\link{survexp}}.   
 }
 \examples{
-# First select by "id" those elements with the greater value of "stop" 
-hearta <- by(heart, heart$id, function (x)x[x$stop==max(x$stop),]) 
-# Make the resulting list into a data frame by rebinding its 
-components 
-hearta <- do.call("rbind", hearta) 
-# plot the fitted survival curves 
-plot(survfit(Surv(stop, event) ~ surgery, data = hearta), lty = 1:2) 
-# Add lines denoting the expected survival from National Rate Table 
-lines(survexp (stop ~ surgery + ratetable(age = (age + 48) * 365.25, 
-      sex = "male", year = year * 365.25), data = hearta), mark = "E",  
-      mark.time = 1000, lty = 1:2, cex = 1.5) 
+fit <- survfit(Surv(time, status) ~ sex, pbc,subset=1:312)
+plot(fit, mark.time=FALSE, xscale=365.25,
+        xlab='Years', ylab='Survival')
+lines(fit[1], lwd=2, xscale=365.24)    #darken the first curve and add marks
+
+
+# add expected survival curves for the two groups,
+#   based on the US census data
+tdata <- data.frame(age=pbc$age*365.25, sex=pbc$sex +1,
+                    year= rep(mdy.date(1,1,1976), nrow(pbc)))
+tdata<-tdata[1:312,] ## only the randomised people (no missing data!)
+
+efit <- survexp(~ sex, data=tdata, ratetable=survexp.us, times=(0:24)*182)
+temp <- lines(efit, lty=2, xscale=365.24, lwd=2:1)
+text(temp, c("Male", "Female"), adj= -.1) #labels just past the ends
+title(main="Primary Biliary Cirrhosis, Observed and Expected")
+
 }
-\keyword{survival4}
-% docclass is function
-% Converted by Sd2Rd version 37351.
+\keyword{survival}

@@ -1,5 +1,8 @@
 \name{frailty}
 \alias{frailty}
+\alias{frailty.gamma}
+\alias{frailty.gaussian}
+\alias{frailty.t}
 \title{
   Random effects terms
 }
@@ -8,7 +11,15 @@ The frailty function allows one to add a simple random effects term to
 a Cox or survreg model.
 }
 \usage{
-frailty(x, distribution="gamma", sparse, theta, df, method, eps)
+frailty(x, distribution="gamma", ...)
+frailty.gamma(x, sparse = (nclass > 5), theta, df, eps = 1e-05, method = c("em",
+"aic", "df", "fixed"), ...) 
+frailty.gaussian(x, sparse = (nclass > 5), theta, df, method = c("reml","aic", "
+df", "fixed"), ...)
+frailty.t(x, sparse = (nclass > 5), theta, df, eps = 1e-05, tdf = 5,method = c("
+aic", "df", "fixed"), ...)
+}
+
 }
 \arguments{
 \item{x}{
@@ -23,10 +34,12 @@ The routines \code{frailty.gamma},
 \code{frailty.gaussian} and 
 \code{frailty.t} do the actual work.
 }
+ \item{\dots}{Arguments for specific distribution, including (but not
+   limited to) }
 \item{sparse}{
 cutoff for using a sparse coding of the data matrix.  
 If the total number of levels of \code{x} is larger
-than this value, then sparse coding is used.
+than this value, then a sparse matrix approximation is used.
 The correct cutoff is still a matter of exploration: if the number of
 levels is very large (thousands) then the non-sparse calculation may not be
 feasable in terms of both memory and compute time.  
@@ -84,8 +97,6 @@ the Cox model with a gamma frailty can be accomplished using a general
 penalized routine, and Ripatti and Palmgren work through a similar argument
 for the Cox model with a gaussian frailty.  Both of these are specific to
 the Cox model.  
-The first in particular has a flavor of `fooling' the penalized code into
-doing the needed calculation.
 Use of gamma/ml or gaussian/reml with 
 \code{survreg} does not lead to valid results. 
 
@@ -107,22 +118,17 @@ Penalized survival models and frailty,
 J Computational and Graphical Statistics, 12:156-175, 2003.
 }
 \seealso{
-coxph, survreg
+\link{coxph}, \link{survreg}, \link{coxme}
 }
 \examples{
 # Random institutional effect
 > coxph(Surv(time, status) ~ age + frailty(inst, df=4), lung)
 
-                        coef se(coef)     se2 Chisq   DF     p 
-                  age 0.0194 0.00933  0.00925 4.31  1.00 0.038
-frailty(inst, df = 4)                         3.34  3.99 0.500
+# Litter effects for the rats data
+rfit2a <- survreg(Surv(time, status) ~ rx +
+                  frailty.gaussian(litter, df=13, sparse=FALSE), rats )
+rfit2b <- survreg(Surv(time, status) ~ rx +
+                  frailty.gaussian(litter, df=13, sparse=TRUE), rats )
 
-Iterations: 3 outer, 8 Newton-Raphson
-     Variance of random effect= 0.0379   I-likelihood = -743.6 
-Degrees of freedom for terms= 1 4 
-Likelihood ratio test=9.96  on 4.97 df, p=0.075
-  n=227 (1 observations deleted due to missing values)
-}
 \keyword{survival}
-% docclass is function
-% Converted by Sd2Rd version 37351.
+
