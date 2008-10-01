@@ -26,10 +26,11 @@ cancer
     wt.loss:\tab Weight loss in last six months\cr
   }
 }
-\source{
+\source{Terry Therneau}
+\references{
   Loprinzi CL. Laurie JA. Wieand HS. Krook JE. Novotny PJ.
   Kugler JW. Bartel J. Law M. Bateman M. Klatt NE. et al.
   Prospective evaluation of prognostic variables from patient-completed
   questionnaires. North Central Cancer Treatment Group.
-  Journal of Clinical Oncology. 12(3):601-7, 1994 }
+  Journal of Clinical Oncology. 12(3):601-7, 1994. }
 \keyword{datasets}

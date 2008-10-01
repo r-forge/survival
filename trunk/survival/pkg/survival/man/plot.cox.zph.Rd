@@ -7,7 +7,7 @@
 Displays a graph of the scaled Schoenfeld residuals, along with a smooth curve. 
 }
 \usage{
-plot.cox.zph(x, resid=T, se=T, df=4, nsmo=40, var, ...)
+plot.cox.zph(x, resid=TRUE, se=TRUE, df=4, nsmo=40, var, \dots)
 }
 \arguments{
 \item{x}{
@@ -36,7 +36,7 @@ zero or a main title.
 This has been superseded by a subscripting method; see the example below. 
 }
 \item{\dots}{
-additional arguments passed to the \code{plot} function. 
+additional graphical arguments passed to the \code{plot} function. 
 }
 }
 \section{Side Effects}{
@@ -46,9 +46,8 @@ a plot is produced on the current graphics device.
 \code{\link{coxph}},  \code{\link{cox.zph}}.   
 }
 \examples{
-veteran <- data.frame(cancer.vet) 
-vfit <- coxph(Surv(survival,status) ~ therapy + factor(celltype) + 
-              Karn..score + age, data=veteran, x=T) 
+vfit <- coxph(Surv(survival,status) ~ trt + factor(celltype) + 
+              karno + age, data=veteran, x=T) 
 temp <- cox.zph(vfit) 
 plot(temp, var=5)      # Look at Karnofsy score, old way of doing plot 
 plot(temp[5])     # New way with subscripting 
@@ -57,6 +56,5 @@ abline(0, 0, lty=3)
 abline(lm(temp$y[,5] ~ temp$x)$coefficients, lty=4, col=3)  
 title(main="VA Lung Study") 
 }
-\keyword{survival4}
-% docclass is function
-% Converted by Sd2Rd version 37351.
+\keyword{survival}
+

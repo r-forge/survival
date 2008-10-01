@@ -12,8 +12,9 @@ events in each cell.
 }
 \usage{
 pyears(formula, data, weights, subset, na.action,  
-       ratetable=survexp.us, scale=365.25, expect=<s-expression>event</s-expression>, 
-       model=F, x=F, y=F)
+       ratetable=survexp.us, scale=365.25, expect=c('event', 'pyears'),
+       data.frame=FALSE, 
+       model=FALSE, x=FALSE, y=FALSE)
 }
 \arguments{
 \item{formula}{
@@ -40,7 +41,7 @@ should be used in the fit.
 }
 \item{na.action}{
 a missing-data filter function, applied to the model.frame, after any 
-\code{subset} argument has been used.  Default is \code{options()\$na.action}. 
+\code{subset} argument has been used.  Default is \code{options()$na.action}. 
 }
 \item{ratetable}{
 a table of event rates, such as \code{survexp.uswhite}. 
@@ -50,23 +51,16 @@ a scaling for the results.  As most rate tables are in units/day, the
 default value of 365.25 causes the output to be reported in years. 
 }
 \item{expect}{
-a character string, if \code{"event"} then the output table includes 
-the expected number of events. 
-If \code{"pyears"} then the output table includes the expected number 
-of person-years of observation. 
-This is only valid with a rate table. 
+should the output table include the expected number of events, or the
+expected number of person-years of observation.  This is only valid with
+a rate table.
 }
-\item{model}{
-a logical value, if TRUE then the model frame is included as component 
-\code{model} in the object returned by the function. 
-}
-\item{x}{
-a logical value, if TRUE then the model matrix is returned as component 
-\code{x} in the object returned by the function. 
-}
-\item{y}{
-a logical value, if TRUE then the response is returned as component \code{y} 
-in the object returned by the function. 
+\item{data.frame}
+return a data frame rather than a set of arrays.
+\item{model, x, y}{
+If any of these is true, then the
+model frame, the model matrix, and/or the vector of response times will be
+returned as components of the final result.
 }
 }
 \value{
@@ -74,7 +68,9 @@ a list with components:
 
 \item{pyears}{
 an array containing the person-years of exposure. (Or other units, depending 
-on the rate-table and the scale). 
+on the rate table and the scale).
+The dimension and dimmanes of the array correspond to the variables on
+the right hand side of the model equation.
 }
 \item{n}{
 an array containing the number of subjects who contribute time to each cell 
@@ -86,12 +82,19 @@ if the response variable is a \code{Surv} object.
 }
 \item{expected}{
 an array containing the expected number of events (or person years if 
-\code{expect =} \code{"pyears"}).  This will be present only if there was a 
+\code{expect ="pyears"}).  This will be present only if there was a 
 \code{ratetable} term. 
 }
+\item{data}
+if the \code{data.frame} option was set, a data frame containing the
+variables \code{n}, \code{event}, \code{pyears} and \code{event} that
+supplants the four arrays listed above,
+along with variables corresponding to each dimension.
+There will be one row for each cell in the arrays.
 \item{offtable}{
 the number of person-years of exposure in the cohort that was not part of 
-any cell in the \code{pyears} array.  This is often useful as an error check; if 
+any cell in the \code{pyears} array.  This is often useful as an error check;
+if 
 there is a mismatch of units between two variables, nearly all the person 
 years may be off table. 
 }
@@ -103,16 +106,18 @@ check.
 an image of the call to the function. 
 }
 \item{na.action}{
-the na.action attribute contributed by an \code{na.action} routine, if any. 
+the \code{na.action} attribute contributed by an \code{na.action}
+routine, if any. 
 }
 }
 \details{
 Because \code{pyears} may have several time variables, it is necessary that all 
 of them be in the same units.  For instance, in the call 
-<s-expression>
+\preformatted{
  py <- pyears(futime ~ rx + ratetable(age=age, sex=sex, year=entry.dt)) 
-</s-expression>
-with a ratetable whose natural unit is days, it is important that \code{futime}, 
+}
+with a ratetable whose natural unit is days, it is important that
+\code{futime}, 
 \code{age} and \code{entry.dt} all be in days. 
 Given the wide range of possible inputs, 
 it is difficult for the routine to do sanity checks of this aspect. 
@@ -171,5 +176,3 @@ pyears(stop/365.25 ~ tcut(age + 48, c(0,50,60,70,100)) +
        surgery, data = hearta, scale = 1) 
 }
 \keyword{survival4}
-% docclass is function
-% Converted by Sd2Rd version 37351.

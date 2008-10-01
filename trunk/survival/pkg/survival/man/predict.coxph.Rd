@@ -1,28 +1,33 @@
 \name{predict.coxph}
 \alias{predict.coxph}
+\alias{predict.coxph.penal}
 \title{
-  Make predictions from a fitted coxph object. 
+  Predictions for a Cox model 
 }
 \description{
-Creates predicted values from a coxph fit. 
+Compute fitted values and regression terms for a model fitted by \code{\link{cox
+ph}}
 }
 \usage{
-predict.coxph(object, newdata, type=c("lp", "risk", "expected", "terms"),  
-se.fit=F, terms=labels.lm(object), collapse)
+\method{predict}{coxph}(object, newdata,
+type=c("lp", "risk", "expected", "terms"),  
+se.fit=FALSE, terms=names(object$assign)), collapse)
 }
 \arguments{
 \item{object}{
 the results of a coxph fit. 
 }
 \item{newdata}{
-data for prediction.  If absent predictions are for the 
-subjects used in the original fit. 
+  Optional new data at which to do predictions.
+  If absent predictions are for the 
+data frame used in the original fit. 
 }
 \item{type}{
 the type of predicted value. 
-Choices are the linear predictor (lp), the risk score exp(lp) (risk), 
+Choices are the linear predictor (\code{"lp"}), the risk score exp(lp)
+(\code{"risk"}), 
 the expected number of events given the covariates and follow-up time 
-(expected), and the terms of the linear predictor (terms). 
+(\code{"expected"}), and the terms of the linear predictor (\code{"terms"}). 
 }
 \item{se.fit}{
 if TRUE, pointwise standard errors are produced for the predictions. 
@@ -42,19 +47,20 @@ a vector or matrix of predictions, or a list containing the predictions
 (element "fit") and their standard errors (element "se.fit") if the se.fit 
 option is TRUE. 
 }
-\details{
-This function is a method for the generic function \code{predict} for class 
-\code{coxph}.  It can be invoked by calling \code{predict} for an object of the 
-appropriate class, or by calling predict.coxph directly. 
-}
+
 \seealso{
-coxph, residuals.coxph  
-}
+\code{\link{predict}},\code{\link{coxph}},\code{\link{termplot}} }
+
 \examples{
-> options(na.action='na.omit') 
-> fit <- coxph(Surv(time, status) ~ age + ph.ecog + strata(inst), lung) 
-> mresid <- lung$status - predict(fit, type='expected') #Martingale resid 
+fit <- coxph(Surv(time, status) ~ age + ph.ecog + strata(inst), lung) 
+mresid <- lung$status - predict(fit, type='expected') #Martingale resid 
+predict(fit,type="lp")
+predict(fit,type="risk")
+predict(fit,type="expected")
+predict(fit,type="terms")
+predict(fit,type="lp",se.fit=TRUE)
+predict(fit,type="risk",se.fit=TRUE)
+predict(fit,type="expected",se.fit=TRUE)
+predict(fit,type="terms",se.fit=TRUE)
 }
 \keyword{survival}
-% docclass is function
-% Converted by Sd2Rd version 37351.

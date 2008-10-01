@@ -1,16 +1,16 @@
 \name{plot.survfit}
 \alias{plot.survfit}
 \title{
-  Plot Method for <s-expression>survfit</s-expression> 
+  Plot Method for 'survfit' 
 }
 \usage{
-plot.survfit(survfit, conf.int=&lt;&lt;see below&gt;&gt;, mark.time=T, 
- mark=3, col=1, lty=1, lwd=1, cex=1, log=F, xscale=1, yscale=1,  
+\method{plot}{survfit}(x, conf.int=, mark.time=TRUE, 
+ mark=3, col=1, lty=1, lwd=1, cex=1, log=FALSE, xscale=1, yscale=1,  
  firstx=0, firsty=1, xmax, ymin=0, fun, 
- xlab="", ylab="", xaxs=&lt;&lt;see below&gt;&gt;, ...)
+ xlab="", ylab="", xaxs="S", ...)
 }
 \arguments{
-\item{survfit}{
+\item{x}{
 an object of class \code{survfit}, usually returned by the \code{survfit} function. 
 }
 \item{conf.int}{
@@ -42,16 +42,11 @@ a vector of numeric values for line widths. The default value is 1.
 \item{cex}{
 a numeric value specifying the size of the marks. 
 This is not treated as a vector; all marks have the same size.
-Unlike most plot functions, changing \code{cex}
-will not change the size of the axis labels.
-In the rare case that you wish this, one way is to invoke
-\code{par(cex=1.5)} before doing the plot,
-and then reset the default to 1 after the plot.
-}
+
 \item{log}{
 a logical value, if TRUE the y axis wll be on a log scale. 
-One can also use the standard \code{log='xy'}
-for of other S graphics.
+ Alternately, one of the standard character strings "x", "y", or "xy"
+ can be given to specific logarithmic horizontal and/or vertical axes.
 }
 \item{yscale}{
 a numeric value used to multiply the labels on the y axis. 
@@ -71,8 +66,8 @@ the starting point for the survival curves.  If either of these is set to
 By default, the plot program obeys tradition by having the plot start at
 (0,0).
 
-If \code{new.start} argument is used in \code{survfit}, \code{firstx} is set to the 
-value of \code{new.start}. 
+If \code{start.time} argument is used in \code{survfit}, \code{firstx}
+is set to that value.
 }
 \item{xmax}{
 the maximum horizontal plot coordinate.  This can be used to shrink the range 
@@ -92,10 +87,10 @@ For example \code{fun=log} is an alternative way to draw a log-survival curve
 (but with the axis labeled with log(S) values), 
 and \code{fun=sqrt} would generate a curve on square root scale. 
 Four often used transformations can be specified with a character 
-argument instead: "log" is the same as using the \code{log=T} option, 
-"event" plots cumulative events (f(y) = 1-y),  
-"cumhaz" plots the cumulative hazard function (f(y) = -log(y)), and 
-"cloglog" creates a complimentary log-log survival plot (f(y) = 
+argument instead: \code{"log"} is the same as using the \code{log=T} option, 
+\code{"event"} plots cumulative events (f(y) = 1-y),  
+\code{"cumhaz"} plots the cumulative hazard function (f(y) = -log(y)), and 
+\code{"cloglog"} creates a complimentary log-log survival plot (f(y) = 
 log(-log(y)) along with log scale for the x-axis).  
 }
 \item{xlab}{
@@ -105,14 +100,12 @@ label given to the x-axis.
 label given to the y-axis. 
 }
 \item{xaxs}{
-the x axis style, as listed in \code{par}. Survival curves are traditionally  
-drawn with the curve touching the bounding box on the left edge, but  
-not touching it on the right edge.  This corresponds to neither of the  
-two standard S axis styles of "e" (neither touches) or "i" (both  
-touch).  
-If \code{xaxis} is missing or NULL the internal axis style is used  
-(xaxs=\code{i}) but only after the 
-right endpoint has been extended by 5\%.  
+either \code{"S"} for a survival curve or a standard x axis style as listed in \
+code{par}.
+Survival curves are usually displayed with the curve touching the y-axis,
+but not touching the bounding box of the plot on the other 3 sides.
+Type \code{"S"} accomplishes this by manipulating the plot range and then using
+the \code{"i"} style internally.
 }
 }
 \value{
@@ -120,19 +113,18 @@ a list with components \code{x} and \code{y}, containing the coordinates of the 
 on each of the curves (but not the confidence limits).   
 This may be useful for labeling. 
 }
-\section{Side Effects}{
+\description{
 A plot of survival curves is produced, one curve for each strata. 
-}
-\section{Details}{
 The \code{log=T} option does extra work to avoid log(0), and to try to create a 
 pleasing result.  If there are zeros, they are plotted by default at 
 0.8 times the smallest non-zero value on the curve(s). 
 }
 \section{Bugs}{
-Specifying \code{mark.time=T} does not work if \code{survfit} was created from   
-a \code{coxph} model.  In this case, censoring times are not marked on the   
-curve(s).  If you want to mark censoring times on the curve(s) resulting   
-from a \code{coxph} fit, provide a vector of times as the \code{mark.time} argument  
+Survival curve objects created from a \code{coxph} model does not include
+the censoring times. Therefore, specifying \code{mark.time=T} does not work.
+If you want to mark censoring times on the curve(s) resulting   
+from a \code{coxph} fit, provide a vector of times as the
+\code{mark.time} argument  
 in the call to \code{plot.survfit} or \code{lines.survfit}.  
 }
 \seealso{
@@ -141,15 +133,13 @@ in the call to \code{plot.survfit} or \code{lines.survfit}.
 \code{\link{lines.survfit}}.   
 }
 \examples{
-leukemia.surv <- survfit(Surv(time, status) ~ group, data = leukemia) 
+leukemia.surv <- survfit(Surv(time, status) ~ group, data = aml) 
 plot(leukemia.surv, lty = 2:3) 
 legend(100, .9, c("Maintenance", "No Maintenance"), lty = 2:3) 
 title("Kaplan-Meier Curves\nfor AML Maintenance Study") 
-lsurv2 <- survfit(Surv(time, status) ~ group, leukemia, type='fleming') 
+lsurv2 <- survfit(Surv(time, status) ~ group, aml, type='fleming') 
 plot(lsurv2, lty=2:3, fun="cumhaz", 
 	xlab="Months", ylab="Cumulative Hazard") 
 }
-\keyword{survival4}
+\keyword{survival}
 \keyword{hplot}
-% docclass is function
-% Converted by Sd2Rd version 37351.

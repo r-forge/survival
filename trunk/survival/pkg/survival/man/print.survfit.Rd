@@ -4,12 +4,14 @@
   Print a Short Summary of a Survival Curve 
 }
 \description{
-Print number of observations, number of events, the mean survival and its  
+  Print number of observations, number of events, the restricted
+  mean survival and its  
 standard error, and the median survival with confidence limits for the  
 median. 
 }
 \usage{
-print.survfit(x, scale=1)
+\method{print}{suvfit}(x, scale=1, digits = max(options()$digits - 4,3),
+    rmean = getOption('survfit.rmean'))
 }
 \arguments{
 \item{x}{
@@ -20,21 +22,41 @@ a numeric value to rescale the survival time, e.g.,
 if the input data to survfit were in days, 
 \code{scale=365} would scale the printout to years. 
 }
+\item{digits}{Number of digits to print}
+\item{rmean}{Options for computation and display of the restricted mean.}
 }
 \value{
 x, with the invisible flag set to prevent printing. 
 }
 \section{Side Effects}{
-the number of observations, the number of events, the mean survival and its 
-standard error, and the median survival with its confidence interval are 
-printed.  If there are multiple curves, there is one line of output for each. 
+he number of observations, the number of events,  the median survival
+with its confidence interval, and optionally the
+restricted mean survival (\code{rmean}) and its standard error, are printed.
+If there are multiple curves, there is one line of output for each. 
 }
 \details{
 The mean and its variance are based on a truncated estimator.  That is, if the 
 last observation(s) is not a death, then the survival curve estimate does not 
-go to zero and the mean is undefined.  In such a case, the estimator is based 
-on an assumption that the true curve goes to zero just beyond the last 
-observed follow up time; it will systematically underestimate the true mean. 
+go to zero and the mean is undefined.
+There are four possible approaches, which are selected by the
+\code{rmean} option.
+The first is to set the upper limit to a constant, e.g.,\code{rmean=365}.
+In this case the reported mean would be the expected number of days, out
+of the first 365, that would be experienced by each group.  This is
+useful if interest focuses on a fixed period.
+Other options are \code{"none"} (no estimate), \code{"common"} and
+\code{"individual"}.
+For the last of these, the mean is computed as the area under the curve,
+over the
+range from 0 to the maximum observed time for that curve.
+Since the end point is random, values for different curves are not
+comparable and the printed standard errors are an underestimate as
+they do not take into account this random variation.  This option is
+provided mainly for backwards compatability, as this estimate was the
+default (only) one in earlier releases of the code.
+The \code{"common"} option uses the maximum time for all curves in the
+object as a common upper limit for the auc calculation.
+
 
 The median and its confidence interval are defined by drawing a horizontal 
 line at 0.5 on the plot of the survival curve and its confidence bands. 
