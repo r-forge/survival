@@ -1,5 +1,6 @@
 \name{summary.survfit}
 \alias{summary.survfit}
+\alias{print.summary.survfit}
 \title{
   Summary of a Survival Curve 
 }
@@ -8,10 +9,10 @@ Returns a list containing the survival curve, confidence limits for the
 curve, and other information. 
 }
 \usage{
-summary.survfit(fit, times=&lt;&lt;see below&gt;&gt;, censored=F, scale=1, extend=F)
+\method{summary{survfit}(object, times=, censored=FALSe, scale=1, extend=FALSE)
 }
 \arguments{
-\item{fit}{
+\item{object}{
 the result of a call to the \code{survfit} function. 
 }
 \item{times}{
@@ -23,7 +24,7 @@ If \code{censored=T}, the default \code{times} vector contains all the unique ti
 otherwise the default \code{times} vector uses only the event (death) times. 
 }
 \item{censored}{
-logical value: if TRUE, the censoring times are included in the output. 
+logical value:  should the censoring times be included in the output?
 This is ignored if the \code{times} argument is present. 
 }
 \item{scale}{
@@ -34,8 +35,7 @@ days, \code{scale = 365.25} would scale the output to years.
 \item{extend}{
 logical value: if TRUE, prints information for all specified \code{times}, 
 even if there are no subjects left at the end of the specified \code{times}. 
-This is only valid if the \code{times} 
-argument is present. 
+This is only valid if the \code{times} argument is present. 
 }
 }
 \value{
@@ -45,33 +45,34 @@ a list with the following components:
 the estimate of survival at time t+0. 
 }
 \item{time}{
-the timepoints at which the curve has a step. 
+the timepoints on the curve. 
 }
 \item{n.risk}{
 the number of subjects at risk at time t-0 
 (but see the comments on weights in the \code{survfit} help file). 
 }
 \item{n.event}{
-if the \code{times} argument is missing, this column is the number of 
+if the \code{times} argument is missing, then this column is the number of 
 events that occurred at time t. 
 Otherwise, it is the cumulative number of events that have occurred 
 since the last time listed until time t+0. 
 }
 \item{n.entered}{
-if the \code{type} argument is \code{counting} and the \code{times} argument is 
+This is present only for counting process survival data.
+If the \code{times} argument is 
 missing, this column is the number of subjects that entered at time t. 
 Otherwise, it is the cumulative number of subjects that have entered 
-since the last time listed until time t+0.  This is only valid if the 
-\code{type} argument is \code{counting}. 
+since the last time listed until time t.  
 }
 \item{n.exit.censored}{
-if the \code{type} argument is \code{counting} and the \code{times} argument is 
+
+if the \code{times} argument is 
 missing, this column is the number of subjects that left without an 
 event at time t. 
 Otherwise, it is the cumulative number of subjects that have left 
 without an event 
-since the last time listed until time t+0.  This is only valid if the 
-\code{type} argument is \code{counting}. 
+since the last time listed until time t+0.  
+This is only present for counting process survival data.
 }
 \item{std.err}{
 the standard error of the survival value. 
@@ -79,14 +80,15 @@ the standard error of the survival value.
 \item{conf.int}{
 level of confidence for the confidence intervals of survival. 
 }
-\item{lower CI}{
+\item{lower}{
 lower confidence limits for the curve. 
 }
-\item{upper CI}{
+\item{upper}{
 upper confidence limits for the curve. 
 }
 \item{strata}{
-indicates stratification of curve estimation.  If \code{strata} is not \code{NULL}, 
+indicates stratification of curve estimation.  
+If \code{strata} is not \code{NULL}, 
 there are multiple curves in the result and the \code{surv}, \code{time}, \code{n.risk}, etc.  
 vectors will contain multiple curves, pasted end to end.  
 The levels of \code{strata} (a factor) are the labels for the curves. 
@@ -101,15 +103,14 @@ same as for \code{fit}, if present.
 table of information that is returned from \code{print.survfit} function. 
 }
 \item{type}{
-type of data censoring.  Passed from \code{survfit} function. 
+type of data censoring.  Passed through from the fit object. 
 }
 }
 \seealso{
-\code{\link{survfit}},  \code{\link{print.summary.survfit}}.   
+\code{\link{survfit}},  \code{\link{print.summary.survfit}}   
 }
 \examples{
-summary(survfit(Surv(time, status) ~ group, data = leukemia))  
+summary( survfit( Surv(futime, fustat), data=ovarian))
+summary( survfit( Surv(futime, fustat)~rx, data=ovarian))
 }
-\keyword{survival4}
-% docclass is function
-% Converted by Sd2Rd version 37351.
+\keyword{survival}
