@@ -130,9 +130,9 @@ loglogistic = list(
 t = list(
     name  = "Student-t",
     variance = function(df) df/(df-2),
-    parms = list(df=4),
-    init  = function(x, weights, df) {
-	if (df <=2) stop ("Invalid degrees of freedom for the t-distribution")
+    parms = c(df=4),
+    init  = function(x, weights, parms) {
+	if (parms <=2) stop ("Invalid degrees of freedom for the t-distribution")
 	mean <- sum(x*weights)/ sum(weights)
 	var  <- sum(weights*(x-mean)^2)/ sum(weights)
 	c(mean, var*(df-2)/df)

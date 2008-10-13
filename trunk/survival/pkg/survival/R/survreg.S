@@ -63,11 +63,10 @@ survreg <- function(formula=formula(data), data=sys.parent(),
 	if (is.null(dlist)) stop(paste(dist, ": distribution not found"))
 	}
     else if (is.list(dist)) dlist <- dist
-    else stop("Invalid distribution object")
+    else stop("Invalid distribution object, must be a list or a name")
     if (is.null(dlist$dist)) {
-	if (is.character(dlist$name) && is.function(dlist$init) &&
-	    is.function(dlist$deviance)) {}
-	else stop("Invalid distribution object")
+	if (!(is.character(dlist$name) && is.function(dlist$init)))
+            stop("Invalid distribution object")
 	}
     else {
 	if (!is.character(dlist$name) || !is.character(dlist$dist) ||

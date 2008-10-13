@@ -79,6 +79,8 @@ residuals.survreg <- function(object, type=c('response', 'deviance',
 	}
     if (!is.null(dd$dist))  dd <- survreg.distributions[[dd$dist]]
     deviance <- dd$deviance
+    if (type=='deviance' & is.null(deviance))
+        stop("Distribution does not have a deviance function defined")
     dens <- dd$density
 
     nvar <- length(object$coef)

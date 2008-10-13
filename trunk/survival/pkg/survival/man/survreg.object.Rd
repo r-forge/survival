@@ -1,76 +1,76 @@
 \name{survreg.object}
 \alias{survreg.object}
+\alias{print.survreg}
+\alias{summary.survreg}
+
 \title{
-  Parametric Survival Model Object 
+Parametric Survival Model Object
 }
 \description{
-Classes of objects that result from fitting a parametric survival model. 
+This class of objects is returned by the \code{survreg} function
+to represent a fitted parametric survival model.
+Objects of this class have methods for the functions \code{print},
+\code{summary}, \code{predict}, and \code{residuals}.
 }
-\section{Generation}{
-This class of objects is returned by the \code{survreg} function 
-to represent a fitted parametric survival model. 
-Class \code{survreg} inherits from class \code{glm}, since it is fit by iterative 
-reweighted least squares; the object returned has all the components of a 
-weighted least squares object. 
-}
-\section{Methods}{
-Objects of this class have methods for the functions \code{print}, 
-\code{summary}, \code{predict}, and \code{residuals}. 
-}
-\section{Structure}{
-The following components must be included in a legitimate \code{survreg} object. 
-The residuals, fitted values, coefficients and effects should be extracted 
-by the generic functions of the same name, rather than 
-by the \code{"\$"} operator.  
-}
-\arguments{
+\section{COMPONENTS}{
+The following components must be included in a legitimate \code{survreg} object.
+\describe{
 \item{coefficients}{
-the coefficients of the \code{linear.predictors}, which multiply  the 
-columns of the model matrix.  It does not include the estimate of error  
-(sigma).  The names of the coefficients are the names of the 
-single-degree-of-freedom effects (the columns of the model matrix). 
-If the model is over-determined there will be missing values in the  
-coefficients corresponding to nonestimable coefficients. 
+the coefficients of the \code{linear.predictors}, which multiply  the
+columns of the model
+matrix.
+It does not include the estimate of error (sigma).
+The names of the coefficients are the names of the
+single-degree-of-freedom effects (the columns of the
+model matrix).
+If the model is over-determined there will
+be missing values in the coefficients corresponding to non-estimable
+coefficients.
 }
-\item{family}{
-a 2 element character vector giving the name of the family and 
-the link; mainly for printing purposes. 
-}
-\item{parms}{
-the parameters of the model that are not coefficients of the model matrix. 
-The first of these will always be \code{log(sigma)}. 
-}
-\item{fixed}{
-a vector the same length as \code{parms}, where 1 indicates a parameter that 
-was fixed at its starting value and was not part of the iteration. 
+\item{icoef}{
+coefficients of the baseline model, which will contain the intercept
+and log(scale), or mulitple scale factors for a stratified model.
 }
 \item{var}{
-the final variance matrix, including both coefficients and free parameters. 
-}
-\item{dresiduals}{
-the deviance residuals. 
-}
-\item{deviance}{
-minus twice the difference between the maximized log-likelihood under the 
-fitted model and a saturated model. Similar to the residual sum of squares. 
-}
-\item{null.deviance}{
-the deviance corresponding to the model with only an intercept term, and 
-with \code{parms} fixed at their final values. 
+the variance-covariance matrix for the parameters, including the log(scale)
+parameter(s).
 }
 \item{loglik}{
-the log-likelihood for the final model. 
+a vector of length 2, containing the log-likelihood for the baseline and
+full models. 
+}
+\item{iter}{
+the number of iterations required
+}
+\item{linear.predictors}{
+the linear predictor for each subject.
+}
+\item{df}{
+the degrees of freedom for the final model.  For a penalized model
+this will be a vector with one element per term.
+}
+\item{scale}{
+the scale factor(s), with length equal to the number of strata.
+}
+\item{idf}{
+degrees of freedom for the initial model.
+}
+\item{means}{
+a vector of the column means of the coefficient matrix.
+}
+\item{dist}{
+the distribution used in the fit.
 
-The object will also have the components of a \code{glm} object not mentioned 
-above: \code{linear predictors}, \code{fitted.values}, \code{residuals}, \code{effects}, \code{R},  
-\code{rank}, \code{assign}, \code{df.residual}, \code{weights}, \code{call}, \code{iter}, \code{contrasts},  
-\code{terms} and \code{formula}.  See \code{glm.object}. 
-}
-}
+
+The object will also have the following components found in 
+other model results (some are optional):
+\code{linear predictors}, \code{weights}, \code{x}, \code{y}, \code{model}, 
+\code{call}, \code{terms} and \code{formula}.
+See \code{lm}.
+}}}
 \seealso{
-\code{\link{glm.object}},  \code{\link{lm.object}},  \code{\link{survreg}}.   
+\code{\link{survreg}}, \code{\link{lm}}
 }
 \keyword{regression}
-\keyword{survival4}
-% docclass is function
-% Converted by Sd2Rd version 37351.
+\keyword{survival}
+% Converted by Sd2Rd version 0.3-2.

@@ -1,17 +1,28 @@
 \name{survreg}
 \alias{survreg}
+\alias{model.frame.survreg}
+\alias{labels.survreg}
+\alias{print.survreg.penal}
+\alias{print.summary.survreg}
+\alias{survReg}
+\alias{anova.survreg}
+\alias{vcov.survreg}
+\alias{anova.survreglist}
 \title{
   Regression for a Parametric Survival Model 
 }
 \description{
-Fit a parametric survival regression model. 
-The function \code{censorReg} is an alternative function for fitting these type 
-of model. 
+Fit a parametric survival regression model.
+These are location-scale models for an arbitrary transform of the time
+variable; the most common cases use a log transformation, leading to
+accelerated failure time models.
 }
 \usage{
-survreg(formula=formula(data), data=sys.parent(), subset, 
-        na.action, link="log", dist="extreme", init=NULL, 
-        fixed=list(), control, model=F, x=F, y=T, ...)
+survreg(formula=formula(data), data, subset, 
+        na.action, dist="weibull", init=NULL, scale=0, 
+        control=survreg.control(),parms=NULL,model=FALSE, x=FALSE,
+        y=TRUE, robust=FALSE, \dots)
+
 }
 \arguments{
 \item{formula}{
@@ -21,74 +32,72 @@ See the documentation for \code{Surv}, \code{lm} and \code{formula} for details.
 }
 \item{data}{
 a data frame in which to interpret the variables named in 
-the \code{formula}, or the \code{subset} argument. 
+the \code{formula}, \code{weights} or the \code{subset} arguments. 
 }
 \item{subset}{
-expression saying that only a subset of the rows of the data 
-should be used in the fit. 
+  subset of the observations to be used in the fit
 }
 \item{na.action}{
 a missing-data filter function, applied to the model.frame, after any 
 \code{subset} argument has been used.  Default is \code{options()\$na.action}. 
 }
-\item{link}{
-a character string specifying the transformation to be used on the y variable. 
-Possible values are \code{"log"} and \code{"identity"}. 
-}
 \item{dist}{
-a character string specifying the assumed distribution for the transformed y 
-variable. 
-Possible values are \code{"extreme"}, \code{"logistic"}, \code{"gaussian"}, \code{"exponential"}, 
-and \code{"rayleigh"}. 
+assumed distribution for y variable. 
+If the argument is a character string, then it is assumed to name an
+element from \code{\link{survreg.distributions}}. These include
+\code{"weibull"}, \code{"exponential"}, \code{"gaussian"}, \code{"logistic"}, \c
+ode{"lognormal"} and \code{"loglogistic"}.
+Otherwise, it is assumed to be a user defined list conforming to the
+format described in \code{\link{survreg.distributions}}.
+}
+\item{parms}{
+a list of fixed parameters.  For the t-distribution for instance this is
+the degrees of freedom; most of the distributions have no parameters.
 }
 \item{init}{
-a vector of initial values for the parameters. 
+optional vector of initial values for the parameters.
 }
-\item{fixed}{
-a list of fixed parameters, most often just the scale. 
+\item{scale}{
+optional fixed value for the scale.  If set to <=0 then the scale is
+estimated.
 }
 \item{control}{
-a list of three parameters (\code{maxiter}, \code{rel.tolerance} and \code{failure}) 
-returned by \code{survreg.control}. 
-See \code{survreg.control} and the EXAMPLES section for details. 
+a list of control values, in the format producted by \code{survreg.control}.
 }
-\item{model}{
-a logical value, if \code{TRUE} then the model frame is included as component 
-\code{model} in the object returned by the function. 
+\item{model,x,y}{
+flags to control what is returned.  If any of these is true, then the
+model frame, the model matrix, and/or the vector of response times will be
+returned as components of the final result, with the same names as the
+flag arguments.
 }
-\item{x}{
-a logical value, if \code{TRUE} then the model matrix is returned as component 
-\code{x} in the object returned by the function. 
-}
-\item{y}{
-a logical value, if \code{TRUE} then the response is returned as component \code{y} 
-in the object returned by the function. 
-}
-\item{\dots}{
-all the optional arguments to \code{lm}, including \code{singular.ok}. 
-}
-}
+\item{...}{
+other arguments which will be passed to \code{survreg.control}.
+}}
 \value{
-an object of class \code{survreg} is returned, which inherits from class \code{glm}. 
-See \code{survreg.object} for details. 
+an object of class \code{survreg} is returned.
 }
-\section{Details}{
-This routine is not as robust against nearly singular X matrices as 
-\code{lm}; the problem occurs when the covariance matrix is explicitly inverted 
-using the \code{solve} function.  This can sometimes be solved by subtracting 
-the mean from all continuous covariates. 
+\section{Compatibility note}{
+This routine underwent significant changes from survival version 4 to 
+version 5.
+The \link{survreg.old} function gives a backwards-compatible
+interface.  In S-PLUS the new function is called \code{survReg} and
+the old one \code{survreg}.
 }
 \seealso{
-\code{\link{censorReg}},  \code{\link{formula}},  \code{\link{lm}},  \code{\link{Surv}},  \code{\link{survreg.control}},  \code{\link{survreg.object}}.   
+\code{\link{survreg.object}}, \code{\link{survreg.distributions}},
+\code{\link{pspline}}, \code{\link{frailty}}, \code{\link{ridge}},
+\code{\link{survreg.old}}
 }
 \examples{
-# Fit an exponential model 
-survreg(Surv(futime, fustat) ~ ecog.ps + rx, data=ovarian, 
-        dist='extreme', link='log', fixed=list(scale=1))   
-# Using survreg.control to supply the control argument 
+# Fit an exponential model: these are all the same
+survreg(Surv(futime, fustat) ~ ecog.ps + rx, ovarian, dist='weibull',scale=1)
+survreg(Surv(futime, fustat) ~ ecog.ps + rx, ovarian,
+        dist="exponential")
+survreg.old(Surv(futime, fustat) ~ ecog.ps + rx, ovarian,
+           dist='extreme',fixed=list(scale=1),link="log")
+
+# Weibull fit 
 survreg(Surv(days, event) ~ voltage, data=capacitor, 
         control=survreg.control(maxiter = 40)) 
 }
-\keyword{survival4}
-% docclass is function
-% Converted by Sd2Rd version 37351.
+\keyword{survival}

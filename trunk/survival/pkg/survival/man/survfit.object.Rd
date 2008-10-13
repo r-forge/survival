@@ -4,17 +4,14 @@
   Survival Curve Object 
 }
 \description{
+This class of objects is returned by the \code{survfit} class of functions
+to represent a fitted survival curve. 
+
+Objects of this class have methods for the functions \code{print},
+\code{summary}, \code{plot}, \code{points} and \code{lines}. The
+\code{\link{print.survfit}} method does more computation than is typical
+for a print method and is documented on a separate page.
 Class of objects that represent a fitted survival curve. 
-}
-\section{Generation}{
-This class of objects is returned by the 
-\code{survfit} class of functions. 
-}
-\section{Methods}{
-Objects of this class have methods for the functions 
-\code{print}, 
-\code{summary}, \code{plot}, 
-\code{points} and \code{lines}. 
 }
 \section{Structure}{
 The following components must be included in a legitimate 
@@ -60,7 +57,8 @@ lower confidence limit for the survival curve.
 }
 \item{strata}{
 if there are multiple curves, this component gives the number of elements of 
-the \code{time} etc. vectors corresponding to the first curve, the second curve, 
+the \code{time} etc. vectors corresponding to the first curve,
+the second curve, 
 and so on.  The names of the elements are labels for the curves. 
 }
 \item{start.time}{
@@ -96,19 +94,17 @@ type of survival censoring.
 \section{Subscripts}{
 Survfit objects that contain multiple survival curves can be subscripted. 
 This is most often used to plot a subset of the curves. 
-Usually a single subscript will be used.  In one particular case --- 
+Usually a single subscript will be used.  In one particular case --
 survival curves for multiple covariate values, from a Cox model that includes 
-a \code{strata} statement --- there is a matrix of 
-curves and 2 subscripts may 
-be used. 
+a \code{strata} statement -- there is a matrix of 
+curves and 2 subscripts may be used. 
 (In this case \code{summary.survfit} will 
 also print the data as a matrix). 
 }
 \seealso{
 \code{\link{plot.survfit}},  
-\code{\link{summary.survfit}},  
+\code{\link{summary.survfit}},
+\code{\line{print.survfit}},
 \code{\link{survfit}}.   
 }
-\keyword{survival4}
-% docclass is function
-% Converted by Sd2Rd version 37351.
+\keyword{survival}
