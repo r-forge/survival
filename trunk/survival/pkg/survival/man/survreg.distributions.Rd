@@ -67,7 +67,8 @@ a new distribution can be specified as a separate list.
 This is the preferred method of addition and is illustrated below.
 }
 \seealso{\code{\link{survreg}}, \code{\link{pweibull}},
-  \code{\link{pnorm}},\code{\link{plogis}}, \code{\link{pt}}
+  \code{\link{pnorm}},\code{\link{plogis}}, \code{\link{pt},
+  \code{\link{survregDtest}}
 }
 \examples{
 # time transformation
