@@ -28,7 +28,7 @@ is.ratetable <- function(x, verbose=FALSE) {
 	return(TRUE)
 	}
 
-    #verbose return messages, useful for debugging
+    # verbose return messages, useful for debugging
     msg <- NULL
     if (!inherits(x, 'ratetable')) msg <- c(msg, "wrong class")
     att <- attributes(x)
@@ -37,11 +37,11 @@ is.ratetable <- function(x, verbose=FALSE) {
     if (any(temp)) 
         msg <- c(msg, paste("missing attribute:", dlist[temp]))
 
-    # This next one is hard to generate, since S itself squawks when you
+    # This next error is unlikely, since S itself squawks when you
     #   try to set a wrong dimension.  Ditto with dimnames issues.
     nd <- length(att$dim)
     if (length(x) != prod(att$dim)) 
-        msg <- c(msg, 'length of the data does not match the prod(dim)')
+        msg <- c(msg, 'length of the data does not match prod(dim)')
 
     if (!is.list(att$dimnames))
 	     msg <- c(msg, 'dimnames is not a list')

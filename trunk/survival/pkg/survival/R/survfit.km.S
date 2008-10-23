@@ -6,7 +6,7 @@ survfit.km <- function(x, y, casewt=rep(1,length(x)),
 		       conf.int= .95,
 		       conf.type=c('log',  'log-log',  'plain', 'none'),
 		       conf.lower=c('usual', 'peto', 'modified'),
-		       start.time) {
+		       start.time, new.time) {
     type <- match.arg(type)
     method <- match(type, c("kaplan-meier", "fleming-harrington", "fh2"))
 
@@ -23,6 +23,8 @@ survfit.km <- function(x, y, casewt=rep(1,length(x)),
     xlev <- levels(x)   # Will supply names for the curves
     x <- as.numeric(x)  # keep only the levels
 
+    #  Allow "new.time" as a synonym for start.time
+    if (missing(start.time) && !missing(new.time)) start.time <- new.time
     if (!missing(start.time)) { 
 	n.all <- c(table(x))   # remember the original data size
 	# remove any obs whose end time is <= start.time

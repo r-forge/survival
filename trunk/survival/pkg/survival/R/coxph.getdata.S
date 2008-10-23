@@ -30,21 +30,22 @@ coxph.getdata <- function(fit, y=TRUE, x=TRUE, stratax=TRUE, offset=FALSE) {
 	if (offset) toff <- model.extract(m, 'offset')
 
 	# strata was saved in the fit if and only if x was
-	if (x && is.null(tx)) {
+	if ((x || stratax) && is.null(tx)) {
 	    dropx <- untangle.specials(Terms, 'cluster')$terms
 	    if (stratax) {
 		temp <- untangle.specials(Terms, 'strata', 1)
-		tx <- model.matrix(Terms[-c(dropx,temp$terms)], m)[,-1,drop=FALSE]
+                dropx <- c(dropx, temp$terms)
 		strat <- strata(m[temp$vars], shortlabel=TRUE)
 		}
-	    else {
+	    if (x) {
 		if (length(dropx)) tx <- model.matrix(Terms[-dropx], m)[,-1,drop=FALSE]
 		else               tx <- model.matrix(Terms, m)[,-1,drop=FALSE]
 		}
 	    }
 	}
     else if (offset)
-       toff <- fit$linear.predictors -(c(tx %*% fit$coef) - sum(fit$means*fit$coef))
+       toff <- fit$linear.predictors -(c(tx %*% fit$coef) - 
+                                        sum(fit$means*fit$coef))
 
     temp <- NULL
     if (y) temp <- c(temp, "y=ty")

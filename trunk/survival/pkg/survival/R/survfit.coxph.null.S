@@ -14,7 +14,7 @@ survfit.coxph.null <-
     score <- exp(object$linear.predictor)
 
     temp <- c('aalen', 'kalbfleisch-prentice', 'efron',
-	           'tsiatis', 'breslow', 'kaplan-meier', 'fleming-harrington',
+	           'tsiatis', 'breslow', 'kaplan-meier', 'fleming-harringon',
 	           'greenwood', 'exact')
     temp2 <- c(2,1,3,2,2,1,3,1,1)
     if (missing(type)) type <- object$method
@@ -76,7 +76,7 @@ survfit.coxph.null <-
 			  y = y[ord,],
 			  as.double(score[ord]),
 			  strata = as.integer(newstrat),
-                          as.double(weights),
+                          wt = as.double(weights),
 			  surv = double(n),
 			  varhaz = double(n),
 			  double(1),
@@ -91,7 +91,7 @@ survfit.coxph.null <-
     tsurv <- surv$surv[ntime]
     tvar  <- surv$varhaz[ntime]
     if (surv$strata[1] <=1)
-	temp _ list(n=n, time=surv$y[ntime,1],
+	temp <- list(n=n, time=surv$y[ntime,1],
 		 n.risk=surv$y[ntime,2],
 		 n.event=surv$y[ntime,3],
 		 surv=tsurv, type=type )
@@ -99,15 +99,15 @@ survfit.coxph.null <-
 	temp <- surv$strata[1:(1+surv$strata[1])]
 	tstrat <- diff(c(0, temp[-1])) #n in each strata
 	names(tstrat) <- levels(stratx)
-	temp _ list(n=n.all, time=surv$y[ntime,1],
+	temp <- list(n=n.all, time=surv$y[ntime,1],
 		 n.risk=surv$y[ntime,2],
 		 n.event=surv$y[ntime,3],
-		 surv=tsurv,
+		 surv=tsurv, 
 		 strata= tstrat, type=type)
 	}
     if (se.fit) temp$std.err <- sqrt(tvar)
 
-    zval _ qnorm(1- (1-conf.int)/2, 0,1)
+    zval <- qnorm(1- (1-conf.int)/2, 0,1)
     if (conf.type=='plain') {
 	temp1 <- temp$surv + zval* temp$std * temp$surv
 	temp2 <- temp$surv - zval* temp$std * temp$surv
@@ -133,6 +133,13 @@ survfit.coxph.null <-
 	}
 
     temp$call <- call
-    oldClass(temp) <- "survfit.cox"
+    if (is.R()) class(temp) <- c('survfit.cox', 'survfit')
+    else        oldClass(temp) <- 'survfit.cox'
     temp
     }
+
+
+
+
+
+

@@ -27,10 +27,15 @@ match.ratetable <- function(R, ratetable) {
     levlist <- attR[['levlist']][ord]
     dtemp <-dimnames(ratetable)
     efac  <- attr(ratetable, 'factor')
+
+    # Now, go through the dimensions of the ratetable 1 by 1, and
+    #  verify that the user's variable (or constant) is compatable
+    #  with the rate table's dimensions
+    #
     for (i in (1:nd)) {
 	if (const[i]) {   #user put in a constant
             if (efac[i] ==0) {  # the index is continuous
-                temp <- as.numeric(levlist[[i]])
+                temp <- as.numeric(levlist[[i]]) 
                 if (is.na(temp) )
                     stop(paste("Invalid value in ratetable() for variable",
 				 dimid[i]))

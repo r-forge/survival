@@ -2,7 +2,7 @@
 #
 # the p-spline function for a Cox model
 #
-pspline <- function(x, df=4, theta, nterm=2.5*df, degree=3, eps=.1, 
+pspline <- function(x, df=4, theta, nterm=2.5*df, degree=3, eps=0.1, 
 		    method, ...) {
     if (!missing(theta)) {
 	method <- 'fixed'
@@ -16,8 +16,12 @@ pspline <- function(x, df=4, theta, nterm=2.5*df, degree=3, eps=.1,
     else {
 	method <- 'df'
 	if (df <=1) stop ('Too few degrees of freedom')
-	}
+	# The below used to say "df+1 > nterm", but we need some scope for
+	#  the smoother parameter to avoid strange conditions
+        if (df > nterm) stop("`nterm' too small for df=",df)
+    }
 
+    
     xname <- deparse(substitute(x))
     keepx <- !is.na(x)
     rx <- range(x[keepx])
@@ -32,7 +36,6 @@ pspline <- function(x, df=4, theta, nterm=2.5*df, degree=3, eps=.1,
 	newx[keepx,] <- temp
         }
     newx <- newx[,-1]              #redundant coefficient with lambda_0
-    oldClass(newx) <- 'coxph.penalty'
     nvar <- 1 + ncol(newx)   #should be nterm + degree
     dmat <- diag(nvar)
     dmat <- apply(dmat, 2, diff, 1, 2) 
@@ -53,7 +56,7 @@ pspline <- function(x, df=4, theta, nterm=2.5*df, degree=3, eps=.1,
 	    }
         }	
 
-    printfun <- function(coef, var, var2, df, history, cbase) {
+    printfun <- substitute(function(coef, var, var2, df, history, cbase=zzz) {
 	test1 <- coxph.wtest(var, coef)$test
 	# cbase contains the centers of the basis functions
 	#   do a weighted regression of these on the coefs to get a slope
@@ -76,10 +79,19 @@ pspline <- function(x, df=4, theta, nterm=2.5*df, degree=3, eps=.1,
 	if (length(nn)) theta <- history$thetas[nn,1]
 	else  theta <- history$theta
 	list(coef=cmat, history=paste("Theta=", format(theta)))
-	}
-    # Line 2 below is a real sneaky thing, see notes.
-    printfun[[6]] <- knots[2:nvar] + (rx[1] - knots[1])
-			       
+	}, list(zzz = knots[2:nvar] + (rx[1] - knots[1])))
+    
+    # The use of substitute above is a a bit sneaky.  We are setting
+    #  thedefault value of the parameter 'cbase' to a particular
+    #  value, after the function is defined.
+    # In R, we can be even more opaque than this: remove "cbase" from
+    #  the argument list, set it to some value right here, outside of the
+    #  actual definition of printfun, and the majic of lexical scoping
+    #  will find the value at runtime -- but pity the programmer
+    #  who actually looks at the print function and tries to deduce where
+    #  cbase came from.  (No, TMT is not a fan of Scheme).
+    #
+
     if (method=='fixed') {
 	temp <- list(pfun=pfun,
 		     printfun=printfun,
@@ -115,5 +127,7 @@ pspline <- function(x, df=4, theta, nterm=2.5*df, degree=3, eps=.1,
 	}
     
     attributes(newx) <- c(attributes(newx), temp)
+    if (is.R()) class(newx) <- 'coxph.penalty'
+    else        oldClass(newx) <- 'coxph.penalty'
     newx
     }

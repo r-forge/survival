@@ -1,19 +1,20 @@
-# $Id$
+#  $Id$
 residuals.coxph <-
   function(object, type=c("martingale", "deviance", "score", "schoenfeld",
-			  "dfbeta", "dfbetas", "scaledsch"),
-	    collapse=FALSE, weighted=FALSE)
+			  "dfbeta", "dfbetas", "scaledsch","partial"),
+	    collapse=FALSE, weighted=FALSE, ...)
     {
     type <- match.arg(type)
     otype <- type
     if (type=='dfbeta' || type=='dfbetas') {
 	type <- 'score'
-	if (missing(weighted)) weighted <- TRUE  # different default
+	if (missing(weighted))
+            weighted <- TRUE  # different default for this case
 	}
     if (type=='scaledsch') type<-'schoenfeld'
 
     n <- length(object$residuals)
-    rr <- object$residual
+    rr <- object$residuals
     y <- object$y
     x <- object$x
     vv <- object$naive.var
@@ -25,7 +26,8 @@ residuals.coxph <-
     if (method=='exact' && (type=='score' || type=='schoenfeld'))
 	stop(paste(type, 'residuals are not available for the exact method'))
 
-    if (type == 'martingale') rr <- object$residual
+    if (type == 'martingale' || type == 'partial')
+        rr <- object$residuals
     else {
 	# I need Y, and perhaps the X matrix (and strata)
 	Terms <- object$terms
@@ -33,7 +35,7 @@ residuals.coxph <-
 		stop("invalid terms component of object")
 	strats <- attr(Terms, "specials")$strata
 	if (is.null(y)  ||  (is.null(x) && type!= 'deviance')) {
-	    temp <- coxph.getdata(object, y=TRUE, x=TRUE, strata=TRUE)
+	    temp <- coxph.getdata(object, y=TRUE, x=TRUE, stratax=TRUE)
 	    y <- temp$y
 	    x <- temp$x
 	    if (length(strats)) strat <- temp$strata
@@ -58,7 +60,7 @@ residuals.coxph <-
 	    # sort the data
 	    x <- x[ord,]
 	    y <- y[ord,]
-	    score <- exp(object$linear.predictor)[ord]
+	    score <- exp(object$linear.predictors)[ord]
 	    }
 	}
 
@@ -78,7 +80,7 @@ residuals.coxph <-
 			    as.double(score * weights[ord]),
 			    as.integer(newstrat),
 			    as.integer(method=='efron'),
-			    double(3*nvar))
+			    double(3*nvar) )
 
 	deaths <- y[,3]==1
 
@@ -88,15 +90,14 @@ residuals.coxph <-
 
 	if (length(strats)) attr(rr, "strata")  <- table((strat[ord])[deaths])
 	time <- c(y[deaths,2])  # 'c' kills all of the attributes
-	if (is.matrix(rr)) dimnames(rr)<- list(time, names(object$coef))
+	if (is.matrix(rr)) dimnames(rr)<- list(time, names(object$coefficients))
 	else               names(rr) <- time
 
 	if (otype=='scaledsch') {
 	    ndead <- sum(deaths)
-	    coef <- ifelse(is.na(object$coef), 0, object$coef)
+	    coef <- ifelse(is.na(object$coefficients), 0, object$coefficients)
 	    if (nvar==1) rr <- rr*vv *ndead + coef
-	    else         rr <- rr %*%vv * ndead +
-						outer(rep(1,nrow(rr)),coef)
+	    else         rr <- rr %*%vv * ndead + outer(rep(1,nrow(rr)),coef)
 	    }
 	return(rr)
 	}
@@ -130,7 +131,8 @@ residuals.coxph <-
 	if (nvar >1) {
 	    rr <- matrix(0, n, nvar)
 	    rr[ord,] <- matrix(resid, ncol=nvar)
-	    dimnames(rr) <- list(names(object$resid), names(object$coef))
+	    dimnames(rr) <- list(names(object$residuals), 
+				 names(object$coefficients))
 	    }
 	else rr[ord] <- resid
 
@@ -143,19 +145,26 @@ residuals.coxph <-
 	    else                rr <- rr * sqrt(vv)
 	    }
 	}
-
+    
     #
     # Multiply up by case weights (which will be 1 for unweighted)
     #
     if (weighted) rr <- rr * weights
-
+    
     #Expand out the missing values in the result
     if (!is.null(object$na.action)) {
 	rr <- naresid(object$na.action, rr)
-	if (is.matrix(rr)) n <- nrow(rr)
+   	if (is.matrix(rr)) n <- nrow(rr)
 	else               n <- length(rr)
 	if (type=='deviance') status <- naresid(object$na.action, status)
 	}
+    
+    if (type=="partial"){
+	# This needs to be done after the naresid expansion, since the
+	#   predict function will have done naresid expansion, so that
+	#   the lengths match
+        rr <- rr + predict(object,type="terms")
+        }
 
     # Collapse if desired
     if (!missing(collapse)) {
@@ -170,3 +179,4 @@ residuals.coxph <-
 			      ifelse(status==0, 0, status*log(status-rr))))
     else rr
     }
+    

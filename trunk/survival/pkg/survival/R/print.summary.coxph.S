@@ -1,17 +1,16 @@
-# $Id$
+# $Id $
 print.summary.coxph <-
- function(x, coef = TRUE, conf.int=T,
-			digits = max(options()$digits - 4, 3)) {
-
-    if (!is.null(cl<- x$call)) {
+ function(x, digits = max(getOption('digits')-3, 3),  
+             signif.stars = getOption("show.signif.stars", ...)) {
+    if (!is.null(x$call)) {
 	cat("Call:\n")
-	dput(cl)
+	dput(x$call)
 	cat("\n")
-	}
+        }
     if (!is.null(x$fail)) {
 	cat(" Coxreg failed.", x$fail, "\n")
 	return()
-	}
+        }
     savedig <- options(digits = digits)
     on.exit(options(savedig))
 
@@ -19,46 +18,44 @@ print.summary.coxph <-
     if (length(omit))
 	cat("  n=", x$n, " (", naprint(omit), ")\n", sep="")
     else cat("  n=", x$n, "\n")
-    if (length(x$icc))
-	cat("  robust variance based on", x$icc[1],
-	    "groups, intra-class correlation =", format(x$icc[2:3]), "\n")
-    if (is.null(x$coef)) {   # Null model
+
+    if (nrow(x$coef)==0) {   # Null model
 	cat ("   Null model\n")
 	return()
-	}
-
-    if(coef) {
-        cat("\n")
-        prmatrix(x$coefficient)
         }
-    if(conf.int) {
-        cat("\n")
-        prmatrix(x$cimat)
-        }
- 
-    logtest <- -2 * (x$loglik[1] - x$loglik[2])
-    sctest <- x$score
-    df <- sum(!is.na(x$coefficient[,1]))
 
+
+    if(!is.null(x$coefficients)) {
+        cat("\n")
+        if (is.R()) printCoefmat(x$coefficients, digits=digits,
+                                 signif.stars=signif.stars, ...)
+        else prmatrix(x$coefficients)
+        }
+    if(!is.null(x$conf.int)) {
+        cat("\n")
+        prmatrix(x$conf.int)
+        }
     cat("\n")
-    cat("Rsquare=", format(round(1-exp(-logtest/x$n),3)),
-	"  (max possible=", format(round(1-exp(2*x$loglik[1]/x$n),3)),
-	")\n" )
-    cat("Likelihood ratio test= ", format(round(logtest, 2)), "  on ",
-	df, " df,", "   p=", format(1 - pchisq(logtest, df)),
-	"\n", sep = "")
-    cat("Wald test            = ", format(round(x$wald.test, 2)), "  on ",
-	df, " df,", "   p=", format(1 - pchisq(x$wald.test, df)),
-	"\n", sep = "")
-    cat("Score (logrank) test = ", format(round(sctest, 2)), "  on ", df,
-        " df,", "   p=", format(1 - pchisq(sctest, df)), sep ="") 
-    if (is.null(x$rscore)) cat("\n\n")
-    else cat(",   Robust = ", format(round(x$rscore, 2)), 
-	   "  p=", format(1 - pchisq(x$rscore, df)), "\n\n", sep="")   
 
-    if (!is.null(x$naive.var))
+    cat("Rsquare=", format(round(x$rsq["rsq"],3)),
+	"  (max possible=", format(round(x$rsq["maxrsq"],3)),
+        ")\n" )
+    cat("Likelihood ratio test= ", format(round(x$logtest["test"], 2)), "  on ",
+	x$logtest["df"], " df,", "   p=", format(x$logtest["pvalue"]),
+        "\n", sep = "")
+    cat("Wald test            = ", format(round(x$waldtest["test"], 2)), "  on ",
+	x$waldtest["df"], " df,", "   p=", format(x$waldtest["pvalue"]),
+	"\n", sep = "")
+    cat("Score (logrank) test = ", format(round(x$sctest["test"], 2)), "  on ",
+        x$sctest["df"]," df,", "   p=", format(x$sctest["pvalue"]), sep ="")
+    if (is.null(x$robscore))
+        cat("\n\n")
+    else cat(",   Robust = ", format(round(x$robscore["test"], 2)), 
+             "  p=", format(x$robscore["pvalue"]), "\n\n", sep="")   
+
+    if (x$used.robust)
 	cat("  (Note: the likelihood ratio and score tests",
-	  "assume independence of\n     observations within a cluster,",
+            "assume independence of\n     observations within a cluster,",
 	    "the Wald and robust score tests do not).\n")
     invisible()
-    }
+}

@@ -61,13 +61,17 @@ frailty.controlgauss <- function(opt, iter, old, fcoef, trH, loglik){
 		    else if (b1==iter) b1 <- iter-1
 
 		    # Brent's formula, straight from Numerical Recipies
+		    # Why, you may ask, don't we use the uniroot() function
+		    #  which is built into S, and implements Brent's method?
+		    # Because all we want is the next guess for x.  The interal
+		    #  loop of coxph is calling us, not the other way around.
 		    guess <- history[iter- (2:0),1]
-		    R _ tempy[b1]/ tempy[b1+1]
-		    S _ tempy[b1]/ tempy[b1-1]
-		    U _ R/S
-		    P _ S* (U*(R-U)*(tempx[b1+1]-tempx[b1]) - 
+		    R <- tempy[b1]/ tempy[b1+1]
+		    S <- tempy[b1]/ tempy[b1-1]
+		    U <- R/S
+		    P <- S* (U*(R-U)*(tempx[b1+1]-tempx[b1]) - 
 			    (1-R)*(tempx[b1]-tempx[b1-1]))
-		    Q _ (U-1)*(R-1)*(S-1)
+		    Q <- (U-1)*(R-1)*(S-1)
 		    newtheta <- tempx[b1] + P/Q
 		    # if the new guess is outside the brackets, do a binomial
 		    #   search step

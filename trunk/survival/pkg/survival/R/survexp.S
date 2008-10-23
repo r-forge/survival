@@ -1,17 +1,29 @@
 # $Id$
-setOldClass(c('survexp', 'survfit'))
 
-survexp <- function(formula=formula(data), data=sys.parent(),
+#The small function below replaces a call to "terms.inner", which
+# is in Splus but not in R
+bareterms <-function(formula) {
+    if (length(formula) > 2) formula <- delete.response(formula)
+    v <- all.vars(formula)
+    terms(formula(paste("~",paste(v,collapse="+"))))
+    }
+    
+if (!is.R()) setOldClass(c('survexp', 'survfit'))  #set up inheritance
+
+survexp <- function(formula, data,
 	weights, subset, na.action,
 	times,  cohort=TRUE,  conditional=FALSE,
 	ratetable=survexp.us, scale=1, npoints, se.fit,
 	model=FALSE, x=FALSE, y=FALSE) {
 
     call <- match.call()
-    m <- match.call(expand=FALSE)
-    m$ratetable <- m$model <- m$x <- m$y <- m$scale<- m$cohort <- NULL
-    m$times <- m$conditional <- m$npoints <- m$se.fit <- NULL
+    m <- match.call(expand.dots=FALSE)
+    
+    # keep the first element (the call), and the following selected arguments
+    m <- m[c(1, match(c('formula', 'data', 'weights', 'subset', 'na.action'),
+	     names(m), nomatch=0))]
 
+    
     Terms <- if(missing(data)) terms(formula, 'ratetable')
 	     else              terms(formula, 'ratetable',data=data)
 
@@ -26,9 +38,10 @@ survexp <- function(formula=formula(data), data=sys.parent(),
     
 	if(is.ratetable(ratetable))   varlist <- attr(ratetable, "dimid")
 	else if(inherits(ratetable, "coxph")) {
-	    varlist <- names(ratetable$coef)
-	    # Now remove "log" and such things, using terms.inner
-	    temp <- terms.inner(xx(paste("~", paste(varlist, collapse='+'))))
+	    varlist <- names(ratetable$coefficients)
+	    ## Now remove "log" and such things, to get just the list of
+	    #   variable names
+	    temp <- bareterms(xx(paste("~", paste(varlist, collapse='+'))))
 	    varlist <- attr(temp, 'term.labels')
             }
 	else stop("Invalid rate table")
@@ -41,9 +54,13 @@ survexp <- function(formula=formula(data), data=sys.parent(),
 	rate <- attr(Terms, "specials")$ratetable
 	}
 
+    # Now the formula is fixed up.  Create the model frame.
     m$formula <- Terms
     m[[1]] <- as.name("model.frame")
-    m <- eval(m, sys.parent())
+
+    if (is.R())  m <- eval(m, parent.frame())
+    else         m <- eval(m, sys.parent())
+
     n <- nrow(m)
 
     if (any(attr(Terms, 'order') >1))
@@ -101,7 +118,7 @@ survexp <- function(formula=formula(data), data=sys.parent(),
 	if (length(strats))
 	    stop("survexp cannot handle stratified Cox models")
 	R <- model.matrix(delete.response(Terms), m2)[,-1,drop=FALSE]
-	if (any(dimnames(R)[[2]] != names(ratetable$coef)))
+	if (any(dimnames(R)[[2]] != names(ratetable$coefficients)))
 	    stop("Unable to match new data to old formula")
 	if (no.Y) {
 	    if (missing(se.fit)) se.fit <- TRUE
@@ -117,7 +134,7 @@ survexp <- function(formula=formula(data), data=sys.parent(),
 	    odim <- length(ovars)
 	    for (i in 1:odim) {
 		temp <- m[[ovars[i]]]
-		ctemp <- oldClass(temp)
+		ctemp <- class(temp)
 		if (!is.null(ctemp) && ctemp=='tcut')
 		    stop("Can't use tcut variables in expected survival")
 		}
@@ -142,26 +159,26 @@ survexp <- function(formula=formula(data), data=sys.parent(),
 	else {
 	    if (israte) keep <- match(times, newtime)
 	    else {
-		# The result is from a Cox model, and it's list of
+                # The result is from a Cox model, and it's list of
                 #  times won't match the list requested in the user's call
                 # Interpolate the step function, giving survival of 1 and
                 #  se of 0 for requested points that precede the Cox fit's
                 #  first downward step.  The code is like summary.survfit.
-		n <- length(newtime)
+                n <- length(newtime)
                 keep <- approx(c(0, newtime), 0:n, xout=times,
                                method='constant', f=0, rule=2)$y
-		}
+                }
 
-	    if (is.matrix(temp$surv)) {
-		surv <- (rbind(1,temp$surv))[keep+1,,drop=FALSE]
-		n.risk <- temp$n[pmax(1,keep),,drop=FALSE]
-		if (se.fit) err <- (rbind(0,temp$se))[keep+1,,drop=FALSE]
-		}
-	    else {
-		surv <- (c(1,temp$surv))[keep+1]
-		n.risk <- temp$n[pmax(1,keep)]
-		if (se.fit) err <- (c(0,temp$se))[keep+1]
-		}
+            if (is.matrix(temp$surv)) {
+                surv <- (rbind(1,temp$surv))[keep+1,,drop=FALSE]
+                n.risk <- temp$n[pmax(1,keep),,drop=FALSE]
+                if (se.fit) err <- (rbind(0,temp$se))[keep+1,,drop=FALSE]
+                }
+            else {
+                surv <- (c(1,temp$surv))[keep+1]
+                n.risk <- temp$n[pmax(1,keep)]
+                if (se.fit) err <- (c(0,temp$se))[keep+1]
+                }
 	    newtime <- times
 	    }
 	newtime <- newtime/scale
@@ -192,14 +209,15 @@ survexp <- function(formula=formula(data), data=sys.parent(),
 	if (model) out$model <- m
 	else {
 	    if (x) out$x <- structure(cbind(X, R),
-		dimnames=list(row.names(m), c("group", dimid)))
+		dimnames=list(row.names(m), c("group", varlist ))) ### was dimid)))
 	    if (y) out$y <- Y
 	    }
 	if (israte && !is.null(rtemp$summ)) out$summ <- rtemp$summ
 	if (no.Y) out$method <- 'exact'
 	else if (conditional) out$method <- 'conditional'
 	else                  out$method <- 'cohort'
-	oldClass(out) <- "survexp"
+	if (is.R()) class(out) <- c('survexp', 'survfit')
+        else        oldClass(out) <- c('survexp', 'survfit')
 	out
 	}
 

@@ -1,5 +1,4 @@
 # $Id$
-#  The StatSci function, updated for the new survreg code
 anova.survreglist <- function(object, ..., test = c("Chisq", "none")) {
     diff.term <- function(term.labels, i)
 	    {
@@ -31,7 +30,7 @@ anova.survreglist <- function(object, ..., test = c("Chisq", "none")) {
 	    stop("The first model has a different response from the rest")
     forms <- forms[, subs]
     object <- object[subs]
-    dfres <- sapply(object, "[[", "df.resid")
+    dfres <- sapply(object, "[[", "df.residual")
     m2loglik <- -2 * sapply(object, "[[", "loglik")[2,  ]
     tl <- lapply(object, labels)
     rt <- length(m2loglik)
@@ -48,12 +47,19 @@ anova.survreglist <- function(object, ..., test = c("Chisq", "none")) {
 		      Test = effects, 
 		      Df = c(NA, ddf), 
 		      Deviance = c(NA, dm2loglik), check.names = FALSE)
-    aod <- as.anova(aod, heading)
+    if (is.R())
+	    aod<-structure(aod,heading=heading,class=c("anova","data.frame"))
+    else aod <- as.anova(aod, heading)
+
     if(test != "none") {
 	n <- length(object[[1]]$residuals)
 	o <- order(dfres)
-	stat.anova(aod, test, deviance.lm(object[[o[1]]])/dfres[o[1]], 
-		   dfres[o[1]], n)
+        ## R uses scale argument even for "Chisq"
+        if (test=="Chisq")
+            scale<-1
+        else
+            scale<-sum(object$residuals^2)/dfres[o[1]]
+	stat.anova(aod, test, scale, dfres[o[1]], n)
 	}
     else aod
     }

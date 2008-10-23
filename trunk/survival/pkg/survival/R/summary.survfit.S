@@ -4,12 +4,21 @@
 #  calculations
 
 summary.survfit <- function(object, times, censored=FALSE, 
-			    scale=1, extend=FALSE, ...) {
+			    scale=1, extend=FALSE, 
+                            rmean=getOption('survfit.rmean'),
+                            ...) {
     fit <- object
     if (!inherits(fit, 'survfit'))
 	    stop("Invalid data")
 
-    table <- survmean(fit, scale=scale)  #for inclusion in the output list
+    # The print.rmean option is depreciated, with the more general
+    #   rmean option taking its place.  But if has it as an option without
+    #   the rmean option, listen to them.
+    if (is.null(rmean)) rmean <- 'none'
+
+    temp <- survmean(fit, scale=scale, rmean)  
+    table <- temp$matrix  #for inclusion in the output list
+    rmean.endtime <- temp$end.time
 
     # The fit$surv object is sometimes a vector and sometimes a matrix.
     #  Make a copy of it that is always a matrix, to simplify the number of
@@ -140,7 +149,11 @@ summary.survfit <- function(object, times, censored=FALSE,
 		last.n <- 0
 		}
 
-	    temp1 <- approx(stime, 1:ntime, xout=ptimes,
+	    # Compute the number at risk.  If stime = 1,10, 20 and ptime=3,10,
+	    #   12, then temp1 = 2,2,3: the nrisk looking ahead
+	    # approx() doesn't work if stime is of length 1
+	    if (ntime ==1) temp1 <- rep(1, length(ptimes))
+	    else temp1 <- approx(stime, 1:ntime, xout=ptimes,
 			    method='constant', f=1, rule=2)$y
 	    n.risk[[i]] <- ifelse(ptimes>max(stime), last.n,
 				  fit$n.risk[who[temp1]])
@@ -201,10 +214,14 @@ summary.survfit <- function(object, times, censored=FALSE,
     if (!is.null(fit$strata)) {
 	temp$strata <- strata
 	}
+    
+    if (length(rmean.endtime) >0) temp$rmean.endtime <- rmean.endtime
+
     temp$call <- fit$call
     if (!is.null(fit$na.action)) temp$na.action <- fit$na.action
   
-    oldClass(temp) <- 'summary.survfit'
+    if (is.R()) class(temp) <- 'summary.survfit'
+    else        oldClass(temp) <- 'summary.survfit'
     temp
     }
 

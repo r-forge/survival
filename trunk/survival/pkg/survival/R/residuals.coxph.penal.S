@@ -1,8 +1,8 @@
 # $Id$
 residuals.coxph.penal <- function(object, 
             type=c("martingale", "deviance", "score", "schoenfeld",
-			  "dfbeta", "dfbetas", "scaledsch"),
-	    collapse=FALSE, weighted=FALSE) {
+			  "dfbeta", "dfbetas", "scaledsch","partial"),
+	    collapse=FALSE, weighted=FALSE, ...) {
       
     type <- match.arg(type)
     # Are there any sparse terms, and if so do I need the X matrix?

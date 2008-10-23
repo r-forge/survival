@@ -1,4 +1,4 @@
-# $Date: 2006-08-28 14:24:57 $ $Id$
+# $Id$
 print.coxph.null <-
  function(x, digits=max(options()$digits - 4, 3), ...)
     {

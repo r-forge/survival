@@ -1,7 +1,7 @@
-# $Id$
+# $Id $
 summary.coxph.penal <-
  function(object, conf.int = 0.95, scale = 1, terms=FALSE, maxlabel=25,
-			digits = max(options()$digits - 4, 3)) {
+			digits = max(options()$digits - 4, 3),...) {
     if (!is.null(object$call)) {
 	cat("Call:\n")
 	dput(object$call)
@@ -19,7 +19,7 @@ summary.coxph.penal <-
 	cat("  n=", object$n, " (", naprint(omit), ")\n", sep="")
     else cat("  n=", object$n, "\n")
 
-    coef <- object$coef
+    coef <- object$coefficients
     if (length(coef)==0 && length(object$frail)==0)
             stop("Penalized summary function can't be used for a null model")
 
@@ -102,7 +102,7 @@ summary.coxph.penal <-
         z <- qnorm((1 + conf.int)/2, 0, 1)
         coef <- coef * scale
         se <- se * scale
-        tmp <- cbind(exp(coef), exp(.Uminus(coef)), exp(coef - z * se),
+        tmp <- cbind(exp(coef), exp(-coef), exp(coef - z * se),
             exp(coef + z * se))
         dimnames(tmp) <- list(substring(names(coef),1, maxlabel), 
 			      c("exp(coef)", "exp(-coef)",

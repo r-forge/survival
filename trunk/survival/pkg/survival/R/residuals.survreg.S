@@ -4,16 +4,23 @@
 residuals.survreg <- function(object, type=c('response', 'deviance',
 		      'dfbeta', 'dfbetas', 'working', 'ldcase',
 		      'ldresp', 'ldshape', 'matrix'), 
-		      rsigma =TRUE, collapse=FALSE, weighted=FALSE) {
+		      rsigma =TRUE, collapse=FALSE, weighted=FALSE, ...) {
     type <-match.arg(type)
     n <- length(object$linear.predictors)
     Terms <- object$terms
     if(!inherits(Terms, "terms"))
 	    stop("invalid terms component of  object")
 
+    # If there was a cluster directive in the model statment then remove
+    #  it.  It does not correspond to a coefficient, and would just confuse
+    #  things later in the code.
+    cluster <- untangle.specials(Terms,"cluster")$terms
+    if (length(cluster) >0 )
+        Terms <- Terms[-cluster]
+
     strata <- attr(Terms, 'specials')$strata
     coef <- object$coefficients
-    intercept <- attr(Terms, "intercept")
+    intercept <- attr(Terms, "intercept") 
     response  <- attr(Terms, "response")
     weights <- object$weights
     if (is.null(weights)) weighted <- FALSE
@@ -79,11 +86,9 @@ residuals.survreg <- function(object, type=c('response', 'deviance',
 	}
     if (!is.null(dd$dist))  dd <- survreg.distributions[[dd$dist]]
     deviance <- dd$deviance
-    if (type=='deviance' & is.null(deviance))
-        stop("Distribution does not have a deviance function defined")
     dens <- dd$density
 
-    nvar <- length(object$coef)
+    nvar <- length(object$coefficients)
     if (rsigma) vv <- object$var
     else        vv <- object$var[1:nvar, 1:nvar]
 
@@ -91,7 +96,7 @@ residuals.survreg <- function(object, type=c('response', 'deviance',
     #  The "density" function returns F, 1-F, f, f'/f, and f''/f
     if (type != 'response') {
 	status <- y[,ncol(y)]
-	eta <- object$linear.predictor
+	eta <- object$linear.predictors
 	z <- (y[,1] - eta)/sigma
 	dmat <- dens(z, object$parms)
 	dtemp<- dmat[,3] * dmat[,4]    #f'

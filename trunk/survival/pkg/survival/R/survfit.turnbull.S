@@ -1,7 +1,7 @@
 # $Id$
 # Compute the K-M for left/right/interval censored data via Turnbull's
 #      slow EM calculation
-#
+# x is a factor giving the groups, y is a survival object
 survfit.turnbull <- function(x, y, casewt=rep(1,n),
                        type=c('kaplan-meier', 'fleming-harrington', 'fh2'),
                        error=c('greenwood', "tsiatis"), se.fit=TRUE,
@@ -24,7 +24,7 @@ survfit.turnbull <- function(x, y, casewt=rep(1,n),
     x <- as.numeric(x)  # keep only the levels
 
     if (!missing(start.time)) { 
-        # The use has requested that survival be "survival given that they
+        # The user has requested that survival be "survival given that they
         #  made it to start.time".  We do this by just tossing those who
         #  are known to end before start.time.  Now if one of the times were
         #  interval censored (15,42) and start.time were 20, perhaps it should

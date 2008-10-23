@@ -1,7 +1,7 @@
-# $Date: 2006-08-28 15:24:59 $ $Id$
+# $Id $
 residuals.coxph.null <-
   function(object, type=c("martingale", "deviance", "score", "schoenfeld"),
-	    ...)
+           collapse=FALSE, weighted=FALSE,  ...)
     {
     type <- match.arg(type)
     if (type=='martingale' || type=='deviance') NextMethod()

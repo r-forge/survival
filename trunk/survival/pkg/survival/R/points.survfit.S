@@ -1,7 +1,7 @@
-# $Date: 2006-08-28 14:18:14 $ $Id$
-points.survfit <- function(object, ...) {
-    if (!is.matrix(object$surv))
-	    points(object$time, object$surv, ...)
+# $Id$
+points.survfit <- function(x, ...) {
+    if (!is.matrix(x$surv))
+	    points(x$time, x$surv, ...)
     else
-	    matpoints(object$time, object$surv, ...)
+	    matpoints(x$time, x$surv, ...)
     }

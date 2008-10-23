@@ -27,11 +27,13 @@ frailty.gaussian <- function(x, sparse=(nclass >5), theta, df,
 
     if (sparse){
 	x <-as.numeric(as.factor(x))
-	oldClass(x) <- "coxph.penalty"
+	if (is.R()) class(x) <- "coxph.penalty"
+	else        oldClass(x) <- "coxph.penalty"
 	}
     else{
 	x <- as.factor(x)
-	oldClass(x) <- "coxph.penalty"
+	if (is.R()) class(x) <- c("coxph.penalty",class(x))
+	else        oldClass(x) <- "coxph.penalty"
 	attr(x,'contrasts') <- function(n,...) contr.treatment(n,FALSE)
         }
     if (!missing(theta) & !missing(df)) 

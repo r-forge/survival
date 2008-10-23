@@ -5,7 +5,7 @@ coxph.detail <-  function(object, riskmat=FALSE) {
 	stop(paste("Detailed output is not available for the", method,
 			"method"))
     n <- length(object$residuals)
-    rr <- object$residual
+    rr <- object$residuals
     weights <- object$weights        #always present if there are weights
     x <- object$x
     y <- object$y
@@ -42,7 +42,7 @@ coxph.detail <-  function(object, riskmat=FALSE) {
     x <- x[ord,]
     y <- y[ord,]
     storage.mode(y) <- 'double'
-    score <- exp(object$linear.predictor)[ord]
+    score <- exp(object$linear.predictors)[ord]
     if (is.null(weights)) weights <- rep(1,n)
     else                  weights <- weights[ord]
 
@@ -66,7 +66,8 @@ coxph.detail <-  function(object, riskmat=FALSE) {
 			  i = double(ndeath*nvar*nvar),
 	                  rmat = rmat,
 	                  nrisk2 = double(ndeath),
-			  double(nvar*(3 + 2*nvar)) )
+			  double(nvar*(3 + 2*nvar)),
+                          PACKAGE = 'survival')
     keep <- 1:ff$ndeath
     vname<- dimnames(x)[[2]]
     time <- y[ff$index[keep],2]

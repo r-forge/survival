@@ -30,15 +30,16 @@ tcut <-  function (x, breaks, labels, scale=1){
 	}
 
     temp <- structure(x*scale, cutpoints=breaks*scale, labels=labels)
-    oldClass(temp) <- 'tcut'
+    if (is.R()) class(temp) <- 'tcut'
+    else        oldClass(temp) <- 'tcut'
     temp
     }
 
 "[.tcut" <- function(x, ..., drop=FALSE) {
     atts <- attributes(x)
-    oldClass(x) <- NULL
-    x <- x[..1]
+    x <- unclass(x)[..1]
     attributes(x) <- atts
-    oldClass(x) <- 'tcut'
+    if (is.R()) class(x) <- 'tcut'
+    else        oldClass(x) <- 'tcut'
     x
     }

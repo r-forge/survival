@@ -1,4 +1,4 @@
-#SCCS $Id$
+# $Id$
 # Package up surivival type data as a structure
 #
 Surv <- function(time, time2, event,
@@ -8,17 +8,17 @@ Surv <- function(time, time2, event,
     if (missing(time)) stop ("Must have a time argument")
     if (!is.numeric(time)) stop ("Time variable is not numeric")
     nn <- length(time)
-#    if (length(origin)!=1 && length(origin)!=nn) 
-#	    stop("Wrong length for origin")
 
-    ng <- 1 + (!missing(time2)) + (!missing(event))  #of first 3 present
+    # ng = number of the first 3 arguments that is present
+    ng <- (!missing(time)) + (!missing(time2)) + (!missing(event)) 
     # The logic below uses "ng" throughout; why not use "missing(time2)"
-    # and missing(status) instead?  Because we want to assume that 
-    # "Surv(a,b)" has the variable b matched to status rather than time2.
+    # and missing(event) instead?  Because we want to assume that 
+    # "Surv(a,b)" has the variable b matched to event rather than time2.
     #
     if (missing(type)) {
 	if (ng==1 || ng==2) type <- 'right'
 	else if (ng==3)     type <- 'counting'
+        else stop ("No time variable!") # no time variable at all!
 	}
     else {
 	type <- match.arg(type)
@@ -29,15 +29,18 @@ Surv <- function(time, time2, event,
 	}
 
     if (ng==1) {
+        if (!is.numeric(time)) stop("Time variable is not numeric")
 	ss <- cbind(time=time-origin, status=1)
 	}
     else if (type=='right' || type=='left') {
-#	if (length(time2) != nn) stop ("Time and status are different lengths")
-	if (is.logical(time2)) status <- as.numeric(time2)
-	else  if (is.numeric(time2)) {
-	    who2 <- !is.na(time2)
-	    if (max(time2[who2]) ==2) status <- time2 -1
-	    else status <- time2
+        if (!is.numeric(time)) stop("Time variable is not numeric")
+	if (missing(event))   event <- time2  # treat time2 as event
+        if (length(event) != nn) stop ("Time and status are different lengths")
+	if (is.logical(event)) status <- as.numeric(event)
+	else  if (is.numeric(event)) {
+	    who2 <- !is.na(event)
+	    if (max(event[who2]) ==2) status <- event -1
+	    else status <- event
 	    temp <- (status==0 | status==1)
 	    status <- ifelse(temp, status, NA)
 	    if (!all(temp[who2], na.rm=TRUE))
@@ -47,8 +50,9 @@ Surv <- function(time, time2, event,
 	ss <- cbind(time=time-origin, status=status)
 	}
     else  if (type=='counting') {
-#	if (length(time2) !=nn) stop ("Start and stop are different lengths")
-#	if (length(event)!=nn) stop ("Start and event are different lengths")
+	if (length(time2) !=nn) stop ("Start and stop are different lengths")
+	if (length(event)!=nn) stop ("Start and event are different lengths")
+        if (!is.numeric(time))  stop("Start time is not numeric")
 	if (!is.numeric(time2)) stop("Stop time is not numeric")
 	who3 <- !(is.na(time) | is.na(time2))
 	if (any (time[who3]>= time2[who3])) {
@@ -66,15 +70,15 @@ Surv <- function(time, time2, event,
 		    warning("Invalid status value, converted to NA")
 		}
 	    else stop("Invalid status value, must be logical or numeric")
-	ss <- cbind(start=time-origin, stop=time2-origin, status)
+	ss <- cbind(start=time-origin, stop=time2-origin, status=status)
 	}
 
     else {  #interval censored data
 	if (type=='interval2') {
 	    # convert to "interval" type, infer the event code
 	    if (!is.numeric(time2)) stop("Time2 must be numeric")
-#	    if (length(time2) !=nn) 
-#		    stop ("Time1 and time2 are different lengths")
+	    if (length(time2) !=nn) 
+		    stop ("Time1 and time2 are different lengths")
 	    status <- ifelse(is.na(time), 2,
 		      ifelse(is.na(time2),0,
 		      ifelse(time==time2, 1,3)))
@@ -82,21 +86,19 @@ Surv <- function(time, time2, event,
 	    type <- 'interval'
 	    }
 	else {  #check legality of event code
-#	    if (length(event)!=nn) 
-#		    stop("Time and status are different lengths")
-	    if (is.logical(event)) status <- as.numeric(event)
-	    else {
-		if (!is.numeric(event)) 
+	    if (length(event)!=nn) 
+		    stop("Time and status are different lengths")
+            if (!is.numeric(event)) 
 		   stop("Invalid status value, must be logical or numeric")
-		temp <- (event==0 | event==1| event==2 | event==3)
-		status <- ifelse(temp, event, NA)
-		if (!all(temp, na.rm=TRUE))
-			warning("Status must be 0, 1, 2 or 3; converted to NA")
-		}
+            temp <- (event==0 | event==1| event==2 | event==3)
+            status <- ifelse(temp, event, NA)
+            if (!all(temp, na.rm=TRUE))
+                warning("Status must be 0, 1, 2 or 3; converted to NA")
+
 	    if (any(event==3)) {
 		if (!is.numeric(time2)) stop("Time2 must be numeric")
-#		if (length(time2) !=nn) 
-#		    stop ("Time1 and time2 are different lengths")
+		if (length(time2) !=nn) 
+		    stop ("Time1 and time2 are different lengths")
 		}
 	    else time2 <- 1  #dummy value, time2 is never used
 	    }
@@ -112,74 +114,81 @@ Surv <- function(time, time2, event,
 		    status=status)
 	}
 
-    dimnames(ss)[[1]] <- character(0)  # kill any tag-along row names
+    dimnames(ss) <- list(NULL, dimnames(ss)[[2]]) #kill any tag-along row names
     attr(ss, "type")  <- type
-    oldClass(ss) <- 'Surv'
+    if (is.R()) class(ss) <- 'Surv'
+    else        oldClass(ss) <- 'Surv'
     ss
     }
 
 print.Surv <- function(x, quote=FALSE, ...) {
-    print(as.character.Surv(x), quote=quote, ...)
-    invisible(x)
+    invisible(print(as.character.Surv(x), quote=quote, ...))
     }
 
-as.character.Surv <- function(xx) {
-    oldClass(xx) <- NULL
-    type <- attr(xx, 'type')
+as.character.Surv <- function(x) {
+    if (is.R()) class(x) <- NULL
+    else        oldClass(x) <- NULL
+    type <- attr(x, 'type')
     if (type=='right') {
-	temp <- xx[,2]
+	temp <- x[,2]
 	temp <- ifelse(is.na(temp), "?", ifelse(temp==0, "+"," "))
-	paste(format(xx[,1]), temp, sep='')
+	paste(format(x[,1]), temp, sep='')
 	}
     else if (type=='counting') {
-	temp <- xx[,3]
+	temp <- x[,3]
 	temp <- ifelse(is.na(temp), "?", ifelse(temp==0, "+"," "))
-	paste('(', format(xx[,1]), ',', format(xx[,2]), temp,
+	paste('(', format(x[,1]), ',', format(x[,2]), temp,
 			 ']', sep='')
 	}
     else if (type=='left') {
-	temp <- xx[,2]
+	temp <- x[,2]
 	temp <- ifelse(is.na(temp), "?", ifelse(temp==0, "<"," "))
-	paste(temp, format(xx[,1]), sep='')
+	paste(temp, format(x[,1]), sep='')
 	}
     else {   #interval type
-	stat <- xx[,3]
+	stat <- x[,3]
 	temp <- c("+", "", "-", "]")[stat+1]
 	temp2 <- ifelse(stat==3,
-			 paste("[", format(xx[,1]), ", ",format(xx[,2]), sep=''),
-			 format(xx[,1]))
+			 paste("[", format(x[,1]), ", ",format(x[,2]), sep=''),
+			 format(x[,1]))
 	ifelse(is.na(stat), "NA", paste(temp2, temp, sep=''))
 	}
     }
 
-"[.Surv" <- function(x, ..., drop=FALSE) {
+"[.Surv" <- function(x, i, j, drop=FALSE) {
     # If only 1 subscript is given, the result will still be a Surv object,
     #   and the drop argument is ignored.
-    # Or, if drop=FALSE and subscript 2 is not present, return a Surv object.
     # I would argue that x[3:4,,drop=FALSE] should return a matrix, since
     #  the user has implicitly specified that they want a matrix.
     #  However, [.dataframe calls [.Surv with the extra comma; it's
     #  behavior drives the choice of default.
-    if ((nDotArgs(...)==1) ||
-	(!drop && (missing(..2) || mode(..2)=='missing'))) {
-	cl <- oldClass(x)
-	type <- attr(x, "type")
-	oldClass(x) <- NULL
-#	attr(x, "type") <- NULL
-	x <- x[..1,, drop=FALSE]
-	attr(x, "type") <- type
-	oldClass(x) <- cl
-	x
-	}
+    if (missing(j)) {
+        type <- attr(x, 'type')
+        if (is.R()) {
+            ctemp <- class(x)
+            class(x) <- NULL
+            x <- x[i,, drop=FALSE]
+            attr(x, 'type') <- type
+            class(x) <- ctemp
+            }
+        else {
+            ctemp <- oldClass(x)
+            oldClass(x) <- NULL
+            x <- x[i,, drop=FALSE]
+            attr(x, "type") <- type
+            oldClass(x) <- ctemp
+            x
+            }
+        }
     else { # return  a matrix or vector
-	oldClass(x) <- NULL
-#	attr(x, "type") <- NULL
+	if (is.R()) class(x) <- NULL
+        else oldClass(x) <- NULL
 	NextMethod("[")
 	}
     }
 
 is.na.Surv <- function(x) {
-    as.vector( (1* is.na(unclass(x)))%*% rep(1, ncol(x)) >0)
+    as.vector(1* (rowSums(is.na(unclass(x))) >0))
     }
 
 Math.Surv <- function(...)  stop("Invalid operation on a survival time")

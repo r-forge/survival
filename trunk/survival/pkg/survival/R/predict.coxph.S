@@ -1,4 +1,4 @@
-# $Date: 2006-08-28 14:20:43 $ $Id$
+#$Id$
 #What do I need to do predictions --
 #
 #linear predictor:  exists
@@ -15,10 +15,10 @@
 #terms -- : X matrix and the means
 #    +se  :  ""  + I matrix
 #   +new  : new X matrix and the old means + I matrix
-predict.coxph <-
-function(object, newdata, type=c("lp", "risk", "expected", "terms"),
-		se.fit=FALSE,
-		terms=labels.lm(object), collapse, safe=FALSE, ...)
+predict.coxph <- function(object, newdata, 
+		       type=c("lp", "risk", "expected", "terms"),
+		       se.fit=FALSE,
+		       terms=names(object$assign), collapse, safe=FALSE, ...)
 
     {
     type <-match.arg(type)
@@ -57,11 +57,15 @@ function(object, newdata, type=c("lp", "risk", "expected", "terms"),
 	    }
 	}
     else {
-	if (type=='expected')
+	if (type=='expected'){
 	     m <- model.newframe(Terms, newdata, response=TRUE)
-	else m <- model.newframe(Terms2, newdata)
+             x <- model.matrix(Terms2, m)[,-1,drop=FALSE]
+         }
+	else {
+            m <- model.newframe(Terms2, newdata)
+            x <- model.matrix(delete.response(Terms2), m)[,-1,drop=FALSE]
+        }
 
-	x <- model.matrix(Terms2, m)[,-1,drop=FALSE]
 	x <- sweep(x, 2, object$means)
 	if (length(offset)) {
 	    if (type=='expected') offset <- as.numeric(m[[offset]])
@@ -77,7 +81,12 @@ function(object, newdata, type=c("lp", "risk", "expected", "terms"),
     # Now, lay out the code one case at a time.
     #  There is some repetition this way, but otherwise the code just gets
     #    too complicated.
-    coef <- ifelse(is.na(object$coef), 0, object$coef)
+    if (is.null(object$coefficients))
+        coef<-numeric(0)
+    else {
+	# Replace any NA coefs with 0, to stop NA in the linear predictor
+        coef <- ifelse(is.na(object$coefficients), 0, object$coefficients)
+        }
     if (type=='lp' || type=='risk') {
 	if (missing(newdata)) {
 	    pred <- object$linear.predictors
@@ -93,31 +102,64 @@ function(object, newdata, type=c("lp", "risk", "expected", "terms"),
 	}
 
     else if (type=='expected') {
-	if (missing(newdata)) pred <- y[,ncol(y)] - object$residual
+	if (missing(newdata)) pred <- y[,ncol(y)] - object$residuals
 	else  stop("Method not yet finished")
 	se   <- sqrt(pred)
 	}
 
-    else {  #terms
-	attr(x, "constant") <- rep(0, ncol(x))
-	asgn <- object$assign
-	terms <- match.arg(Terms2, labels.lm(object))
-	asgn <- asgn[terms]
-	if (se.fit) {
-	    temp <- Build.terms(x, coef, object$var, asgn, FALSE)
-	    pred <- temp$fit
-	    se   <- temp$se.fit
+    else {  # type = terms, which is different for R and S.  In S, the
+	# function Build.terms does all the work --- R doesn't have it.
+	if (is.R()) {
+	    asgn <- object$assign
+	    nterms<-length(terms)
+	    pred<-matrix(ncol=nterms,nrow=NROW(x))
+	    if (is.character(terms))
+		    termnames<-terms
+	    else
+		    termnames<-names(object$assign)[terms]
+	    dimnames(pred)<-list(rownames(x),termnames)
+	    if (se.fit){
+		se<-matrix(ncol=nterms,nrow=NROW(x))
+		dimnames(se)<-list(rownames(x),termnames)
+		R<-object$var
+		ip <- real(NROW(x))
+		}
+	    for (i in 1:nterms){
+		ii<-asgn[[terms[i] ]]
+		pred[,i]<-x[,ii,drop=FALSE]%*%(coef[ii])
+		if (se.fit){
+		    for(j in (1:NROW(x))){
+			xi<-x[j,ii,drop=FALSE]
+			vci<-R[ii,ii]
+			se[j,i]<-sqrt(sum(xi%*% vci %*%t( xi)))
+			}
+		    }
+		}
 	    }
-	else pred<- Build.terms(x, coef, NULL, asgn, FALSE)
+	else {  #terms for Splus
+	    attr(x, "constant") <- rep(0, ncol(x))
+	    asgn <- object$assign
+	    terms <- match.arg(Terms2, labels.lm(object))
+	    asgn <- asgn[terms]
+	    if (se.fit) {
+		temp <- Build.terms(x, coef, object$var, asgn, FALSE)
+		pred <- temp$fit
+		se   <- temp$se.fit
+		}
+	    else pred<- Build.terms(x, coef, NULL, asgn, FALSE)
+	    }
 	}
-
+ 
+        
+    # Tom had the next two lines commented out.  Check with him
     if (se.fit) se <- drop(se)
     pred <- drop(pred)
-    #Expand out the missing values in the result
+
+    # Expand out the missing values in the result
     # But only if operating on the original dataset
     if (missing(newdata) && !is.null(object$na.action)) {
 	pred <- naresid(object$na.action, pred)
-	if (is.matrix(pred)) n <- nrow(pred)
+        if (is.matrix(pred)) n <- nrow(pred)
 	else               n <- length(pred)
 	if(se.fit) se <- naresid(object$na.action, se)
 	}

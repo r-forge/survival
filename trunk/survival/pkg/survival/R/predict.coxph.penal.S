@@ -1,16 +1,17 @@
 # $Id$
 predict.coxph.penal <- function(object,  newdata, 
 				type=c("lp", "risk", "expected", "terms"),
-				se.fit=FALSE, terms=labels.lm(object), 
+				se.fit=FALSE, terms=names(object$assign), 
 				collapse, safe=FALSE, ...) {
-
+ 
     type <- match.arg(type)
     n <- object$n
     Terms <- object$terms
     pterms <- object$pterms
     # If there are no sparse terms
     if (!any(pterms==2) || type=='expected' || 
-	(missing(newdata) && se.fit==FALSE && type!='terms')) NextMethod('predict')
+	(missing(newdata) && se.fit==FALSE && type!='terms')) 
+	    NextMethod('predict',object,...)
     else {
 	# treat the sparse term as an offset term
 	#  It gets picked up in the linear predictor, so all I need to
@@ -49,9 +50,16 @@ predict.coxph.penal <- function(object,  newdata,
 	    if (type=='risk') pred <- exp(pred)
 	    }
 	else {
+	    # temporarily remove the sparse term, call NextMethod,
+	    #  and then put it back
 	    temp <- attr(object$terms, 'term.labels')
 	    object$terms <- object$terms[-match(sparsename, temp)]
-	    pred <- NextMethod('predict')
+            temp<-match(sparsename,terms)
+            oldTerms<-terms
+            if (!is.na(temp)) terms<-terms[-temp]
+	    pred <- NextMethod('predict',object,terms=terms,...)
+            terms<- oldTerms
+	  
 	    if (se.fit) {
 		se <- pred$se.fit
 		pred <- pred$fit

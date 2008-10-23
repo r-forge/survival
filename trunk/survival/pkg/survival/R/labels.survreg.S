@@ -1,2 +1,4 @@
 # $Id$
-labels.survreg <- labels.lm
+labels.survreg <- function(object, ...)
+	attr(object$terms, "term.labels")
+

@@ -1,4 +1,4 @@
-# $Id$
+#  $Id$
 # 
 # Defining function for gamma frailty fits
 #
@@ -9,8 +9,9 @@ frailty.gamma <- function(x, sparse=(nclass >5), theta, df, eps= 1e-5,
     else{
 	x <- as.factor(x)
 	attr(x,'contrasts') <- function(n,...) contr.treatment(n,FALSE)
-        }
-    oldClass(x) <- "coxph.penalty"
+                }
+    if (is.R()) class(x) <- c("coxph.penalty",class(x))
+    else        oldClass(x) <- "coxph.penalty"
 
     # Check for consistency of the arguments
     if (missing(method)) {
@@ -75,7 +76,7 @@ frailty.gamma <- function(x, sparse=(nclass >5), theta, df, eps= 1e-5,
 		     sparse= sparse,
 		     cargs = c("x", "status", "loglik"),		 
 		     cfun = frailty.controlgam,
-		     cparm= list(eps=eps, ...))
+		     cparm= c(list(eps=eps), ...))
 	}
     
     else if (method=='aic') {

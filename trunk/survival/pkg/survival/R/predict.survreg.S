@@ -2,23 +2,22 @@
 predict.survreg <-
     function(object, newdata, type=c('response', "link", 'lp', 'linear',
 				     'terms', 'quantile','uquantile'),
-				se.fit=FALSE,  terms=labels.lm(object),
-	                        p=c(.1, .9), ripley=FALSE)
-    {
-#
-# What do I need to do predictions ?
-#   
-#  linear predictor: exists
-#           +se    : X matrix
-#          newdata : new X matrix
-#
-#  response -- same as lp, +transform, from distribution
-#  
-#  p --  density function from distribution
-#          scale(s) -- if multiple I need the strata
-#          +se : variance matrix
-#	   newdata: new X
-#
+				se.fit=FALSE,  terms=NULL,
+	                        p=c(.1, .9),...) {
+    #
+    # What do I need to do predictions ?
+    #   
+    #  linear predictor: exists
+    #           +se    : X matrix
+    #          newdata : new X matrix
+    #
+    #  response -- same as lp, +transform, from distribution
+    #  
+    #  p --  density function from distribution
+    #          scale(s) -- if multiple I need the strata
+    #          +se : variance matrix
+    #	   newdata: new X
+
     type <-match.arg(type)
     if (type=='link') type<- 'lp'  #true until their are link functions
     if (type=='linear') type<- 'lp'
@@ -31,9 +30,9 @@ predict.survreg <-
     Terms <- delete.response(Terms)
     coef <- object$coefficients
     intercept <- attr(Terms, "intercept")
-    nvar <- length(object$coef)
+    nvar <- length(object$coefficients)
     vv <- object$var[1:nvar, 1:nvar]
-    fixedscale <- (nvar == ncol(object$var)) || ripley
+    fixedscale <- (nvar == ncol(object$var))
 
     if (missing(newdata) && (type=='terms' || se.fit)) need.x <- TRUE
     else  need.x <- FALSE
@@ -98,7 +97,7 @@ predict.survreg <-
     else dd <- object$dist
     if (is.null(dd$itrans)) {
 	itrans <- function(x) x  # identity transformation
-        dtrans <- function(x) 1  # derivative of the transformation
+        dtrans <- function (x) 1 # derivative of the transformation
 	}
     else {
 	itrans <- dd$itrans
@@ -179,19 +178,58 @@ predict.survreg <-
 	}
 
     else {  #terms
-	asgn <- attr(x, 'assign')
-	attr(x, 'constant') <- object$means
-	terms <- match.arg(terms, labels.lm(object))
-	asgn <- asgn[terms]
-
-	if (se.fit) {
-	    temp <- Build.terms(x, coef, vv, asgn, FALSE)
-	    pred <- temp$fit
-	    se   <- temp$se.fit
+	if (is.R()) {
+	    # In S we can use Build.terms, in R we have to do it ourselves
+	    asgn <- attrassign(x,Terms)
+	    hasintercept<-attr(Terms,"intercept")>0
+	    if (hasintercept)
+		    asgn$"(Intercept)"<-NULL
+	    nterms<-length(asgn)
+	    pred<-matrix(ncol=nterms,nrow=NROW(x))
+	    dimnames(pred)<-list(rownames(x),names(asgn))
+	    if (se.fit){
+		se<-matrix(ncol=nterms,nrow=NROW(x))
+		dimnames(se)<-list(rownames(x),names(asgn))
+		R<-object$var
+		ip <- real(NROW(x))
+		}
+	    for (i in 1:nterms){
+		ii<-asgn[[i]]
+		pred[,i]<-x[,ii,drop=FALSE]%*%(coef[ii])
+		if (se.fit){
+		    for(j in (1:NROW(x))){
+			xi<-x[j,ii,drop=FALSE]*(coef[ii])
+			vci<-R[ii,ii]
+			se[j,i]<-sqrt(sum(xi%*% vci %*%t( xi)))
+			}
+		    }
+		}
+	    if (!is.null(terms)){
+		pred<-pred[,terms,drop=FALSE]
+		if (se.fit)
+			se<-se[,terms,drop=FALSE]
+		}
+	    if (hasintercept)
+		    const <- coef(object)['(Intercept']
+		else    const <- 0
 	    }
-	else pred<- Build.terms(x, coef, NULL, asgn, FALSE)
-	const <- attr(pred, 'constant')
-	}
+
+	else {
+	    # Splus: use Build.terms to do the work
+	    asgn <- attr(x, 'assign')
+	    attr(x, 'constant') <- object$means
+	    terms <- match.arg(Terms, labels.lm(object))
+	    asgn <- asgn[terms]
+
+	    if (se.fit) {
+		temp <- Build.terms(x, coef, vv, asgn, FALSE)
+		pred <- temp$fit
+		se   <- temp$se.fit
+		}
+	    else pred<- Build.terms(x, coef, NULL, asgn, FALSE)
+	    const<- attr(pred, 'constant')
+	    }
+        }
 
     #Expand out the missing values in the result
     # But only if operating on the original dataset
@@ -199,7 +237,7 @@ predict.survreg <-
 	pred <- naresid(object$na.action, pred)
 	if(se.fit) se <- naresid(object$na.action, se)
 
-	if (type=='terms') attr(pred, 'constant') <- const
+	
 	}
     if (se.fit) list(fit=pred, se.fit=se)
     else pred

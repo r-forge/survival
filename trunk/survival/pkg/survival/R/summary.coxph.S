@@ -1,51 +1,66 @@
-# $Date: 2007-05-10 18:45:52 $ $Id$
-summary.coxph <-
- function(object, conf.int = 0.95, scale = 1,
-          digits = max(options()$digits - 4, 3)) {
-    cox <- object
-    if (is.null(cox$coef)) {   # Null model
+# $Id 
+summary.coxph <- function(object,  conf.int = 0.95, scale = 1, ...) {
+    cox<-object
+    beta <- cox$coefficients
+    if (is.null(cox$coefficients)) {   # Null model
 	return(object)  #The summary method is the same as print in this case
 	}
-
-    #
-    # Create the matrix of coefficients
-    beta <- cox$coef
     nabeta <- !(is.na(beta))          #non-missing coefs
     beta2 <- beta[nabeta]
     if(is.null(beta) | is.null(cox$var))
-        stop("Input is not a valid coxph fit")
+         stop("Input is not valid")
     se <- sqrt(diag(cox$var))
     if (!is.null(cox$naive.var)) nse <- sqrt(diag(cox$naive.var))
 
+    rval<-list(call=cox$call,fail=cox$fail, na.action=cox$na.action,
+                n=cox$n, loglik=cox$loglik)
+
     if (is.null(cox$naive.var)) {
-        coef <- cbind(beta, exp(beta), se, beta/se,
-		   signif(1 - pchisq((beta/ se)^2, 1), digits -1))
-        dimnames(coef) <- list(names(beta), c("coef", "exp(coef)",
-		"se(coef)", "z", "p"))
+        tmp <- cbind(beta, exp(beta), se, beta/se,
+                     1 - pchisq((beta/ se)^2, 1))
+        dimnames(tmp) <- list(names(beta), c("coef", "exp(coef)",
+                                             "se(coef)", "z", "Pr(>|z|)"))
         }
     else {
-        coef <- cbind(beta, exp(beta), nse, se, beta/se,
-		   signif(1 - pchisq((beta/ se)^2, 1), digits -1))
-        dimnames(coef) <- list(names(beta), c("coef", "exp(coef)",
-		"se(coef)", "robust se", "z", "p"))
+        tmp <- cbind(beta, exp(beta), nse, se, beta/se,
+                     1 - pchisq((beta/ se)^2, 1))
+        dimnames(tmp) <- list(names(beta), c("coef", "exp(coef)",
+                               "se(coef)", "robust se", "z", "Pr(>|z|)"))
         }
-
-    # Create the matrix of confidence intervals
-    z <- qnorm((1 + conf.int)/2, 0, 1)
-    beta <- beta * scale
-    se <- se * scale
-    cimat <- cbind(exp(beta), exp(.Uminus(beta)), exp(beta - z * se),
+    rval$coefficients <- tmp
+     
+    if (conf.int) {
+        z <- qnorm((1 + conf.int)/2, 0, 1)
+        beta <- beta * scale
+        se <- se * scale
+        tmp <- cbind(exp(beta), exp(-beta), exp(beta - z * se),
             exp(beta + z * se))
-    dimnames(cimat) <- list(names(beta), c("exp(coef)", "exp(-coef)",
+        dimnames(tmp) <- list(names(beta), c("exp(coef)", "exp(-coef)",
             paste("lower .", round(100 * conf.int, 2), sep = ""),
             paste("upper .", round(100 * conf.int, 2), sep = "")))
+        rval$conf.int <- tmp
+        }
 
+    df <- length(beta2)
+    logtest <- -2 * (cox$loglik[1] - cox$loglik[2])
+    rval$logtest <- c(test=logtest,
+                      df=df,
+                      pvalue=1 - pchisq(logtest, df))
+    rval$sctest <- c(test=cox$score,
+                     df=df,
+                     pvalue=1 - pchisq(cox$score, df))
+    rval$rsq<-c(rsq=1-exp(-logtest/cox$n),
+                 maxrsq=1-exp(2*cox$loglik[1]/cox$n))
+    rval$waldtest<-c(test=as.vector(round(cox$wald.test, 2)),
+                      df=df,
+                      pvalue=1 - pchisq(as.vector(cox$wald.test), df))
+    if (!is.null(cox$rscore))
+         rval$robscore<-c(test=cox$rscore,
+                          df=df,
+                          pvalue=1 - pchisq(cox$rscore, df))
+    rval$used.robust<-!is.null(cox$naive.var)
 
-    result <- list(coefficient=coef, cimat=cimat)
-    result <- c(result, 
-                cox[match(c('na.action', 'call', 'fail', 'icc', 'loglik',
-                          'score', 'rscore', 'naive.var', 'n'), names(cox),
-                        nomatch=0)])
-    oldClass(result) <- 'summary.coxph'
-    result
+    if (is.R()) class(rval)    <-"summary.coxph"
+    else        oldClass(rval) <- "summary.coxph"
+    rval
     }

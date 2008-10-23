@@ -4,7 +4,10 @@ coxph.fit <- function(x, y, strata, offset, init, control,
     {
     n <-  nrow(y)
     if (is.matrix(x)) nvar <- ncol(x)
-    else  if (length(x)==0) nvar <-0;  else nvar <-1
+    else {
+	if (length(x)==0) nvar <-0
+	else nvar <-1
+	}
     time <- y[,1]
     status <- y[,2]
 

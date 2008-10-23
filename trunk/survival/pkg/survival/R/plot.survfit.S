@@ -4,8 +4,7 @@ plot.survfit<- function(x, conf.int,  mark.time=TRUE,
 			xscale=1, yscale=1, 
 			firstx=0, firsty=1,
 			xmax, ymin=0,
-			fun,
-			xlab="", ylab="", xaxs='S', ...) {
+			fun, xlab="", ylab="", xaxs='S', ...) {
 
     if (is.logical(log)) {
 	logy <- log
@@ -144,10 +143,10 @@ plot.survfit<- function(x, conf.int,  mark.time=TRUE,
     if (is.matrix(ssurv)) ncurve <- nstrat * ncol(ssurv)
     else 		  ncurve <- nstrat
 
-    mark <- rep(mark, length=ncurve)
-    col  <- rep(col, length=ncurve)
-    lty  <- rep(lty, length=ncurve)
-    lwd  <- rep(lwd, length=ncurve)
+    mark <- rep(mark, length.out=ncurve)
+    col  <- rep(col, length.out=ncurve)
+    lty  <- rep(lty, length.out=ncurve)
+    lwd  <- rep(lwd, length.out=ncurve)
 
     if (is.numeric(mark.time)) mark.time <- sort(mark.time)
 
@@ -184,6 +183,7 @@ plot.survfit<- function(x, conf.int,  mark.time=TRUE,
     #
     plot(tempx, tempy*yscale, type='n', log=logax,
 	                  xlab=xlab, ylab=ylab, xaxs=xaxs,...)
+
     if(yscale != 1) {
 	if (logy) par(usr =par("usr") -c(0, 0, log10(yscale), log10(yscale))) 
 	else par(usr =par("usr")/c(1, 1, yscale, yscale))   
@@ -203,7 +203,7 @@ plot.survfit<- function(x, conf.int,  mark.time=TRUE,
 	    # (1, .2), (1.4, .2), (1.8, .2), (2.3, .2), (2.9, .2), (3, .1)
             # with (1, .2), (3, .1).  They are slow, and can smear the looks
 	    # of the line type.
-	    dupy <- c(TRUE, diff(y[-n]) !=0, TRUE)
+	    dupy <- c(!duplicated(y)[-n], TRUE)
 	    n2 <- sum(dupy)
 
 	    #create a step function
@@ -239,12 +239,12 @@ plot.survfit<- function(x, conf.int,  mark.time=TRUE,
 
 		if (is.numeric(mark.time)) {
 		    indx <- mark.time
-		    for (k in seq(along=mark.time))
+		    for (k in seq(along.with=mark.time))
 			indx[k] <- sum(mark.time[k] > xx)
 		    points(mark.time[indx<nn], yy[indx[indx<nn]],
 			   pch=mark[i],col=col[i],cex=cex)
 		    }
-		else if (mark.time==TRUE && any(deaths==zero.one)) {
+		else if (mark.time && any(deaths==zero.one)) {
 		    points(xx[deaths==zero.one], 
 			   yy[deaths==zero.one],
 			   pch=mark[i],col=col[i],cex=cex)
@@ -253,7 +253,7 @@ plot.survfit<- function(x, conf.int,  mark.time=TRUE,
 		xend <- c(xend,max(xx))
 		yend <- c(yend,min(yy))
 
-		if (conf.int==TRUE && !is.null(supper)) {
+		if (conf.int && !is.null(supper)) {
 		    if (ncurve==1) lty[i] <- lty[i] +1
 		    yy <- c(firsty, supper[who,k])
 		    lines(dostep(xx,yy), lty=lty[i], col=col[i], lwd=lwd[i])
@@ -292,6 +292,9 @@ plot.survfit<- function(x, conf.int,  mark.time=TRUE,
 	        }
 	    }
         }
+
+
+
     invisible(list(x=xend, y=yend))
     }
 
