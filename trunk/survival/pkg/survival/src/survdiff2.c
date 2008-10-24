@@ -1,4 +1,4 @@
-/*  SCCS $Id$ */
+/* $Id$ */
 #include <math.h>
 #include "survS.h"
 #include "survproto.h"

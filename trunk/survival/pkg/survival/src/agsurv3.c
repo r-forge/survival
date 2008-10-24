@@ -1,4 +1,4 @@
-/*  SCCS $Id$
+/*  SCCS $Id$ */
 /*
 ** Create the cohort survival curve(s) for a set of subjects.
 **
@@ -59,7 +59,7 @@ static double   *y,
 		**used,
 		**tvar;
 static double   *strata,
-		time,
+                ttime,    /* Some HP compilers choke on "time" as a variable */
 		**imat,
 		*mean;
 static int      death,
@@ -83,24 +83,24 @@ S_EVALUATOR
     int npt,
 	nvar2,
 	method;
-    int kk, psave;
+    int kk=0, psave;
     int itime;
     int person;
     int deaths, nrisk;
     int need;
-    double *a, *a2;
-    double weight,
+    double *a=0, *a2=0;
+    double weight=0,
 	   e_denom,
 	   denom;
     double inc,
 	   sumt,
-	   km;
+	   km =0;
     double temp,
 	   downwt,
 	   d2;
     double haz,
 	   varhaz;
-    double **oldx;
+    double **oldx =0;
 
 
     n = *sn;  nvar = *snvar;
@@ -183,11 +183,11 @@ S_EVALUATOR
 		a[i] =0;
 		a2[i]=0;
 		}
-	    time = stop[person];
+	    ttime = stop[person];
 	    nrisk =0;
 	    deaths=0;
 	    for (k=person; k<cn; k++) {
-		if (start[k] < time) {
+		if (start[k] < ttime) {
 		    nrisk++;
 		    weight = score[k];
 		    denom += weight;
@@ -195,7 +195,7 @@ S_EVALUATOR
 			a[i] += weight*(oldx[i][k]);
 			}
 		     }
-		if (stop[k]==time && event[k]==1) {
+		if (stop[k]==ttime && event[k]==1) {
 		    kk=k;
 		    deaths++;
 		    e_denom += weight;
@@ -210,7 +210,7 @@ S_EVALUATOR
 	    */
 	    if (method <3) for (i=0; i<nvar2; i++) mean[i] = a[i]/denom;
 	    if (method==1) {
-		for (psave=person; psave<cn && stop[psave]==time; psave++) 
+		for (psave=person; psave<cn && stop[psave]==ttime; psave++) 
 		/*
 		** kalbfleisch estimator requires iteration;
 		*/
@@ -244,11 +244,11 @@ S_EVALUATOR
 
 	    else if (method==2) {
 		addup(itime, deaths/denom, deaths/(denom*denom));
-		for (; person<cn && stop[person]==time; person++);
+		for (; person<cn && stop[person]==ttime; person++);
 		}
 	    else {
 		temp =0;  haz=0; varhaz=0;
-		for (k=person; k<cn && stop[k]==time; k++) {
+		for (k=person; k<cn && stop[k]==ttime; k++) {
 		    if (event[k]==1) {
 			downwt = temp++/deaths;
 			d2 = (denom - downwt*e_denom);
@@ -261,7 +261,7 @@ S_EVALUATOR
 		    person++;
 		    }
 		}
-	    start[itime] = time;
+	    start[itime] = ttime;
 	    stop[itime] = nrisk;
 	    event[itime]= deaths;
 	    itime++;
@@ -305,7 +305,7 @@ double haz, var;
 	totvar =0;
 	for (i=pstart; i<n && strata[i]==ic; i++) {
 	    nn++;
-	    if (y[i] >= time) {
+	    if (y[i] >= ttime) {
 		temp =  -haz*nscore[i];  /*increment to the individual hazard*/
 		if  (death==0) {
 		    wt += isurv[i];

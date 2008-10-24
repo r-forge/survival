@@ -1,4 +1,4 @@
-/* SCCS $Id$
+/* $Id$ 
 ** C wrapper for the Cholesky-based Wald test routine
 */
 #include "survS.h"

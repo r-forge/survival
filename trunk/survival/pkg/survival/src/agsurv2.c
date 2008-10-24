@@ -1,4 +1,4 @@
-/*  SCCS $Id$
+/*  $Id$*/
 /*
 ** Fit the survival curve, the special case of an Anderson-Gill style data
 **   This program differs from survfit in several key ways:
@@ -58,7 +58,7 @@ void agsurv2(Sint   *sn,      Sint   *snvar,    double *y,
     double *start, *stop, *event;
     int n, nvar;
     int nsurv, type, vartype;
-    int kk, psave;
+    int kk=0, psave;
     double deaths;
     double *a, *a2;
     int ncurve;
@@ -71,7 +71,7 @@ void agsurv2(Sint   *sn,      Sint   *snvar,    double *y,
 	nsave,
 	person;
     double time,
-	   rscore,
+	   rscore =0,
 	   e_denom,
 	   denom;
     double crisk,
@@ -148,7 +148,6 @@ void agsurv2(Sint   *sn,      Sint   *snvar,    double *y,
 		    if (event[k]==1) {
 			kk =k ;      /*save for km case */
 			downwt = temp/deaths;
-/*       fprintf(stderr,"a=%f, a2=%f, d=%f", a[0], a2[0], d[0]); */
 			if (type==3) {
 			    d2 = (denom - downwt*e_denom);
 			    hazard += wt[k]/d2;
@@ -167,7 +166,6 @@ void agsurv2(Sint   *sn,      Sint   *snvar,    double *y,
 				d[i] += wt[k]* a[i]/(denom*denom);
 			    }
 			temp++;
-/*fprintf(stderr," new d=%f\n", d[0]); fflush(stderr);*/
 			}
 		    person++;
 		    if (strata[k]==1) break;

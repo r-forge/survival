@@ -1,4 +1,4 @@
-/* $Id$ */
+/* $Id*/
 /* A reentrant version of the agfit program, for penalized effects modeling
 **   with reasonable efficiency (I hope).  The important arrays are saved
 **   from call to call so as to speed up the process.  The x-matrix itself
@@ -79,14 +79,13 @@
 #include "survproto.h"
 
 static double **covar, **cmat, **cmat2;
-static int *end;
 static double *a, *oldbeta, *a2;
 static double *offset, *weights;
 static int    *event, *frail;
 static double *score, *start, *stop;
 static int    *sort1, *sort2;
 static double *tmean;
-static int    ptype, pdiag, nstrat;
+static int    ptype, pdiag;
 static double *ipen, *upen, logpen;
 static Sint   *zflag;
 
@@ -99,13 +98,14 @@ void agfit5_a(Sint *nusedx, Sint *nvarx, double *yy,
 	       double *means, double *beta, double *u, 
 	       double *loglik, 
 	       Sint *methodx, Sint *ptype2, Sint *pdiag2,
-	       Sint *nfrail,  Sint *frail2)
-{
-S_EVALUATOR
+	       Sint *nfrail,  Sint *frail2) {
+
+    S_EVALUATOR
+
     int i,j,k, person;
     int     nused, nvar;
     int    nf, nvar2;
-    int  deaths, itemp, endp;
+    int  deaths, itemp;
     int  istrat, indx2, p, ksave;  
 
     double  denom, zbeta, risk;
@@ -304,6 +304,7 @@ void agfit5_b(Sint *maxiter, Sint *nusedx, Sint *nvarx,
 	       Sint *nfrail, double *fbeta, double *fdiag)
 {
 S_EVALUATOR
+
     int i,j,k, person;
     int ii;
     int     iter;
@@ -311,12 +312,12 @@ S_EVALUATOR
     int    nf, nvar2;
     int    fgrp;
     int    halving;
-    int    itemp, endp, deaths;
+    int    itemp, deaths;
     int  istrat, indx2, p, ksave;  
 
     double  denom, zbeta, risk;
     double  temp, temp2;
-    double  newlk;
+    double  newlk =0;
     double  d2, efron_wt;
     double  meanwt, time;
     double  method;
@@ -640,6 +641,7 @@ S_EVALUATOR
 static double **cmatrix(double *data, int ncol, int nrow)
     {
 S_EVALUATOR
+
     int i,j;
     double **pointer;
     double *temp;
@@ -663,6 +665,7 @@ S_EVALUATOR
 
 static void cmatrix_free(double **data) {
 S_EVALUATOR
+
     Free(*data);
     Free(data);
     }
@@ -671,6 +674,7 @@ S_EVALUATOR
 void agfit5_c(Sint *nusedx, Sint *nvar, Sint *strata,
 	      Sint *methodx, double *expect) {
 S_EVALUATOR
+
     int i, j, k, ksave;
     int p, istrat, indx2;
     double denom, e_denom;

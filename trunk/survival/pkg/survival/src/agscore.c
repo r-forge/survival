@@ -1,4 +1,4 @@
-/*  SCCS $Id$
+/*  $Id$ */
 /*
 ** Do the score residuals
 **
@@ -161,7 +161,7 @@ void agscore(Sint   *nx,       Sint   *nvarx,      double *y,
 			}
 		    if (strata[k]==1) break;
 		    }
-		for (person; stop[person]==time; person++)
+		for ( ; stop[person]==time; person++)
 		    if (strata[person]==1) break;
 		}
 	    }

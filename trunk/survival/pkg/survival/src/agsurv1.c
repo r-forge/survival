@@ -1,4 +1,4 @@
-/*  SCCS $Id$
+/*  $Id$ */
 /*
 ** Fit the survival curve, the special case of an Anderson-Gill style data
 **   This program differs from survfit in several key ways:
@@ -80,7 +80,7 @@ void agsurv1(Sint   *sn,     Sint   *snvar,  double *y,      double *score,
 	   downwt,
 	   d2;
     double time,
-	   weight,
+	   weight=0,
 	   denom;
     double cumtime;
 

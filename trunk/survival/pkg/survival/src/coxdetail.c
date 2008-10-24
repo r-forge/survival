@@ -1,6 +1,6 @@
-/*  SCCS $Date: 2006-08-30 20:53:42 $ $Id$
+/*  $Id$
 /*
-** Return all of the internal peices of a cox model
+** Return all of the internal peices of a Cox model
 **
 **  the input parameters are
 **

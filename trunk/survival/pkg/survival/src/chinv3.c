@@ -1,4 +1,4 @@
-/* SCCS $Id$ */
+/* $Id$ */
 /*
 ** matrix inversion, given the cholesky decomposition
 ** This is a specialized form for the frailty problem.  The matric C in this

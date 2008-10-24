@@ -1,4 +1,4 @@
-/*  SCCS $Id$
+/* $Id$
 /*
 ** matrix inversion, given the FDF' cholesky decomposition
 **

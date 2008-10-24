@@ -1,4 +1,4 @@
-/*  SCCS $Id$
+/* $Id$
 /*
 **  Person-years calculations, leading to expected survival for a cohort.
 **    The output table depends only on factors, not on continuous.

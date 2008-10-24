@@ -1,4 +1,4 @@
-/*  SCCS $Id$
+/* $Id$ */
 /*
 ** Compute the martingale residual for a Cox model
 **
@@ -28,7 +28,7 @@ void coxmart(Sint   *sn,     Sint   *method,    double *time,
     register int i,j;
     int lastone;
     int n;
-    double deaths, denom, e_denom;
+    double deaths, denom=0, e_denom=0;
     double hazard;
     double temp, wtsum;
     double downwt;

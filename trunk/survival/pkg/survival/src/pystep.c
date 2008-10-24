@@ -1,4 +1,4 @@
-/*  SCCS $Id$
+/*  $Id$ */
 /*
 ** Returns the amount of time that will be spent in the current "cell",
 **  along with the index of the cell (treating a multi-way array as linear).
@@ -54,9 +54,10 @@ double pystep(int nc,        int  *index,  int  *index2,   double *wt,
 
 	    if (j==0) {  /* less than first cut */
 		temp = cuts[i][j] - data[i];  /* time to next cutpoint */
-		if (edge==0 && temp > shortfall)
+		if (edge==0 && temp > shortfall) {
 		    if (temp > step) shortfall = step;
 		    else             shortfall = temp;
+		    }
 		if (temp < maxtime)  maxtime = temp;
 		}
 	    else if (j==dtemp){  /*bigger than last cutpoint */

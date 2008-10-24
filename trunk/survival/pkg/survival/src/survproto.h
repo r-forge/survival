@@ -1,75 +1,76 @@
 /*
-**  SCCS $Id$
-** prototypes of all the survival functions
-**  along with a few macros
+** $Id $
+**
+** Prototypes of all the survival functions
+**  Including this in each routine helps prevent mismatched argument errors
 */
 
-void agexact(long *maxiter,  long *nusedx,   long *nvarx,   double *start, 
-	     double *stop,   long *event,    double *covar2,double *offset, 
-	     long   *strata, double *means,  double *beta,  double *u, 
-	     double *imat2,  double loglik[2], long *flag,  double *work, 
-	     long   *work2,  double *eps,    double *tol_chol, double *sctest);
+void agexact(Sint *maxiter,  Sint *nusedx,   Sint *nvarx,   double *start, 
+	     double *stop,   Sint *event,    double *covar2,double *offset, 
+	     Sint   *strata, double *means,  double *beta,  double *u, 
+	     double *imat2,  double loglik[2], Sint *flag,  double *work, 
+	     Sint   *work2,  double *eps,    double *tol_chol, double *sctest);
 
-void agfit2( long   *maxiter,  long   *nusedx,  long   *nvarx, 
-	     double *start,    double *stop,    long   *event, 
+void agfit2( Sint   *maxiter,  Sint   *nusedx,  Sint   *nvarx, 
+	     double *start,    double *stop,    Sint   *event, 
 	     double *covar2,   double *offset,  double *weights,
-	     long   *strata,   double *means,   double *beta, 
+	     Sint   *strata,   double *means,   double *beta, 
 	     double *u,        double *imat2,   double loglik[2], 
-	     long   *flag,     double *work,    long   *end,
+	     Sint   *flag,     double *work,    Sint   *end,
 	     double *eps,      double *tol_chol,double *sctest);
 
-void agfit4_a(long *nusedx, long *nvarx, double *yy, 
+void agfit4_a(Sint *nusedx, Sint *nvarx, double *yy, 
 	       double *covar2, double *offset2,
-	       double *weights2, long *strata2,
+	       double *weights2, Sint *strata2,
 	       double *means, double *beta, double *u, 
 	       double *loglik, 
-	       long *methodx, long *ptype2, long *pdiag2,
-	       long *nfrail,  long *frail2);
+	       Sint *methodx, Sint *ptype2, Sint *pdiag2,
+	       Sint *nfrail,  Sint *frail2);
 
-void agfit4_b(long *maxiter, long *nusedx, long *nvarx, 
+void agfit4_b(Sint *maxiter, Sint *nusedx, Sint *nvarx, 
 	       double *beta, double *u,
 	       double *imat2,  double *jmat2, double *loglik, 
-	       long *flag,  double *eps, double *tolerch, long *methodx, 
-	       long *nfrail, double *fbeta, double *fdiag);
+	       Sint *flag,  double *eps, double *tolerch, Sint *methodx, 
+	       Sint *nfrail, double *fbeta, double *fdiag);
 
-void agfit_null(long   *n,      long   *method,   double *start, double *stop, 
-		long   *event,  double * offset,  double *weights,
-		long   *strata, double loglik[2]);
+void agfit_null(Sint   *n,      Sint   *method,   double *start, double *stop, 
+		Sint   *event,  double * offset,  double *weights,
+		Sint   *strata, double loglik[2]);
 
-void aghaz2(long   *n,     double *start,   double *stop,   long   *event, 
-	    double *score, long   * strata, double *hazard, double * cumhaz);
+void aghaz2(Sint   *n,     double *start,   double *stop,   Sint   *event, 
+	    double *score, Sint   * strata, double *hazard, double * cumhaz);
 
-void agmart(long   *n,     long   *method,  double *start,   double *stop, 
-	    long   *event, double *score,   double *wt,      long   *strata, 
+void agmart(Sint   *n,     Sint   *method,  double *start,   double *stop, 
+	    Sint   *event, double *score,   double *wt,      Sint   *strata, 
 	    double *resid);
 
-void agres12(long   *nx,     long   *nvarx,   double *y,    double *covar2, 
-	     long   *strata, double *score,   long *method, double *resid2, 
+void agres12(Sint   *nx,     Sint   *nvarx,   double *y,    double *covar2, 
+	     Sint   *strata, double *score,   Sint *method, double *resid2, 
 	     double *a);
 
-void agscore(long   *nx,       long   *nvarx,      double *y,
-	     double *covar2,   long   *strata,     double *score,
-	     double *weights,  long   *method,     double *resid2, double *a);
+void agscore(Sint   *nx,       Sint   *nvarx,      double *y,
+	     double *covar2,   Sint   *strata,     double *score,
+	     double *weights,  Sint   *method,     double *resid2, double *a);
 
-void agsurv1(long   *sn,     long   *snvar,  double *y,      double *score, 
-	     long   *strata, 
-	     double *surv,   double *varh,   long   *snsurv,
+void agsurv1(Sint   *sn,     Sint   *snvar,  double *y,      double *score, 
+	     Sint   *strata, 
+	     double *surv,   double *varh,   Sint   *snsurv,
 	     double *xmat,   double *d,      double *varcov, double *yy,
-	     long   *shisn,  double *hisy,   double *hisxmat,double *hisrisk, 
-	     long   *hisstrat);
+	     Sint   *shisn,  double *hisy,   double *hisxmat,double *hisrisk, 
+	     Sint   *hisstrat);
 
-void agsurv2(long   *sn,      long   *snvar,    double *y, 
-	     double *score,   long   *strata,   double *wt,    double *surv, 
+void agsurv2(Sint   *sn,      Sint   *snvar,    double *y, 
+	     double *score,   Sint   *strata,   double *wt,    double *surv, 
 	     double *varh,    double *xmat,     double *varcov, 
-	     long   *snsurv,  double *d,        long   *sncurve,
+	     Sint   *snsurv,  double *d,        Sint   *sncurve,
              double *newx,    double *newrisk);
 
-void agsurv3(long   *sn,    long   *snvar,    long   *sncurve, 
-	     long   *snpt,  long   *sse,      double *score, 
+void agsurv3(Sint   *sn,    Sint   *snvar,    Sint   *sncurve, 
+	     Sint   *snpt,  Sint   *sse,      double *score, 
 	     double *sy,    double *r,        double *coef, 
-	     double *var,   double *cmean,    long   *scn, 
+	     double *var,   double *cmean,    Sint   *scn, 
 	     double *cy,    double *cx,       double *ssurv,
-	     double *varh,  double *sused,    long   *smethod);
+	     double *varh,  double *sused,    Sint   *smethod);
 
 void chinv2  (double **matrix, int n);
 int cholesky2(double **matrix, int n, double toler);
@@ -78,57 +79,57 @@ void chinv3(double **matrix , int n, int m, double *fdiag);
 int cholesky3(double **matrix, int n, int m, double *diag, double toler);
 void chsolve3(double **matrix, int n, int m, double *diag, double *y);
 
-void coxdetail(long   *nusedx,   long   *nvarx,    long   *ndeadx, 
-	       double *y,        double *covar2,   long   *strata,  
+void coxdetail(Sint   *nusedx,   Sint   *nvarx,    Sint   *ndeadx, 
+	       double *y,        double *covar2,   Sint   *strata,  
 	       double *score,    double *weights,  double *means2, 
-	       double *u2,       double *var,      long   *rmat,
+	       double *u2,       double *var,      Sint   *rmat,
 	       double *nrisk2,   double *work);
 
-void coxfit2(long   *maxiter,   long   *nusedx,    long   *nvarx, 
-	     double *time,      long   *status,    double *covar2, 
-	     double *offset,	double *weights,   long   *strata,
+void coxfit2(Sint   *maxiter,   Sint   *nusedx,    Sint   *nvarx, 
+	     double *time,      Sint   *status,    double *covar2, 
+	     double *offset,	double *weights,   Sint   *strata,
 	     double *means,     double *beta,      double *u, 
-	     double *imat2,     double loglik[2],  long   *flag, 
+	     double *imat2,     double loglik[2],  Sint   *flag, 
 	     double *work,	double *eps,       double *tol_chol,
 	     double *sctest);
 
-void coxfit4_a(long *nusedx, long *nvarx, double *yy, 
+void coxfit4_a(Sint *nusedx, Sint *nvarx, double *yy, 
                double *covar2, double *offset2,
-               double *weights2, long *strata2,
+               double *weights2, Sint *strata2,
                double *means, double *beta, double *u, 
                double *loglik, 
-               long *methodx, long *ptype2, long *pdiag2,
-               long *nfrail,  long *frail2);
+               Sint *methodx, Sint *ptype2, Sint *pdiag2,
+               Sint *nfrail,  Sint *frail2);
 
-void coxfit4_b(long *maxiter, long *nusedx, long *nvarx, 
+void coxfit4_b(Sint *maxiter, Sint *nusedx, Sint *nvarx, 
                double *beta, double *u,
                double *imat2,  double *jmat2, double *loglik, 
-               long *flag,  double *eps, double *tolerch, long *methodx, 
-               long *nfrail, double *fbeta, double *fdiag);
+               Sint *flag,  double *eps, double *tolerch, Sint *methodx, 
+               Sint *nfrail, double *fbeta, double *fdiag);
 
-void coxfit4_c (long *nusedx, long *nvar, long *methodx, double *expect);
+void coxfit4_c (Sint *nusedx, Sint *nvar, Sint *methodx, double *expect);
 
-void coxfit_null(long   *nusedx,    long   *method,   double *time, 
-		 long   *status,    double *score,    double *weights, 
-		 long   *strata,    double *loglik, double *resid);
+void coxfit_null(Sint   *nusedx,    Sint   *method,   double *time, 
+		 Sint   *status,    double *score,    double *weights, 
+		 Sint   *strata,    double *loglik, double *resid);
 
-void coxhaz2(long   *n,      double *score,   long   *mark, 
-	     long   *strata, double *hazard,  double *cumhaz);
+void coxhaz2(Sint   *n,      double *score,   Sint   *mark, 
+	     Sint   *strata, double *hazard,  double *cumhaz);
 
-void coxmart(long   *sn,     long   *method,    double *time, 
-	     long   *status, long   * strata,   double *score, 
+void coxmart(Sint   *sn,     Sint   *method,    double *time, 
+	     Sint   *status, Sint   * strata,   double *score, 
 	     double *wt,     double *expect);
 
-void coxph_wtest(long *nvar2, long *ntest, double *var, double *b,
+void coxph_wtest(Sint *nvar2, Sint *ntest, double *var, double *b,
                  double *scratch, double *tolerch);
 
-void coxscho(long   *nusedx,    long   *nvarx,    double *y, 
-	     double *covar2,    double *score,    long   *strata,  
-	     long   *method2,   double *work);
+void coxscho(Sint   *nusedx,    Sint   *nvarx,    double *y, 
+	     double *covar2,    double *score,    Sint   *strata,  
+	     Sint   *method2,   double *work);
 
-void coxscore(long   *nx,      long   *nvarx,    double *y, 
-	      double *covar2,  long   *strata,   double *score, 
-	      double *weights, long   *method,   double *resid2,
+void coxscore(Sint   *nx,      Sint   *nvarx,    double *y, 
+	      double *covar2,  Sint   *strata,   double *score, 
+	      double *weights, Sint   *method,   double *resid2,
 	      double *scratch);
 
 double **dmatrix(double *array, int ncol, int nrow);
@@ -136,104 +137,79 @@ double **dmatrix(double *array, int ncol, int nrow);
 void init_doloop(int min, int max);
 int doloop      (int nloops, int *index);
 
-s_object *init_coxcall1(s_object *frame, s_object *nfrail, s_object *expr);
-s_object *init_coxcall2(s_object *frame, s_object *nfrail, s_object *expr);
-void cox_callback (int which, double *coef, double *first, 
-                   double *second, double *penalty, long *flag);
-
-void pyears1(long   *sn,      long   *sny,      long   *sdoevent, 
+void pyears1(Sint   *sn,      Sint   *sny,      Sint   *sdoevent, 
 	     double *sy,      double *wt,       
-	     long   *sedim,   long   *efac, 
-	     long   *edims,   double *secut,    double *expect, 
-	     double *sedata,  long   *sodim,    long   *ofac, 
-	     long   *odims,   double *socut,    long   *smethod, 
+	     Sint   *sedim,   Sint   *efac, 
+	     Sint   *edims,   double *secut,    double *expect, 
+	     double *sedata,  Sint   *sodim,    Sint   *ofac, 
+	     Sint   *odims,   double *socut,    Sint   *smethod, 
 	     double *sodata,  double *pyears,   double *pn, 
 	     double *pcount,  double *pexpect,  double *offtable);
 
-void pyears2(long   *sn,      long   *sny,   long   *sdoevent, 
+void pyears2(Sint   *sn,      Sint   *sny,   Sint   *sdoevent, 
 	     double *sy,      double *wt,    
-	     long   *sodim,   long   *ofac, 
-	     long   *odims,   double *socut, double *sodata,
+	     Sint   *sodim,   Sint   *ofac, 
+	     Sint   *odims,   double *socut, double *sodata,
 	     double *pyears,  double *pn,    double *pcount, 
 	     double *offtable);
 
-void pyears3(long   *sdeath,    long   *sn,    long   *sedim, 
-	     long   *efac,      long   *edims, double *secut, 
+void pyears3(Sint   *sdeath,    Sint   *sn,    Sint   *sedim, 
+	     Sint   *efac,      Sint   *edims, double *secut, 
 	     double *expect,    double *sx,    double *y, 
-	     long   *sntime,    long   *sngrp, double *times,
-	     double *esurv,     long   *nsurv);
+	     Sint   *sntime,    Sint   *sngrp, double *times,
+	     double *esurv,     Sint   *nsurv);
 
 double pystep(int nc,        int  *index,  int  *index2,   double *wt, 
-	      double *data,  long *fac,    long *dims,     double **cuts, 
+	      double *data,  Sint *fac,    Sint *dims,     double **cuts, 
 	      double step,   int  edge);
 
-void survdiff2(long   *nn,     long   *nngroup,    long   *nstrat, 
-	       double *rho,    double *time,       long   *status, 
-	       long   *group,  long   *strata,	   double *obs, 
+void survdiff2(Sint   *nn,     Sint   *nngroup,    Sint   *nstrat, 
+	       double *rho,    double *time,       Sint   *status, 
+	       Sint   *group,  Sint   *strata,	   double *obs, 
 	       double *exp,    double *var,        double *risk, 
 	       double *kaplan);
 
-void survfit2(long   *sn,      double *y,       double *wt,
-	      long   *strata,  long   *method,  long   *error, 
+void survfit2(Sint   *sn,      double *y,       double *wt,
+	      Sint   *strata,  Sint   *method,  Sint   *error, 
 	      double *mark,    double *surv,	double *varh,
 	      double *risksum);
 
-void survfit3(long   *sn,        double *y,               double *wt,
-	      long   *strata,    long   *method,          long   *error, 
-	      long   *nstrat,    double *ntimes_strata,  
+void survfit3(Sint   *sn,        double *y,               double *wt,
+	      Sint   *strata,    Sint   *method,          Sint   *error, 
+	      Sint   *nstrat,    double *ntimes_strata,  
 	      double *timelist,  double *weighted_event,  double *surv,
 	      double *varh,	 double *risksum,         double *enter,
 	      double *exit_censored);
 
-void survindex2(long   *n,          double *stime,      long   *strata,
-		long   *ntime,      double *time,       long   *nstrat,
-		long   *o_n_risk,   long   *o_n_event,  double *o_surv,
-		double *o_std_err,  double *o_upper,    double *o_lower, 
-		long   *n_risk,     long   *n_event,    double *surv,
-		double *std_err,    double *upper,      double *lower,
-		double *new_start,  long   *num_extend, long   *times_strata,
-		double *temp_times);
 
-void survindex3(long   *n,          double *stime,        long   *strata,
-		long   *ntime,      double *time,         long   *nstrat, 
-		long   *o_n_risk,   long   *o_n_entered,  long   *o_n_censored,
-		long   *o_n_event,  double *o_surv,       double *o_std_err,
-		double *o_upper,    double *o_lower,      long   *n_risk, 
-		long   *n_entered,  long   *n_censored,   long   *n_event,
-		double *surv,       double *std_err,      double *upper,
-		double *lower,      double *new_start, 	  long   *num_extend,
-		long   *times_strata,                     double *temp_times);
+SEXP survreg6(SEXP maxiter2,   SEXP nvarx,  SEXP y,
+	      SEXP ny2,        SEXP covar2, SEXP wtx,
+	      SEXP offset2,    SEXP beta2,  SEXP nstratx,
+	      SEXP stratax,    SEXP epsx,   SEXP tolx,       
+	      SEXP dist,       SEXP expr,   SEXP rho);
 
-void survreg2(long   *maxiter,   long   *nx,    long   *nvarx, 
-	     double *y,          long   *ny,    double *covar2, double *wtx,
-	     double *offset2,    double *beta,  long   *nstratx, 
-	     long   *stratax,    double *ux,    double *imatx, 
-	     double *loglik,     long   *flag,  double *eps,
-	     double *tol_chol,   long   *dist,  long   *ddebug);
+double survregc1(int n,          int nvar,     int nstrat,      int whichcase,
+		 double *beta,   int dist,     Sint *strat,     double *offset,
+		 double *time1,  double *time2, double *status, double *wt,
+		 double **covar, double **imat, double **JJ,    double *u, 
+		 SEXP expr,      SEXP rho,      double *dummy,  int nf,
+		 Sint *frail,    double *fdiag, double *jdiag );
 
-void survreg4(long   *maxiter,   long   *nx,       long   *nvarx, 
-	      double *y,         long   *ny,       double *covar2, 
-	      double *wt2,       double *offset2,  double *beta,  
-	     long   *nstratx,    long   *stratax,  double *ux,    
-	     double *imatx,      double *jmatx,
-	     double *loglik,     long   *flag,     double *eps,
-	     double *tol_chol,   long   *dist,     long   *ddebug,
-             long *ptype2,  	 long   *pdiag2,
-	     long *nfrail2,      long   *frail2,   double *fdiag2);
+double survregc2(int n,          int nvar,     int nstrat,      int whichcase,
+		 double *beta,   int dist,     Sint *strat,     double *offset,
+		 double *time1,  double *time2, double *status, double *wt,
+		 double **covar, double **imat, double **JJ,    double *u, 
+		 SEXP expr,      SEXP rho,      double *dummy,  int nf,
+		 Sint *frail,    double *fdiag, double *jdiag );
 
-void survreg3(long   *maxiter,   long   *nx,    long   *nvarx, 
-	     double *y,          long   *ny,    double *covar2, double *wtx,
-	     double *offset2,    double *beta,  long   *nstratx, 
-	     long   *stratax,    double *ux,    double *imatx, 
-	     double *loglik,     long   *flag,  double *eps,
-	     double *tol_chol,   long   *dist,  long   *ddebug);
+void survpenal(int whichcase, int nfrail,    int  nvar2,    double **hmat, 
+	       double **JJ,   double *hdiag, double *jdiag,
+	       double *u,     double *beta,  double *loglik,
+	       int ptype,     int pdiag,     SEXP pexpr1,   double *cptr1, 
+	       SEXP pexpr2,   double *cptr2, SEXP rho);
 
-void survreg5(long   *maxiter,   long   *nx,       long   *nvarx, 
-	      double *y,         long   *ny,       double *covar2, 
-	      double *wt2,       double *offset2,  double *beta,  
-	     long   *nstratx,    long   *stratax,  double *ux,    
-	     double *imatx,      double *jmatx,
-	     double *loglik,     long   *flag,     double *eps,
-	     double *tol_chol,   long   *dist,     long   *ddebug,
-             long *ptype2,  	 long   *pdiag2,
-	     long *nfrail2,      long   *frail2,   double *fdiag2);
+void coxpenal (int whichcase, int nfrail,   int  nvar,     double **hmat, 
+	       double *hdiag, double *u,    double *fbeta, double *beta,  
+	       double *penalty,
+	       int ptype,     int pdiag,     SEXP pexpr1,   double *cptr1, 
+	       SEXP pexpr2,   double *cptr2, SEXP rho);

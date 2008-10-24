@@ -1,4 +1,4 @@
-/* $Id$
+/* $Id$ */
 /*
 ** Anderson-Gill formulation of the Cox Model, using smart subsets
 **
@@ -74,7 +74,7 @@ void agfit3( Sint   *maxiter,  Sint   *nusedx,  Sint   *nvarx,
     double  denom, zbeta, risk;
     double  time;
     double  temp, temp2;
-    double  newlk;
+    double  newlk =0;
     int     halving;    /*are we doing step halving at the moment? */
     double     method;
     double  meanwt;

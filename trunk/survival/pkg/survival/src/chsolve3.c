@@ -1,4 +1,4 @@
-/* SCCS $Id$ */
+/* $Id$ */
 /*
 ** Solve the equation Ab = y, where the cholesky decomposition of A and y
 **   are the inputs.

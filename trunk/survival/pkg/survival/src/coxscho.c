@@ -1,4 +1,4 @@
-/*  SCCS $Id$
+/* $Id$
 /*
 ** Return the Schoenfeld residuals.
 **

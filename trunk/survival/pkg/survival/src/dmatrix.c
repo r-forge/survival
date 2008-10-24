@@ -1,4 +1,4 @@
-/*  SCCS $Id$
+/* $Id$
 /*
 ** set up ragged arrays, with #of columns and #of rows
 */

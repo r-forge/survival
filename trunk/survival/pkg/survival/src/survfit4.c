@@ -1,3 +1,4 @@
+/* $Id$ */
 /*
 ** C routine to do a small computation that is hard in Splus
 **

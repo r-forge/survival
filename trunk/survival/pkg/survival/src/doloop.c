@@ -1,4 +1,4 @@
-/*  SCCS $Id$
+/* $Id$
 /*
 ** Program to mimic a set of nested do loops
 **

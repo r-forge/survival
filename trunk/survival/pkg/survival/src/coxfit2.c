@@ -1,4 +1,4 @@
-/*  $Id$
+/*  $Id$ */
 /*
 ** here is a cox regression program, written in c
 **     uses Efron's approximation for ties
@@ -69,10 +69,10 @@ void coxfit2(Sint   *maxiter,   Sint   *nusedx,    Sint   *nvarx,
     double *mark, *wtave;
     double *a, *newbeta;
     double *a2, **cmat2;
-    double  denom, zbeta, risk;
+    double  denom=0, zbeta, risk;
     double  temp, temp2;
     double  ndead;
-    double  newlk;
+    double  newlk=0;
     double  d2, efron_wt;
     int     halving;    /*are we doing step halving at the moment? */
     double     method;

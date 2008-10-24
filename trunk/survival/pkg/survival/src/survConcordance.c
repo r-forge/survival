@@ -1,5 +1,5 @@
 /*
-**    SCCS  $Id$
+**    $Id$
 **
 **  For each observation, we want to know, for the subset of observations
 **     with longer survival (and only those)
@@ -26,7 +26,7 @@
 void survConcordance(Sint *np,    double *time,  Sint *status, 
 		     double *x,   Sint *n2p,     double *x2,
 		     Sint   *temp,Sint *result) {
-    int i, j, k;
+    int i, j, k=0;
     int start, end;
     int n, n2;
     Sint *count1, *count2, *count;
