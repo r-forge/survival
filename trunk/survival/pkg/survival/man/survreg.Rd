@@ -99,5 +99,20 @@ survreg.old(Surv(futime, fustat) ~ ecog.ps + rx, ovarian,
 # Weibull fit 
 survreg(Surv(days, event) ~ voltage, data=capacitor, 
         control=survreg.control(maxiter = 40)) 
+
+# There are multiple ways to parameterize a Weibull distribution. The survreg 
+# function imbeds it in a general location-scale familiy, which is a 
+# different parameterization than the rweibull function, and often leads
+# to confusion.
+#   survreg's scale  =    1/(rweibull shape)
+#   survreg's intercept = log(rweibull scale)
+#   For the log-likelihood all parameterizations lead to the same value.
+> y <- rweibull(1000, shape=2, scale=5)
+> survreg(Surv(y)~1, dist="weibull")
+
+# Economists fit a model called `tobit regression', which is a standard
+# linear regression with Gaussian errors, but with left censored data.
+tobinfit <- survreg(Surv(durable, durable>0, type='left') ~ age + quant,
+	            data=tobin, dist='gaussian')
 }
 \keyword{survival}
