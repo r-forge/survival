@@ -1,0 +1,61 @@
+  The survival project started in SCCS over 15 years ago, then eventually moved
+to RCS, then to cvs, all on local Mayo servers.  The final move has been to
+Rforge and svn.  At each of these conversions I've tried to retain the edit
+history for the main code.  Perhaps it is paranoid, but in the current state of
+unbridled software patents I want to keep a history that is long enough to
+fend off any potential attacks.
+
+  The old/ directory contains files that I have not yet put into the new
+order.  It will eventually shrink to a small historical bit, and perchance
+disappear altogheter.
+
+  A primary reason for conversion to Rforge is to enable wider participation
+in the project, and eventually (still some years away) hand it off completely.
+I have gotton involved in other research areas in the last few years, and
+have not been able to give this project all of the attention it deserves.
+
+  At this time, the code base works in both Splus and R.  File extensions
+are .S for "generic S" code that works in both, and .R for a few files that are
+particular to the R version.  We use both dialects at Mayo, but beyond that
+I think is is worthwhile to try to keep the packages in sync.  One last note
+is that I use a particular style of indentation, which will look a bit odd
+to the usual C programmer but completely natural to anyone elso whose first
+indented language was PL/1.  When making changes feel free to use other
+styles, BUT, out of kindness to anyone who wants to track important changes to a
+routine, don't make wholesale indentation updates.
+
+     Terry Therneau
+     Dec 2008
+
+---------------------------------------------------------------------
+ 
+The remainder of this file is of interest only to someone who needs to
+reconstruct old versions.  It describes the considerable directory rearrangment
+that occured.
+  The Mayo files were in a single directory, organized for ease of software
+development rather than for distribution, with a structure of 
+  survival/  (parent)
+     Makefile  (hand written for the project, worked great)
+     all .c and .s routines
+     test/
+     testreg/
+     testfrail/
+
+  There were totally separate directories for the date and coxme libraries.
+
+  I first converted to a local svn server, rearranging things into a more
+standard R format:
+    survival/
+       Readme 
+       pkg/
+         survival/
+         date/
+	 coxme/
+       www/
+       old/
+
+ When this was uploaded to Rforge, the entire tree ended up as the
+"trunk/survival" subdirectory of the new object, for reasons I don't
+quite fathom.  So I next had to move all the bits back up two levels to where
+they belonged.
+
