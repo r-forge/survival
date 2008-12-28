@@ -12,9 +12,11 @@ coxph <- function(formula, data, weights, subset, na.action,
     # create a call to model.frame() that contains the formula (required)
     #  and any other of the relevant optional arguments
     # then evaluate it in the proper frame
-    temp <- call('model.frame', formula=formula)
-    for (i in c("data", "weights", "subset", "na.action")) #add optional args
-        if (!is.null(Call[[i]])) temp[[i]] <- Call[[i]]
+    indx <- match(c("formula", "data", "weights", "subset", "na.action"),
+                  names(Call), nomatch=0) 
+    if (indx[1] ==0) stop("A formula argument is required")
+    temp <- Call[c(1,indx)]  # only keep the arguments we wanted
+    temp[[1]] <- as.name('model.frame')  # change the function called
 
     if (is.R()) m <- eval(temp, parent.frame())
     else        m <- eval(temp, sys.parent())
