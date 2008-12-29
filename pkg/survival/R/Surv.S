@@ -168,8 +168,9 @@ as.character.Surv <- function(x) {
             ctemp <- class(x)
             class(x) <- NULL
             x <- x[i,, drop=FALSE]
-            attr(x, 'type') <- type
             class(x) <- ctemp
+            attr(x, 'type') <- type
+            x
             }
         else {
             ctemp <- oldClass(x)
