@@ -1,19 +1,20 @@
 # $Date: 2006-08-28 18:12:46 $ $Id$
 survfit.formula <- function(formula, data, weights, subset, 
-			    na.action, call, ...) {
-    if (missing(call)) call <- match.call()
-    m <- match.call(survfit, call, expand=TRUE)    
-    m <- m[match(c("", "data", "weights", "subset", "na.action"), 
-		 names(m), nomatch=0)]
+			    na.action, ...) {
+    Call <- match.call()
+
+    # create a copy of the call that has only the arguments we want,
+    #  and use it to call model.frame()
+    temp <- Call[c(1, match(c("formula", "data", "weights", "subset", 
+                              "na.action"), names(Call), nomatch=0))]
+    temp[[1]] <- as.name("model.frame")
+    if (is.R()) m <- eval.parent(temp)
+    else        m <- eval(temp, sys.parent())
     
     Terms <- terms(formula, 'strata')
     ord <- attr(Terms, 'order')
     if (length(ord) & any(ord !=1))
 	    stop("Interaction terms are not valid for this function")
-
-    m$formula <- Terms
-    m[[1]] <- as.name("model.frame")
-    m <- eval(m, sys.parent())
 
     n <- nrow(m)
     Y <- model.extract(m, response)
@@ -34,7 +35,7 @@ survfit.formula <- function(formula, data, weights, subset,
     if (!is.null(attr(m, 'na.action')))
 	    temp$na.action <- attr(m, 'na.action')
 
-    temp$call <- call
+    temp$call <- Call
     temp
     }
 

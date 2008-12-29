@@ -7,8 +7,8 @@
 #   still allow users to type "strata" as an arg.
 #
 coxph.getdata <- function(fit, y=TRUE, x=TRUE, stratax=TRUE, offset=FALSE) {
-    ty <- fit$y
-    tx <- fit$x
+    ty <- fit[['y']]  #avoid grabbing this by accident due to partial matching
+    tx <- fit[['x']]  #  for x, fit$x will get fit$xlevels --> not good
     strat <- fit$strata
     Terms <- fit$terms
     if (is.null(attr(Terms, 'offset'))) offset <- FALSE
@@ -35,11 +35,15 @@ coxph.getdata <- function(fit, y=TRUE, x=TRUE, stratax=TRUE, offset=FALSE) {
 	    if (stratax) {
 		temp <- untangle.specials(Terms, 'strata', 1)
                 dropx <- c(dropx, temp$terms)
-		strat <- strata(m[temp$vars], shortlabel=TRUE)
+                #If there were multiple strata statements, glue them together
+		strat <- strata(m[temp$vars], shortlabel=T)
 		}
 	    if (x) {
-		if (length(dropx)) tx <- model.matrix(Terms[-dropx], m)[,-1,drop=FALSE]
-		else               tx <- model.matrix(Terms, m)[,-1,drop=FALSE]
+		if (length(dropx)) 
+                     tx <- model.matrix(Terms[-dropx], m,
+                                        contr=object$contrasts)[,-1,drop=FALSE]
+		else tx <- model.matrix(Terms, m,
+                                        contr=object$contrasts)[,-1,drop=FALSE]
 		}
 	    }
 	}

@@ -78,9 +78,23 @@ coxph <- function(formula, data, weights, subset, na.action,
 	X <- model.matrix(Terms, m)
 	}
 
-    if (is.R())
+    if (is.R()) {
 	 assign <- lapply(attrassign(X, newTerms)[-1], function(x) x-1)
-    else assign <- lapply(attr(X, 'assign')[-1], function(x) x -1)
+         xlevels <- .getXlevels(newTerms, m)
+         }
+    else {
+        assign <- lapply(attr(X, 'assign')[-1], function(x) x -1)
+        xvars <- as.character(attr(newTerms, 'variables'))
+        xvars <- xvars[-attr(newTerms, 'response')]
+        if (length(xvars) >0) {
+                xlevels <- lapply(m[xvars], levels)
+                xlevels <- xlevels[!unlist(lapply(xlevels, is.null))]
+                if(length(xlevels) == 0)
+                        xlevels <- NULL
+                }
+        else xlevels <- NULL
+        }
+        
     X <- X[,-1, drop=F]  #remove the intercept column
 
     type <- attr(Y, "type")
@@ -193,6 +207,8 @@ coxph <- function(formula, data, weights, subset, na.action,
     if (!is.null(weights) && any(weights!=1)) fit$weights <- weights
 
     fit$formula <- formula(Terms)
+    if (length(xlevels) >0) fit$xlevels <- xlevels
+    fit$contrasts <- attr(X, 'contrasts')
     fit$call <- Call
     fit$method <- method
     fit

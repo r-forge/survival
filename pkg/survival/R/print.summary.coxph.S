@@ -1,7 +1,7 @@
 # $Id $
 print.summary.coxph <-
  function(x, digits = max(getOption('digits')-3, 3),  
-             signif.stars = getOption("show.signif.stars", ...)) {
+             signif.stars = getOption("show.signif.stars"), ...) {
     if (!is.null(x$call)) {
 	cat("Call:\n")
 	dput(x$call)

@@ -14,7 +14,7 @@ residuals.coxph.penal <- function(object,
 	# I know that the sparse term is a single column BTW
 	#
 	sparsename <- (names(object$pterms))[object$pterms==2]
-	x <- object$x
+	x <- object[['x']]  #don't accidentally get object$xlevels
 	if (is.null(x)) {
 	    temp <- coxph.getdata(object, y=TRUE, x=TRUE, strata=TRUE)
 	    if (is.null(object$y)) object$y <- temp$y

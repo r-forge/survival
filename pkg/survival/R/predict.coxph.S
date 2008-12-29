@@ -42,9 +42,10 @@ predict.coxph <- function(object, newdata,
 
     if (missing(newdata)) {
 	if (type=='terms' || (se.fit && (type=='lp' || type=='risk'))) {
-	    x <- object$x
+	    x <- object[['x']]  #don't accidentally grab 'xlevels'
 	    if (is.null(x)) {
-		x <- model.matrix(Terms2, model.frame(object))[,-1,drop=FALSE]
+		x <- model.matrix(Terms2, model.frame(object),
+                                  contr=object$contrasts)[,-1,drop=FALSE]
 		}
 	    x <- sweep(x, 2, object$means)
 	    }
@@ -58,12 +59,14 @@ predict.coxph <- function(object, newdata,
 	}
     else {
 	if (type=='expected'){
-	     m <- model.newframe(Terms, newdata, response=TRUE)
-             x <- model.matrix(Terms2, m)[,-1,drop=FALSE]
+	     m <- model.frame(Terms, newdata, xlev=object$xlevels)
+             x <- model.matrix(Terms2, m,
+                               contr=object$contrasts)[,-1,drop=FALSE]
          }
 	else {
-            m <- model.newframe(Terms2, newdata)
-            x <- model.matrix(delete.response(Terms2), m)[,-1,drop=FALSE]
+            m <- model.frame(Terms2, newdata, xlev=object$xlevels)
+            x <- model.matrix(delete.response(Terms2), m,
+                              contr=object$contrasts)[,-1,drop=FALSE]
         }
 
 	x <- sweep(x, 2, object$means)

@@ -52,8 +52,9 @@ predict.survreg <-
 	nstrata <- max(strata)
 	    
 	if (missing(newdata) && need.x){
-	    x <- object$x
-	    if (is.null(x)) x <- model.matrix(Terms[-dropx], m)
+	    x <- object[['x']] 
+	    if (is.null(x)) x <- model.matrix(Terms[-dropx], m,
+                                              contr=object$contrasts)
 	    }
 
 	else if (!missing(newdata)) {
@@ -61,7 +62,8 @@ predict.survreg <-
 	    if (length(temp$vars)==1) newstrat <- newframe[[temp$vars]]
 	    else newstrat <- strata(newframe[,temp$vars], shortlabel=TRUE)
 	    strata <- match(newstrat, levels(strata.keep))
-	    x <- model.matrix(Terms[-dropx], newframe)
+	    x <- model.matrix(Terms[-dropx], newframe,
+                              contr=object$contrasts)
 	    offset <- model.extract(newframe, 'offset')
 	    }
 	}
@@ -71,16 +73,18 @@ predict.survreg <-
 	if (length(temp$terms)) Terms <- Terms[-temp$terms]
 	strata <- rep(1,n); nstrata<- 1
 	if (missing(newdata) && need.x) {
-	    x <- object$x
+	    x <- object[['x']]  # don't accidentally get object$xlevels
 	    if (is.null(x)) {
 		if (is.null(object$model)) 
-			x <- model.matrix(Terms, model.frame(object))
-		else    x <- model.matrix(Terms, object$model)
+			x <- model.matrix(Terms, model.frame(object),
+                                          contr=object$contrasts))
+		else    x <- model.matrix(Terms, object$model,
+                                          contr=object$contrasts)
 		}
 	    }
 
 	else if (!missing(newdata)) {
-	    x <- model.matrix(Terms, newdata)
+	    x <- model.matrix(Terms, newdata, contr=object$contrasts))
 	    offset <- 0
 	    strata <- rep(1, nrow(x))
 	    }

@@ -7,7 +7,7 @@ coxph.detail <-  function(object, riskmat=FALSE) {
     n <- length(object$residuals)
     rr <- object$residuals
     weights <- object$weights        #always present if there are weights
-    x <- object$x
+    x <- object[['x']]
     y <- object$y
     strat <- object$strata
     Terms <- object$terms

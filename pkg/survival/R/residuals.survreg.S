@@ -38,7 +38,7 @@ residuals.survreg <- function(object, type=c('response', 'deviance',
 
     # grab what I need
     if (need.strata || (need.y && is.null(object$y)) || 
-	               (need.x && is.null(object$x)) ) {
+	               (need.x && is.null(object[['x']])) ) {
 	# I need the model frame
 	if (is.null(object$model)) m <- model.frame(object)
 	else m <- object$model
@@ -62,8 +62,9 @@ residuals.survreg <- function(object, type=c('response', 'deviance',
 	}
 
     if (need.x){
-	x <- object$x
-	if (is.null(x)) x <- model.matrix(Terms2, m)
+	x <- object[['x']]  #don't accidentally get object$xlevels
+	if (is.null(x)) x <- model.matrix(Terms2, m,
+                                          contr=object$contrasts)
 	}
 	
     if (need.y) {

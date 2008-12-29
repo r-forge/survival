@@ -37,7 +37,7 @@ survfit.coxph <-
     # Recreate a copy of the data
     #  (The coxph.getdata routine never returns cluster() terms).
     data <- coxph.getdata(object, y=TRUE, x=se.fit,
-			           stratax=(length(strat)))
+			           stratax=(length(strat)>0))
     y <- data$y
     ny <- ncol(y)
     if (nrow(y) != n) stop ("Mismatched lengths: logic error")
@@ -104,18 +104,25 @@ survfit.coxph <-
     #  
     offset2 <- 0   #offset variable for the new data set
     if (!missing(newdata)) {
-	m2 <- model.newframe(Terms, newdata, response=(stype==1))
-	if (!inherits(m2, 'data.frame'))  {
-	    x2 <- as.matrix(m2)
+        if (stype !=1 && (is.matrix(newdata) || 
+                          (is.numeric(newdata) & length(newdata)==nvar))){
+            # Other functions force newdata to be a data frame,
+            #  I also allow it to be a vector or matrix, but only if a) it
+            #  has exactly the right number of columns, and b) we don't need y
+            if (is.matrix(newdata)) x2 <- newdata
+            else x2 <- matrix(newdata, nrow=1)
 	    if (ncol(x2) != nvar) stop ("Wrong # of variables in new data")
 	    n2 <- nrow(x2)
-            # I no longer remember what this error message is for.  I think
-            #  its a "should never be in this branch" error.
-	    if (stype==1) stop("Program error #3")
-	    }
-
-	else  {
-	    x2 <- model.matrix(delete.response(Terms), m2)[,-1,drop=FALSE]
+            }
+        else {
+            #	m2 <- model.newframe(Terms, newdata, response=(stype==1))
+            if (stype==1) 
+                 m2 <- model.frame(Terms, newdata, xlev=object$xlevels)
+            else m2 <- model.frame(delete.response(Terms), newdata, 
+                               xlev=object$xlevels)
+	
+	    x2 <- model.matrix(delete.response(Terms), m2,
+                               contr=object$contrasts)[,-1,drop=FALSE]
 	    n2 <- nrow(x2)
 	    offset2 <- model.extract(m2, 'offset')
 	    if (is.null(offset2)) offset2 <- 0

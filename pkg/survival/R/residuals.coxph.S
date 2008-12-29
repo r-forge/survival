@@ -16,7 +16,7 @@ residuals.coxph <-
     n <- length(object$residuals)
     rr <- object$residuals
     y <- object$y
-    x <- object$x
+    x <- object[['x']]  # avoid matching object$xlevels
     vv <- object$naive.var
     if (is.null(vv)) vv <- object$var
     weights <- object$weights
