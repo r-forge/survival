@@ -110,7 +110,7 @@ SEXP survreg6(SEXP maxiter2,   SEXP nvarx,  SEXP y,
     flag = INTEGER(out_flag);
     PROTECT(out_u = allocVector(REALSXP, nvar2));
     usave = REAL(out_u);
-    nprotect = 5;
+    nprotect = 6;
 
     /* Create scratch variables 
     **  u = working version of score vector, overwritten with u H-inv during
