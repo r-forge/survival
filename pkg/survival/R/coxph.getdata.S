@@ -41,9 +41,9 @@ coxph.getdata <- function(fit, y=TRUE, x=TRUE, stratax=TRUE, offset=FALSE) {
 	    if (x) {
 		if (length(dropx)) 
                      tx <- model.matrix(Terms[-dropx], m,
-                                        contr=object$contrasts)[,-1,drop=FALSE]
+                                        contr=fit$contrasts)[,-1,drop=FALSE]
 		else tx <- model.matrix(Terms, m,
-                                        contr=object$contrasts)[,-1,drop=FALSE]
+                                        contr=fit$contrasts)[,-1,drop=FALSE]
 		}
 	    }
 	}

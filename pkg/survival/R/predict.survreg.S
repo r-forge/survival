@@ -77,14 +77,14 @@ predict.survreg <-
 	    if (is.null(x)) {
 		if (is.null(object$model)) 
 			x <- model.matrix(Terms, model.frame(object),
-                                          contr=object$contrasts))
+                                          contr=object$contrasts)
 		else    x <- model.matrix(Terms, object$model,
                                           contr=object$contrasts)
 		}
 	    }
 
 	else if (!missing(newdata)) {
-	    x <- model.matrix(Terms, newdata, contr=object$contrasts))
+	    x <- model.matrix(Terms, newdata, contr=object$contrasts)
 	    offset <- 0
 	    strata <- rep(1, nrow(x))
 	    }
