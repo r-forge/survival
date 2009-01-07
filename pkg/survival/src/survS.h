@@ -7,7 +7,7 @@
 **   Thanks to Brian Ripley for suggesting a machine independent way of
 ** fixing this.
 **
-** The S_alloc function changed it's argument list from version Splus version
+** The S_alloc function changed it's argument list from Splus version
 **   4 to 5, and there is a different one for R.
 **   The ALLOC macro allows me to have common C code for all versions,
 **   with only this file "survS.h" changed.
