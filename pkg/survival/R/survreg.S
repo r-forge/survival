@@ -111,9 +111,10 @@ survreg <- function(formula, data, weights, subset, na.action,
     
     # check for parameters
     ptemp <- dlist$parms
-    if (is.null(ptemp))
+    if (is.null(ptemp)) {
         if (!is.null(parms)) stop(paste(dlist$name, 
                               "distribution has no optional parameters"))
+        }
     else {
         if (!is.numeric(ptemp)) 
             stop("Default parameters must be a numeric vector")
