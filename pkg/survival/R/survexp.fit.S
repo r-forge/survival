@@ -12,8 +12,6 @@ survexp.fit <- function(x, y, times, death, ratetable) {
     if (ncol(x) != (1+length(dim(ratetable))))
 	stop("x matrix does not match the rate table")
     atts <- attributes(ratetable)
-    rfac <- atts$factor
-    if (length(rfac) != ncol(x)-1) stop("Wrong length for rfac")
     ngrp <- max(x[,1])
     times <- sort(unique(times))
     if (any(times <0)) stop("Negative time point requested")
@@ -22,7 +20,16 @@ survexp.fit <- function(x, y, times, death, ratetable) {
     if (!is.logical(death)) stop("Invalid value for death indicator")
 
     cuts <- atts$cutpoints
-    us.special <- (rfac >1)
+
+    if (is.null(atts$type)) {
+        # old style rate table
+        rfac <- atts$factor
+        us.special <- (rfac >1)
+        }
+    else {
+        rfac <- 1*(atts$type ==1)
+        us.special <- (atts$type==3)
+        }
     if (any(us.special)) {  #special handling for US pop tables
 	if (sum(us.special) >1)
 	    stop("Two columns marked for special handling as a US rate table")
@@ -63,7 +70,7 @@ survexp.fit <- function(x, y, times, death, ratetable) {
         x[,cols[2]] <- x[,cols[2]] - offset
 
 	# Doctor up "cutpoints"
-	temp <- (1:length(rfac))[us.special]
+	temp <-  which(us.special)
 	nyear <- length(cuts[[temp]])
 	nint <- rfac[temp]       #intervals to interpolate over
 	cuts[[temp]] <- round(approx(nint*(1:nyear), cuts[[temp]],

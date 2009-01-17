@@ -2,7 +2,7 @@
 # $Id$
 #
 is.ratetable <- function(x, verbose=FALSE) {
-    dlist <- c("dim", "dimnames", "dimid", "factor", "cutpoints")
+    dlist <- c("dim", "dimnames", "dimid", "cutpoints")
     if (!verbose) {
 	if (!inherits(x, 'ratetable')) return(FALSE)
 	att <- attributes(x)
@@ -13,9 +13,17 @@ is.ratetable <- function(x, verbose=FALSE) {
 		 return(FALSE)
 	if (length(att$dimnames)!=nd || length(att$factor)!=nd ||
 			 length(att$cutpoints)!=nd) return(FALSE)
-	fac <- as.numeric(att$factor)
-	if (any(is.na(fac))) return(FALSE)
-	if (any(fac <0)) return(FALSE)
+        # One of 'factor' (old style table) or 'type' (new style) should exist
+        if (!is.null(att$factor)) {
+            fac <- as.numeric(att$factor)
+            if (any(is.na(fac))) return(FALSE)
+            if (any(fac <0)) return(FALSE)
+            }
+        else if (!is.null(att$type)) {
+            if (any(is.na(match(att$type, 0:3)))) return(FALSE)
+            }
+        else return(FALSE)
+
         if (length(att$dimid) != nd) return(FALSE)
 	for (i in 1:nd) {
 	    n <- att$dim[i]
@@ -57,9 +65,16 @@ is.ratetable <- function(x, verbose=FALSE) {
     if (length(att$cutpoints)!=nd) 
         msg <- c(msg, 'wrong length for cutpoints')
 
-    fac <- as.numeric(att$factor)
-    if (any(is.na(fac))) msg <- c(msg, "illegal 'factor' level of NA")
-    if (any(fac <0)) msg <- c(msg, 'factor <0')
+    if (!is.na(att$factor)) {
+        fac <- as.numeric(att$factor)
+        if (any(is.na(fac))) msg <- c(msg, "illegal 'factor' level of NA")
+        if (any(fac <0)) msg <- c(msg, 'factor <0')
+        }
+    else if (!is.na(att$type)) {
+        if (any(is.na(match(att$type, 0:3))))
+            msg <- c(msg, 'type attribute must be 0, 1, 2, or 3')
+        }
+    else msg <- c(msg, "missing the 'type' attribute")
 
     for (i in 1:nd) {
 	n <- att$dim[i]

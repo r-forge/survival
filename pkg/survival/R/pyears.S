@@ -118,11 +118,16 @@ pyears <- function(formula, data,
     if (length(rate)) {  #include expected
 	atts <- attributes(ratetable)
 	cuts <- atts$cutpoints
-	rfac <- atts$factor
-	us.special <- (rfac >1)
+        if (is.null(atts$type)) {
+            #old stlye table
+            rfac <- atts$factor
+            us.special <- (rfac >1)
+            }
+        else {
+            rfac <- 1*(atts$type ==1)
+            us.special <- (atts$type==3)
+            }
 	if (any(us.special)) {  #special handling for US pop tables
-	    if (sum(us.special) >1)
-		stop("Two columns marked for special handling as a US rate table")	
 	    # Now, the 'entry' date on a US rate table is the number of days 
 	    #  since 1/1/1960, and the user data has been aligned to the
 	    #  same system by match.ratetable and marked as "year".
@@ -171,6 +176,7 @@ pyears <- function(formula, data,
 	    cuts[[temp]] <- round(approx(nint*(1:nyear), cuts[[temp]],
 					    nint:(nint*nyear))$y - .0001)
 	    }
+        else rfac <- 0  # a dummy var for the .C call (only used for ratables)
 
 	temp <- .C("pyears1",
 			as.integer(n),

@@ -19,14 +19,18 @@ match.ratetable <- function(R, ratetable) {
     if (nd != length(dimid))
 	stop("The ratetable() call has the wrong number of arguments")
     ord[ord] <- 1:nd   #reverse the index, so "ord" can be on the right-hand
-    R <- R[,ord,drop=FALSE]
+    R <- R[,ord,drop=FALSE]  #put cols in same order as the ratetable
 
     # Check out the dimensions of R --
     const <- attR[["constants"]][ord]
     call <- "ratetable["
     levlist <- attR[['levlist']][ord]
     dtemp <-dimnames(ratetable)
-    efac  <- attr(ratetable, 'factor')
+    rtype  <- attr(ratetable, 'type') # 0=continuous, 1= class, 2=date, 3=US yr
+    if (is.null(rtype)) { #old style ratetable, be backwards compatable
+        temp <- attr(ratetable, 'factor')
+        rtype <- 1*(temp==1) + 3*(temp >1)  
+        }
 
     # Now, go through the dimensions of the ratetable 1 by 1, and
     #  verify that the user's variable (or constant) is compatable
@@ -34,8 +38,14 @@ match.ratetable <- function(R, ratetable) {
     #
     for (i in (1:nd)) {
 	if (const[i]) {   #user put in a constant
-            if (efac[i] ==0) {  # the index is continuous
-                temp <- as.numeric(levlist[[i]]) 
+            if (rtype[i] != 1) {  # the index is continuous
+                if (rtype >1) {  #we expect a date
+                    temp <- ratetableDate(c(levlist[[i]])) 
+                    if (is.null(temp)) 
+                        stop(paste("Invalid value for ratetable() for" 
+                                   dimid[i]))
+                    }
+                else temp <- as.numeric(levlist[[i]]) 
                 if (is.na(temp) )
                     stop(paste("Invalid value in ratetable() for variable",
 				 dimid[i]))
@@ -54,12 +64,13 @@ match.ratetable <- function(R, ratetable) {
                     stop(paste("Non-unique ratetable match for variable",
                                dimid[i]))
 		}
+
 	    R[,i] <- temp
 	    call <- paste(call, temp)
 	    }
 
 	else if (length(levlist[[i]]) >0) {  #factor or character variable
-	    if (efac[i]!=1) stop(paste("In ratetable(),", dimid[i],
+	    if (rtype[i]!=1) stop(paste("In ratetable(),", dimid[i],
 				     "must be a continuous variable"))
 	    temp <- charmatch(casefold(levlist[[i]]), casefold(dtemp[[i]]))
 	    if (any(is.na(temp)))
@@ -72,12 +83,19 @@ match.ratetable <- function(R, ratetable) {
 	    }
 
 	else {   # ratetable() thinks it is a continuous variable
-	    if (efac[i]==1) {   #but it's not-- make sure it is an integer
+	    if (rtype[i]==1) {   #but it's not-- make sure it is an integer
 		temp <- R[,i]
 		if (any(floor(temp)!=temp) || any(temp<=0) ||
 			    max(temp) > length(dtemp[[i]]))
 		stop(paste("In ratetable(),",dimid[i],"is out of range"))
 		}
+            if (rtype[i]>1) { #we expect a date
+                temp <- ratetableDate(R[,i]) 
+                if (is.null(temp)) 
+                    stop(paste("In ratetable(), ", dimid[i], 
+                               "must be a date variable"))
+                else R[,i] <- temp
+                }
 	    }
 	if (i==nd) call <- paste(call, "]")
 	else       call <- paste(call, ",")
