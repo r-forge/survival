@@ -14,35 +14,46 @@
 #  there is no function to create a rate table.  Each consists of a multi-way
 #  array of event rates along with a set of attributes. 
 #
+
+# The ideal for this function would be
+#   ratetable <- function(...) data.frame(...)
+# Then missing, subsets, etc would all be fine, yet the variables would still
+#   be special in the terms result so I could find them.  But -- the only
+#   multi-column objects that model.frame will accept are matrices. So I
+#   make a data frame (both factors and numerics) that looks like a matrix.
+# 
 ratetable <- function(...) {
     args <- list(...)
     nargs <- length(args)
     ll <- sapply(args, length)
     n <- max(ll)  # We assume this is the dimension of the user's data frame
     levlist <- vector("list", nargs)
+    isDate <- rep(FALSE, nargs)
     x <- matrix(0,n,nargs)
     dimnames(x) <- list(1:n, names(args))
     for (i in 1:nargs) {
-	if (ll[i] ==n) { # if the arg is a vector of the right length
-	    # numerics or factors are allowed. The line below is
-	    #  mostly for cut() and tcut(), which create class='category'
-	    if (!is.numeric(args[[i]])) args[[i]] <- factor(args[[i]])
-	    if (is.factor(args[[i]])) {
-		levlist[[i]] <- levels(args[[i]])
-		x[,i] <- as.numeric(args[[i]]) # the vector of levels
-		}
-	    else x[,i] <- args[[i]]
-	    }
-	else if (ll[i] ==1) {
-	    # Treat it like a factor with one level.  The match.ratetable
-	    #  function will sort out if it is actually numeric
-	    levlist[i] <- args[i]
-	    x[,i] <- 1 
-	    }
-	else stop(paste("Aguments do not all have the same length (arg ",
+        if (ll[i] ==1) args[[i]] <- rep(args[[i]], n)
+        else if (ll[i] != n) 
+            stop(paste("Aguments do not all have the same length (arg ",
 			i, ")", sep=''))
+
+	# In Splus cut and tcut produce class 'category'
+        if (inherits(args[[i]], 'cateogory') || is.character(args[[i]]))
+                args[[i]] <- as.factor(args[[i]])
+        if (is.factor(args[[i]])) {
+            levlist[[i]] <- levels(args[[i]])
+            x[,i] <- as.numeric(args[[i]]) # the vector of levels
+            }
+        else {
+            temp <- ratetableDate(args[[i]]) 
+            if (is.null(temp)) x[,i] <- as.numeric(args[[i]])
+            else {
+                x[,i] <- temp
+                isDate[i] <- TRUE
+                }
+            }
 	}
-    attr(x, "constants") <- (ll==1) & (n>1)
+    attr(x, "isDate") <- isDate
     attr(x, "levlist")   <- levlist
     if (is.R()) class(x) <- 'ratetable2'
     else        oldClass(x)  <- "ratetable2"
@@ -62,7 +73,7 @@ is.na.ratetable2 <- function(x) {
     aa <- attributes(x)
     attributes(x) <- aa[c("dim", "dimnames")]
     y <- x[rows,,drop=FALSE]
-    attr(y,'constants') <- aa$constants
+    attr(y,'isDate') <- aa$isDate
     attr(y,'levlist')   <- aa$levlist
     if (is.R()) class(y) <- 'ratetable2'
     else        oldClass(y) <- 'ratetable2'

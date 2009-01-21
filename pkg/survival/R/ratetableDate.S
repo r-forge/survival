@@ -3,7 +3,7 @@
 #   convert other types of objects to this form
 #
 ratetableDate <- function(x) {
-    UseMethod(x)
+    UseMethod("ratetableDate", x)
     }
 
 # Normally used in R

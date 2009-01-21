@@ -28,7 +28,7 @@ survexp.fit <- function(x, y, times, death, ratetable) {
         }
     else {
         rfac <- 1*(atts$type ==1)
-        us.special <- (atts$type==3)
+        us.special <- (atts$type==4)
         }
     if (any(us.special)) {  #special handling for US pop tables
 	if (sum(us.special) >1)
@@ -45,7 +45,7 @@ survexp.fit <- function(x, y, times, death, ratetable) {
         #  to fudge everyone's enter-the-study date.  If you were born
         #  in March but entered in April, make it look like you entered in
         #  Febuary; that way you get the first 11 months at the entry 
-        #  year's rates, etc. 
+        #  year's rates, etc.  This is the same as being born on Jan 1.
         # The birth date is entry date - age in days (based on 1/1/1960).
         #
         cols <- 1+ match(c("age", "year"), atts$dimid)
@@ -53,8 +53,9 @@ survexp.fit <- function(x, y, times, death, ratetable) {
             stop("Ratetable does not have expected shape")
         if (exists("as.Date")) {  # true for modern version of R
             bdate <- as.Date('1960/1/1') + (x[,cols[2]] - x[,cols[1]])
-            byear <- format(bdate, "%Y")
-            offset <- julian(bdate, origin=paste(byear, '01/01', sep='/'))
+            byear <- format(bdate, "%Y") # year of birth
+            offset <- as.numeric(bdate - 
+                                 as.Date(paste(byear, '01/01', sep='/')))
             }
         else if (exists('month.day.year')) { # Splus, usually
             bdate <- x[,cols[2]] - x[,cols[1]]
@@ -69,13 +70,17 @@ survexp.fit <- function(x, y, times, death, ratetable) {
         else stop("Can't find an appropriate date class\n") 
         x[,cols[2]] <- x[,cols[2]] - offset
 
-	# Doctor up "cutpoints"
-	temp <-  which(us.special)
-	nyear <- length(cuts[[temp]])
-	nint <- rfac[temp]       #intervals to interpolate over
-	cuts[[temp]] <- round(approx(nint*(1:nyear), cuts[[temp]],
+	# Doctor up "cutpoints" - only needed for old style rate tables
+        #  for which the C code does interpolation on the fly
+        if (any(rfac >1)) {
+            temp <-  which(us.special)
+            nyear <- length(cuts[[temp]])
+            nint <- rfac[temp]       #intervals to interpolate over
+            cuts[[temp]] <- round(approx(nint*(1:nyear), cuts[[temp]],
 					nint:(nint*nyear))$y - .0001)
+            }
 	}
+
     temp <- .C('pyears3',
 		    as.integer(death),
 		    as.integer(nrow(x)),
@@ -91,7 +96,6 @@ survexp.fit <- function(x, y, times, death, ratetable) {
 		    as.double(times),
 		    surv = double(ntime * ngrp),
 		    n   = integer(ntime *ngrp))
-
     if (ntime==1) list(surv=temp$surv, n=temp$n)
     else if (ngrp >1)
 	 list(surv=apply(matrix(temp$surv, ntime, ngrp),2,cumprod),

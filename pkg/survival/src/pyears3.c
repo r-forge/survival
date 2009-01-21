@@ -72,6 +72,8 @@ S_EVALUATOR
     x     = dmatrix(sx, n, edim+1);
     data2 = (double *)ALLOC(edim+1, sizeof(double));
     wvec  = (double *)ALLOC(ntime*ngrp, sizeof(double));
+    for (j=0; j<ntime*ngrp; j++) wvec[j] =0;
+
     /*
     ** ecut will be a ragged array
     */
@@ -100,7 +102,12 @@ S_EVALUATOR
 	    if (thiscell > timeleft) thiscell = timeleft;
 	    index =j + ntime*group;
 
-	    /* expected calc */
+	    /* expected calc 
+	    **  The wt parameter only comes into play for older style US rate
+	    **   tables, where pystep does interpolation.
+	    ** Each call to pystep moves up to the next 'boundary' in the
+	    **  expected table, data2 contains our current position therein
+	    */
 	    etime = thiscell;
 	    hazard =0;
 	    while (etime >0) {
@@ -112,9 +119,11 @@ S_EVALUATOR
 		    if (efac[k] !=1) data2[k] += et2;
 		etime -= et2;
 /*
-printf("time=%5.1f, rate1=%6e, rate2=%6e, wt=%3.1f\n", et2, expect[indx], expect[indx2], wt);
+printf("indx=%d, time=%5.1f, rate1=%6e, rate2=%6e, wt=%3.1f\n", 
+       indx, et2, expect[indx], expect[indx2], wt);
 */
 		}
+/*printf("index=%d, hazard=%6e, cumhaz=%6e\n", index, hazard, cumhaz); */
 	    if (times[j]==0) {
 		wvec[index]=1;
 		if (death==0) esurv[index]=1;
@@ -137,6 +146,9 @@ printf("time=%5.1f, rate1=%6e, rate2=%6e, wt=%3.1f\n", et2, expect[indx], expect
 	}
 
     for (i=0; i<ntime*ngrp; i++) {
+/*
+printf("i=%3d, esurv=%6e, wvec=%6e, death=%d\n", i, esurv[i], wvec[i], death);
+*/
 	if (wvec[i]>0) {
 	    if (death==0) esurv[i] /= wvec[i];
 	    else          esurv[i] = exp(-esurv[i]/wvec[i]);

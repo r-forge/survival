@@ -3,14 +3,16 @@
 #   actual ratetable
 # This is called by pyears and survexp, but not by users
 #
-# Returns a subscripting vector and a call
+# Returns a subscripting matrix
 #
 match.ratetable <- function(R, ratetable) {
     attR <- attributes(R)
     attributes(R) <- attR['dim']     #other attrs get in the way later
     if (!is.ratetable(ratetable)) stop("Invalid rate table")
     dimid <- attr(ratetable, 'dimid')
+
     ord <- match(attR$dimnames[[2]], dimid)
+
     if (any(is.na(ord)))
        stop(paste("Argument '", (attR$dimnames[[2]])[is.na(ord)],
 	    "' in ratetable()",
@@ -22,54 +24,26 @@ match.ratetable <- function(R, ratetable) {
     R <- R[,ord,drop=FALSE]  #put cols in same order as the ratetable
 
     # Check out the dimensions of R --
-    const <- attR[["constants"]][ord]
-    call <- "ratetable["
+    isDate <- attR[["isDate"]][ord]
     levlist <- attR[['levlist']][ord]
     dtemp <-dimnames(ratetable)
-    rtype  <- attr(ratetable, 'type') # 0=continuous, 1= class, 2=date, 3=US yr
+    rtype  <- attr(ratetable, 'type') # 1= class, 2=cont, 3=date, 4=US yr
     if (is.null(rtype)) { #old style ratetable, be backwards compatable
         temp <- attr(ratetable, 'factor')
-        rtype <- 1*(temp==1) + 3*(temp >1)  
+        rtype <- 1*(temp==1) + 4*(temp >1)  
         }
 
     # Now, go through the dimensions of the ratetable 1 by 1, and
-    #  verify that the user's variable (or constant) is compatable
+    #  verify that the user's variable is compatable
     #  with the rate table's dimensions
     #
+    if (any(rtype<1 & isDate)) {
+        indx <- which(rtype<1 & isDate)
+        stop(paste("Data has a date type variable, but the reference",
+                   "ratetable is not a date for variable", dimid[indx]))
+        }
     for (i in (1:nd)) {
-	if (const[i]) {   #user put in a constant
-            if (rtype[i] != 1) {  # the index is continuous
-                if (rtype >1) {  #we expect a date
-                    temp <- ratetableDate(c(levlist[[i]])) 
-                    if (is.null(temp)) 
-                        stop(paste("Invalid value for ratetable() for" 
-                                   dimid[i]))
-                    }
-                else temp <- as.numeric(levlist[[i]]) 
-                if (is.na(temp) )
-                    stop(paste("Invalid value in ratetable() for variable",
-				 dimid[i]))
-                    }
-            else {  # the index is discrete
-                temp <- charmatch(casefold(levlist[[i]]), casefold(dtemp[[i]]))
-		if (is.na(temp)) {
-                    # It doesn't match, but maybe they put in the level number
-                    temp <- as.numeric(levlist[[i]])
-                    if (is.na(temp) || temp <=0 ||
-                        temp!=floor(temp) || temp >length(dtemp[[i]]))
-		       stop(paste("Invalid value in ratetable() for variable",
-				 dimid[i]))
-		    }
-                if (temp==0) 
-                    stop(paste("Non-unique ratetable match for variable",
-                               dimid[i]))
-		}
-
-	    R[,i] <- temp
-	    call <- paste(call, temp)
-	    }
-
-	else if (length(levlist[[i]]) >0) {  #factor or character variable
+	if (length(levlist[[i]]) >0) {  #factor or character variable
 	    if (rtype[i]!=1) stop(paste("In ratetable(),", dimid[i],
 				     "must be a continuous variable"))
 	    temp <- charmatch(casefold(levlist[[i]]), casefold(dtemp[[i]]))
@@ -89,21 +63,11 @@ match.ratetable <- function(R, ratetable) {
 			    max(temp) > length(dtemp[[i]]))
 		stop(paste("In ratetable(),",dimid[i],"is out of range"))
 		}
-            if (rtype[i]>1) { #we expect a date
-                temp <- ratetableDate(R[,i]) 
-                if (is.null(temp)) 
-                    stop(paste("In ratetable(), ", dimid[i], 
-                               "must be a date variable"))
-                else R[,i] <- temp
-                }
 	    }
-	if (i==nd) call <- paste(call, "]")
-	else       call <- paste(call, ",")
 	}
 
     summ <- attr(ratetable, 'summary')
     if (is.null(summ))
-	 list(R= R[,!const, drop=FALSE], call={if(any(const)) call else NULL})
-    else list(R= R[,!const, drop=FALSE], call={if(any(const)) call else NULL},
-		summ=summ(R))
+	 list(R= R)
+    else list(R= R, summ=summ(R))
     }

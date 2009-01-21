@@ -102,10 +102,7 @@ survexp <- function(formula, data,
 	se.fit <- FALSE
 	rtemp <- match.ratetable(m[,rate], ratetable)
 	R <- rtemp$R
-	if (!is.null(rtemp$call)) {  #need to dop some dimensions from ratetable
-	    ratetable <- eval(parse(text=rtemp$call))
-	    }
-       }
+        }
     else if (inherits(ratetable, 'coxph')) {
 	israte <- FALSE
 	Terms <- ratetable$terms
@@ -125,7 +122,7 @@ survexp <- function(formula, data,
 	    }
 	else se.fit <- FALSE
 	}
-    else stop("Invalid ratetable argument")
+    else stop("Invalid ratetable")
 
     if (cohort) {
 	# Now process the other (non-ratetable) variables

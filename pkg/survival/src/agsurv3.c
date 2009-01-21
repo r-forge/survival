@@ -122,6 +122,7 @@ S_EVALUATOR
     */
     need = 2*n + se*nvar*(2+ n*(n+1)/2);
     nscore = (double *) ALLOC(need, sizeof(double));
+    for (i=0; i<need; i++) nscore[i] =0.0;  /* R doesn't zero the memory */
     isurv  = nscore + n;
     for (i=0; i<n; i++) isurv[i]=1;
     if (se==1) {
