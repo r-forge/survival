@@ -129,7 +129,7 @@ survreg.fit<- function(x, y, weights, offset, init, controlvals, dist,
 	# We sometimes get into trouble with a small estimate of sigma,
 	#  (the surface isn't SPD), but never with a large one.  Double it.
 	if (scale >0) vars <- log(scale)
-	else vars <- log(4*coef[2])/2    # log(2*sqrt(variance)) = log(4*var) /2
+	else vars <- log(4*coef[2])/2    # log(2*sqrt(variance)) = log(4*var)/2
 	coef <- c(coef[1], rep(vars, nstrat))
 	
 	# get a better initial value for the mean using the "glim" trick
