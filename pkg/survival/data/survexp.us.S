@@ -97,7 +97,7 @@ usfun1 <- function() {
         dimnames = list(c('0-1d','1-7d', '7-28d', '28-365d', 
               as.character(1:109)), c("male", "female"), years),
         dimid    =c("age", "sex", "year"),
-        type  = c(2,1,3),
+        type  = c(2,1,4),
         cutpoints= list(c(0,1,7,28,1:109 * 365.25), NULL,  datecut),
         summary = function(R) {
             x <- c(format(round(min(R[,1]) /365.25, 1)),
@@ -222,8 +222,8 @@ usfun2 <- function() {
         type  = c(2,1,1,4),
         cutpoints= list(c(0,1,7,28,1:109 * 365.25), NULL,  NULL, datecut),
         summary = function(R) {
-            x <- c(format(floor(min(R[,1]) /365.25, 1)),
-                   format(floor(max(R[,1]) /365.25, 1)),
+            x <- c(format(round(min(R[,1]) /365.25, 1)),
+                   format(round(max(R[,1]) /365.25, 1)),
                    sum(R[,2]==1), sum(R[,2]==2),
                    sum(R[,3]==1), sum(R[,3]==2))
             if (is.R()) x2<- as.Date(c(min(R[,4]), max(R[,4])), 
