@@ -21,7 +21,6 @@ survfit.formula <- function(formula, data, weights, subset,
     if (!is.Surv(Y)) stop("Response must be a survival object")
 
     casewt <- model.extract(m, "weights")
-
     if (is.null(casewt)) casewt <- rep(1,n)
 
     if (!is.null(attr(Terms, 'offset'))) warning("Offset term ignored")
@@ -30,8 +29,13 @@ survfit.formula <- function(formula, data, weights, subset,
     if (length(ll) == 0) X <- factor(rep(1,n))  # ~1 on the right
     else X <- strata(m[ll])
     
-    temp <- survfit.km(X, Y, casewt, ...)
-    oldClass(temp) <- "survfit"
+    if (!is.Surv(Y)) stop("y must be a Surv object")
+    if (attr(Y, 'type') != 'right' && attr(Y, 'type') != 'counting')
+		temp <- survfit.turnbull(X, Y, casewt, ...)
+	else    temp <- survfit.km(X, Y, casewt, ...)
+
+    if (is.R()) class(temp) <- 'survfit'
+    else        oldClass(temp) <- "survfit"
     if (!is.null(attr(m, 'na.action')))
 	    temp$na.action <- attr(m, 'na.action')
 
