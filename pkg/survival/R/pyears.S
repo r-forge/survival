@@ -169,15 +169,16 @@ pyears <- function(formula, data,
             else stop("Can't find an appropriate date class\n") 
             R[,cols[2]] <- R[,cols[2]] - offset
 
-	    # Doctor up "cutpoints"
-	    temp <- (1:length(rfac))[us.special]
-	    nyear <- length(cuts[[temp]])
-	    nint <- rfac[temp]       #intervals to interpolate over
-	    cuts[[temp]] <- round(approx(nint*(1:nyear), cuts[[temp]],
-					    nint:(nint*nyear))$y - .0001)
+            # Doctor up "cutpoints" - only needed for old style rate tables
+            #  for which the C code does interpolation on the fly
+            if (any(rfac >1)) {
+                temp <-  which(us.special)
+                nyear <- length(cuts[[temp]])
+                nint <- rfac[temp]       #intervals to interpolate over
+                cuts[[temp]] <- round(approx(nint*(1:nyear), cuts[[temp]],
+					nint:(nint*nyear))$y - .0001)
+                }
 	    }
-        else rfac <- 0  # a dummy var for the .C call (only used for ratables)
-
 	temp <- .C("pyears1",
 			as.integer(n),
 			as.integer(ncol(Y)),
