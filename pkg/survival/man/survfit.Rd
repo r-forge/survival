@@ -1,9 +1,6 @@
 \name{survfit}
 \alias{survfit}
 \alias{[.survfit}
-\alias{survfit.km}
-\alias{survfit.coxph.null}
-\alias{survfit.coxph}
 \title{
   Compute a Survival Curve for Censored Data 
 }
@@ -11,11 +8,14 @@
 Computes an estimate of a survival curve for censored data 
 using either the Kaplan-Meier or the Fleming-Harrington method 
 or computes the predicted survivor function for a Cox proportional 
-hazards model. 
+hazards model.  For competing risks data it computes the
+cumulative incidence curve.
 }
 \usage{
 survfit(formula, data, weights, subset, na.action,  
-        newdata, individual=FALSE, conf.int=.95, se.fit=TRUE,  
+        newdata, individual=FALSE,
+        etype, id, 
+        conf.int=.95, se.fit=TRUE,  
         type=c("kaplan-meier","fleming-harrington", "fh2"),
         error=c("greenwood","tsiatis"),
         conf.type=c("log","log-log","plain","none"),
@@ -67,6 +67,20 @@ or if each row of the data frame represents different
 time epochs for only one individual (TRUE).  
 In the former case the result will have one curve for each row in
 \code{newdata}, in the latter only a single curve will be produced.
+}
+\item{etype} {
+a variable giving the type of event.
+Presence of this variable signals the program to compute the cumulative
+incidece estimate.  For each event \code{status==1}, the etype
+variable indicates the type of event.  For a censored observation the
+value of \code{etype} is ignored - but do not set it to NA, since that
+will cause na.action to delete the observation.
+}
+\item{id}
+identifies individual subjects, when a given person can have multiple
+lines of data. when used with the \code{etype} variable, this allows
+the compuation of
+a cumulative prevalence estimate, i.e., the incidence over time.
 }
 \item{conf.int}{
 the level for a two-sided confidence interval on the survival curve(s). 
@@ -181,10 +195,21 @@ then the EM approach of Turnbull is used to compute the overall curve.
 When the baseline method is the Kaplan-Meier, this is known to converge to
 the maximum likelihood estimate.
 
-Based on the work of Link (1984), the log transform is expected to produce 
-the most accurate confidence intervals.  If there is heavy censoring, then 
-based on the work of Dorey and Korn (1987) the modified estimate will give 
-a more reliable confidence band for the tails of the curve. 
+The cumulative incidence curve is an alternative to the Kaplan-Meier
+for competing risks data.
+For instance, in patients with MGUS, conversion to an overt plasma
+cell malignancy occurs at about 1\% per year.  
+A Kaplan-Meier estimate, treating death due to other causes as censored,
+gives a 20 year cumulate rate of 33\% for the 241 early patients of Kyle.  
+This estimates the incidence of conversion, if other causes of death were
+removed.
+  
+The CI estimate, on the other hand, estimates the total number of
+conversions that will actually occur.  Because the population is older,
+this is much smaller than the KM, 22\% at 20 years for Kyle's data.
+If there were no censoring, then CI(t) would simply be the total number
+of patients with progression by time t, divided by the sample size n.
+
 }
 \section{References}{
 Dorey, F. J. and Korn, E. L. (1987).  Effective sample sizes for confidence 
@@ -198,6 +223,12 @@ survival distribution in censored data.  \emph{Comm. in Statistics}
 Kablfleisch, J. D. and Prentice, R. L. (1980).  
 \emph{The Statistical Analysis of Failure Time Data.}
 New York:Wiley. 
+
+Kyle, R. A. (1997).
+Moncolonal gammopathy of undetermined significance and solitary
+      plasmacytoma. Implications for progression to overt multiple myeloma\},
+\emph{Hematology/Oncology Clinics N. Amer.}
+\bold{11}, 71-87.
 
 Link, C. L. (1984). Confidence intervals for the survival 
 function using Cox's proportional hazards model with  
@@ -249,5 +280,21 @@ tdata <- data.frame(time  =c(1,1,1,2,2,2,3,3,3,4,4,4),
                     n     =c(12,3,2,6,2,4,2,0,2,3,3,5))
 fit  <- survfit(Surv(time, time, status, type='interval') ~1, 
               data=tdata, weight=n)
-}
+
+\dontrun{
+#
+# Time to progression for patients with monoclonal gammopathy
+fit1 <- survfit(Surv(stop, event=='progression') ~1, data=mgus1,
+                    subset=(start==0))
+fit2 <- survfit(Surv(stop, status) ~1, data=mgus1,
+                    subset=(start==0), etype=event)
+# CI curves are always plotted from 0 upwards, rather than 1 down
+plot(fit2, fun='event', xscale=365.25, xmax=7300, mark.time=F,
+            col=2:3, xlab="Years post diagnosis of MGUS")
+lines(fit1, fun='event', xscale=365.25, xmax=7300, mark.time=F,
+            conf.int=F)
+text(10, .4, "Competing Risk: death", col=3)
+text(16, .15,"Competing Risk: progression", col=2)
+text(15, .30,"KM:prog")
+}}
 \keyword{survival}
