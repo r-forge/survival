@@ -57,7 +57,7 @@ void pyears1(Sint   *sn,      Sint   *sny,      Sint   *sdoevent,
 	     double *pcount,  double *pexpect,  double *offtable)
     {
 S_EVALUATOR
-    register int i,j;
+    int i,j;
     int     n,
 	    ny,
 	    doevent,
