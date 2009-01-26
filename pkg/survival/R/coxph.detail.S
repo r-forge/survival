@@ -61,7 +61,7 @@ coxph.detail <-  function(object, riskmat=FALSE) {
 			  index = as.integer(newstrat),
 			  event2 =as.double(score),
 			  weights = as.double(weights),
-			  means= c(method=='efron', double(ndeath*nvar)),
+			  means= c(method=='efron', double(ndeath*nvar-1)),
 			  u = double(ndeath*nvar),
 			  i = double(ndeath*nvar*nvar),
 	                  rmat = rmat,
