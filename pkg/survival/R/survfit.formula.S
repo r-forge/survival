@@ -1,12 +1,13 @@
 # $Date: 2006-08-28 18:12:46 $ $Id$
 survfit.formula <- function(formula, data, weights, subset, 
-			    na.action, ...) {
+			    na.action, etype, id,  ...) {
     Call <- match.call()
 
     # create a copy of the call that has only the arguments we want,
     #  and use it to call model.frame()
-    temp <- Call[c(1, match(c("formula", "data", "weights", "subset", 
-                              "na.action"), names(Call), nomatch=0))]
+    mfnames <- c('formula', 'data', 'weights', 'subset','na.action',
+                 'etype', 'id')  #legal args for model.frame
+    temp <- Call[c(1, match(mfnames, names(Call), nomatch=0))]
     temp[[1]] <- as.name("model.frame")
     if (is.R()) m <- eval.parent(temp)
     else        m <- eval(temp, sys.parent())
@@ -29,10 +30,15 @@ survfit.formula <- function(formula, data, weights, subset,
     if (length(ll) == 0) X <- factor(rep(1,n))  # ~1 on the right
     else X <- strata(m[ll])
     
+    etype <- model.extract(m, 'etype')
+    id    <- model.extract(m, 'id')
+
     if (!is.Surv(Y)) stop("y must be a Surv object")
-    if (attr(Y, 'type') != 'right' && attr(Y, 'type') != 'counting')
-		temp <- survfit.turnbull(X, Y, casewt, ...)
-	else    temp <- survfit.km(X, Y, casewt, ...)
+    if (length(etype) >0)
+         temp <- survfit.ci(X, Y, weights=casewt, etype=etype, id=id,  ...)
+    else if (attr(Y, 'type') != 'right' && attr(Y, 'type') != 'counting')
+         temp <- survfit.turnbull(X, Y, casewt, ...)
+    else temp <- survfit.km(X, Y, casewt, ...)
 
     if (is.R()) class(temp) <- 'survfit'
     else        oldClass(temp) <- "survfit"
