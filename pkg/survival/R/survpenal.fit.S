@@ -482,8 +482,8 @@ survpenal.fit<- function(x, y, weights, offset, init, controlvals, dist,
         # We need to fetch back some of the results from the
         #  evaluation area of f.expr1 and f.expr2
 	if (is.R()) {
-	    if (nfrail >0) coxlist1 <- get('coxlist1', envr=rho)
-	    if (ptype >1 ) coxlist2 <- get('coxlist2', envr=rho)
+	    if (nfrail >0) coxlist1 <- get('coxlist1', envir=rho)
+	    if (ptype >1 ) coxlist2 <- get('coxlist2', envir=rho)
 	    }
 	else {
 	    if (nfrail >0) coxlist1 <- get('coxlist1', frame=rho)

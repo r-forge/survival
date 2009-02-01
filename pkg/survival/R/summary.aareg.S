@@ -19,8 +19,8 @@
 summary.aareg <- function(x, maxtime, test=c('aalen', 'nrisk'), scale=1) {
     if (!inherits(x, 'aareg')) stop ("Must be an aareg object")
 
-    test <- match.arg(test)
     if (missing(test)) test <- x$test
+    test <- match.arg(test)
 
     if (!missing(maxtime)) ntime <- sum(x$time <= maxtime)
     else 		   ntime <- nrow(x$coefficient)
@@ -95,7 +95,8 @@ summary.aareg <- function(x, maxtime, test=c('aalen', 'nrisk'), scale=1) {
 		 n = c(x$n[1], length(unique(times)), x$n[3]))
 
     
-    oldClass(temp) <- 'summary.aareg'
+    if (is.R()) class(temp) <- 'summary.aareg'
+    else      oldClass(temp) <- 'summary.aareg'
     temp
     }
 

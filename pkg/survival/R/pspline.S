@@ -56,7 +56,7 @@ pspline <- function(x, df=4, theta, nterm=2.5*df, degree=3, eps=0.1,
 	    }
         }	
 
-    printfun <- substitute(function(coef, var, var2, df, history, cbase=zzz) {
+    printfun <- function(coef, var, var2, df, history, cbase) {
 	test1 <- coxph.wtest(var, coef)$test
 	# cbase contains the centers of the basis functions
 	#   do a weighted regression of these on the coefs to get a slope
@@ -79,19 +79,25 @@ pspline <- function(x, df=4, theta, nterm=2.5*df, degree=3, eps=0.1,
 	if (length(nn)) theta <- history$thetas[nn,1]
 	else  theta <- history$theta
 	list(coef=cmat, history=paste("Theta=", format(theta)))
-	}, list(zzz = knots[2:nvar] + (rx[1] - knots[1])))
-    
-    # The use of substitute above is a a bit sneaky.  We are setting
-    #  thedefault value of the parameter 'cbase' to a particular
-    #  value, after the function is defined.
-    # In R, we can be even more opaque than this: remove "cbase" from
-    #  the argument list, set it to some value right here, outside of the
-    #  actual definition of printfun, and the majic of lexical scoping
-    #  will find the value at runtime -- but pity the programmer
-    #  who actually looks at the print function and tries to deduce where
-    #  cbase came from.  (No, TMT is not a fan of Scheme).
-    #
+	}
 
+    if (is.R()) {
+	# The printfun needs to remember the spline's knots,
+	#  but I don't need (or want) to carry around the entire upteen 
+	#  variables defined here as an environment
+	# Remove cbase from the arg list, and make it the environment
+	formals(printfun) <- alist(coef=, var=, var2=, df=, history=)
+	tempenv <- new.env(parent=globalenv())
+	assign('cbase',  knots[2:nvar] + (rx[1] -knots[1]), envir=tempenv)
+	environment(printfun) <- tempenv
+	}
+    else {
+	# Somewhat simpler in Splus, but because it depends on the 
+	#  undocumented manner in which functions are stored, it might
+	#  stop working one day
+	printfun[[6]] <- knots[2:nvar] + (rx[1] - knots[1])
+	}
+	
     if (method=='fixed') {
 	temp <- list(pfun=pfun,
 		     printfun=printfun,
