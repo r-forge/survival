@@ -14,7 +14,7 @@ frailty.t <- function(x, sparse=(nclass>5), theta, df, eps= 1e-5,  tdf=5,
 	x <- as.factor(x)
 	if (is.R()) class(x) <- c("coxph.penalty",class(x))
 	else        oldClass(x) <- "coxph.penalty"
-	attr(x,'contrasts') <- function(n,...) contr.treatment(n,FALSE)
+	attr(x,'contrasts') <- contr.treatment(nclass, contrasts=FALSE)
         }
 
     if (tdf <=2) stop("Cannot have df <3 for the t-frailty")

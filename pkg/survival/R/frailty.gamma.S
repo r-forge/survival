@@ -8,7 +8,7 @@ frailty.gamma <- function(x, sparse=(nclass >5), theta, df, eps= 1e-5,
     if (sparse)	x <-as.numeric(as.factor(x))
     else{
 	x <- as.factor(x)
-	attr(x,'contrasts') <- function(n,...) contr.treatment(n,FALSE)
+	attr(x,'contrasts') <- contr.treatment(nclass, contrasts=FALSE)
                 }
     if (is.R()) class(x) <- c("coxph.penalty",class(x))
     else        oldClass(x) <- "coxph.penalty"

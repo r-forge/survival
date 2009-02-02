@@ -32,9 +32,17 @@ frailty.gaussian <- function(x, sparse=(nclass >5), theta, df,
 	}
     else{
 	x <- as.factor(x)
-	if (is.R()) class(x) <- c("coxph.penalty",class(x))
-	else        oldClass(x) <- "coxph.penalty"
-	attr(x,'contrasts') <- function(n,...) contr.treatment(n,FALSE)
+	if (is.R()) {
+            class(x) <- c("coxph.penalty", class(x))
+            attr(x, 'contrasts') <- contr.treatment(nclass, contrasts=FALSE)
+            }
+	else {
+            oldClass(x) <- "coxph.penalty"
+            # Splus allows us to pass a function as the contrast, R doesn't
+            # For large values of nclass the function is smaller
+            #  (But for really large ones you'ld use sparse=T.)
+            attr(x,'contrasts') <- function(n,...) contr.treatment(n,FALSE)
+            }
         }
     if (!missing(theta) & !missing(df)) 
 	    stop("Cannot give both a df and theta argument")
