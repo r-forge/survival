@@ -84,7 +84,7 @@ static double *mark, *wtave;
 static double *a, *oldbeta, *a2;
 static double *offset, *weights;
 static int    *status, *frail, *sort;
-static double *score, *time;
+static double *score, *ttime;  /* Hp-UX really doesn't like "time" as a var */
 static double *tmean;
 static int    ptype, pdiag;
 static double *ipen, *upen, logpen;
@@ -98,7 +98,8 @@ void coxfit5_a(Sint *nusedx, Sint *nvarx, double *yy,
 	       double *means, double *beta, double *u, 
 	       double *loglik, 
 	       Sint *methodx, Sint *ptype2, Sint *pdiag2,
-	       Sint *nfrail,  Sint *frail2) {
+	       Sint *nfrail,  Sint *frail2,
+               void *fexpr1, void *fexpr2, void *rho) {
 S_EVALUATOR
     int i,j,k, p, istrat;
     int ii; 
@@ -119,7 +120,7 @@ S_EVALUATOR
     ptype = *ptype2;
     pdiag = *pdiag2;
 
-    /*
+   /*
     **  Allocate storage for the arrays and vectors
     **  Since they will be used later, sizes are based on what will be
     **    needed with the frailty terms.
@@ -139,7 +140,7 @@ S_EVALUATOR
     offset  = weights + nused;
     score   = offset + nused;
     tmean   = score + nused;
-    time    = tmean + nvar2;
+    ttime    = tmean + nvar2;
     status  = Calloc(2*nused, int);
     sort    = status + nused;
     for (i=0; i<nused; i++) {
@@ -147,7 +148,7 @@ S_EVALUATOR
 	offset[i]  = offset2[i];
 	status[i]  = yy[nused +i];
 	sort[i]    = sorted[i];
-	time[i]    = yy[i];
+	ttime[i]    = yy[i];
         }
 
     /* scratch space for penalty 
@@ -185,7 +186,7 @@ S_EVALUATOR
 	    ndead=0;
 	    for (j=i; j<nused; j++) {
 		k = sort[j];
-		if ((time[k] != time[p]) || (j==strata[istrat])) break;
+		if ((ttime[k] != ttime[p]) || (j==strata[istrat])) break;
 		ndead += status[p];
 		temp += weights[k];
 		}
@@ -271,7 +272,7 @@ S_EVALUATOR
     */
     if (ptype==2 || ptype==3) {
 	/* there are non-sparse terms */
-	cox_callback(2, beta, upen, ipen, &logpen, zflag);
+	cox_callback(2, beta, upen, ipen, &logpen, zflag, nvar, fexpr2, rho);
 	*loglik += logpen;
         }
     }
@@ -285,7 +286,8 @@ void coxfit5_b(Sint *maxiter, Sint *nusedx, Sint *nvarx,
 	       Sint *strata, double *beta, double *u,
 	       double *imat2,  double *jmat2, double *loglik, 
 	       Sint *flag,  double *eps, double *tolerch, Sint *methodx, 
-	       Sint *nfrail, double *fbeta, double *fdiag)
+	       Sint *nfrail, double *fbeta, double *fdiag,
+               void *fexpr1, void *fexpr2, void *rho)
 {
 S_EVALUATOR
     int i,j,k, p;
@@ -293,13 +295,13 @@ S_EVALUATOR
     int     iter;
     int     nused, nvar;
     int    nf, nvar2;
-    int    fgrp;
+    int    fgrp=0;
     int    halving;
 
-    double  denom, zbeta, risk;
+    double  denom=0, zbeta, risk;
     double  temp, temp2;
-    double  newlk;
-    double  d2, efron_wt;
+    double  newlk=0;
+    double  d2, efron_wt=0;
     double  method;
     double  **imat, **jmat;
     double  ndead;
@@ -418,7 +420,7 @@ S_EVALUATOR
         */
 	if (ptype==1 || ptype==3) {
 	    /* there are sparse terms */
-    	    cox_callback(1, fbeta, upen, ipen, &logpen, zflag); 
+    	    cox_callback(1, fbeta, upen, ipen, &logpen, zflag, nf, fexpr1,rho); 
 	    if (zflag[0] ==1) {  /* force terms to zero */
 		for (i=0; i<nf; i++) {
 		    u[i]=0;
@@ -437,7 +439,7 @@ S_EVALUATOR
 
 	if (ptype==2 || ptype==3) {
 	    /* there are non-sparse terms */
-	    cox_callback(2, beta, upen, ipen, &logpen, zflag);
+	    cox_callback(2, beta, upen, ipen, &logpen, zflag, nvar, fexpr2,rho);
 	    newlk += logpen;
 	    if (pdiag==0) {
 		for (i=0; i<nvar; i++) {
@@ -576,7 +578,6 @@ S_EVALUATOR
            method,
 	   ip, istrat,
            i, j;
-    int    scount;   /* number so far in this strata */
 
     nused = *nusedx;
     method= *methodx;
