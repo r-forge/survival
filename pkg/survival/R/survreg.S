@@ -9,9 +9,11 @@ survreg <- function(formula, data, weights, subset, na.action,
 	model=FALSE, x=FALSE, y=TRUE, robust=FALSE, score=FALSE,  ...) {
 
     Call <- match.call()   # save a copy of the call
-    temp <- call('model.frame', formula=formula)
-    for (i in c("data", "weights", "subset", "na.action")) #add optional args
-        if (!is.null(Call[[i]])) temp[[i]] <- Call[[i]]
+    indx <- match(c("formula", "data", "weights", "subset", "na.action"),
+                  names(Call), nomatch=0) 
+    if (indx[1] ==0) stop("A formula argument is required")
+    temp <- Call[c(1,indx)]  # only keep the arguments we wanted
+    temp[[1]] <- as.name('model.frame')  # change the function called
 
     if (is.R()) m <- eval(temp, parent.frame())
     else        m <- eval(temp, sys.parent())
@@ -213,7 +215,7 @@ survreg <- function(formula, data, weights, subset, na.action,
         }
 
     if (is.R()) {
-        if (any(pterms)) class(fit) <- 'survreg.penal'
+        if (any(pterms)) class(fit) <- c('survreg.penal', 'survreg')
         else	         class(fit) <- 'survreg'
         }
     else {

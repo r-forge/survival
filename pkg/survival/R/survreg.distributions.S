@@ -130,7 +130,7 @@ loglogistic = list(
 t = list(
     name  = "Student-t",
     variance = function(df) df/(df-2),
-    parms = list(df=4),
+    parms = c(df=4),
     init  = function(x, weights, df) {
 	if (df <=2) stop ("Degrees of freedom must be >=3")
 	mean <- sum(x*weights)/ sum(weights)
