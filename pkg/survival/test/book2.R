@@ -88,10 +88,6 @@ resid(fit)
 resid(fit, 'scor')
 resid(fit, 'scho')
 
-resid(fit)
-resid(fit, 'scor')
-resid(fit, 'scho')
-
 predict(fit, type='lp')
 predict(fit, type='risk')
 predict(fit, type='expected')
