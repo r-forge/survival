@@ -166,7 +166,7 @@ as.character.Surv <- function(x) {
         type <- attr(x, 'type')
         if (is.R()) {
             ctemp <- class(x)
-            class(x) <- NULL
+            class(x) <- 'matrix'
             x <- x[i,, drop=FALSE]
             class(x) <- ctemp
             attr(x, 'type') <- type
@@ -182,14 +182,14 @@ as.character.Surv <- function(x) {
             }
         }
     else { # return  a matrix or vector
-	if (is.R()) class(x) <- NULL
+	if (is.R()) class(x) <- 'matrix'
         else oldClass(x) <- NULL
 	NextMethod("[")
 	}
     }
 
 is.na.Surv <- function(x) {
-    as.vector(1* (rowSums(is.na(unclass(x))) >0))
+    as.vector(rowSums(is.na(unclass(x))) >0)
     }
 
 Math.Surv <- function(...)  stop("Invalid operation on a survival time")
