@@ -98,7 +98,8 @@ void agfit5_a(Sint *nusedx, Sint *nvarx, double *yy,
 	       double *means, double *beta, double *u, 
 	       double *loglik, 
 	       Sint *methodx, Sint *ptype2, Sint *pdiag2,
-	       Sint *nfrail,  Sint *frail2) {
+	       Sint *nfrail,  Sint *frail2,
+               void *fexpr1, void *fexpr2, void *rho) {
 
     S_EVALUATOR
 
@@ -286,7 +287,7 @@ void agfit5_a(Sint *nusedx, Sint *nvarx, double *yy,
     */
     if (ptype==2 || ptype==3) {
 	/* there are non-sparse terms */
-	cox_callback(2, beta, upen, ipen, &logpen, zflag);
+	cox_callback(2, beta, upen, ipen, &logpen, zflag, nvar, fexpr2, rho);
 	*loglik += logpen;
         }
     }
@@ -301,7 +302,8 @@ void agfit5_b(Sint *maxiter, Sint *nusedx, Sint *nvarx,
 	       Sint *strata, double *beta, double *u,
 	       double *imat2,  double *jmat2, double *loglik, 
 	       Sint *flag,  double *eps, double *tolerch, Sint *methodx, 
-	       Sint *nfrail, double *fbeta, double *fdiag)
+	       Sint *nfrail, double *fbeta, double *fdiag,
+               void *fexpr1, void *fexpr2, void *rho)
 {
 S_EVALUATOR
 
@@ -526,7 +528,7 @@ S_EVALUATOR
 	*/
 	if (ptype==1 || ptype==3) {
 	    /* there are sparse terms */
-	    cox_callback(1, fbeta, upen, ipen, &logpen, zflag); 
+	    cox_callback(1, fbeta, upen, ipen, &logpen, zflag, nf, fexpr1,rho); 
 	    if (zflag[0] ==1) {  /* force terms to zero */
 		for (i=0; i<nf; i++) {
 		    u[i]=0;
@@ -545,7 +547,7 @@ S_EVALUATOR
 
 	if (ptype==2 || ptype==3) {
 	    /* there are non-sparse terms */
-	    cox_callback(2, beta, upen, ipen, &logpen, zflag);
+	    cox_callback(2, beta, upen, ipen, &logpen, zflag, nvar, fexpr2, rho);
 	    newlk += logpen;
 	    if (pdiag==0) {
 		for (i=0; i<nvar; i++) {
