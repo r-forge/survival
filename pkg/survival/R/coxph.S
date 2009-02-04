@@ -154,9 +154,10 @@ coxph <- function(formula, data, weights, subset, na.action,
 	   else             stop(msg)
 	   }
 	fit$n <- nrow(Y)
-	oldClass(fit) <-  fit$method[1]
 	fit$terms <- Terms
 	fit$assign <- assign
+        if (is.R()) class(fit) <- fit$method	
+        else       oldClass(fit) <-  fit$method[1]
 	if (robust) {
 	    fit$naive.var <- fit$var
 	    fit$method    <- method
