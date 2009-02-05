@@ -73,6 +73,12 @@ frailty.t <- function(x, sparse=(nclass>5), theta, df, eps= 1e-5,  tdf=5,
 	list(coef=c(NA, NA, NA, test, df, 1-pchisq(test, df2)),
 		 history=paste("Variance of random effect=", format(theta)))
 	}
+    # The final coxph object will contain a copy of printfun.  Stop it from
+    #   also containing huge unnecessary variables, e.g. 'x', known at this 
+    #   point in time.  Not an issue for pfun, which does not get saved.
+    # The reason for using the survival namespace instead of globalenv() is 
+    # that we call coxph.wtest, which may not be visible outside the name space
+    if (is.R()) environment(printfun) <- asNamespace('survival')
 
     if (method=='fixed') {
 	temp <- list(pfun=pfun, pparm=tdf,

@@ -72,6 +72,10 @@ frailty.gaussian <- function(x, sparse=(nclass >5), theta, df,
 	list(coef=c(NA, NA, NA, test, df, 1-pchisq(test, df2)),
 		 history=paste("Variance of random effect=", format(theta)))
 	}
+    # The final coxph object will contain a copy of printfun.  Stop it from
+    #   also containing huge unnecessary variables, e.g. 'x', known at this 
+    #   point in time.  Not an issue for pfun, which does not get saved.
+    if (is.R()) environment(printfun)<- asNamespace('survival')
 
    if (method=='reml') {
 	temp <- list(pfun=pfun, 

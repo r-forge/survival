@@ -59,6 +59,12 @@ frailty.gamma <- function(x, sparse=(nclass >5), theta, df, eps= 1e-5,
 	                       "  I-likelihood =", 
 		         format(round(clog,1), digits=10)))
 	}
+    # The final coxph object will contain a copy of printfun.  Stop it from
+    #   also containing huge unnecessary variables, e.g. 'x', known at this 
+    #   point in time.  Not an issue for pfun, which does not get saved.
+    # Setting to globalenv() won't work since coxph.wtest is not visible 
+    #   outside the survival library's name space.
+    if (is.R()) environment(printfun) <- asNamespace('survival')
 
     if (method=='fixed') {
 	temp <- list(pfun=pfun,
