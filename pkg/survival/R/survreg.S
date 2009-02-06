@@ -107,6 +107,12 @@ survreg <- function(formula, data, weights, subset, na.action,
     if (is.null(dlist$itrans)) itrans <- function(x) x
     else itrans <- dlist$itrans
 
+    if (!is.null(dlist$scale)) {
+        if (!missing(scale)) warning(paste(dlist$name, 
+                           "has a fixed scale, user specified value ignored"))
+        scale <- dlist$scale
+        }
+
     if (!is.null(dlist$dist))
         if (is.atomic(dlist$dist)) dlist <- survreg.distributions[[dlist$dist]]
         else                       dlist <- dlist$dist
@@ -137,7 +143,7 @@ survreg <- function(formula, data, weights, subset, na.action,
     else control <- do.call('survreg.control', control)
 
     # The any() construction below is to catch a user that mistakenly
-    #  thinks that 'scale' can be used in a model with multile strata, and
+    #  thinks that 'scale' can be used in a model with multiple strata, and
     #  so provided a vector of scale values.
     # (A 'perhaps should be be added someday' feature).
     if (any(scale < 0)) stop("Invalid scale value")

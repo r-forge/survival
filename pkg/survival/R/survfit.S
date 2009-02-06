@@ -36,20 +36,27 @@ survfit <- function (formula, ...) {
     else {
         if (is.null(i)) keep <- seq(along.with=x$time)
         else {
-            if (is.null(x$ntimes.strata)) strata.var <- x$strata
-            else strata.var <- x$ntimes.strata
-            if (is.character(i)) strat <- rep(names(x$strata), strata.var)
-            else                 strat <- rep(1:length(x$strata), strata.var)
+            if (is.character(i)) {
+                strat <- rep(names(x$strata), x$strata)
+                indx  <- match(i, names(x$strata))
+                if (any(is.na(indx))) {
+                    stop(paste("subscript(s)", 
+                               paste(i[is.na(indx)], collapse=' '),
+                               'not matched'))
+                    }
+                }
+            else {
+                strat <- rep(1:length(x$strata), x$strata)
+                indx <- i
+                }
             keep <- seq(along.with=strat)[match(strat, i, nomatch=0)>0]
             if (length(i) <=1) x$strata <- NULL
-            else               x$strata  <- x$strata[i]
-            if (!is.null(x$ntimes.strata)) {
-                x$strata.all <- x$strata.all[i]
-                x$ntimes.strata <- x$ntimes.strata[i]
-                }
+            else               x$strata  <- x$strata[indx]
+
             x$time    <- x$time[keep]
             x$n.risk  <- x$n.risk[keep]
             x$n.event <- x$n.event[keep]
+            x$n       <- x$n[indx]
             }
         if (is.matrix(x$surv)) {
             if (is.null(j)) {

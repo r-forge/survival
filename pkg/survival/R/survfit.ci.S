@@ -127,36 +127,6 @@ survfit.ci <- function(X, Y, weights=rep(1, length(x)),
 	etype2 <- as.numeric(etype)      # numeric etypes
         netype <- length(levels(etype))
 
-        # If the absorb argument is present, it lists the etypes that are
-        #  "absorbing" etypes.  If someone's last transition is at time
-        #  t to a non-absorbing etype, that is, to a etype that allows
-        #  further transitions out of it, then we have to censor them at
-        #  time t+0.
-        # If the argument is absent, consider all etypes prior to the last of
-        #  each subject to be non-absorbing (a transition was from them).
-        # To process the data, we need to figure out each subject's last
-        #  observation. The status variable is set to 2 for
-        #  "had an event, it's their last obs, new etype not absorbing".
-        temp <- order(id, time)
-        id2 <- id[temp]                 #sorted by time within subject
-        indx <- match(idlist, id2)      #first obs for each subject
-        lastone <- c(indx[-1]-1, length(id2))  #last obs for each person
-        lastone <- temp[lastone]   #put index back into data set order
-        
-        if (!missing(absorb)) {
-            absorb <- match(absorb, levels(etype))
-            if (any(is.na(absorb)))
-              stop("The absorb argument contains levels not found in the data")
-            not.absorb <- c(0, (1:netype)[-absorb])
-            }
-        else {
-            # All etypes except the last are non-absorbing ones.
-            not.absorb <- sort(unique(c(0, etype[-lastone])))
-            }
-
-        who <-  (status==1) & (!is.na(match(etype2, not.absorb)))
-        status[lastone[who[lastone]]] <- 2
-
 	# This function creates a single survival curve
 	docurve <- function(time, status, etype, weights, id, netype) {
 	    n <- length(time)
@@ -203,22 +173,22 @@ survfit.ci <- function(X, Y, weights=rep(1, length(x)),
 			}
 		    }
 
-		# Now, redistribute the weights if those who are censored
-		redo <- (status!=1  & time==xtime)  #censored at this time
-		if (any(redo)) {
-		    who2 <- (1:n)[redo]  #list of those censored here
-		    for (j in who2) {
-			# list of others in the same etype, at this time, with
-			#   a positive weight
-			k <- wtindex[j]
-			child <- (cetype==cetype[k] & wt2 >0)
-			nchild <- sum(child) -1  # since "child" counts me too
-			# if no children, the weight is not redistributed
-			if (nchild >0){
-			    wt2[child] <- wt2[child] + wt2[k]/nchild
-			    wt2[k] <- 0
-			    }
-			}
+		# Now, redistribute the weights if those who are at the end
+                # of their last interval.  Note that a death will never get
+                # redistributed, because there is no one to recieve it: that
+                # would require the data to have an obs with futime after death
+		redo <- which(time==xtime) 
+                for (j in redo) {
+                    # list of others in the same etype, at this time, with
+                    #   a positive weight
+                    k <- wtindex[j]
+                    child <- (cetype==cetype[k] & wt2 >0)
+                    nchild <- sum(child) -1  # since "child" counts me too
+                    # if no children, the weight is not redistributed
+                    if (nchild >0){
+                        wt2[child] <- wt2[child] + wt2[k]/nchild
+                        wt2[k] <- 0
+                        }
 		    }
 		}
 	    list(time=timelist, surv= 1.0 - surv, n.risk=nrisk,
@@ -264,7 +234,6 @@ survfit.ci <- function(X, Y, weights=rep(1, length(x)),
 	    if (se.fit) kfit$std.err <- t(matrix(unlist(varhaz),nrow=netype))
 	    }
 	dimnames(kfit$surv) <- list(NULL, levels(as.factor(etype)))
-        kfit$absorb <- levels(etype)[-not.absorb]
         }	
 
     #	

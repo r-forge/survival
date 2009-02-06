@@ -205,7 +205,7 @@ residuals.survreg <- function(object, type=c('response', 'deviance',
     # Collapse if desired
     if (!missing(collapse)) {
 	if (length(collapse) !=n) stop("Wrong length for 'collapse'")
-	rr <- rowsum(rr, collapse)
+	rr <- drop(rowsum(rr, collapse))
 	}
 
     rr

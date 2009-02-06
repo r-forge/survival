@@ -169,8 +169,8 @@ residuals.coxph <-
     # Collapse if desired
     if (!missing(collapse)) {
 	if (length(collapse) !=n) stop("Wrong length for 'collapse'")
-	rr <- rowsum(rr, collapse)
-  	if (type=='deviance') status <- rowsum(status, collapse)
+	rr <- drop(rowsum(rr, collapse))
+  	if (type=='deviance') status <- drop(rowsum(status, collapse))
 	}
 
     # Deviance residuals are computed after collapsing occurs
