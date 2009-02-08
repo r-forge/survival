@@ -34,4 +34,4 @@ Statistics in Medicine, 8:907-925.
 \seealso{
 aareg
 }
-\examples{
+

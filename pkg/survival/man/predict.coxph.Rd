@@ -5,8 +5,8 @@
   Predictions for a Cox model 
 }
 \description{
-Compute fitted values and regression terms for a model fitted by \code{\link{cox
-ph}}
+  Compute fitted values and regression terms for a model fitted by
+  \code{\link{coxph}}
 }
 \usage{
 \method{predict}{coxph}(object, newdata,

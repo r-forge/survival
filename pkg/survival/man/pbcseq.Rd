@@ -2,7 +2,7 @@
 \alias{pbcseq}
 \docType{data}
 \title{Mayo Clinic Primary Biliary Cirrhosis, sequential data}
-\description{D
+\description{
 This data is a continuation of the PBC data set,
 and contains the follow-up laboratory data for each study patient.
 An analysis based on the data can be found in Murtagh, et. al.
@@ -32,11 +32,11 @@ The missing values are thus potentially informative.
     age:\tab in years\cr
     sex:\tab m/f\cr
     trt:\tab 1/2/NA for D-penicillmain, placebo, not randomised\cr
-    time: \tab number of days between registration and the earlier of death,\cr
+    time:\tab number of days between registration and the earlier of death,\cr
        \tab transplantion, or study analysis in July, 1986\cr
     status:\tab status at endpoint, 0/1/2 for censored, transplant, dead\cr
     day:\tab number of days between enrollment and this visit date\cr
-        \tab all measurements below refer to this date
+       \tab all measurements below refer to this date\cr
     albumin:\tab serum albumin (mg/dl)\cr
     alk.phos:\tab alkaline phosphotase (U/liter)\cr
     ascites:\tab presence of ascites \cr
@@ -56,7 +56,7 @@ The missing values are thus potentially informative.
 }
 \source{
   T Therneau and P Grambsch,
-  \emph{Modeling Survival Data: Extending the Cox Model},
+  "Modeling Survival Data: Extending the Cox Model",
   Springer-Verlag, New York, 2000.
   ISBN: 0-387-98784-3.
 }
@@ -65,7 +65,7 @@ The missing values are thus potentially informative.
   Langworthy AL. Gips CH.  "Primary biliary cirrhosis: prediction of short-term
   survival based on repeated patient visits." Hepatology. 20(1.1):126-34, 1994.
 
-  Fleming T and Harrington D., \emph{Counting Processes and Survival Analysis}.
+  Fleming T and Harrington D., "Counting Processes and Survival Analysis",
   Wiley, New York, 1991.
   }
 \keyword{datasets}

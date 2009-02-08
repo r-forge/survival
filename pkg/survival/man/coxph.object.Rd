@@ -2,7 +2,6 @@
 \alias{coxph.object}
 \alias{extractAIC.coxph.penal}
 \alias{print.coxph}
-\alias{summary.coxph}
 \title{
   Proportional Hazards Regression Object 
 }

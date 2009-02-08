@@ -61,6 +61,7 @@ Consequently, this function has very few error checks on its input arguments.
 \seealso{
 \code{\link{survexp}},  \code{\link{survexp.us}}.   
 }
-\keyword{survival4}
+\keyword{survival
+}
 % docclass is function
 % Converted by Sd2Rd version 37351.

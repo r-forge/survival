@@ -3,7 +3,7 @@
 \alias{Math.ratetable}
 \alias{Ops.ratetable}
 \title{
-  Verify that an object is of class \code{ratetable}. 
+  Verify that an object is of class ratetable. 
 }
 \description{
 The function verifies not only the \code{class} attribute, but the 

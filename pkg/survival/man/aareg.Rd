@@ -13,7 +13,7 @@ weights=&lt;&lt;see below&gt;&gt;,
     subset=&lt;&lt;see below&gt;&gt;, na.action, 
    qrtol=1e-07, nmin, dfbeta=F, taper=1,
    test = c('aalen', 'nrisk'),
-    model=F, x=F, y=F) {
+    model=F, x=F, y=F) 
 }
 \arguments{
 \item{formula}{
@@ -134,10 +134,10 @@ print.aareg, summary.aareg, plot.aareg
 }
 \examples{
 # Fit a model to the lung cancer data set
-> lfit <- aareg(Surv(time, status) ~ age + sex + ph.ecog, data=lung,
+lfit <- aareg(Surv(time, status) ~ age + sex + ph.ecog, data=lung,
                      nmin=1)
-
-> lfit
+\dontrun{
+lfit
 Call:
 aareg(formula = Surv(time, status) ~ age + sex + ph.ecog, data = lung, nmin = 1
         )
@@ -153,29 +153,29 @@ Intercept  5.26e-03  5.99e-03 4.74e-03  1.26 0.207000
 
 Chisq=26.73 on 3 df, p=6.7e-06; test weights=aalen
 
-> plot(lfit[4], ylim=c(-4,4))  # Draw a plot of the function for ph.ecog
-
-> lfit2 <- aareg(Surv(time, status) ~ age + sex + ph.ecog, data=lung,
+plot(lfit[4], ylim=c(-4,4))  # Draw a plot of the function for ph.ecog
+}
+lfit2 <- aareg(Surv(time, status) ~ age + sex + ph.ecog, data=lung,
                   nmin=1, taper=1:10)
-> lines(lfit2[4], col=2)  # Nearly the same, until the last point
+\dontrun{lines(lfit2[4], col=2)  # Nearly the same, until the last point}
 
 # A fit to the mulitple-infection data set of children with
 # Chronic Granuomatous Disease.  See section 8.5 of Therneau and Grambsch.
-> fita2 <- aareg(Surv(tstart, tstop, status) ~ rx + age + inherit +
-                         steroids + cluster(id), data=cgd1)
-> fit2a
+fita2 <- aareg(Surv(tstart, tstop, status) ~ treat + age + inherit +
+                         steroids + cluster(id), data=cgd)
+\dontrun{
   n= 203 
     69 out of 70 unique event times used
 
-              slope      coef se(coef) robust se     z        p 
-Intercept  0.012800  0.040600 0.021300  0.019600  2.08 0.037800
-       rx -0.002520 -0.010100 0.002290  0.003020 -3.36 0.000787
-      age -0.000101 -0.000317 0.000115  0.000117 -2.70 0.006840
-  inherit  0.001330  0.003830 0.002800  0.002420  1.58 0.114000
- steroids -0.004620 -0.013200 0.010600  0.009700 -1.36 0.173000
+                     slope      coef se(coef) robust se     z        p
+Intercept         0.004670  0.017800 0.002780  0.003910  4.55 5.30e-06
+treatrIFN-g      -0.002520 -0.010100 0.002290  0.003020 -3.36 7.87e-04
+age              -0.000101 -0.000317 0.000115  0.000117 -2.70 6.84e-03
+inheritautosomal  0.001330  0.003830 0.002800  0.002420  1.58 1.14e-01
+steroids          0.004620  0.013200 0.010600  0.009700  1.36 1.73e-01
 
 Chisq=16.74 on 4 df, p=0.0022; test weights=aalen
 }
+}
 \keyword{survival}
 % docclass is function
-% Converted by Sd2Rd version 37351.

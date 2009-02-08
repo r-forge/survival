@@ -22,135 +22,135 @@ survfit(formula, data, weights, subset, na.action,
         conf.lower=c("usual", "peto", "modified"), start.time)
 }
 \arguments{
-\item{formula}{
-a formula object or a \code{coxph} object. 
-If a formula object is supplied it must have a 
-\code{Surv} object as the  
-response on the left of the \code{~} operator and, if desired, terms  
-separated by + operators on the right. 
-One of the terms may be a \code{strata} object.
-For a single survival curve the right hand side should be \code{~ 1}.
-}
-\item{data}{
-a data frame in which to interpret the variables named in the formula, 
-\code{subset} and \code{weights} arguments. 
-}
-\item{weights}{
-The weights must be nonnegative and it is strongly recommended that  
-they be strictly positive, since zero weights are ambiguous, compared 
-to use of the \code{subset} argument.
-This argument is ignored when the first argument is a Cox model.
-}
-\item{subset}{
-expression saying that only a subset of the rows of the data 
-should be used in the fit. 
-}
-\item{na.action}{
-a missing-data filter function, applied to the model frame, after any 
-\code{subset} argument has been used. 
-Default is \code{options()$na.action}. 
-}
-\item{newdata}{
-a data frame with the same variable names as those that appear 
-in the \code{coxph} formula.  
-Only applicable when \code{formula} is a 
-\code{coxph} object. 
-The curve(s) produced will be representative of a cohort who's 
-covariates correspond to the values in \code{newdata}. 
-Default is the mean of the covariates used in the 
-\code{coxph} fit. 
-}
-\item{individual}{
-  a logical value indicating whether each row of \code{newdata} represents
-a distinct individual (FALSE, the default), 
-or if each row of the data frame represents different 
-time epochs for only one individual (TRUE).  
-In the former case the result will have one curve for each row in
-\code{newdata}, in the latter only a single curve will be produced.
-}
-\item{etype} {
-a variable giving the type of event.
-Presence of this variable signals the program to compute the cumulative
-incidece estimate.  For each event \code{status==1}, the etype
-variable indicates the type of event.  For a censored observation the
-value of \code{etype} is ignored - but do not set it to NA, since that
-will cause na.action to delete the observation.
-}
-\item{id}
-identifies individual subjects, when a given person can have multiple
-lines of data. when used with the \code{etype} variable, this allows
-the compuation of
-a cumulative prevalence estimate, i.e., the incidence over time.
-}
-\item{conf.int}{
-the level for a two-sided confidence interval on the survival curve(s). 
-Default is 0.95. 
-}
-\item{se.fit}{
-a logical value indicating whether standard errors should be 
-computed.  Default is \code{TRUE}. 
-}
-\item{type}{
-a character string specifying the type of survival curve. 
-Possible values are \code{"kaplan-meier"}, 
-\code{"fleming-harrington"} or \code{"fh2"} 
-if a formula is given 
-and \code{"aalen"} or \code{"kaplan-meier"} 
-if the first argument is a \code{coxph} object, 
-(only the first two characters are necessary). 
-The default is \code{"aalen"} when 
-a \code{coxph} object is given, 
-and it is \code{"kaplan-meier"} otherwise.  
-Earlier versions of \code{survfit} 
-used \code{type="tsiatis"} to get the \code{"aalen"} estimator.  For backward 
-compatibility, this is still allowed. 
-}
-\item{error}{
-a character string specifying the error.  Possible values are 
-\code{"greenwood"} for the Greenwood formula or 
-\code{"tsiatis"} for the Tsiatis formula, 
-(only the first character is 
-necessary).  
-The default is \code{"tsiatis"} when 
-a \code{coxph} object is given, and it is \code{"greenwood"} otherwise. 
-}
-\item{conf.type}{
-  One of \code{"none"}, \code{"plain"}, \code{"log"} (the default),
-or \code{"log-log"}.  Only
-enough of the string to uniquely identify it is necessary.
-The first option causes confidence intervals not to be
-generated.  The second causes the standard intervals
-\code{curve +- k *se(curve)}, where k is determined from
-\code{conf.int}.  The log option calculates intervals based on the
-cumulative hazard or log(survival). The last option bases
-intervals on the log hazard or log(-log(survival)). 
-}
-\item{conf.lower}{
-a character string to specify modified lower limits to the curve, the 
-upper limit remains unchanged.  
-Possible values are \code{"usual"} (unmodified), 
-\code{"peto"}, 
-and \code{"modified"}.  T
-he modified lower limit 
-is based on an "effective n" argument.  The confidence 
-bands will agree with the usual calculation at each death time, but unlike 
-the usual bands the confidence interval becomes wider at each censored 
-observation.  The extra width is obtained by multiplying the usual 
-variance by a factor m/n, where n is the number currently at risk and 
-m is the number at risk at the last death time.  (The bands thus agree 
-with the un-modified bands at each death time.) 
-This is especially useful for survival curves with a long flat tail. 
+  \item{formula}{
+    a formula object or a \code{coxph} object. 
+    If a formula object is supplied it must have a 
+    \code{Surv} object as the  
+    response on the left of the \code{~} operator and, if desired, terms  
+    separated by + operators on the right. 
+    One of the terms may be a \code{strata} object.
+    For a single survival curve the right hand side should be \code{~ 1}.
+  }
+  \item{data}{
+    a data frame in which to interpret the variables named in the formula, 
+    \code{subset} and \code{weights} arguments. 
+  }
+  \item{weights}{
+    The weights must be nonnegative and it is strongly recommended that  
+    they be strictly positive, since zero weights are ambiguous, compared 
+    to use of the \code{subset} argument.
+    This argument is ignored when the first argument is a Cox model.
+  }
+  \item{subset}{
+    expression saying that only a subset of the rows of the data 
+    should be used in the fit. 
+  }
+  \item{na.action}{
+    a missing-data filter function, applied to the model frame, after any 
+    \code{subset} argument has been used. 
+    Default is \code{options()$na.action}. 
+  }
+  \item{newdata}{
+    a data frame with the same variable names as those that appear 
+    in the \code{coxph} formula.  
+    Only applicable when \code{formula} is a 
+    \code{coxph} object. 
+    The curve(s) produced will be representative of a cohort who's 
+    covariates correspond to the values in \code{newdata}. 
+    Default is the mean of the covariates used in the 
+    \code{coxph} fit. 
+  }
+  \item{individual}{
+    a logical value indicating whether each row of \code{newdata} represents
+    a distinct individual (FALSE, the default), 
+    or if each row of the data frame represents different 
+    time epochs for only one individual (TRUE).  
+    In the former case the result will have one curve for each row in
+    \code{newdata}, in the latter only a single curve will be produced.
+  }
+  \item{etype} {
+    a variable giving the type of event.
+    Presence of this variable signals the program to compute the cumulative
+    incidece estimate.  For each event \code{status==1}, the etype
+    variable indicates the type of event.  For a censored observation the
+    value of \code{etype} is ignored - but do not set it to NA, since that
+    will cause na.action to delete the observation.
+  }
+  \item{id} {
+    identifies individual subjects, when a given person can have multiple
+    lines of data. when used with the \code{etype} variable, this allows
+    the compuation of
+    a cumulative prevalence estimate, i.e., the incidence over time.
+  }
+  \item{conf.int}{
+    the level for a two-sided confidence interval on the survival curve(s). 
+    Default is 0.95. 
+  }
+  \item{se.fit}{
+    a logical value indicating whether standard errors should be 
+    computed.  Default is \code{TRUE}. 
+  }
+  \item{type}{
+    a character string specifying the type of survival curve. 
+    Possible values are \code{"kaplan-meier"}, 
+    \code{"fleming-harrington"} or \code{"fh2"} 
+    if a formula is given 
+    and \code{"aalen"} or \code{"kaplan-meier"} 
+    if the first argument is a \code{coxph} object, 
+    (only the first two characters are necessary). 
+    The default is \code{"aalen"} when 
+    a \code{coxph} object is given, 
+    and it is \code{"kaplan-meier"} otherwise.  
+    Earlier versions of \code{survfit} 
+    used \code{type="tsiatis"} to get the \code{"aalen"} estimator.  For backward 
+    compatibility, this is still allowed. 
+  }
+  \item{error}{
+    a character string specifying the error.  Possible values are 
+    \code{"greenwood"} for the Greenwood formula or 
+    \code{"tsiatis"} for the Tsiatis formula, 
+    (only the first character is 
+    necessary).  
+    The default is \code{"tsiatis"} when 
+    a \code{coxph} object is given, and it is \code{"greenwood"} otherwise. 
+  }
+  \item{conf.type}{
+    One of \code{"none"}, \code{"plain"}, \code{"log"} (the default),
+    or \code{"log-log"}.  Only
+    enough of the string to uniquely identify it is necessary.
+    The first option causes confidence intervals not to be
+    generated.  The second causes the standard intervals
+    \code{curve +- k *se(curve)}, where k is determined from
+    \code{conf.int}.  The log option calculates intervals based on the
+    cumulative hazard or log(survival). The last option bases
+    intervals on the log hazard or log(-log(survival)). 
+  }
+  \item{conf.lower}{
+    a character string to specify modified lower limits to the curve, the 
+    upper limit remains unchanged.  
+    Possible values are \code{"usual"} (unmodified), 
+    \code{"peto"}, 
+    and \code{"modified"}.  T
+    he modified lower limit 
+    is based on an "effective n" argument.  The confidence 
+    bands will agree with the usual calculation at each death time, but unlike 
+    the usual bands the confidence interval becomes wider at each censored 
+    observation.  The extra width is obtained by multiplying the usual 
+    variance by a factor m/n, where n is the number currently at risk and 
+    m is the number at risk at the last death time.  (The bands thus agree 
+    with the un-modified bands at each death time.) 
+    This is especially useful for survival curves with a long flat tail. 
 
-The Peto lower limit is based on the same "effective n" argument as the 
-modified limit, but also replaces the usual Greenwood variance term with 
-a simple approximation.  It is known to be conservative. 
-}
-\item{start.time}{
-numeric value specifying a time to start calculating survival
-information.
-The resulting curve is the survival conditional on surviving to
-\code{start.time}.
-}
+    The Peto lower limit is based on the same "effective n" argument as the 
+    modified limit, but also replaces the usual Greenwood variance term with 
+    a simple approximation.  It is known to be conservative. 
+  }
+  \item{start.time}{
+    numeric value specifying a time to start calculating survival
+    information.
+    The resulting curve is the survival conditional on surviving to
+    \code{start.time}.
+  }
 }
 \value{
 an object of class \code{"survfit"}.  

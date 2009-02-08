@@ -40,4 +40,5 @@ mycauchy <- list(name='Cauchy',
                  )
 
 survregDtest(mycauchy, T)
+}
 \keyword{survival}

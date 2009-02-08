@@ -175,4 +175,4 @@ hearta <- do.call("rbind", hearta)
 pyears(stop/365.25 ~ tcut(age + 48, c(0,50,60,70,100)) + 
        surgery, data = hearta, scale = 1) 
 }
-\keyword{survival4}
+\keyword{survival}

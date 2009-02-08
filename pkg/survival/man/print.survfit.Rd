@@ -73,6 +73,6 @@ New York:Wiley, p 71.
 \seealso{
 \code{\link{summary.survfit}}. 
 }
-\keyword{survival4}
+\keyword{survival}
 % docclass is function
 % Converted by Sd2Rd version 37351.

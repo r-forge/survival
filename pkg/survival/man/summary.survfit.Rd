@@ -1,42 +1,45 @@
 \name{summary.survfit}
 \alias{summary.survfit}
-\alias{print.summary.survfit}
 \title{
   Summary of a Survival Curve 
 }
 \description{
-Returns a list containing the survival curve, confidence limits for the 
-curve, and other information. 
+  Returns a list containing the survival curve, confidence limits for the 
+  curve, and other information. 
 }
+
 \usage{
-\method{summary{survfit}(object, times=, censored=FALSe, scale=1, extend=FALSE)
-}
-\arguments{
-\item{object}{
-the result of a call to the \code{survfit} function. 
-}
-\item{times}{
-vector of times; 
-the returned matrix will contain 1 row for each time. 
-This must be in increasing order and missing values are not allowed. 
-If \code{censored=T}, the default \code{times} vector contains all the unique times in 
-\code{fit}, 
-otherwise the default \code{times} vector uses only the event (death) times. 
-}
-\item{censored}{
-logical value:  should the censoring times be included in the output?
-This is ignored if the \code{times} argument is present. 
-}
-\item{scale}{
-numeric value to rescale the survival time, e.g., if the input data to 
-\code{survfit} were in 
-days, \code{scale = 365.25} would scale the output to years. 
-}
-\item{extend}{
-logical value: if TRUE, prints information for all specified \code{times}, 
-even if there are no subjects left at the end of the specified \code{times}. 
-This is only valid if the \code{times} argument is present. 
-}
+  \method{summary{survfit}(object, times=, censored=FALSe, scale=1,
+          extend=FALSE)
+  }
+  \arguments{
+    \item{object}{
+      the result of a call to the \code{survfit} function. 
+    }
+    \item{times}{
+    vector of times; 
+    the returned matrix will contain 1 row for each time. 
+    This must be in increasing order and missing values are not allowed. 
+    If \code{censored=T}, the default \code{times} vector contains all
+    the unique times in \code{fit}, otherwise
+    the default \code{times} vector uses only the event (death) times. 
+    }
+    \item{censored}{
+    logical value:  should the censoring times be included in the output?
+    This is ignored if the \code{times} argument is present. 
+    }
+    \item{scale}{
+    numeric value to rescale the survival time, e.g., if the input data to 
+    \code{survfit} were in 
+    days, \code{scale = 365.25} would scale the output to years. 
+    }
+    \item{extend}{
+    logical value: if TRUE, prints information for all specified \code{times}, 
+    even if there are no subjects left at the end of the specified
+    \code{times}. 
+    This is only valid if the \code{times} argument is present. 
+    }
+  }
 }
 \value{
 a list with the following components: 

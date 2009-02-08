@@ -129,6 +129,6 @@ rfit2a <- survreg(Surv(time, status) ~ rx +
                   frailty.gaussian(litter, df=13, sparse=FALSE), rats )
 rfit2b <- survreg(Surv(time, status) ~ rx +
                   frailty.gaussian(litter, df=13, sparse=TRUE), rats )
-
+}
 \keyword{survival}
 
