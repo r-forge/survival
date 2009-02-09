@@ -8,8 +8,8 @@ survfit.coxph.null <-
     #  This is survfit.coxph with lots of lines removed
 
     call <- match.call()
-    Terms <- terms(object)
     object <- formula
+    Terms <- terms(object)
     strat <- attr(Terms, "specials")$strata
     n <- object$n
     score <- exp(object$linear.predictor)
