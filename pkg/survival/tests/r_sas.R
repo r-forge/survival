@@ -1,4 +1,5 @@
-options(na.action=na.exclude, contrasts=c(contr.treatment, contr.poly))  #preserve length of missings
+options(na.action=na.exclude) # preserve missings
+options(contrasts=c('contr.treatment', 'contr.poly')) #ensure constrast type
 library(survival)
 
 #
@@ -6,6 +7,7 @@ library(survival)
 #
 
 # this fit doesn't give the same log-lik that they claim
+motor <- read.table('data.motor', col.names=c('temp', 'time', 'status'))
 fit1 <- survreg(Surv(time, status) ~ I(1000/(273.2+temp)), motor,
 		subset=(temp>150), dist='lognormal')
 summary(fit1)
@@ -225,12 +227,12 @@ qstat <- function(data) {
     qsurvreg(plist, temp$coef, temp$scale, dist='lognormal')
     }
 
-if (exists('bootstrap') {
+{if (exists('bootstrap')) {
     bfit <- bootstrap(tdata, qstat, B=1000)
     bci <- limits.bca(bfit, probs=c(.025, .975))
     }
 else {
-    values <- matrix(0, nrow=n, ncol=length(plist))
+    values <- matrix(0, nrow=1000, ncol=length(plist))
     n <- nrow(tdata)
     for (i in 1:1000) {
         subset <- sample(1:n, n, replace=T)
@@ -238,7 +240,7 @@ else {
         }
     bci <- t(apply(values,2, quantile, c(.05, .95)))
     }
-
+ }
 xmat <- cbind(qsurvreg(plist, tfit$coef, tfit$scale, dist='lognormal'),
               bci)
 

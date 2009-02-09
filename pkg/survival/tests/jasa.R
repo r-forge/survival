@@ -1,4 +1,5 @@
-options(na.action=na.exclude, contrasts=c(contr.treatment, contr.poly))  #preserve length of missings
+options(na.action=na.exclude) # preserve missings
+options(contrasts=c('contr.treatment', 'contr.poly')) #ensure constrast type
 library(survival)
 
 expect <- survexp(futime ~ ratetable(age=(accept.dt - birth.dt), sex=1,

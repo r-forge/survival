@@ -1,4 +1,5 @@
-options(na.action=na.exclude, contrasts=c(contr.treatment, contr.poly))  #preserve length of missings
+options(na.action=na.exclude) # preserve missings
+options(contrasts=c('contr.treatment', 'contr.poly')) #ensure constrast type
 library(survival)
 
 # From Gail, Sautner and Brown, Biometrics 36, 255-66, 1980

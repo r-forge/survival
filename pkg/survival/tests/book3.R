@@ -1,4 +1,5 @@
-options(na.action=na.exclude, contrasts=c(contr.treatment, contr.poly))  #preserve length of missings
+options(na.action=na.exclude) # preserve missings
+options(contrasts=c('contr.treatment', 'contr.poly')) #ensure constrast type
 library(survival)
 
 #
@@ -64,7 +65,6 @@ byhand <- function(beta, newx=0) {
 
 
 aeq <- function(x,y) all.equal(as.vector(x), as.vector(y))
-options(na.action='na.exclude, contrasts=c(contr.treatment, contr.poly)')
 
 fit0 <-coxph(Surv(start, stop, event) ~x, test2, iter=0, method='breslow')
 truth0 <- byhand(0,0)

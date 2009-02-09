@@ -1,10 +1,13 @@
-options(na.action=na.exclude, contrasts=c(contr.treatment, contr.poly))  #preserve length of missings
+options(na.action=na.exclude) # preserve missings
+options(contrasts=c('contr.treatment', 'contr.poly')) #ensure constrast type
 library(survival)
 
 #
 # Test out the t-distribution
 #
 
+capacitor <- read.table('data.capacitor', row.names=1,
+			col.names=c('', 'days', 'event', 'voltage'))
 # First, a t-dist with 500 df should be nearly identical to the Gaussian
 
 fitig <- survreg(Surv(days, event)~voltage, 

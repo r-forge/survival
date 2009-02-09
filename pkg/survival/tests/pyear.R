@@ -1,5 +1,15 @@
-options(na.action=na.exclude, contrasts=c(contr.treatment, contr.poly))  #preserve length of missings
+options(na.action=na.exclude) # preserve missings
+options(contrasts=c('contr.treatment', 'contr.poly')) #ensure constrast type
 library(survival)
+{if (is.R()) mdy.date <- function(m, d, y) {
+    y <- ifelse(y<100, y+1900, y)
+    as.Date(paste(m,d,y, sep='/'), "%m/%d/%Y")
+    }
+else mdy.date <- function(m,d,y) {
+    y <- ifelse(y<100, y+1900, y)
+    timeDate(paste(y, m, d, sep='/'), in.format="%Y/%m/%d")
+    }
+ }
 
 # 
 # Simple case: a single male subject, born 6/6/36 and entered on study 6/6/55.
@@ -41,7 +51,7 @@ all.equal(1*(xx>0), py1$n)
 #
 py2 <- pyears(temp.time ~ temp.age + temp.yr
 		+ ratetable(age=temp2-temp1, year=temp2, sex=1),
-	     scale=1, ratetable=survexp.uswhite ) #output in days
+	     scale=1, ratetable=survexp.us ) #output in days
 all.equal(xx, py2$pyears)
 all.equal(203, py2$offtable)
 all.equal(1*(xx>0), py2$n)
@@ -49,7 +59,7 @@ all.equal(1*(xx>0), py2$n)
 
 py3 <-  pyears(temp.time ~ temp.age + temp.yr
 		+ ratetable(age=temp2-temp1, year=temp2, sex=1),
-	     scale=1, ratetable=survexp.uswhite , expect='pyears')
+	     scale=1, ratetable=survexp.us , expect='pyears')
 all.equal(py2$n, py3$n)
 all.equal(py2$pyear, py3$pyear)
 all.equal(py3$n, 1*(py3$expect>0))

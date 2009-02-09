@@ -1,10 +1,9 @@
-options(na.action=na.exclude, contrasts=c(contr.treatment, contr.poly))  #preserve length of missings
+options(na.action=na.exclude) # preserve missings
+options(contrasts=c('contr.treatment', 'contr.poly')) #ensure constrast type
 library(survival)
 
 #  Tests of expected survival
-attach("../data/.RData", pos=3)  # make sure we have the ratetables
 aeq <- function(x,y) all.equal(as.vector(x), as.vector(y))
-
 #
 # This makes several scripts easier
 #  Certain tests depended in the now-depreciated date library
