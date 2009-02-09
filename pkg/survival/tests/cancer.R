@@ -1,3 +1,6 @@
+options(na.action=na.exclude, contrasts=c(contr.treatment, contr.poly))  #preserve length of missings
+library(survival)
+
 #
 # Test out all of the routines on a more complex data set
 #

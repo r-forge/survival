@@ -1,3 +1,6 @@
+options(na.action=na.exclude, contrasts=c(contr.treatment, contr.poly))  #preserve length of missings
+library(survival)
+
 # From Gail, Sautner and Brown, Biometrics 36, 255-66, 1980
 
 # 48 rats were injected with a carcinogen, and then randomized to either

@@ -1,3 +1,6 @@
+options(na.action=na.exclude, contrasts=c(contr.treatment, contr.poly))  #preserve length of missings
+library(survival)
+
 expect <- survexp(futime ~ ratetable(age=(accept.dt - birth.dt), sex=1,
 		year=accept.dt, race='white'), jasa, cohort=F, 
                   ratetable=survexp.usr)

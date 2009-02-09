@@ -1,3 +1,6 @@
+options(na.action=na.exclude, contrasts=c(contr.treatment, contr.poly))  #preserve length of missings
+library(survival)
+
 capacitor <- read.table('data.capacitor', row.names=1,
 			col.names=c('', 'days', 'event', 'voltage'))
 

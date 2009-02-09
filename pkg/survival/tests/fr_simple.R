@@ -1,3 +1,6 @@
+options(na.action=na.exclude, contrasts=c(contr.treatment, contr.poly))  #preserve length of missings
+library(survival)
+
 #
 # Test the logic of the penalized code by fitting some no-frailty models
 #  (theta=0).  It should give exactly the same answers as 'ordinary' coxph.

@@ -1,3 +1,6 @@
+options(na.action=na.exclude, contrasts=c(contr.treatment, contr.poly))  #preserve length of missings
+library(survival)
+
 #
 # Trivial test of stratified residuals
 #   Make a second strata = replicate of the first, and I should get the

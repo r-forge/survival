@@ -1,3 +1,6 @@
+options(na.action=na.exclude, contrasts=c(contr.treatment, contr.poly))  #preserve length of missings
+library(survival)
+
 #
 # A test of the match.ratetable function, specifically the
 #  change to allow partial matching of strings 

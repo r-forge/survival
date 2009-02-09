@@ -1,3 +1,6 @@
+options(na.action=na.exclude, contrasts=c(contr.treatment, contr.poly))  #preserve length of missings
+library(survival)
+
 #
 # The Stanford data from 1980 is used in Escobar and Meeker
 #	t5 = T5 mismatch score

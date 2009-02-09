@@ -1,3 +1,6 @@
+options(na.action=na.exclude, contrasts=c(contr.treatment, contr.poly))  #preserve length of missings
+library(survival)
+
 # From:	McGilchrist and Aisbett, Biometrics 47, 461-66, 1991
 # Data on the recurrence times to infection, at the point of insertion of
 #  the catheter, for kidney patients using portable dialysis equipment.

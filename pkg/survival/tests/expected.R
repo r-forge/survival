@@ -1,3 +1,6 @@
+options(na.action=na.exclude, contrasts=c(contr.treatment, contr.poly))  #preserve length of missings
+library(survival)
+
 #  Tests of expected survival
 attach("../data/.RData", pos=3)  # make sure we have the ratetables
 aeq <- function(x,y) all.equal(as.vector(x), as.vector(y))

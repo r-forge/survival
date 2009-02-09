@@ -1,10 +1,13 @@
+options(na.action=na.exclude, contrasts=c(contr.treatment, contr.poly))  #preserve length of missings
+library(survival)
+
 #
 # Simple tests of concordance.  These numbers were derived in multiple
 #   codes.
 #
 aeq <- function(x,y, ...) all.equal(as.vector(x), as.vector(y), ...)
 
-tdata <- aml[aml$group=='Maintained',]
+tdata <- aml[aml$x=='Maintained',]
 y <- c(1,6,2,7,3,7,3,8,4,4,5)
 fit <- survConcordance(Surv(time, status) ~y, tdata)
 aeq(fit$stats, c(14,24,2,0,15))

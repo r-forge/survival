@@ -1,3 +1,6 @@
+options(na.action=na.exclude, contrasts=c(contr.treatment, contr.poly))  #preserve length of missings
+library(survival)
+
 aeq <- function(x,y, ...) all.equal(as.vector(x), as.vector(y), ...)
 
 lfit2 <- survreg(Surv(time, status) ~ age + ph.ecog + strata(sex), lung)

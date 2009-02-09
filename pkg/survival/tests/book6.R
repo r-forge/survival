@@ -1,3 +1,6 @@
+options(na.action=na.exclude, contrasts=c(contr.treatment, contr.poly))  #preserve length of missings
+library(survival)
+
 # Tests of the weighted Cox model
 #  This is section 1.3 of my appendix -- no yet found in any of the
 #  printings though, it awaits the next edition

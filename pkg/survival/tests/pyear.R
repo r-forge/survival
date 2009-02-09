@@ -1,3 +1,6 @@
+options(na.action=na.exclude, contrasts=c(contr.treatment, contr.poly))  #preserve length of missings
+library(survival)
+
 # 
 # Simple case: a single male subject, born 6/6/36 and entered on study 6/6/55.
 #

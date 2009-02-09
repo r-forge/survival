@@ -1,3 +1,6 @@
+options(na.action=na.exclude, contrasts=c(contr.treatment, contr.poly))  #preserve length of missings
+library(survival)
+
 # Tests of the weighted Cox model
 #
 # Similar data set to test1, but add weights,
@@ -210,7 +213,9 @@ rm(fit, fit0, rr1, rr2, dt, dt0)
 #
 # Effect of weights on the robust variance
 #
-test1 <- data.frame(test1,
+test1 <- data.frame(time=  c(9, 3,1,1,6,6,8),
+                    status=c(1,NA,1,0,1,1,0),
+                    x=     c(0, 2,1,1,1,0,0),
 		    wt=    c(3,0,1,1,1,1,1))
 testx <- data.frame(time=  c(4,4,4,1,1,2,2,3),
                     status=c(1,1,1,1,0,1,1,0),

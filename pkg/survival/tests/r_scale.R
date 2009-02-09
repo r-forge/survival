@@ -1,3 +1,6 @@
+options(na.action=na.exclude, contrasts=c(contr.treatment, contr.poly))  #preserve length of missings
+library(survival)
+
 #
 # Verify that scale can be fixed at a value
 #    coefs will differ slightly due to different iteration paths

@@ -1,3 +1,6 @@
+options(na.action=na.exclude, contrasts=c(contr.treatment, contr.poly))  #preserve length of missings
+library(survival)
+
 #
 # Data courtesy of Bercedis Peterson, Duke University.
 #  v4 of survreg fails due to 2 groups that have only 1 subject; the coef

@@ -1,3 +1,6 @@
+options(na.action=na.exclude, contrasts=c(contr.treatment, contr.poly))  #preserve length of missings
+library(survival)
+
 #
 # Tests from the appendix of Therneau and Grambsch
 #  a. Data set 1 and Breslow estimate
@@ -46,7 +49,7 @@ byhand1 <- function(beta, newx=0) {
 
 
 aeq <- function(x,y) all.equal(as.vector(x), as.vector(y))
-options(na.action='na.exclude')
+options(na.action='na.exclude, contrasts=c(contr.treatment, contr.poly)')
 
 fit0 <-coxph(Surv(time, status) ~x, test1, iter=0, method='breslow')
 truth0 <- byhand1(0,0)
@@ -63,7 +66,7 @@ fit1 <- coxph(Surv(time, status) ~x, test1, iter=1, method='breslow')
 aeq(fit1$coef, 8/5)
 
 # This next gives an ignorable warning message
-fit3 <- coxph(Surv(time, status) ~x, test1, method='breslow', iter=3)
+fit2 <- coxph(Surv(time, status) ~x, test1, method='breslow', iter=3)
 aeq(round(fit2$coef, 6), 1.472724)
 
 fit <- coxph(Surv(time, status) ~x, test1, method='breslow', eps=1e-8)

@@ -1,3 +1,6 @@
+options(na.action=na.exclude, contrasts=c(contr.treatment, contr.poly))  #preserve length of missings
+library(survival)
+
 # Tests of the weighted Cox model, AG form of the data
 #   Same solution as book5 and book6
 #

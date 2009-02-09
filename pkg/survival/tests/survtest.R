@@ -1,3 +1,6 @@
+options(na.action=na.exclude, contrasts=c(contr.treatment, contr.poly))  #preserve length of missings
+library(survival)
+
 #
 # Simple test of (start, stop] Kaplan-Meier curves, using the test2 data
 #   set

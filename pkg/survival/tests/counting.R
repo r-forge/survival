@@ -1,3 +1,6 @@
+options(na.action=na.exclude, contrasts=c(contr.treatment, contr.poly))  #preserve length of missings
+library(survival)
+
 # Create a "counting process" version of the simplest test data set
 #
 test1 <- data.frame(time=  c(9, 3,1,1,6,6,8),

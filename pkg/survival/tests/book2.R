@@ -1,3 +1,6 @@
+options(na.action=na.exclude, contrasts=c(contr.treatment, contr.poly))  #preserve length of missings
+library(survival)
+
 #
 # Tests from the appendix of Therneau and Grambsch
 #  b. Data set 1 and Efron estimate
@@ -55,7 +58,7 @@ byhand <- function(beta, newx=0) {
 
 
 aeq <- function(x,y) all.equal(as.vector(x), as.vector(y))
-options(na.action='na.exclude')
+options(na.action='na.exclude, contrasts=c(contr.treatment, contr.poly)')
 
 fit0 <-coxph(Surv(time, status) ~x, test1, iter=0)
 truth0 <- byhand(0,0)

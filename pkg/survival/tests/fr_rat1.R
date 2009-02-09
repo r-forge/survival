@@ -1,3 +1,6 @@
+options(na.action=na.exclude, contrasts=c(contr.treatment, contr.poly))  #preserve length of missings
+library(survival)
+
 # Tests using the rats data
 #
 #  (Female rats, from Mantel et al, Cancer Research 37,
