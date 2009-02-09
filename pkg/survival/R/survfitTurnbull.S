@@ -49,7 +49,7 @@ survfitTurnbull <- function(x, y, casewt=rep(1,n),
     #  and convert "left" to "interval" style.
     stype <- attr(y, 'type')
     if (stype=='counting') 
-	    stop("survfit.turnbull not appropriate for counting process data")
+	    stop("survfitTurnbull not appropriate for counting process data")
     if (stype=='interval') status <- y[,3]
     if (stype=='left') status <- ifelse(y[,2]==0,2,1)
     if (stype=='right')status <- y[,2]
@@ -174,7 +174,7 @@ survfitTurnbull <- function(x, y, casewt=rep(1,n),
 	    wt2 <- wtmat %*% diag(jumps)
 	    wt2 <- (lwt/(apply(wt2,1,sum))) * wt2 
 	    wt2 <- apply(wt2, 2, sum)
-	    tfit <- survfit.km(tempx, tempy, casewt=c(wt[status<2], wt2), ...)
+	    tfit <- survfitKM(tempx, tempy, casewt=c(wt[status<2], wt2), ...)
 
 	    if (FALSE) {
                 # these lines are in for debugging: change the above to 
