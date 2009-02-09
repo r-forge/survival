@@ -13,7 +13,7 @@ export("Surv", "aareg", "attrassign",
      "psurvreg", "qsurvreg", "dsurvreg",
      "pspline", "pyears", "ratetable",  
      "ridge", "strata", "survConcordance",
-     "survSplit", "survdiff", "survexp",  "survfit","survfit.km" ,
+     "survSplit", "survdiff", "survexp",  "survfit" ,
      "survobrien",  "survreg", "survreg.control", "survreg.fit",
      "survreg.distributions", "survregDtest", "tcut", 
      "untangle.specials")
