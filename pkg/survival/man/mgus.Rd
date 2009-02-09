@@ -16,7 +16,7 @@ mgus2
 \format{
   mgus: A data frame with 241 observations on the following 12 variables.
   \tabular{ll}{
-    id:\tab subject id} \cr
+    id:\tab subject id \cr
     age:\tab age in years \cr
     sex:\tab \code{male} or \code{female} \cr
     dxyr:\tab year of diagnosis \cr

@@ -104,7 +104,7 @@ also print the data as a matrix).
 \seealso{
 \code{\link{plot.survfit}},  
 \code{\link{summary.survfit}},
-\code{\line{print.survfit}},
+\code{\link{print.survfit}},
 \code{\link{survfit}}.   
 }
 \keyword{survival}

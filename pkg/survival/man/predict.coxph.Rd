@@ -11,7 +11,7 @@
 \usage{
 \method{predict}{coxph}(object, newdata,
 type=c("lp", "risk", "expected", "terms"),
-se.fit=FALSE, terms=names(object$assign)), collapse)
+se.fit=FALSE, terms=names(object$assign), collapse)
 }
 \arguments{
 \item{object}{

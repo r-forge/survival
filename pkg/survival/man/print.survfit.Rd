@@ -10,7 +10,7 @@ standard error, and the median survival with confidence limits for the
 median. 
 }
 \usage{
-\method{print}{suvfit}(x, scale=1, digits = max(options()$digits - 4,3),
+\method{print}{survfit}(x, scale=1, digits = max(options()$digits - 4,3),
     rmean = getOption('survfit.rmean'))
 }
 \arguments{

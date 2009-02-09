@@ -10,13 +10,13 @@ side of a formula.
 Using \code{cluster()} in a formula implies that
 robust sandwich variance estimators are desired.}
 \usage{
-  cluster(x)
+cluster(x)
 }
 \arguments{
-\item{x}{
-  A character, factor, or numeric variable. 
+  \item{x}{
+    A character, factor, or numeric variable. 
+  }
 }
-
 \value{
   \code{x} 
 }
@@ -34,5 +34,5 @@ marginal.model <- coxph(Surv(time, status) ~ rx + cluster(litter), rats)
 frailty.model  <- coxph(Surv(time, status) ~ rx + frailty(litter), rats)
 }
 \keyword{survival}
-\keyword{cluster}
+
 
