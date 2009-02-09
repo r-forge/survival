@@ -9,9 +9,7 @@
   \code{\link{coxph}}
 }
 \usage{
-\method{predict}{coxph}(object, newdata,
-type=c("lp", "risk", "expected", "terms"),  
-se.fit=FALSE, terms=names(object$assign)), collapse)
+\method{predict}{coxph}(object, newdata, type=c("lp", "risk", "expected", "terms"),  se.fit=FALSE, terms=names(object$assign)), collapse)
 }
 \arguments{
 \item{object}{

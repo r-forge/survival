@@ -1,13 +1,13 @@
 \name{print.aareg}
 \alias{print.aareg}
 \title{
-  Print an <s-object>aareg</s-object> object
+  Print an aareg object
 }
 \description{
 Print out a fit of Aalen's additive regression model
 }
 \usage{
-print.aareg(x, maxtime, weight=c("var", "nrisk"))
+\method{print}{aareg}(x, maxtime, test=c("aalen", "nrisk"))
 }
 \arguments{
 \item{x}{
@@ -16,7 +16,7 @@ the result of a call to the \code{aareg} function
 \item{maxtime}{
 the upper time point to be used in the test for non-zero slope
 }
-\item{weight}{
+\item{test}{
 the weighting to be used in the test for non-zero slope.
 The default weights are based on the variance of each coefficient, as
 a function of time.  The alternative weight is proportional to the number

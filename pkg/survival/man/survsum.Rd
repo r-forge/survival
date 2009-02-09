@@ -9,10 +9,7 @@ at risk at specified times for defined groups.  Test for difference between
 survival curves. 
 }
 \usage{
-survsum(formula, data=sys.parent(), sptms=NULL, xlim,  
-tlines=T, log=F, xscale=1,yscale=100, mark.time=F, mark=3,  
-cex=1, xlab="Time", ylab="Survival (%)", lgd="bl", 
-ttl="K-M Survival",...)
+survsum(formula, data, sptms=NULL, xlim, tlines=T, log=F, xscale=1,yscale=100, mark.time=F, mark=3, cex=1, xlab="Time", ylab="Survival (%)", lgd="bl", ttl="K-M Survival",...)
 }
 \arguments{
 \item{formula}{

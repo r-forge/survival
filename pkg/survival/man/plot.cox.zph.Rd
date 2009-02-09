@@ -7,7 +7,7 @@
 Displays a graph of the scaled Schoenfeld residuals, along with a smooth curve. 
 }
 \usage{
-plot.cox.zph(x, resid=TRUE, se=TRUE, df=4, nsmo=40, var, \dots)
+\method{plot}{cox.zph}(x, resid=TRUE, se=TRUE, df=4, nsmo=40, var, \dots)
 }
 \arguments{
 \item{x}{
@@ -46,8 +46,8 @@ a plot is produced on the current graphics device.
 \code{\link{coxph}},  \code{\link{cox.zph}}.   
 }
 \examples{
-vfit <- coxph(Surv(survival,status) ~ trt + factor(celltype) + 
-              karno + age, data=veteran, x=T) 
+vfit <- coxph(Surv(time,status) ~ trt + factor(celltype) + 
+              karno + age, data=veteran, x=TRUE) 
 temp <- cox.zph(vfit) 
 plot(temp, var=5)      # Look at Karnofsy score, old way of doing plot 
 plot(temp[5])     # New way with subscripting 

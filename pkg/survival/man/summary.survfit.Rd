@@ -9,8 +9,7 @@
 }
 
 \usage{
-  \method{summary{survfit}(object, times=, censored=FALSe, scale=1,
-          extend=FALSE)
+  \method{summary}{survfit}(object, times=, censored=FALSe, scale=1, extend=FALSE)
   }
   \arguments{
     \item{object}{
@@ -113,7 +112,7 @@ type of data censoring.  Passed through from the fit object.
 \code{\link{survfit}},  \code{\link{print.summary.survfit}}   
 }
 \examples{
-summary( survfit( Surv(futime, fustat), data=ovarian))
+summary( survfit( Surv(futime, fustat)~1, data=ovarian))
 summary( survfit( Surv(futime, fustat)~rx, data=ovarian))
 }
 \keyword{survival}

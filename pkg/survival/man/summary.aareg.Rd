@@ -7,7 +7,7 @@
 Creates the overall test statistics for an Aalen additive regression model
 }
 \usage{
-summary.aareg(x, maxtime, test=c("aalen", "nrisk"), scale=1)
+\method{summary}{aareg}(x, maxtime, test=c("aalen", "nrisk"), scale=1)
 }
 \arguments{
 \item{x}{
@@ -67,9 +67,10 @@ model.
 aareg, plot.aareg
 }
 \examples{
-> afit <- aareg(Surv(time, status) ~ age + sex + ph.ecog, data=lung,
-     dfbeta=T)
-> summary(afit)
+afit <- aareg(Surv(time, status) ~ age + sex + ph.ecog, data=lung,
+     dfbeta=TRUE)
+summary(afit)
+\dontrun{
               slope   test se(test) robust se     z        p 
 Intercept  5.05e-03    1.9     1.54      1.55  1.23 0.219000
       age  4.01e-05  108.0   109.00    106.00  1.02 0.307000
@@ -77,8 +78,10 @@ Intercept  5.05e-03    1.9     1.54      1.55  1.23 0.219000
   ph.ecog  3.01e-03   33.2     9.18      9.17  3.62 0.000299
 
 Chisq=22.84 on 3 df, p=4.4e-05; test weights=aalen
+}
 
-> summary(afit, maxtime=600)
+summary(afit, maxtime=600)
+\dontrun{
               slope   test se(test) robust se      z        p 
 Intercept  4.16e-03   2.13     1.48      1.47  1.450 0.146000
       age  2.82e-05  85.80   106.00    100.00  0.857 0.392000
@@ -86,7 +89,6 @@ Intercept  4.16e-03   2.13     1.48      1.47  1.450 0.146000
   ph.ecog  2.47e-03  31.60     8.91      8.67  3.640 0.000271
 
 Chisq=27.08 on 3 df, p=5.7e-06; test weights=aalen
-}
+}}
 \keyword{survival}
-% docclass is function
-% Converted by Sd2Rd version 37351.
+

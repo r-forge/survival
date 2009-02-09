@@ -7,7 +7,7 @@
 Prints the result of \code{summary.survfit}. 
 }
 \usage{
-print.summary.survfit(x, digits = max(options() $digits-4, 3), ...)
+\method{print}{summary.survfit}(x, digits = max(options() $digits-4, 3), ...)
 }
 \arguments{
 \item{x}{

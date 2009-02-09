@@ -1,28 +1,28 @@
 \name{plot.aareg}
 \alias{plot.aareg}
 \title{
-  Plot an <s-object>aareg</s-object> object.
+  Plot an aareg object.
 }
 \description{
 Plot the estimated coefficient function(s) from a fit
 of Aalen's additive regression model.
 }
 \usage{
-plot.aareg(x, se=T, maxtime, ...)
+\method{plot}{aareg}(x, se=T, maxtime, ...)
 }
 \arguments{
-\item{x}{
-the result of a call to the \code{aareg} function
-}
-\item{se}{
-if TRUE, standard error bands are included on the plot
-}
-\item{maxtime}{
-upper limit for the x-axis.
-}
-\item{\dots }{
-other graphical parameters such as line type, color, or axis labels.
-}
+  \item{x}{
+    the result of a call to the \code{aareg} function
+  }
+  \item{se}{
+    if TRUE, standard error bands are included on the plot
+  }
+  \item{maxtime}{
+    upper limit for the x-axis.
+  }
+  \item{\dots }{
+    other graphical parameters such as line type, color, or axis labels.
+  }
 }
 \section{Side Effects}{
 A plot is produced on the current graphical device.

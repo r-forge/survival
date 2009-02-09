@@ -50,7 +50,7 @@ S-plus is sometimes useful.
 \seealso{\code{\link{terms}},\code{\link{model.matrix}}}
 
 \examples{
-formula <- Surv(time,status)~factor(edtrt)
+formula <- Surv(time,status)~factor(edema)
 tt <- terms(formula)
 mf <- model.frame(tt,data=pbc)
 mm <- model.matrix(tt,mf)

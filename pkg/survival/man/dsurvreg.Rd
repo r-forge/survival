@@ -3,16 +3,16 @@
 \alias{psurvreg}
 \alias{qsurvreg}
 \title{
-  Distributions available in <s-expression>survreg</s-expression>.
+  Distributions available in survreg.
 }
 \description{
 Density, cumulative probability, and quantiles for the set of distributions
 supported by the \code{survreg} function.
 }
 \usage{
-dsurvreg(x, mean, scale=1, distribution='weibull')
-psurvreg(q, mean, scale=1, distribution='weibull')
-qsurvreg(p, mean, scale=1, distribution='weibull')
+dsurvreg(x, mean, scale=1, distribution='weibull', parms)
+psurvreg(q, mean, scale=1, distribution='weibull', parms)
+qsurvreg(p, mean, scale=1, distribution='weibull', parms)
 }
 \arguments{
 \item{x}{
@@ -77,23 +77,24 @@ Wiley, New York.
 }
 \seealso{
 \code{\link{survreg}}, 
-\code{\link{Normal}}, <s-function 
-name="Lognormal.sgm">Lognormal</s-function>
+\code{\link{Normal}}
 }
 \examples{
 # List of distributions available
 names(survreg.distributions)
+\dontrun{
  [1] "extreme"     "logistic"    "gaussian"    "weibull"     "exponential"
  [6] "rayleigh"    "loggaussian" "lognormal"   "loglogistic" "t"          
-
+}
 # Compare results
 all.equal(dsurvreg(1:10, 2, 5, dist='lognormal'), dlnorm(1:10, 2, 5))
- [1] T
 
 # Hazard function for a Weibull distribution
 x   <- seq(.1, 3, length=30)
 haz <- dsurvreg(x, 2, 3)/ (1-psurvreg(x, 2, 3))
+\dontrun{
 plot(x, haz, log='xy', ylab="Hazard") #line with slope (1/scale -1)
+}
 }
 \keyword{distribution}
 % docclass is function

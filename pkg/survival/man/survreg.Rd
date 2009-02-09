@@ -18,10 +18,10 @@ variable; the most common cases use a log transformation, leading to
 accelerated failure time models.
 }
 \usage{
-survreg(formula=formula(data), data, subset, 
+survreg(formula=formula(data), data, weights, subset, 
         na.action, dist="weibull", init=NULL, scale=0, 
         control=survreg.control(),parms=NULL,model=FALSE, x=FALSE,
-        y=TRUE, robust=FALSE, \dots)
+        y=TRUE, robust=FALSE, score=FALSE, \dots)
 
 }
 \arguments{
@@ -34,6 +34,7 @@ See the documentation for \code{Surv}, \code{lm} and \code{formula} for details.
 a data frame in which to interpret the variables named in 
 the \code{formula}, \code{weights} or the \code{subset} arguments. 
 }
+\item{weights}{optional vector of case weights}
 \item{subset}{
   subset of the observations to be used in the fit
 }
@@ -68,7 +69,9 @@ a list of control values, in the format producted by \code{survreg.control}.
 flags to control what is returned.  If any of these is true, then the
 model frame, the model matrix, and/or the vector of response times will be
 returned as components of the final result, with the same names as the
-flag arguments.
+flag arguments.}
+\item{score} {return the score vector. (This is expected to be zero upon
+successful convergence.)
 }
 \item{...}{
 other arguments which will be passed to \code{survreg.control}.
@@ -107,8 +110,8 @@ survreg(Surv(days, event) ~ voltage, data=capacitor,
 #   survreg's scale  =    1/(rweibull shape)
 #   survreg's intercept = log(rweibull scale)
 #   For the log-likelihood all parameterizations lead to the same value.
-> y <- rweibull(1000, shape=2, scale=5)
-> survreg(Surv(y)~1, dist="weibull")
+y <- rweibull(1000, shape=2, scale=5)
+survreg(Surv(y)~1, dist="weibull")
 
 # Economists fit a model called `tobit regression', which is a standard
 # linear regression with Gaussian errors, but with left censored data.

@@ -12,10 +12,8 @@ a Cox or survreg model.
 }
 \usage{
 frailty(x, distribution="gamma", ...)
-frailty.gamma(x, sparse = (nclass > 5), theta, df, eps = 1e-05, method = c("em",
-"aic", "df", "fixed"), ...) 
-frailty.gaussian(x, sparse = (nclass > 5), theta, df, method = c("reml","aic", "
-df", "fixed"), ...)
+frailty.gamma(x, sparse = (nclass > 5), theta, df, eps = 1e-05, method = c("em","aic", "df", "fixed"), ...) 
+frailty.gaussian(x, sparse = (nclass > 5), theta, df, method =c("reml","aic", "df", "fixed"), ...)
 frailty.t(x, sparse = (nclass > 5), theta, df, eps = 1e-05, tdf = 5,method = c("
 aic", "df", "fixed"), ...)
 }
@@ -122,7 +120,7 @@ J Computational and Graphical Statistics, 12:156-175, 2003.
 }
 \examples{
 # Random institutional effect
-> coxph(Surv(time, status) ~ age + frailty(inst, df=4), lung)
+coxph(Surv(time, status) ~ age + frailty(inst, df=4), lung)
 
 # Litter effects for the rats data
 rfit2a <- survreg(Surv(time, status) ~ rx +

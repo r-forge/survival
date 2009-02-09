@@ -8,9 +8,7 @@ Returns an object of class \code{"aareg"} that
 represents an Aalen model.
 }
 \usage{
-aareg(formula, data=&lt;&lt;see below&gt;&gt;,
-weights=&lt;&lt;see below&gt;&gt;,  
-    subset=&lt;&lt;see below&gt;&gt;, na.action, 
+aareg(formula, data, weights, subset, na.action,
    qrtol=1e-07, nmin, dfbeta=F, taper=1,
    test = c('aalen', 'nrisk'),
     model=F, x=F, y=F) 
@@ -28,8 +26,8 @@ formula the program will ignore it.
 \item{data}{
 data frame in which to interpret the variables named in the
 \code{formula},
-\code{subset}, and <s-expression>weights
-</s-expression> arguments. This may also be a single number to handle
+\code{subset}, and \code{weights} arguments.
+This may also be a single number to handle
 some speci al cases -- see below for details. If
 \code{data} is missi ng, the variables in the
 model formula should be in the search path.

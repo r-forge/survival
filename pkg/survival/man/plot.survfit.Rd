@@ -135,11 +135,11 @@ in the call to \code{plot.survfit} or \code{lines.survfit}.
 \code{\link{lines.survfit}}.   
 }
 \examples{
-leukemia.surv <- survfit(Surv(time, status) ~ group, data = aml) 
+leukemia.surv <- survfit(Surv(time, status) ~ x, data = aml) 
 plot(leukemia.surv, lty = 2:3) 
 legend(100, .9, c("Maintenance", "No Maintenance"), lty = 2:3) 
 title("Kaplan-Meier Curves\nfor AML Maintenance Study") 
-lsurv2 <- survfit(Surv(time, status) ~ group, aml, type='fleming') 
+lsurv2 <- survfit(Surv(time, status) ~ x, aml, type='fleming') 
 plot(lsurv2, lty=2:3, fun="cumhaz", 
 	xlab="Months", ylab="Cumulative Hazard") 
 }

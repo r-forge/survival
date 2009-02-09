@@ -13,55 +13,56 @@ events in each cell.
 \usage{
 pyears(formula, data, weights, subset, na.action,  
        ratetable=survexp.us, scale=365.25, expect=c('event', 'pyears'),
-       data.frame=FALSE, 
-       model=FALSE, x=FALSE, y=FALSE)
+       model=FALSE, x=FALSE, y=FALSE, data.frame=FALSE)
 }
 \arguments{
-\item{formula}{
-a formula object. 
-The response variable will be a vector of follow-up times 
-for each subject, or a \code{Surv} object containing the survival time and an 
-event indicator. 
-The predictors consist of optional grouping variables 
-separated by + operators (exactly as in \code{survfit}), time-dependent grouping 
-variables such as age (specified with \code{tcut}), and optionally a 
-\code{ratetable} term. 
-This latter matches each subject to his/her expected cohort. 
-}
-\item{data}{
-a data frame in which to interpret the variables named in 
-the \code{formula}, or in the \code{subset} and the \code{weights} argument. 
-}
-\item{weights}{
-case weights. 
-}
-\item{subset}{
-expression saying that only a subset of the rows of the data 
-should be used in the fit. 
-}
-\item{na.action}{
-a missing-data filter function, applied to the model.frame, after any 
-\code{subset} argument has been used.  Default is \code{options()$na.action}. 
-}
-\item{ratetable}{
-a table of event rates, such as \code{survexp.uswhite}. 
-}
-\item{scale}{
-a scaling for the results.  As most rate tables are in units/day, the 
-default value of 365.25 causes the output to be reported in years. 
-}
-\item{expect}{
-should the output table include the expected number of events, or the
-expected number of person-years of observation.  This is only valid with
-a rate table.
-}
-\item{data.frame}
-return a data frame rather than a set of arrays.
-\item{model, x, y}{
-If any of these is true, then the
-model frame, the model matrix, and/or the vector of response times will be
-returned as components of the final result.
-}
+  \item{formula}{
+    a formula object. 
+    The response variable will be a vector of follow-up times 
+    for each subject, or a \code{Surv} object containing the survival
+    time and an event indicator. 
+    The predictors consist of optional grouping variables 
+    separated by + operators (exactly as in \code{survfit}),
+    time-dependent grouping 
+    variables such as age (specified with \code{tcut}), and optionally a 
+    \code{ratetable} term. 
+    This latter matches each subject to his/her expected cohort. 
+  }
+  \item{data}{
+    a data frame in which to interpret the variables named in 
+    the \code{formula}, or in the \code{subset} and the \code{weights}
+    argument. 
+  }
+  \item{weights}{
+    case weights. 
+  }
+  \item{subset}{
+    expression saying that only a subset of the rows of the data 
+    should be used in the fit. 
+  }
+  \item{na.action}{
+    a missing-data filter function, applied to the model.frame, after any 
+    \code{subset} argument has been used.  Default is \code{options()$na.action}. 
+  }
+  \item{ratetable}{
+    a table of event rates, such as \code{survexp.uswhite}. 
+  }
+  \item{scale}{
+    a scaling for the results.  As most rate tables are in units/day, the 
+    default value of 365.25 causes the output to be reported in years. 
+  }
+  \item{expect}{
+    should the output table include the expected number of events, or the
+    expected number of person-years of observation.  This is only valid with
+    a rate table.
+  }
+  \item{data.frame}{
+    return a data frame rather than a set of arrays.}
+  \item{model, x, y}{
+    If any of these is true, then the
+    model frame, the model matrix, and/or the vector of response times will be
+    returned as components of the final result.
+  }
 }
 \value{
 a list with components: 
@@ -150,29 +151,38 @@ Death rates change with age, of course, so the result is carved into
 \code{\link{ratetable}},  \code{\link{survexp}},  \code{\link{Surv}}.   
 }
 \examples{
-# Example 1: 
-attach(makehips) 
-temp1 <- tcut(dt.fracture, seq(from=julian(1,1,30), by=365.25, 
-     length = 61) 
-temp2 <- tcut(age*365.5, 365.25*(0:105))  # max age was > 100! 
-pfit.m <- pyears(Surv(futime, status) ~ temp1 + temp2 + 
-     ratetable(age = age*365.25, year = dt.fracture, 
-     sex=1), subset=(sex==1), ratetable = survexp.minnwhite) 
-# now, convert the arrays into a data frame 
-tdata <- data.frame( age  = (0:105)[col(pfit.m$pyears)], 
-                      yr  = (1930:1990)[row(pfit.m$pyears)], 
-                       y  = c(pfit.m$event), 
-                     time = c(pfit.m$expect)) 
-# fit the gam model 
-gfit.m <- gam(y ~ s(age) + s(yr) + offset(log(time)),  
+# Look at progression rates jointly by calendar date and age
+# 
+temp.yr  <- tcut(mgus$dxyr, 55:92, labels=as.character(55:91)) 
+temp.age <- tcut(mgus$age, 34:101, labels=as.character(34:100))
+ptime <- ifelse(is.na(mgus$pctime), mgus$futime, mgus$pctime)
+pstat <- ifelse(is.na(mgus$pctime), 0, 1)
+pfit <- pyears(Surv(ptime/365.25, pstat) ~ temp.yr + temp.age + sex,  mgus,
+     data.frame=TRUE) 
+# Turn the factor back into numerics for regression
+tdata <- pfit$data
+tdata$age <- as.numeric(as.character(tdata$temp.age))
+tdata$year<- as.numeric(as.character(tdata$temp.yr))
+fit1 <- glm(event ~ year + age+ sex +offset(log(pyears)),
+             data=tdata, family=poisson)
+\dontrun{
+# fit a gam model 
+gfit.m <- gam(y ~ s(age) + s(year) + offset(log(time)),  
                         family = poisson, data = tdata) 
-plot(gfit.m, se = T) 
+}
+
 # Example #2  Create the hearta data frame: 
 hearta <- by(heart, heart$id,  
-             function(x)x[x$stop == man(x$stop),]) 
+             function(x)x[x$stop == max(x$stop),]) 
 hearta <- do.call("rbind", hearta) 
-# Produce pyears table: 
-pyears(stop/365.25 ~ tcut(age + 48, c(0,50,60,70,100)) + 
-       surgery, data = hearta, scale = 1) 
+# Produce pyears table of death rates on the surgical arm
+#  The first is by age at randomization, the second by current age
+fit1 <- pyears(Surv(stop/365.25, event) ~ cut(age + 48, c(0,50,60,70,100)) + 
+       surgery, data = hearta, scale = 1)
+fit2 <- pyears(Surv(stop/365.25, event) ~ tcut(age + 48, c(0,50,60,70,100)) + 
+       surgery, data = hearta, scale = 1)
+fit1$event/fit1$pyears  #death rates on the surgery and non-surg arm
+
+fit2$event/fit2$pyears  #death rates on the surgery and non-surg arm
 }
 \keyword{survival}

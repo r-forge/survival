@@ -7,7 +7,8 @@
   Produces a printed summary of a fitted coxph model 
 }
 \usage{
-summary.coxph(x, coef=T, conf.int=T, digits=max(options()$digits - 4, 3))
+\method{print}{summary.coxph}(x, coef=T, conf.int=T,
+digits=max(options()$digits - 4, 3))
 }
 \arguments{
   \item{x}{

@@ -122,7 +122,7 @@ the result of the subscripting will be a Surv object, e.g.,
 otherwise the result will be a matrix (or vector), in accordance with
 the default behavior for subscripting matrices. 
 }
-}
+
 \seealso{
 \code{\link{coxph}},  
 \code{\link{survfit}},  

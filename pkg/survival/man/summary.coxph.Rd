@@ -4,42 +4,41 @@
   Summary method for Cox models 
 }
 \description{
-Produces a printed summary of a fitted coxph model 
+Produces a summary of a fitted coxph model 
 }
 \usage{
-summary.coxph(cox, coef=T, conf.int=0.95, scale=1, digits=max(options()$digits - 4, 3))
+\method{summary}{coxph}(object, coef=T, conf.int=0.95, scale=1,
+digits=max(options()$digits - 4, 3))
 }
 \arguments{
-\item{cox}{
-the result of a coxph fit 
-}
-\item{coef}{
-logical flag: print the table of coefficients? 
-}
-\item{conf.int}{
-level for computation of the confidence intervals. 
-If set to FALSE no confidence intervals are printed 
-}
-\item{scale}{
-vector of scale factors for the coefficients, defaults to 1. 
-The confidence limits are for the risk change associated with one scale unit. 
-}
-\item{digits}{
-number of significant digits to use in the printout. 
-}
+  \item{object}{
+    the result of a coxph fit 
+  }
+  \item{coef}{
+    logical flag: print the table of coefficients? 
+  }
+  \item{conf.int}{
+    level for computation of the confidence intervals. 
+    If set to FALSE no confidence intervals are printed 
+  }
+  \item{scale}{
+    vector of scale factors for the coefficients, defaults to 1. 
+    The confidence limits are for the risk change associated with one scale unit. 
+  }
+  \item{digits}{
+    number of significant digits to use in the printout. 
+  }
 }
 \value{
-No value is returned. 
-}
-\section{Side Effects}{
-A description of the fit is printed. 
+An object of class \code{summary.coxph}. 
 }
 \seealso{
-coxph, print.coxph  
+  coxph, print.coxph  
 }
 \examples{
-> fit <- coxph(Surv(time, status) ~ age + sex, lung) 
->summary(fit) 
+fit <- coxph(Surv(time, status) ~ age + sex, lung) 
+summary(fit) 
+\dontrun{
 Call: 
 coxph(formula = Surv(time, status) ~ age + sex, data = lung) 
   
@@ -57,7 +56,7 @@ Rsquare= 0.06   (max possible= 0.999 )
 Likelihood ratio test= 14.1  on 2 df,   p=0.000857 
 Wald test            = 13.5  on 2 df,   p=0.00119 
 Score (logrank) test = 13.7  on 2 df,   p=0.00105 
-}
+}}
 \keyword{survival}
 % docclass is function
 % Converted by Sd2Rd version 37351.

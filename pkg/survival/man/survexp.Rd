@@ -141,23 +141,21 @@ Background mortality in clinical survival studies.
 \code{\link{survfit}}, \code{\link{pyears}},  \code{\link{survexp.us}},  \code{\link{survexp.fit}}.   
 }
 \examples{
-# Create new data frame with the largest stop value for each patient 
-hearta <- by(heart, IND=heart$id, FUN=function(x)x[x$stop==max(x$stop),]) 
-hearta <- do.call("rbind", hearta) 
+# 
+# Stanford heart transplant data
 # Estimate of conditional survival  
-survexp(stop ~ ratetable(sex="male", year=year*365.25,  
-          age=(age+48)*365.25), conditional=T, data=hearta) 
+survexp(futime ~ ratetable(sex="male", year=accept.dt,   
+          age=(accept.dt-birth.dt)), conditional=TRUE, data=jasa) 
 # Estimate of conditional survival stratified by prior surgery 
-survexp(stop ~ surgery + ratetable(sex="male", year=year*365.25,  
-	age=(age+48)*365.25), conditional=T, data=hearta) 
-rm(hearta) 
+survexp(futime ~ surgery + ratetable(sex="male", year=accept.dt,  
+	age=(accept.dt-birth.dt)), conditional=TRUE, data=jasa) 
 
 ## Compare the survival curves for the Mayo PBC data to Cox model fit
 ## 
-pfit <-coxph(Surv(time,status) ~ trt + log(bili) + log(protime) + age
-      +platelet, data=pbc, subset=trt>0)
-plot(survfit(surv(time, status) ~ trt, data=pbc, subset=(trt>0))
-lines(survexp( ~ trt, ratetable=pfit, col='purple')
+pfit <-coxph(Surv(time,status>0) ~ trt + log(bili) + log(protime) + age +
+                platelet, data=pbc)
+plot(survfit(Surv(time, status>0) ~ trt, data=pbc))
+lines(survexp( ~ trt, ratetable=pfit, data=pbc), col='purple')
 }
 \keyword{survival}
 

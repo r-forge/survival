@@ -8,7 +8,7 @@ This function computes the concordance between a right-censored
 survival time and a single continuous covariate
 }
 \usage{
-survConcordance(formual, data)
+survConcordance(formula, data, weights, subset, na.action)
 }
 \arguments{
 \item{formula}{
@@ -66,20 +66,23 @@ in the tied.time category).
 summary.coxph
 }
 \examples{
-> survConcordance(Surv(time, status) ~age, data=lung)
+survConcordance(Surv(time, status) ~age, data=lung)
+\dontrun{
   n= 228 
 Concordance= 0.5501899 , Gamma= 0.1034234 
  agree disagree tied.x tied.time incomparable 
  10717     8708    589        28         5836
+}
 
-> fit <- coxph(Surv(time, status) ~ ph.ecog + age + sex, lung)
-> survConcordance(Surv(time, status) ~predict(fit), lung)
-
+options(na.action=na.exclude)
+fit <- coxph(Surv(time, status) ~ ph.ecog + age + sex, lung)
+survConcordance(Surv(time, status) ~predict(fit), lung)
+\dontrun{
   n=227 (1 observations deleted due to missing values)
 Concordance= 0.6371102 , Gamma= 0.2759638 
  agree disagree tied.x tied.time incomparable 
  12544     7118    125        28         5836
-}
+}}
 \keyword{survival}
 % docclass is function
 % Converted by Sd2Rd version 37351.

@@ -1,5 +1,4 @@
 \name{print.survfit}
-\alias{print.survfit}
 \title{
   Print a Short Summary of a Survival Curve 
 }
