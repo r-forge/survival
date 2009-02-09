@@ -1,6 +1,6 @@
 # $Id$
 survfit.coxph.null <-
-  function(object, newdata, se.fit=TRUE, conf.int=.95, individual=FALSE,
+  function(formula, newdata, se.fit=TRUE, conf.int=.95, individual=FALSE,
 	    type, vartype,
 	    conf.type=c('log', 'log-log', 'plain', 'none'), ...) {
     # May have strata and/or offset terms, linear predictor = offset
@@ -9,6 +9,7 @@ survfit.coxph.null <-
 
     call <- match.call()
     Terms <- terms(object)
+    object <- formula
     strat <- attr(Terms, "specials")$strata
     n <- object$n
     score <- exp(object$linear.predictor)

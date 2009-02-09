@@ -9,6 +9,7 @@ survfit.coxph <-
 
     Call <- match.call()
     Call[[1]] <- as.name('survfit')  #nicer output for the user
+    object <- formula     #'formula' because it has to match survfit
     Terms <- terms(object)
     strat <- attr(Terms, "specials")$strata
     cluster<-attr(Terms, "specials")$cluster

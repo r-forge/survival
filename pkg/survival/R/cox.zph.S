@@ -24,7 +24,7 @@ cox.zph <- function(fit, transform='km', global=TRUE) {
 			   'rank'    = rank(times),
 			   'log'     = log(times),
 			   'km' = {
-				temp <- survfit.km(factor(rep(1,nrow(fit$y))),
+				temp <- survfitKM(factor(rep(1,nrow(fit$y))),
 						    fit$y, se.fit=FALSE)
 				# A nuisance to do left cont KM
 				t1 <- temp$surv[temp$n.event>0]

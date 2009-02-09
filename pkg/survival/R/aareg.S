@@ -7,7 +7,7 @@
 # For distribution, the "variance" test is omitted. Not all aspects are
 #   yet supported by the downstream printing.
 #
-aareg <- function(formula, data=sys.parent(), weights, subset, na.action,
+aareg <- function(formula, data, weights, subset, na.action,
                   qrtol=1e-7, nmin, dfbeta=FALSE, taper=1,
 		  test = c('aalen', 'variance', 'nrisk'),
 		  model=FALSE, x=FALSE, y=FALSE) {
