@@ -57,7 +57,7 @@ survfitCI <- function(X, Y, weights=rep(1, length(x)),
     if (missing(id) || length(id)==0) {
         # this case implicitly assumes one transition/subject
         # use survfit.km to get the # at risk and etc
-	kfit <- survfit.km(X, Y, se.fit=FALSE)
+	kfit <- survfitKM(X, Y, se.fit=FALSE)
         
         # partition out the event type
 	if (is.null(kfit$strata)) {
