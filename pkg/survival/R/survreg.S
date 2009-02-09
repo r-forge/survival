@@ -72,6 +72,9 @@ survreg <- function(formula, data, weights, subset, na.action,
     #   is found in the object survreg.distributions, or include a list object
     #   of the same format as is found there.
     if (is.character(dist)) {
+        # partial matching of names in [[ is on its way out in R, so
+        #   first use match.arg, e.g. turn 'exp' into 'exponential'
+        dist <- match.arg(dist, names(survreg.distributions))
 	dlist <- survreg.distributions[[dist]]
 	if (is.null(dlist)) stop(paste(dist, ": distribution not found"))
 	}
