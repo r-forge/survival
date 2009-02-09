@@ -72,12 +72,12 @@ This is the preferred method of addition and is illustrated below.
 }
 \examples{
 # time transformation
-survreg(Surv(time, status) ~ ph.ecog + sex, dist='weibull')
+survreg(Surv(time, status) ~ ph.ecog + sex, dist='weibull', data=lung)
 # change the transformation to work in years
 # intercept changes by log(365), everything else stays the same
 my.weibull <- survreg.distributions$weibull
 my.weibull$trans <- function(y) log(y/365)
-my.weibull$itrans <- function(y) exp(365*y)
+my.weibull$itrans <- function(y) 365*exp(y)
 survreg(Surv(time, status) ~ ph.ecog + sex, lung, dist=my.weibull)
 
 # Weibull parametrisation

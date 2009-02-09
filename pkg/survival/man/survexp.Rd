@@ -94,7 +94,7 @@ based on calendar year, sex and age.
 Then 
 \preformatted{
 haz <- -log(survexp(death.time ~ ratetable(sex=sex, year=entry.dt, 
-            age=(birth.dt-entry.dt)), cohort=F)) 
+            age=(birth.dt-entry.dt)), cohort=FALSE)) 
 }
 gives for each subject the total hazard experienced up to their observed 
 death time or censoring time. 

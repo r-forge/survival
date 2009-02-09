@@ -8,35 +8,38 @@
 Natural history of 241 subjects with monoclonal gammapothy of
 undetermined significance (MGUS).
 }
-\usage{mgus mgus1 mgus2}
+\usage{
+mgus
+mgus1
+mgus2
+}
 \format{
   mgus: A data frame with 241 observations on the following 12 variables.
-  \describe{
-    \item{\code{id}}{subject id}
-    \item{\code{age}}{age in years}
-    \item{\code{sex}}{\code{male} or \code{female}}
-    \item{\code{dxyr}}{year of diagnosis}
-    \item{\code{pcdx}}{for subjects who progress to a plasma cell
-      malignancy, the subtype of malignancy: multiple myeloma (MM) is the
-      most common, followed by amyloidosis (AM), macroglobulinemia (MA),
-      and other lymphprolifative (LP)}
-    \item{\code{pctime}}{days from MGUS until diagnosis of a plasma
-      cell malignancy}
-    \item{\code{futime}}{days from diagnosis to last follow-up}
-    \item{\code{death}}{1= follow-up is until death}
-    \item{\code{alb}}{albumin level at MGUS diagnosis}
-    \item{\code{creat}}{creatinine at MGUS diagnosis}
-    \item{\code{hgb}}{hemoglobin at MGUS diagnosis}
-    \item{\code{mspike}}{size of the monoclonal protien spike at diagnosis}
-  }
+  \tabular{ll}{
+    id:\tab subject id} \cr
+    age:\tab age in years \cr
+    sex:\tab \code{male} or \code{female} \cr
+    dxyr:\tab year of diagnosis \cr
+    pcdx:\tab for subjects who progress to a plasma cell malignancy \cr
+       \tab the subtype of malignancy: multiple myeloma (MM) is the \cr
+       \tab most common, followed by amyloidosis (AM), macroglobulinemia (MA),\cr
+      \tab and other lymphprolifative (LP) \cr
+    pctime:\tab days from MGUS until diagnosis of a plasma cell malignancy \cr
+    futime:\tab days from diagnosis to last follow-up \cr
+    death:\tab 1= follow-up is until death \cr
+    alb:\tab albumin level at MGUS diagnosis \cr
+    creat:\tab creatinine at MGUS diagnosis \cr
+    hgb:\tab hemoglobin at MGUS diagnosis \cr
+    mspike:\tab size of the monoclonal protien spike at diagnosis \cr
+    }
 
-  mgus1: The same data set in start,stop format. Contains the id, age, sex, and
+   mgus1: The same data set in start,stop format. Contains the id, age, sex, and
   laboratory variable described above along with
-  \describe{
-    \item{\code{start, stop}}{sequential intervals of time for each
-      subject}
-    \item{\code{status}}{=1 if the interval ends in an event}
-    \item{\code{event}}{the event type}
+  \tabular{ll}{ 
+    start, stop:\tab sequential intervals of time for each
+      subject \cr
+    status:\tab =1 if the interval ends in an event \cr
+    event:\tab the event type \cr
   }
 
   mgus2: The mgus data, but formatted in the competing risks style.  Each
@@ -44,10 +47,10 @@ undetermined significance (MGUS).
   MM, and one for time to a PC malignancy other than MM.
   Contains the id, age, sex, and
   laboratory variable described above along with 
-  \describe{
-    \item{\code{time}}{time to event or censoring}
-    \item{\code{status}}{1 if the event occured, 0 otherwise}
-    \item{\code{event}}{death, myeloma, or other}
+    \tabular{ll}{
+    time:\tab time to event or censoring \cr
+    status:\tab 1 if the event occured, 0 otherwise \cr
+    event:\tab death, myeloma, or other \cr
   }
 }
 
@@ -55,7 +58,7 @@ undetermined significance (MGUS).
 \details{
  Plasma cells are responsible for manufacturing immunoglobulins, an
 important part of the immune defense. At any given time there are
-estimated to be about 10^6 different immunoglobulins in the circulation
+estimated to be about \eqn{10^6} different immunoglobulins in the circulation
 at any one time.  When a patient has a plasma cell malignancy the
 distribuion will become dominated by a single isotype, the product of
 the malignant clone, visible as a spike on a serum protein

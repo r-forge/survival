@@ -50,7 +50,7 @@ recognized as a penalized term by the coxph or survreg functions.
 \seealso{\code{\link{coxph}},\code{\link{survreg}},\code{\link{ridge}},
   \code{\link{frailty}}
 }
-\References{
+\references{
 Eilers, Paul H. and Marx, Brian D. (1996).
 Flexible smoothing with B-splines and penalties.
     Statistical Science, 11, 89-121.

@@ -7,10 +7,10 @@
 Creates the overall test statistics for an Aalen additive regression model
 }
 \usage{
-\method{summary}{aareg}(x, maxtime, test=c("aalen", "nrisk"), scale=1)
+\method{summary}{aareg}(object, maxtime, test=c("aalen", "nrisk"), scale=1)
 }
 \arguments{
-\item{x}{
+\item{object}{
 the result of a call to the \code{aareg} function
 }
 \item{maxtime}{

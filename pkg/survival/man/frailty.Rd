@@ -14,69 +14,67 @@ a Cox or survreg model.
 frailty(x, distribution="gamma", ...)
 frailty.gamma(x, sparse = (nclass > 5), theta, df, eps = 1e-05, method = c("em","aic", "df", "fixed"), ...) 
 frailty.gaussian(x, sparse = (nclass > 5), theta, df, method =c("reml","aic", "df", "fixed"), ...)
-frailty.t(x, sparse = (nclass > 5), theta, df, eps = 1e-05, tdf = 5,method = c("
-aic", "df", "fixed"), ...)
+frailty.t(x, sparse = (nclass > 5), theta, df, eps = 1e-05, tdf = 5,method = c("aic", "df", "fixed"), ...)
 }
 
-}
 \arguments{
-\item{x}{
-the variable to be entered as a random effect.  
-It is always treated as a factor.
-}
-\item{distribution}{
-either the \code{gamma}, 
-\code{gaussian} or \code{t}
-distribution may be specified.
-The routines \code{frailty.gamma},
-\code{frailty.gaussian} and 
-\code{frailty.t} do the actual work.
-}
- \item{\dots}{Arguments for specific distribution, including (but not
-   limited to) }
-\item{sparse}{
-cutoff for using a sparse coding of the data matrix.  
-If the total number of levels of \code{x} is larger
-than this value, then a sparse matrix approximation is used.
-The correct cutoff is still a matter of exploration: if the number of
-levels is very large (thousands) then the non-sparse calculation may not be
-feasable in terms of both memory and compute time.  
-Likewise, the accuracy of the sparse approximation appears to be related to
-the maximum proportion of subjects in any one class, being best when no
-one class has a large membership.
-}
-\item{theta}{
-if specified, this fixes the variance of the random effect.
-If not, the variance is a parameter, and a best solution is sought.
-Specifying this implies \code{method='fixed'}.
-}
-\item{df}{
-if specified, this fixes the degrees of freedom for the random effect.
-Specifying this implies \code{method='df'}.
-Only one of \code{theta} or 
-\code{df} should be specified.
-}
-\item{method}{
-the method used to select a solution for theta, the variance of the
-random effect.  
-The \code{fixed} corresponds to a user-specified
-value, and no iteration is done.
-The \code{df} selects the variance such that the
-degrees of freedom for the random effect matches a user specified value.
-The \code{aic} method seeks to 
-maximize Akiake's information criteria 
-2*(partial likelihood - df).
-The \code{ml} and \code{reml}
-methods are specific to Cox models with gamma and gaussian random effects,
-respectively.
-Please see further discussion below.
-}
-\item{tdf}{
-the degrees of freedom for the t-distribution.
-}
-\item{eps}{
-convergence critera for the iteration on theta.
-}
+  \item{x}{
+    the variable to be entered as a random effect.  
+    It is always treated as a factor.
+  }
+  \item{distribution}{
+    either the \code{gamma}, 
+    \code{gaussian} or \code{t}
+    distribution may be specified.
+    The routines \code{frailty.gamma},
+    \code{frailty.gaussian} and 
+    \code{frailty.t} do the actual work.
+  }
+  \item{\dots}{Arguments for specific distribution, including (but not
+    limited to) }
+  \item{sparse}{
+    cutoff for using a sparse coding of the data matrix.  
+    If the total number of levels of \code{x} is larger
+    than this value, then a sparse matrix approximation is used.
+    The correct cutoff is still a matter of exploration: if the number of
+    levels is very large (thousands) then the non-sparse calculation may not be
+    feasable in terms of both memory and compute time.  
+    Likewise, the accuracy of the sparse approximation appears to be related to
+    the maximum proportion of subjects in any one class, being best when no
+    one class has a large membership.
+  }
+  \item{theta}{
+    if specified, this fixes the variance of the random effect.
+    If not, the variance is a parameter, and a best solution is sought.
+    Specifying this implies \code{method='fixed'}.
+  }
+  \item{df}{
+    if specified, this fixes the degrees of freedom for the random effect.
+    Specifying this implies \code{method='df'}.
+    Only one of \code{theta} or 
+    \code{df} should be specified.
+  }
+  \item{method}{
+    the method used to select a solution for theta, the variance of the
+    random effect.  
+    The \code{fixed} corresponds to a user-specified
+    value, and no iteration is done.
+    The \code{df} selects the variance such that the
+    degrees of freedom for the random effect matches a user specified value.
+    The \code{aic} method seeks to 
+    maximize Akiake's information criteria 
+    2*(partial likelihood - df).
+    The \code{ml} and \code{reml}
+    methods are specific to Cox models with gamma and gaussian random effects,
+    respectively.
+    Please see further discussion below.
+  }
+  \item{tdf}{
+    the degrees of freedom for the t-distribution.
+  }
+  \item{eps}{
+    convergence critera for the iteration on theta.
+  }
 }
 \value{
 this function is used in the model statment of either

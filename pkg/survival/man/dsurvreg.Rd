@@ -66,8 +66,10 @@ the distribution is one that involves a transformation, then they are the
 mean and scale of the transformed distribution.  
 For example, the Weibull distribution is fit using the
 Extreme value distribution along with a log transformation.
-Letting F(t) = 1 - exp(-(at)^p) be the cumulative distribution of the
-Weibull, the mean corresponds to -log(a) and the scale to 1/p 
+Letting \eqn{F(t) = 1 - \exp[-(at)^p]}{F(t) = 1 - exp(-(at)^p)}
+be the cumulative distribution of the
+Weibull, the mean corresponds to \eqn{-\log(a)}{-log(a)} and the scale
+to \eqn{1/p} 
 (Kalbfleish and Prentice, section 2.2.2).
 }
 \section{References}{

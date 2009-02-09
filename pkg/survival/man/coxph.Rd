@@ -25,75 +25,82 @@ coxph(formula, data=, weights, subset,
       model=FALSE, x=FALSE, y=TRUE, ...)
 }
 \arguments{
-\item{formula}{
-a formula object, with the response on the left of a \code{~} operator, and 
-the terms on the right.  The response must be a survival object as 
-returned by the \code{Surv} function. 
-}
-\item{data}{
-a data.frame in which to interpret the variables named in 
-the \code{formula}, or in the \code{subset} and the \code{weights} argument. 
-}
-\item{weights}{
-vector of case weights.  If \code{weights} is a vector of integers, then the 
-estimated coefficients are equivalent to estimating the model from data 
-with the individual cases replicated as many times as indicated by 
-\code{weights}. 
-}
-\item{subset}{
-expression indicating which subset of the rows of data should be used in 
-the fit.    All observations are included by default. 
-}
-\item{na.action}{
-a missing-data filter function.  This is applied to the model.frame after any 
-subset argument has been used.  Default is \code{options()\$na.action}. 
-}
-\item{init}{
-vector of initial values of the iteration.  Default initial 
-value is zero for all variables. 
-}
-\item{control}{
-Object of class \code{\link{coxph.control}} specifying iteration limit
-and other control options. Default is \code{coxph.control(...)}.
-}
-\item{method}{
-a character string specifying the method for tie handling.  If there  
-are no tied death times all the methods are equivalent. 
-Nearly all Cox regression programs use the Breslow method by default, 
-but not this one. 
-The Efron approximation is used as the default here, as it is much more 
-accurate when dealing with tied death times, and is as efficient 
-computationally. 
-The exact method computes the exact partial likelihood, which is 
-equivalent 
-to a conditional logistic model.  If there are a large number of ties 
-the computational time will be excessive. 
-}
-\item{singular.ok}{
-logical value indicating how to handle collinearity in the model matrix. 
-If \code{TRUE}, the program will automatically skip over columns of the X 
-matrix that are linear combinations of earlier columns.  In this case the 
-coefficients for such columns will be NA, and the variance matrix will 
-contain zeros. For ancillary calculations, such as the linear predictor, the 
-missing coefficients are treated as zeros. 
-}
-\item{robust}{
-  if \code{TRUE} a robust variance estimate is returned.
-  Default is \code{TRUE} if the model includes a \code{cluster}
-  operative, 
-  \code{FALSE} otherwise. 
-}
-\item{model}{
-  logical value: if \code{TRUE}, the model frame is returned in component
-  \code{model}. 
-}
-\item{x}{
-logical value: if \code{TRUE}, the model frame is returned in component \code{x}. 
-}
-\item{y}{
-logical value: if \code{TRUE}, the model frame is returned in component \code{y}. 
-}
-\item{...}{Other arguments will be passed to \code{\link{coxph.control}}}}
+  \item{formula}{
+    a formula object, with the response on the left of a \code{~} operator, and 
+    the terms on the right.  The response must be a survival object as 
+    returned by the \code{Surv} function. 
+  }
+  \item{data}{
+    a data.frame in which to interpret the variables named in 
+    the \code{formula}, or in the \code{subset} and the \code{weights}
+    argument. 
+  }
+  \item{weights}{
+    vector of case weights.  If \code{weights} is a vector of integers,
+    then the 
+    estimated coefficients are equivalent to estimating the model from data 
+    with the individual cases replicated as many times as indicated by 
+    \code{weights}. 
+  }
+  \item{subset}{
+    expression indicating which subset of the rows of data should be used in 
+    the fit.    All observations are included by default. 
+  }
+  \item{na.action}{
+    a missing-data filter function.  This is applied to the model.frame
+    after any 
+    subset argument has been used.  Default is \code{options()\$na.action}. 
+  }
+  \item{init}{
+    vector of initial values of the iteration.  Default initial 
+    value is zero for all variables. 
+  }
+  \item{control}{
+    Object of class \code{\link{coxph.control}} specifying iteration limit
+    and other control options. Default is \code{coxph.control(...)}.
+  }
+  \item{method}{
+    a character string specifying the method for tie handling.  If there  
+    are no tied death times all the methods are equivalent. 
+    Nearly all Cox regression programs use the Breslow method by default, 
+    but not this one. 
+    The Efron approximation is used as the default here, as it is much more 
+    accurate when dealing with tied death times, and is as efficient 
+    computationally. 
+    The exact method computes the exact partial likelihood, which is 
+    equivalent 
+    to a conditional logistic model.  If there are a large number of ties 
+    the computational time will be excessive. 
+  }
+  \item{singular.ok}{
+    logical value indicating how to handle collinearity in the model matrix. 
+    If \code{TRUE}, the program will automatically skip over columns of the X 
+    matrix that are linear combinations of earlier columns.  In this case the 
+    coefficients for such columns will be NA, and the variance matrix will 
+    contain zeros. For ancillary calculations, such as the linear
+    predictor, 
+    the missing coefficients are treated as zeros. 
+  }
+  \item{robust}{
+    if \code{TRUE} a robust variance estimate is returned.
+    Default is \code{TRUE} if the model includes a \code{cluster}
+    operative, 
+    \code{FALSE} otherwise. 
+  }
+  \item{model}{
+    logical value: if \code{TRUE}, the model frame is returned in component
+    \code{model}. 
+  }
+  \item{x}{
+    logical value: if \code{TRUE}, the model frame is returned in
+    component \code{x}. 
+  }
+  \item{y}{
+    logical value: if \code{TRUE}, the model frame is returned in
+    component \code{y}. 
+  }
+  \item{...}{Other arguments will be passed to \code{\link{coxph.control}}
+  }
 }
 \value{
 an object of class \code{"coxph"} representing the fit. 

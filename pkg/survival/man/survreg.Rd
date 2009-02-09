@@ -79,29 +79,16 @@ other arguments which will be passed to \code{survreg.control}.
 \value{
 an object of class \code{survreg} is returned.
 }
-\section{Compatibility note}{
-This routine underwent significant changes from survival version 4 to 
-version 5.
-The \link{survreg.old} function gives a backwards-compatible
-interface.  In S-PLUS the new function is called \code{survReg} and
-the old one \code{survreg}.
-}
 \seealso{
 \code{\link{survreg.object}}, \code{\link{survreg.distributions}},
-\code{\link{pspline}}, \code{\link{frailty}}, \code{\link{ridge}},
-\code{\link{survreg.old}}
+\code{\link{pspline}}, \code{\link{frailty}}, \code{\link{ridge}}
 }
 \examples{
 # Fit an exponential model: these are all the same
 survreg(Surv(futime, fustat) ~ ecog.ps + rx, ovarian, dist='weibull',scale=1)
 survreg(Surv(futime, fustat) ~ ecog.ps + rx, ovarian,
         dist="exponential")
-survreg.old(Surv(futime, fustat) ~ ecog.ps + rx, ovarian,
-           dist='extreme',fixed=list(scale=1),link="log")
 
-# Weibull fit 
-survreg(Surv(days, event) ~ voltage, data=capacitor, 
-        control=survreg.control(maxiter = 40)) 
 
 # There are multiple ways to parameterize a Weibull distribution. The survreg 
 # function imbeds it in a general location-scale familiy, which is a 

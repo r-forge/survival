@@ -289,10 +289,10 @@ fit1 <- survfit(Surv(stop, event=='progression') ~1, data=mgus1,
 fit2 <- survfit(Surv(stop, status) ~1, data=mgus1,
                     subset=(start==0), etype=event) #competing risks
 # CI curves are always plotted from 0 upwards, rather than 1 down
-plot(fit2, fun='event', xscale=365.25, xmax=7300, mark.time=F,
+plot(fit2, fun='event', xscale=365.25, xmax=7300, mark.time=FALSE,
             col=2:3, xlab="Years post diagnosis of MGUS")
-lines(fit1, fun='event', xscale=365.25, xmax=7300, mark.time=F,
-            conf.int=F)
+lines(fit1, fun='event', xscale=365.25, xmax=7300, mark.time=FALSE,
+            conf.int=FALSE)
 text(10, .4, "Competing Risk: death", col=3)
 text(16, .15,"Competing Risk: progression", col=2)
 text(15, .30,"KM:prog")

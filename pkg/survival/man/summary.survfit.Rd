@@ -11,7 +11,7 @@
 \usage{
   \method{summary}{survfit}(object, times=, censored=FALSe, scale=1, extend=FALSE)
   }
-  \arguments{
+\arguments{
     \item{object}{
       the result of a call to the \code{survfit} function. 
     }
@@ -39,7 +39,7 @@
     This is only valid if the \code{times} argument is present. 
     }
   }
-}
+
 \value{
 a list with the following components: 
 

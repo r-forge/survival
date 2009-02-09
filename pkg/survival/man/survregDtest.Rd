@@ -39,6 +39,6 @@ mycauchy <- list(name='Cauchy',
                  deviance= function(...) stop('deviance residuals not defined')
                  )
 
-survregDtest(mycauchy, T)
+survregDtest(mycauchy, TRUE)
 }
 \keyword{survival}

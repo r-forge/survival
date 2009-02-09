@@ -13,24 +13,18 @@ Test the proportional hazards assumption for a Cox regression model fit
 cox.zph(fit, transform="km", global=TRUE)
 }
 \arguments{
-\item{fit}{
-the result of fitting a Cox regression model, using the \code{coxph} function. 
-}
-\item{transform}{
-a character string specifying how the survival times should be transformed 
-before the test is performed. 
-Possible values are \code{"km"}, \code{"rank"}, \code{"identity"} or  a 
-function of one argument. 
-}
-\item{global}{
-should a global chi-square test be done, in addition to the 
-per-variable tests. 
-}
-\item{x}{
-  if true, then the result will be a list containing the test table (a 
-  matrix), and the x and y coordinates of the plotted points used
-  in the graph.
-  If false then only the test table is returned. 
+  \item{fit}{
+    the result of fitting a Cox regression model, using the \code{coxph} function. 
+  }
+  \item{transform}{
+    a character string specifying how the survival times should be transformed 
+    before the test is performed. 
+    Possible values are \code{"km"}, \code{"rank"}, \code{"identity"} or  a 
+    function of one argument. 
+  }
+  \item{global}{
+    should a global chi-square test be done, in addition to the 
+    per-variable tests. 
   }
 }
 \value{
