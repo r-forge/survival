@@ -87,7 +87,7 @@ pspline <- function(x, df=4, theta, nterm=2.5*df, degree=3, eps=0.1,
 	#  variables defined here as an environment
 	# Remove cbase from the arg list, and make it the environment
 	formals(printfun) <- alist(coef=, var=, var2=, df=, history=)
-	tempenv <- new.env(parent=globalenv())
+	tempenv <- new.env(parent=asNamespace('survival'))
 	assign('cbase',  knots[2:nvar] + (rx[1] -knots[1]), envir=tempenv)
 	environment(printfun) <- tempenv
 	}

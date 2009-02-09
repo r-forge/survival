@@ -1,7 +1,7 @@
 # $Id$
 # Compute the concordance between a survival time x
 #  and a continuous variable y
-survConcordance <- function(formula=formula(data), data=sys.parent(),
+survConcordance <- function(formula, data,
                             weights, subset, na.action) {
     call <- match.call()         # save a copy of of the call, as documentation
 

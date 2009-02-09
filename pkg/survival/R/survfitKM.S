@@ -1,6 +1,6 @@
 # $Id$
 #  A version that does more work in S, less in C
-survfit.km <- function(x, y, casewt=rep(1,length(x)),
+survfitKM <- function(x, y, casewt=rep(1,length(x)),
 		       type=c('kaplan-meier', 'fleming-harrington', 'fh2'),
 		       error=c('greenwood', "tsiatis"), se.fit=TRUE,
 		       conf.int= .95,

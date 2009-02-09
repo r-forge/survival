@@ -11,7 +11,7 @@ lines.survfit <- function(x, type='s', mark=3, col=1, lty=1, lwd=1,
             # Make intellegent guess at firstx/firsty (as best we can)
             # 1. If this is a survexp object, don't extend the plot
             #   back to the left at all
-            if (class(x)=='survexp') {
+            if (inherits(x, 'survexp')) {
                 firstx <- x$time[1]
                 firsty <- x$surv[1]
                 }

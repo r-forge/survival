@@ -1,7 +1,9 @@
 #
 # This is common code for survpenal.fit and coxpenal.fit.
 #  It's all the bookkeeping to set up the penalized callbacks
-#
+# This code is in development, and not yet used by anything, the if(FALSE)
+#  keeps it out of the distribution
+if(FALSE){
 survcallback <- function(pcols, pattr, assign, x) {
     #
     # are there any sparse frailty terms?
@@ -197,3 +199,5 @@ survcallback <- function(pcols, pattr, assign, x) {
 	 pfun1=pfun1, pindex=pindex, pcols=pcols, pattr=pattr,
 	 sparse=sparse, frailx=frailx, nfrail=nfrail,
 	 nvar=nvar)
+    }
+}

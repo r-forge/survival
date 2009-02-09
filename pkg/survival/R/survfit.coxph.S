@@ -3,12 +3,12 @@
 if (!is.R()) setOldClass(c('survfit.cox', 'survfit'))
 
 survfit.coxph <-
-  function(object, newdata, se.fit=TRUE, conf.int=.95, individual=FALSE,
+  function(formula, newdata, se.fit=TRUE, conf.int=.95, individual=FALSE,
 	    type, vartype,
-	    conf.type=c('log', 'log-log', 'plain', 'none'),
-	    call = match.call()) {
+	    conf.type=c('log', 'log-log', 'plain', 'none')) {
 
-    call <- match.call()
+    Call <- match.call()
+    Call[[1]] <- as.name('survfit')  #nicer output for the user
     Terms <- terms(object)
     strat <- attr(Terms, "specials")$strata
     cluster<-attr(Terms, "specials")$cluster
@@ -256,7 +256,7 @@ survfit.coxph <-
 			conf.type='log-log', conf.int=conf.int))
 	}
 
-    temp$call <- call
+    temp$call <- Call
     if (is.R()) class(temp) <- c('survfit.cox', 'survfit')
     else        oldClass(temp) <- 'survfit.cox'
     temp

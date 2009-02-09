@@ -1,8 +1,8 @@
 # $Date: 2006-08-28 18:12:46 $ $Id$
 survfit.formula <- function(formula, data, weights, subset, 
-			    na.action, etype, id,  ...) {
+			    na.action, etype, id, ...) {
     Call <- match.call()
-
+    Call[[1]] <- as.name('survfit')  #make nicer printout for the user
     # create a copy of the call that has only the arguments we want,
     #  and use it to call model.frame()
     mfnames <- c('formula', 'data', 'weights', 'subset','na.action',
@@ -18,7 +18,7 @@ survfit.formula <- function(formula, data, weights, subset,
 	    stop("Interaction terms are not valid for this function")
 
     n <- nrow(m)
-    Y <- model.extract(m, response)
+    Y <- model.extract(m, 'response')
     if (!is.Surv(Y)) stop("Response must be a survival object")
 
     casewt <- model.extract(m, "weights")
@@ -35,10 +35,10 @@ survfit.formula <- function(formula, data, weights, subset,
 
     if (!is.Surv(Y)) stop("y must be a Surv object")
     if (length(etype) >0)
-         temp <- survfit.ci(X, Y, weights=casewt, etype=etype, id=id,  ...)
+         temp <- survfitCI(X, Y, weights=casewt, etype=etype, id=id,  ...)
     else if (attr(Y, 'type') != 'right' && attr(Y, 'type') != 'counting')
-         temp <- survfit.turnbull(X, Y, casewt, ...)
-    else temp <- survfit.km(X, Y, casewt, ...)
+         temp <- survfitTurnbull(X, Y, casewt, ...)
+    else temp <- survfitKM(X, Y, casewt, ...)
 
     if (is.R()) class(temp) <- 'survfit'
     else        oldClass(temp) <- "survfit"

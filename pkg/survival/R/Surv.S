@@ -125,7 +125,7 @@ print.Surv <- function(x, quote=FALSE, ...) {
     invisible(print(as.character.Surv(x), quote=quote, ...))
     }
 
-as.character.Surv <- function(x) {
+as.character.Surv <- function(x, ...) {
     if (is.R()) class(x) <- NULL
     else        oldClass(x) <- NULL
     type <- attr(x, 'type')

@@ -50,7 +50,11 @@ survreg <- function(formula, data, weights, subset, na.action,
 	strata <- 0
 	}
 
-    if (length(dropx)) newTerms <- Terms[-dropx]
+    if (length(dropx)) {
+        newTerms <- Terms[-dropx]
+        # R (version 2.7.1) adds intercept=T anytime you drop something
+        if (is.R()) attr(newTerms, 'intercept') <- attr(Terms, 'intercept')
+        }
     else               newTerms <- Terms
     X <- model.matrix(newTerms, m)
 
