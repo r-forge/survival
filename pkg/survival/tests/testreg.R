@@ -3,8 +3,11 @@ options(contrasts=c('contr.treatment', 'contr.poly')) #ensure constrast type
 library(survival)
 
 #
-# Run a test that can be verified using SAS's LIFEREG
+# Run a test that can be verified using other packages (we used SAS)
 #
+test1 <- data.frame(time=  c(9, 3,1,1,6,6,8),
+                    status=c(1,NA,1,0,1,1,0),
+                    x=     c(0, 2,1,1,1,0,0))
 fit1w <- survreg(Surv(time, status) ~x, test1, dist='weibull')
 fit1w
 summary(fit1w)

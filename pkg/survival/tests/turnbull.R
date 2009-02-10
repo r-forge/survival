@@ -28,7 +28,7 @@ emsurv <- function(time, status, wt, verbose=T) {
     tempy <- Surv(time[!left.cen], status[!left.cen])
     ww <- wt[!left.cen]
     tempx <- factor(rep(1, sum(!left.cen)))
-    tfit <- survfit.km(tempx, tempy, casewt=ww)
+    tfit <- survfit(tempy~tempx, weight=ww)
     if (verbose)
        cat("Iteration 0, survival=", format(round(tfit$surv[tfit$n.event>0],3)),
 		       "\n")
@@ -49,7 +49,7 @@ emsurv <- function(time, status, wt, verbose=T) {
 		stop("Left censored observation before the first death")
 	    wt2[1:k] <- wt2[1:k] + lwt[j]*sjump[1:k] /(ssurv[k]-1)
 	    }
-	tfit <- survfit.km(tempx, tempy, casewt=c(ww, wt2))
+	tfit <- survfit(tempy~tempx, weight=c(ww, wt2))
 	if (verbose) {
 	   cat("Iteration", iter, "survival=",
 		 format(round(tfit$surv[tfit$n.event>0],3)),  "\n")
@@ -79,6 +79,9 @@ all.equal(round(tfit$surv,3), c(.538, .295, .210, .095))
 # To get equivalence, make the left censoreds happen just a little bit
 #  earlier.  The left-continuous/right-continuous shift is also a bother.
 #
+test1 <- data.frame(time=  c(9, 3,1,1,6,6,8),
+                    status=c(1,NA,1,0,1,1,0),
+                    x=     c(0, 2,1,1,1,0,0))
 fit1 <- survfit(Surv(time, status) ~1, test1)
 temp <- ifelse(test1$status==0, 4.99,5) - test1$time
 fit2 <- survfit(Surv(temp, status, type='left') ~1, test1)
