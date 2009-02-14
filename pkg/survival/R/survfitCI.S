@@ -3,7 +3,7 @@
 #
 # Compute the current incidence curve for a data set
 #   called from survfit.formula
-survfitCI <- function(X, Y, weights=rep(1, length(x)), 
+survfitCI <- function(X, Y, weights, 
                        type=c('kaplan-meier', 'fleming-harrington', 'fh2'),
                        error=c('greenwood', "tsiatis"), se.fit=TRUE,
                        conf.int= .95,
@@ -214,7 +214,7 @@ survfitCI <- function(X, Y, weights=rep(1, length(x)),
 	    if (se.fit) varhaz <- vector('list', ncurve)
 	    uniquex <- levels(X)
 	    for (i in 1:ncurve) {
-		who <- (x== uniquex[i])
+		who <- (X== uniquex[i])
 		temp <- docurve(time[who], status[who], etype2[who],
 				weights[who], id[who], netype)
 		timex[[i]]   <- temp$time

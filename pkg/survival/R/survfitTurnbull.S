@@ -2,7 +2,7 @@
 # Compute the K-M for left/right/interval censored data via Turnbull's
 #      slow EM calculation
 # x is a factor giving the groups, y is a survival object
-survfitTurnbull <- function(x, y, casewt=rep(1,n),
+survfitTurnbull <- function(x, y, casewt,
                        type=c('kaplan-meier', 'fleming-harrington', 'fh2'),
                        error=c('greenwood', "tsiatis"), se.fit=TRUE,
                        conf.int= .95,
