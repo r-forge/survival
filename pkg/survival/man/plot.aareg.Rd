@@ -8,7 +8,7 @@ Plot the estimated coefficient function(s) from a fit
 of Aalen's additive regression model.
 }
 \usage{
-\method{plot}{aareg}(x, se=T, maxtime, ...)
+\method{plot}{aareg}(x, se=TRUE, maxtime, type='s', ...)
 }
 \arguments{
   \item{x}{
@@ -19,6 +19,9 @@ of Aalen's additive regression model.
   }
   \item{maxtime}{
     upper limit for the x-axis.
+  }
+  \item{type}{
+    graphical parameter for the type of line, default is "steps".
   }
   \item{\dots }{
     other graphical parameters such as line type, color, or axis labels.

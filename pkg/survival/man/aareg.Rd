@@ -9,9 +9,9 @@ represents an Aalen model.
 }
 \usage{
 aareg(formula, data, weights, subset, na.action,
-   qrtol=1e-07, nmin, dfbeta=F, taper=1,
+   qrtol=1e-07, nmin, dfbeta=FALSE, taper=1,
    test = c('aalen', 'nrisk'),
-    model=F, x=F, y=F) 
+    model=FALSE, x=FALSE, y=FALSE) 
 }
 \arguments{
 \item{formula}{

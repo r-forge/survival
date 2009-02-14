@@ -10,7 +10,7 @@ generated with \code{plot.survfit}.
 }
 \usage{
 \method{lines}{survfit}(x, type="s", mark=3, col=1, lty=1,
-lwd=1, mark.time=T, 
+lwd=1, mark.time=TRUE, 
 	xscale=1,  firstx=0, firsty=1, xmax, fun, conf.int=FALSE,  ...)
 \method{points}{survfit}(x, ...)
 }
