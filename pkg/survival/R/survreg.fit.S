@@ -204,10 +204,7 @@ survreg.fit<- function(x, y, weights, offset, init, controlvals, dist,
 		   rho)
 
     if (iter.max >1 && fit$flag > nvar2) {
-	if (controlvals$failure==1)
-	       warning("Ran out of iterations and did not converge")
-	else if (controlvals$failure==2)
-	       return("Ran out of iterations and did not converge")
+        warning("Ran out of iterations and did not converge")
 	}
 
     cname <- dimnames(x)[[2]]

@@ -1,5 +1,5 @@
 # $Id$
-survreg.control <- function(maxiter=30, rel.tolerance=1e-9, failure=1,
+survreg.control <- function(maxiter=30, rel.tolerance=1e-9, 
 			    toler.chol=1e-10, iter.max, debug=0,
 			    outer.max = 10) {
 
@@ -8,6 +8,6 @@ survreg.control <- function(maxiter=30, rel.tolerance=1e-9, failure=1,
 	}
     else  maxiter <- iter.max
     list(iter.max = iter.max, rel.tolerance = rel.tolerance, 
-	 failure =failure, toler.chol= toler.chol, debug=debug,
+	 toler.chol= toler.chol, debug=debug,
 	 maxiter=maxiter, outer.max=outer.max)
     }
