@@ -27,7 +27,7 @@ The resulting variance is what is known as the ``working independence''
 variance  in a GEE model.
 }
 \seealso{
-\code{\link{coxph}},  \code{\link{survreg}}}.   
+\code{\link{coxph}},  \code{\link{survreg}}   
 }
 \examples{
 marginal.model <- coxph(Surv(time, status) ~ rx + cluster(litter), rats)
