@@ -68,24 +68,24 @@ Call:
 coxph(formula = Surv(start, stop, event) ~ rx + size + number + 
     cluster(id), data = bladder2, method = "breslow")
 
-  n= 190 
+  n= 178 
 
            coef exp(coef) se(coef) robust se      z Pr(>|z|)   
-rx     -0.40710   0.66558  0.20007   0.24183 -1.683  0.09230 . 
-size   -0.04009   0.96071  0.07026   0.07222 -0.555  0.57883   
-number  0.16065   1.17427  0.04801   0.05689  2.824  0.00475 **
+rx     -0.45979   0.63142  0.19996   0.25801 -1.782  0.07474 . 
+size   -0.04256   0.95833  0.06903   0.07555 -0.563  0.57317   
+number  0.17164   1.18726  0.04733   0.06131  2.799  0.00512 **
 ---
 Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1 
 
        exp(coef) exp(-coef) lower .95 upper .95
-rx        0.6656     1.5024    0.4143     1.069
-size      0.9607     1.0409    0.8339     1.107
-number    1.1743     0.8516    1.0504     1.313
+rx        0.6314     1.5837    0.3808     1.047
+size      0.9583     1.0435    0.8264     1.111
+number    1.1873     0.8423    1.0528     1.339
 
-Rsquare= 0.071   (max possible= 0.993 )
-Likelihood ratio test= 14.05  on 3 df,   p=0.002837
-Wald test            = 11.38  on 3 df,   p=0.009837
-Score (logrank) test = 15.42  on 3 df,   p=0.001493,   Robust = 10.99  p=0.01181
+Rsquare= 0.09   (max possible= 0.994 )
+Likelihood ratio test= 16.77  on 3 df,   p=0.000787
+Wald test            = 11.76  on 3 df,   p=0.008256
+Score (logrank) test = 18.57  on 3 df,   p=0.0003355,   Robust = 11.44  p=0.009588
 
   (Note: the likelihood ratio and score tests assume independence of
      observations within a cluster, the Wald and robust score tests do not).
