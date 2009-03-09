@@ -10,7 +10,7 @@ If only the first argument is given, then a G-inverse of A is
 returned.
 }
 \usage{
-\method{solve}{gchol}(a, b, full=TRUE)
+\method{solve}{gchol}(a, b, full=TRUE, ...)
 }
 \arguments{
 \item{a}{
@@ -24,6 +24,7 @@ a numeric vector or matrix, that forms the right-hand side of the equation.
 solve the problem for the full (orignal) matrix, or for the cholesky
 matrix.
 }
+\item{...} {other arguments are ignored}
 }
 \value{
 if argument \code{b} is not present, the inverse of

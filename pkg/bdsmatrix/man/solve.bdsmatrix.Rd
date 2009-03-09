@@ -9,7 +9,7 @@ A is a block diagonal sparse matrix
 (an object of class \code{bdsmatrix}).
 }
 \usage{
-\method{solve}{bdsmatrix}(a, b, full=TRUE, tolerance=1e-10)
+\method{solve}{bdsmatrix}(a, b, full=TRUE, tolerance=1e-10, ...)
 }
 \arguments{
 \item{a}{
@@ -17,9 +17,6 @@ a block diagonal sparse matrix object
 }
 \item{b}{
 a numeric vector or matrix, that forms the right-hand side of the equation.
-}
-\item{tolerance}{
-the tolerance for detecting singularity in the a matrix
 }
 \item{full}{
 if true, return the full inverse matrix; if false return only
@@ -33,6 +30,10 @@ In this case setting full=F returns only a portion of the inverse.
 The elements that are returned are those of the full inverse, but the
 off-diagonal elements that are not returned would not have been zero.
 }
+\item{tolerance}{
+the tolerance for detecting singularity in the a matrix
+}
+\item{...} {other arguments are ignored}
 }
 \value{
 if argument \code{b} is not present, the inverse of
