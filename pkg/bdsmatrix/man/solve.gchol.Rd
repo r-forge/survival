@@ -10,7 +10,7 @@ If only the first argument is given, then a G-inverse of A is
 returned.
 }
 \usage{
-\method{solve}{gchol}(a, b, full=T)
+\method{solve}{gchol}(a, b, full=TRUE)
 }
 \arguments{
 \item{a}{

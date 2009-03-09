@@ -5,9 +5,11 @@
 matrix representation to an ordinary one}
 
 \usage{
-\method{as.matrix}{bdsmatrix}(x)}
+\method{as.matrix}{bdsmatrix}(x, ...)}
 \arguments{
 	\item{x}{a bdsmatrix object}
+	\item{...}{other arguments are ignored (necessary to match the 
+\code{as.matrix} template)}
 }
 
 \value{ a matrix}
