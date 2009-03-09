@@ -1,5 +1,5 @@
 # Cholesky decompostion and solution
-solve.bdsmatrix<- function(a, b, tolerance=1e-10, full=T) {
+solve.bdsmatrix<- function(a, b, full=TRUE, tolerance=1e-10) {
     if (class(a) != 'bdsmatrix') 
 	    stop("First argument must be a bdsmatrix")
     if (a@offdiag !=0) solve(as.matrix(a), b, tolerance=tolerance)
@@ -11,7 +11,7 @@ solve.bdsmatrix<- function(a, b, tolerance=1e-10, full=T) {
         #   the inverse of the martrix as a whole is not
         # For df computations in a Cox model, however, it turns out that
         #   I only need the diagonal of the matrix anyway.
-        if (length(a@rmat)==0 || full==F) {
+        if (length(a@rmat)==0 || full==FALSE) {
             # The C-code will do the inverse for us
             temp <- .C("gchol_bdsinv", as.integer(nblock),
                                    as.integer(a@blocksize),

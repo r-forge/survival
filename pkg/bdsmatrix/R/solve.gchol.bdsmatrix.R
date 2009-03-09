@@ -6,7 +6,7 @@
 #  solve(gchol(A), x) will give the same solution as solve(A,x).
 #  Occasionally, the full=F argument may be needed as well.
 #
-solve.gchol.bdsmatrix<- function(a, b, full=T) {
+solve.gchol.bdsmatrix<- function(a, b, full=TRUE) {
     if (!inherits(a, 'gchol.bdsmatrix')) 
 	    stop("First argument must be the gchol of a bdsmatrix")
 

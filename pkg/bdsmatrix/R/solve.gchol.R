@@ -1,5 +1,5 @@
 #  solve a generalized Cholesky matrix
-solve.gchol <- function(a, b, full=T) {
+solve.gchol <- function(a, b, full=TRUE) {
     if (full) flag<-0 else flag<-1
 
     d <- a@Dim

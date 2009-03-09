@@ -56,7 +56,7 @@ setMethod('gchol', 'bdsmatrix', function(x, tolerance=1e-9) {
 # 
 #  return L, from the LDL' decompostion
 #
-as.matrix.gchol.bdsmatrix <- function(x, ones=T){
+as.matrix.gchol.bdsmatrix <- function(x, ones=TRUE){
     dd <- x@Dim
     n <- dd[1]
     newmat <- matrix(0., n, n, dimnames=x@Dimnames)
@@ -110,7 +110,7 @@ setMethod('show', 'gchol.bdsmatrix',
 #   the main difference being that the bdsmatrix method fills in symmetry
 #   when the result is not sparse
 setMethod('[', 'gchol.bdsmatrix', 
- function(x, i,j, drop=T) {
+ function(x, i,j, drop=TRUE) {
     if (class(x) != 'gchol.bdsmatrix') stop("Must be a gchol.bdsmatrix object")
     if (missing(i) || missing(j)) stop("Two subscripts are required")
 
@@ -151,7 +151,7 @@ setMethod('[', 'gchol.bdsmatrix',
         x@blocksize <- temp$bsize[temp$bsize>0]
         x@blocks <- x@blocks[temp$indexc]
         if (length(x@rmat)) {
-            if (any(cols>d3)) x@rmat <- x@rmat[rows, cols[cols>d3]-d3, drop=F]
+            if (any(cols>d3)) x@rmat <- x@rmat[rows, cols[cols>d3]-d3, drop=FALSE]
             else              x@rmat <- numeric(0)
             }
 

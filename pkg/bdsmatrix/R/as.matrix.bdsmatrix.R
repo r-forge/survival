@@ -1,4 +1,4 @@
-as.matrix.bdsmatrix <- function(x) {
+as.matrix.bdsmatrix <- function(x, ...) {
     if (class(x) != 'bdsmatrix') stop('argument must be a bdsmatrix object')
     dd <- dim(x)
     d3 <- sum(x@blocksize)   # dim of square portion

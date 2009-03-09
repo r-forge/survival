@@ -30,7 +30,7 @@ setMethod('Math2', 'bdsmatrix',
 #  when x1, x2, etc are all numeric.  (Up to 50 times faster!)
 #
 setMethod('max', 'bdsmatrix',
-	  function(x, na.rm=F) {
+	  function(x, na.rm=FALSE) {
 	      if (length(x@rmat))
 	           max(c(x@offdiag, x@blocks, x@rmat), na.rm=na.rm)
 	      else
@@ -38,7 +38,7 @@ setMethod('max', 'bdsmatrix',
 	      })
 
 setMethod('min', 'bdsmatrix',
-	  function(x, na.rm=F) {
+	  function(x, na.rm=FALSE) {
 	      if (length(x@rmat))
 	           min(c(x@offdiag, x@blocks, x@rmat), na.rm=na.rm)
 	      else
@@ -46,7 +46,7 @@ setMethod('min', 'bdsmatrix',
 	      })
 
 setMethod('range', 'bdsmatrix',
-	  function(x, ..., na.rm=F) {
+	  function(x, ..., na.rm=FALSE) {
 	      if (length(x@rmat))
 	           range(c(x@offdiag, x@blocks, x@rmat), na.rm=na.rm)
 	      else
@@ -54,7 +54,7 @@ setMethod('range', 'bdsmatrix',
 	      })
 
 setMethod('any', 'bdsmatrix',
-	  function(x, ..., na.rm=F) {
+	  function(x, ..., na.rm=FALSE) {
 	      if (length(x@rmat))
 	           any(c(x@offdiag, x@blocks, x@rmat), na.rm=na.rm)
 	      else
@@ -62,7 +62,7 @@ setMethod('any', 'bdsmatrix',
 	      })
 
 setMethod('all', 'bdsmatrix',
-	  function(x, ..., na.rm=F) {
+	  function(x, ..., na.rm=FALSE) {
 	      if (length(x@rmat))
 	           all(c(x@offdiag, x@blocks, x@rmat), na.rm=na.rm)
 	      else
@@ -70,7 +70,7 @@ setMethod('all', 'bdsmatrix',
 	      })
 
 setMethod('sum', 'bdsmatrix',
-	  function(x, ..., na.rm=F) {
+	  function(x, ..., na.rm=FALSE) {
 	      d <- x@Dim
 	      d3 <- sum(x@blocksize)
 	      temp <- .C('bdsmatrix_index1',
@@ -98,7 +98,7 @@ setMethod('sum', 'bdsmatrix',
 	      })
 
 setMethod('prod', 'bdsmatrix',
-	  function(x, ..., na.rm=F) {
+	  function(x, ..., na.rm=FALSE) {
 	      d <- x@Dim
 	      d3 <- sum(x@blocksize)
 	      temp <- .C('bdsmatrix_index1',
@@ -116,7 +116,7 @@ setMethod('prod', 'bdsmatrix',
 	      tprod <- 1
 	      if (nz>0) {
 		  if (x@offdiag==0) return(x@offdiag)
-		  if (!is.na(x@offdiag) || na.rm==F)  tprod<- x@offdiag^nz
+		  if (!is.na(x@offdiag) || na.rm==FALSE)  tprod<- x@offdiag^nz
 		  }
 
 	      wts <- rep(2, n2)
@@ -273,7 +273,7 @@ bdsmatrix <- function(blocksize, blocks, rmat, dimnames=NULL) {
     }
 
 setMethod('[', 'bdsmatrix', 
- function(x, i, j, ..., drop=T) {
+ function(x, i, j, ..., drop=TRUE) {
     if (class(x) != 'bdsmatrix') stop("Must be a bdsmatrix object")
     if (missing(i) || missing(j)) stop("Two subscripts are required")
 
@@ -314,7 +314,7 @@ setMethod('[', 'bdsmatrix',
 	x@blocksize <- temp$bsize[temp$bsize>0]
 	x@blocks <- x@blocks[temp$indexc]
 	if (length(x@rmat)) {
-	    if (any(cols>d3)) x@rmat <- x@rmat[rows, cols[cols>d3]-d3, drop=F]
+	    if (any(cols>d3)) x@rmat <- x@rmat[rows, cols[cols>d3]-d3, drop=FALSE]
 	    else              x@rmat <- matrix(0,0,0)
 	    }
         temp <- x@Dimnames
@@ -369,7 +369,7 @@ setMethod('[', 'bdsmatrix',
 		    }
 		}
 	    }
-	else newmat <-x@rmat[rows, cols[cols>d3]-d3, drop=F]
+	else newmat <-x@rmat[rows, cols[cols>d3]-d3, drop=FALSE]
 	
         temp <- x@Dimnames
         if (!is.null(temp[[1]])) temp[[1]] <- temp[[1]][rows]

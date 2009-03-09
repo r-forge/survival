@@ -10,7 +10,7 @@
 #    diag: True -- the output contains the diagonal of the matrix
 #          False-- the output does not contain the diagonal
 #
-listbdsmatrix <- function(x, id=T, diag=F) {
+listbdsmatrix <- function(x, id=TRUE, diag=FALSE) {
     if (!inherits(x, 'bdsmatrix')) stop("Invalid argument")
     
     nblock <- length(x@blocksize)
