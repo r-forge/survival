@@ -16,7 +16,7 @@ setClass('gchol',
 setGeneric('gchol', function(x, tolerance=1e-10) standardGeneric('gchol'),
            useAsDefault=FALSE)
 
-as.matrix.gchol <- function(x, ones=TRUE) {
+as.matrix.gchol <- function(x, ones=TRUE, ...) {
     temp <- matrix(x@.Data, x@Dim[1], dimnames=x@Dimnames, byrow=TRUE)
     if (ones) diag(temp) <- 1
     temp
