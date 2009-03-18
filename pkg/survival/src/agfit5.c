@@ -360,7 +360,7 @@ S_EVALUATOR
 	    for (i=0; i<nvar; i++)
 		zbeta += beta[i]*covar[i][person];
 	    score[person] = zbeta;
-	    if (zbeta > 20) {
+	    if (zbeta > 20 && *maxiter >1) {
 		/*
 		** If the above happens, then 
 		**   1. There is a real chance for catastrophic cancellation
@@ -370,7 +370,9 @@ S_EVALUATOR
 		**       is either an infinite beta, in which case any
 		**       reasonable coefficient will do, or a big overreach
 		**       in the Newton-Raphson step.
-		** In either case, a good solution is step halving.
+		** In either case, a good solution is step halving.  However,
+		**   if the user asked for exactly 1 iteration, we should
+		**   just return what they asked.
 		** 
 		** Why 20?  Most machines have about 16 digits of precision,
 		**   and this preserves approx 7 digits in the subtraction

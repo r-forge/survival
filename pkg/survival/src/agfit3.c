@@ -299,7 +299,7 @@ void agfit3( Sint   *maxiter,  Sint   *nusedx,  Sint   *nvarx,
 	    for (i=0; i<nvar; i++)
 		zbeta += newbeta[i]*covar[i][person];
 	    score[person] = zbeta + offset[person];
-	    if (zbeta > 20) {
+	    if (zbeta > 20 && *maxiter>1) {
 		/*
 		** If the above happens, then 
 		**   1. There is a real chance for catastrophic cancellation
@@ -309,7 +309,8 @@ void agfit3( Sint   *maxiter,  Sint   *nusedx,  Sint   *nvarx,
 		**       is either an infinite beta, in which case any
 		**       reasonable coefficient will do, or a big overreach
 		**       in the Newton-Raphson step.
-		** In either case, a good solution is step halving.
+		** In either case, a good solution is step halving.  However,
+		**   if the user asked for exactly 1 iteration, return it.
 		** 
 		** Why 20?  Most machines have about 16 digits of precision,
 		**   and this preserves approx 7 digits in the subtraction
