@@ -11,7 +11,8 @@ median.
 }
 \usage{
 \method{print}{survfit}(x, scale=1, digits = max(options()$digits - 4,3),
-    rmean = getOption('survfit.rmean'))
+    print.rmean=getOption("survfit.print.rmean"),
+    rmean = getOption('survfit.rmean'),...)
 }
 \arguments{
 \item{x}{
@@ -23,7 +24,9 @@ if the input data to survfit were in days,
 \code{scale=365} would scale the printout to years. 
 }
 \item{digits}{Number of digits to print}
-\item{rmean}{Options for computation and display of the restricted mean.}
+\item{print.rmean,rmean}{Options for computation and display of the
+  restricted mean.}
+\item{\dots}{for future results}
 }
 \value{
 x, with the invisible flag set to prevent printing. 
