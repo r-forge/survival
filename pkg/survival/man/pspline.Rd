@@ -28,7 +28,6 @@ pspline(x, df=4, theta, nterm=2.5 * df, degree=3, eps=0.1, method, ...)
     Akaike's information criterion.}
   \item{\dots}{optional arguments to the control function}
   }
-}
 \description{
     Specifies a penalised spline basis for the predictor.
     This is done by fitting a comparatively small set of splines and
