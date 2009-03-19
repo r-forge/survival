@@ -77,7 +77,7 @@ successful convergence.)
 \item{robust}{Use robust 'sandwich' standard errors, based on
   independence of individuals if there is no \code{cluster()} term in
   the formula, based on independence of clusters if there is.}
-\item{...}{
+\item{\dots}{
 other arguments which will be passed to \code{survreg.control}.
 }}
 \value{
