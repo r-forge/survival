@@ -64,7 +64,7 @@ hazards model.
     cumulative hazard or log(survival). The last option bases
     intervals on the log hazard or log(-log(survival)). 
   }
-
+  \item{\dots}{for future methods}
 }
 \value{
 an object of class \code{"survfit"}.  
