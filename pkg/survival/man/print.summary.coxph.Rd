@@ -7,7 +7,7 @@
   Produces a printed summary of a fitted coxph model 
 }
 \usage{
-\method{print}{summary.coxph}(x, digits=max(options()$digits - 3, 3),
+\method{print}{summary.coxph}(x, digits=max(getOption("digits") - 3, 3),
 signif.stars = getOption("show.signif.stars"), ...)
 }
 \arguments{
