@@ -25,7 +25,7 @@ For some data sets, the coefficients of the Aalen model will be very
 small (10-4); this simply multiplies the printed values by a constant,
 say 1e6, to make the printout easier to read.
 }
-\item{dots}{for future methods}
+\item{\dots}{for future methods}
 }
 \value{
 a list is returned with the following components
