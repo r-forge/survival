@@ -39,8 +39,8 @@
     \code{times}. 
     This is only valid if the \code{times} argument is present. 
   }
-  \item{rmean}{Deprecated option to show restricted mean up to last
-    observation time}
+  \item{rmean}{Show restricted mean: see
+  \code{\link{print.summary.survfit}} for details}
   \item{\dots}{for future methods}
   }
 
