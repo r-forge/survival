@@ -1,5 +1,6 @@
 \name{survfit}
 \alias{survfit}
+\alias{survfit.formula}
 \alias{[.survfit}
 \title{
   Compute a Survival Curve for Censored Data 
@@ -7,24 +8,20 @@
 \description{
 Computes an estimate of a survival curve for censored data 
 using either the Kaplan-Meier or the Fleming-Harrington method 
-or computes the predicted survivor function for a Cox proportional 
-hazards model.  For competing risks data it computes the
-cumulative incidence curve.
+or computes the predicted survivor function.
+For competing risks data it computes the
+cumulative incidence curve. See \code{survfit.coxph} for survival curves
+from a fitted Cox model.
 }
 \usage{
-survfit(formula, data, weights, subset, na.action,  
+survfit(formula,...)
+\method{survfit}{formula}(formula, data, weights, subset, na.action,  
         newdata, individual=FALSE,
-        etype, id, 
-        conf.int=.95, se.fit=TRUE,  
-        type=c("kaplan-meier","fleming-harrington", "fh2"),
-        error=c("greenwood","tsiatis"),
-        conf.type=c("log","log-log","plain","none"),
-        conf.lower=c("usual", "peto", "modified"), start.time)
+        etype, id, ...)
 }
 \arguments{
   \item{formula}{
-    a formula object or a \code{coxph} object. 
-    If a formula object is supplied it must have a 
+    a formula object, which must have a 
     \code{Surv} object as the  
     response on the left of the \code{~} operator and, if desired, terms  
     separated by + operators on the right. 
@@ -39,7 +36,6 @@ survfit(formula, data, weights, subset, na.action,
     The weights must be nonnegative and it is strongly recommended that  
     they be strictly positive, since zero weights are ambiguous, compared 
     to use of the \code{subset} argument.
-    This argument is ignored when the first argument is a Cox model.
   }
   \item{subset}{
     expression saying that only a subset of the rows of the data 
@@ -50,25 +46,7 @@ survfit(formula, data, weights, subset, na.action,
     \code{subset} argument has been used. 
     Default is \code{options()$na.action}. 
   }
-  \item{newdata}{
-    a data frame with the same variable names as those that appear 
-    in the \code{coxph} formula.  
-    Only applicable when \code{formula} is a 
-    \code{coxph} object. 
-    The curve(s) produced will be representative of a cohort who's 
-    covariates correspond to the values in \code{newdata}. 
-    Default is the mean of the covariates used in the 
-    \code{coxph} fit. 
-  }
-  \item{individual}{
-    a logical value indicating whether each row of \code{newdata} represents
-    a distinct individual (FALSE, the default), 
-    or if each row of the data frame represents different 
-    time epochs for only one individual (TRUE).  
-    In the former case the result will have one curve for each row in
-    \code{newdata}, in the latter only a single curve will be produced.
-  }
-  \item{etype} {
+  \item{etype}{
     a variable giving the type of event.
     Presence of this variable signals the program to compute the cumulative
     incidece estimate.  For each event \code{status==1}, the etype
@@ -76,7 +54,7 @@ survfit(formula, data, weights, subset, na.action,
     value of \code{etype} is ignored - but do not set it to NA, since that
     will cause na.action to delete the observation.
   }
-  \item{id} {
+  \item{id}{
     identifies individual subjects, when a given person can have multiple
     lines of data. when used with the \code{etype} variable, this allows
     the compuation of
@@ -90,66 +68,72 @@ survfit(formula, data, weights, subset, na.action,
     a logical value indicating whether standard errors should be 
     computed.  Default is \code{TRUE}. 
   }
-  \item{type}{
-    a character string specifying the type of survival curve. 
-    Possible values are \code{"kaplan-meier"}, 
-    \code{"fleming-harrington"} or \code{"fh2"} 
-    if a formula is given 
-    and \code{"aalen"} or \code{"kaplan-meier"} 
-    if the first argument is a \code{coxph} object, 
-    (only the first two characters are necessary). 
-    The default is \code{"aalen"} when 
-    a \code{coxph} object is given, 
-    and it is \code{"kaplan-meier"} otherwise.  
-    Earlier versions of \code{survfit} 
-    used \code{type="tsiatis"} to get the \code{"aalen"} estimator.  For backward 
-    compatibility, this is still allowed. 
-  }
-  \item{error}{
-    a character string specifying the error.  Possible values are 
-    \code{"greenwood"} for the Greenwood formula or 
-    \code{"tsiatis"} for the Tsiatis formula, 
-    (only the first character is 
-    necessary).  
-    The default is \code{"tsiatis"} when 
-    a \code{coxph} object is given, and it is \code{"greenwood"} otherwise. 
-  }
-  \item{conf.type}{
-    One of \code{"none"}, \code{"plain"}, \code{"log"} (the default),
-    or \code{"log-log"}.  Only
-    enough of the string to uniquely identify it is necessary.
-    The first option causes confidence intervals not to be
-    generated.  The second causes the standard intervals
-    \code{curve +- k *se(curve)}, where k is determined from
-    \code{conf.int}.  The log option calculates intervals based on the
-    cumulative hazard or log(survival). The last option bases
-    intervals on the log hazard or log(-log(survival)). 
-  }
-  \item{conf.lower}{
-    a character string to specify modified lower limits to the curve, the 
-    upper limit remains unchanged.  
-    Possible values are \code{"usual"} (unmodified), 
-    \code{"peto"}, 
-    and \code{"modified"}.  T
-    he modified lower limit 
-    is based on an "effective n" argument.  The confidence 
-    bands will agree with the usual calculation at each death time, but unlike 
-    the usual bands the confidence interval becomes wider at each censored 
-    observation.  The extra width is obtained by multiplying the usual 
-    variance by a factor m/n, where n is the number currently at risk and 
-    m is the number at risk at the last death time.  (The bands thus agree 
-    with the un-modified bands at each death time.) 
-    This is especially useful for survival curves with a long flat tail. 
-
-    The Peto lower limit is based on the same "effective n" argument as the 
-    modified limit, but also replaces the usual Greenwood variance term with 
-    a simple approximation.  It is known to be conservative. 
-  }
-  \item{start.time}{
-    numeric value specifying a time to start calculating survival
-    information.
-    The resulting curve is the survival conditional on surviving to
-    \code{start.time}.
+  \item{\dots}{
+    The following additional arguments are passed to internal functions
+    called by \code{survfit}.
+    \describe{
+      \item{type}{
+	a character string specifying the type of survival curve. 
+	Possible values are \code{"kaplan-meier"}, 
+	\code{"fleming-harrington"} or \code{"fh2"} 
+	if a formula is given 
+	and \code{"aalen"} or \code{"kaplan-meier"} 
+	if the first argument is a \code{coxph} object, 
+	(only the first two characters are necessary). 
+	The default is \code{"aalen"} when 
+	a \code{coxph} object is given, 
+	and it is \code{"kaplan-meier"} otherwise.  
+	Earlier versions of \code{survfit} 
+	used \code{type="tsiatis"} to get the \code{"aalen"} estimator.  For backward 
+	compatibility, this is still allowed. 
+      }
+      \item{error}{
+	a character string specifying the error.  Possible values are 
+	\code{"greenwood"} for the Greenwood formula or 
+	\code{"tsiatis"} for the Tsiatis formula, 
+	(only the first character is 
+	necessary).  
+	The default is \code{"tsiatis"} when 
+	a \code{coxph} object is given, and it is \code{"greenwood"} otherwise. 
+      }
+      \item{conf.type}{
+	One of \code{"none"}, \code{"plain"}, \code{"log"} (the default),
+	or \code{"log-log"}.  Only
+	enough of the string to uniquely identify it is necessary.
+	The first option causes confidence intervals not to be
+	generated.  The second causes the standard intervals
+	\code{curve +- k *se(curve)}, where k is determined from
+	\code{conf.int}.  The log option calculates intervals based on the
+	cumulative hazard or log(survival). The last option bases
+	intervals on the log hazard or log(-log(survival)). 
+      }
+      \item{conf.lower}{
+	a character string to specify modified lower limits to the curve, the 
+	upper limit remains unchanged.  
+	Possible values are \code{"usual"} (unmodified), 
+	\code{"peto"}, 
+	and \code{"modified"}.  T
+	he modified lower limit 
+	is based on an "effective n" argument.  The confidence 
+	bands will agree with the usual calculation at each death time, but unlike 
+	the usual bands the confidence interval becomes wider at each censored 
+	observation.  The extra width is obtained by multiplying the usual 
+	variance by a factor m/n, where n is the number currently at risk and 
+	m is the number at risk at the last death time.  (The bands thus agree 
+	with the un-modified bands at each death time.) 
+	This is especially useful for survival curves with a long flat tail. 
+	
+	The Peto lower limit is based on the same "effective n" argument as the 
+	modified limit, but also replaces the usual Greenwood variance term with 
+	a simple approximation.  It is known to be conservative. 
+      }
+      \item{start.time}{
+	numeric value specifying a time to start calculating survival
+	information.
+	The resulting curve is the survival conditional on surviving to
+	\code{start.time}.
+      }
+    }
   }
 }
 \value{
@@ -164,10 +148,6 @@ The estimates used are the Kalbfleisch-Prentice
 (Kalbfleisch and Prentice, 1980, p.86) and the Tsiatis/Link/Breslow, 
 which reduce to the Kaplan-Meier and Fleming-Harrington estimates, 
 respectively, when the weights are unity.  
-When the parent data is a Cox model, there is an extra
-term in the variance of the curve, due to the variance of the coefficients and 
-hence variance in the computed weights.  Details of the Aalen 
-estimator and its variance are found in Tsiatis (1981). 
 
 The Greenwood formula for the variance is a sum of terms 
 d/(n*(n-m)), where d is the number of deaths at a given time point, n 
@@ -186,9 +166,6 @@ For the first method S(t) = exp(H), where H is
 the Nelson-Aalen cumulative hazard estimate,
 whereas the \code{fh2} method will 
 give results S(t) results closer to the Kaplan-Meier. 
-For curves created 
-after a Cox model these correspond to the Breslow and Efron estimates, 
-respectively, and the proper choice is made automatically. 
 
 When the data set includes left censored or interval censored data (or both),
 then the EM approach of Turnbull is used to compute the overall curve.
@@ -239,12 +216,10 @@ Turnbull, B. W. (1974).  Nonparametric estimation of a survivorship
 function with doubly censored data. \emph{J Am Stat Assoc},
 \bold{69}, 169-173. 
 
-Tsiatis, A. (1981). A large sample study of the estimate 
-for the integrated hazard function in Cox's regression 
-model for survival data. \emph{Annals of Statistics}  
-\bold{9}, 93-108. 
 }
 \seealso{
+\code{\link{survfit.coxph}} for survival curves from Cox models.
+  
 \code{\link{print}},  
 \code{\link{plot}},  
 \code{\link{lines}},   

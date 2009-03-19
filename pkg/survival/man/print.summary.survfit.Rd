@@ -17,6 +17,7 @@ an object of class \code{"summary.survfit"}, which is the result of the
 \item{digits}{
 the number of digits to use in printing the numbers. 
 }
+  \item{\dots}{for future methods}
 }
 \value{
 \code{x}, with the invisible flag set to prevent printing. 

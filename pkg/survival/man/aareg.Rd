@@ -10,7 +10,7 @@ represents an Aalen model.
 \usage{
 aareg(formula, data, weights, subset, na.action,
    qrtol=1e-07, nmin, dfbeta=FALSE, taper=1,
-   test = c('aalen', 'nrisk'),
+   test = c('aalen', 'variance', 'nrisk'),
     model=FALSE, x=FALSE, y=FALSE) 
 }
 \arguments{

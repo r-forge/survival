@@ -16,11 +16,12 @@
 }
 \description{
 Create a survival object, usually used as a response variable in a model 
-formula. 
+formula. Argument matching is special for this function, see Details below.
 }
 \usage{
-Surv(time, event, type=) 
-Surv(time, time2, event, type=, origin=0) 
+Surv(time, time2, event,
+    type=c('right', 'left', 'interval', 'counting', 'interval2'),
+    origin=0)
 is.Surv(x)
 }
 \arguments{
@@ -75,6 +76,9 @@ is.Surv(x)
 Surv(time, event)
 Surv(time, time2, event, type= )
 }
+The \code{time},\code{time2} and \code{event} arguments are matched by
+position, not by name, so use, eg, \code{Surv(time, dead)} rather than
+\code{Surv(time, event=dead)}
 
 In theory it is possible to represent interval censored data without a 
 third column containing the explicit status.  Exact, right censored, 

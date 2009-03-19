@@ -7,15 +7,12 @@
 Produces a summary of a fitted coxph model 
 }
 \usage{
-\method{summary}{coxph}(object, coef=T, conf.int=0.95, scale=1,
-digits=max(options()$digits - 4, 3))
+\method{summary}{coxph}(object, conf.int=0.95, scale=1,
+digits=max(options()$digits - 4, 3),...)
 }
 \arguments{
   \item{object}{
     the result of a coxph fit 
-  }
-  \item{coef}{
-    logical flag: print the table of coefficients? 
   }
   \item{conf.int}{
     level for computation of the confidence intervals. 
@@ -28,6 +25,7 @@ digits=max(options()$digits - 4, 3))
   \item{digits}{
     number of significant digits to use in the printout. 
   }
+  \item{\dots}{for future methods}
 }
 \value{
 An object of class \code{summary.coxph}. 

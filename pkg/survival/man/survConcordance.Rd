@@ -18,6 +18,7 @@ right.
 \item{data}{
 a data frame
 }
+\item{weights,subset,na.action}{as for \code{coxph}}
 }
 \value{
 an object containing the concordance, followed by the

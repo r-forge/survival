@@ -109,6 +109,7 @@
     Type \code{"S"} accomplishes this by manipulating the plot range and
     then using the \code{"i"} style internally.
   }
+  \item{\dots}{for future methods}
 }
 \value{
 a list with components \code{x} and \code{y}, containing the coordinates of the last point 

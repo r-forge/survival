@@ -86,12 +86,12 @@ an array containing the expected number of events (or person years if
 \code{expect ="pyears"}).  This will be present only if there was a 
 \code{ratetable} term. 
 }
-\item{data}
+\item{data}{
 if the \code{data.frame} option was set, a data frame containing the
 variables \code{n}, \code{event}, \code{pyears} and \code{event} that
 supplants the four arrays listed above,
 along with variables corresponding to each dimension.
-There will be one row for each cell in the arrays.
+There will be one row for each cell in the arrays.}
 \item{offtable}{
 the number of person-years of exposure in the cohort that was not part of 
 any cell in the \code{pyears} array.  This is often useful as an error check;

@@ -27,8 +27,8 @@ basehaz(fit, centered = TRUE)
   a data frame with components
   \item{time}{The sorted vector of unique time points (those at which an
     event occurred}
-  \item{hazard }{The baseline hazard function}
-  \item{strata} {If \code{fit} was a stratified Cox model, the strata.
+  \item{hazard}{The baseline hazard function}
+  \item{strata}{If \code{fit} was a stratified Cox model, the strata.
     There will be one survival curve per strata.}
 }
 

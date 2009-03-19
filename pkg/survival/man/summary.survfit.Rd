@@ -9,7 +9,8 @@
 }
 
 \usage{
-  \method{summary}{survfit}(object, times=, censored=FALSe, scale=1, extend=FALSE)
+  \method{summary}{survfit}(object, times=, censored=FALSE, scale=1,
+  extend=FALSE, rmean=getOption('survfit.rmean'), ...)
   }
 \arguments{
     \item{object}{
@@ -37,7 +38,10 @@
     even if there are no subjects left at the end of the specified
     \code{times}. 
     This is only valid if the \code{times} argument is present. 
-    }
+  }
+  \item{rmean}{Deprecated option to show restricted mean up to last
+    observation time}
+  \item{\dots}{for future methods}
   }
 
 \value{

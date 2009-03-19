@@ -7,7 +7,7 @@
 Compute expected survival times. 
 }
 \usage{
-survexp.fit(x, y, times, conditional, ratetable)
+survexp.fit(x, y, times, death, ratetable)
 }
 \arguments{
 \item{x}{
@@ -22,9 +22,10 @@ the follow up time for each subject.
 \item{times}{
 the vector of times at which a result will be computed. 
 }
-\item{conditional}{
+\item{death}{
 a logical value, if \code{TRUE} the conditional survival is computed, 
-if \code{FALSE} the cohort survival is computed. 
+if \code{FALSE} the cohort survival is computed. See
+\code{\link{survexp}} for more details.
 }
 \item{ratetable}{
 a rate table, such as \code{survexp.uswhite}. 

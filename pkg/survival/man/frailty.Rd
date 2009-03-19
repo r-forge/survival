@@ -114,7 +114,7 @@ Penalized survival models and frailty,
 J Computational and Graphical Statistics, 12:156-175, 2003.
 }
 \seealso{
-\link{coxph}, \link{survreg}, \link{coxme}
+\link{coxph}, \link{survreg}, \link[pkg=bdsmatrix]{coxme}
 }
 \examples{
 # Random institutional effect

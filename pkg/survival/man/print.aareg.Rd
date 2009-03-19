@@ -7,7 +7,7 @@
 Print out a fit of Aalen's additive regression model
 }
 \usage{
-\method{print}{aareg}(x, maxtime, test=c("aalen", "nrisk"))
+\method{print}{aareg}(x, maxtime, test=c("aalen", "nrisk"),scale=1)
 }
 \arguments{
 \item{x}{
@@ -22,6 +22,10 @@ The default weights are based on the variance of each coefficient, as
 a function of time.  The alternative weight is proportional to the number
 of subjects still at risk at each time point.
 }
+\item{scale}{scales the coefficients.  
+For some data sets, the coefficients of the Aalen model will be very
+small (10-4); this simply multiplies the printed values by a constant,
+say 1e6, to make the printout easier to read.}
 }
 \value{
 the calling argument is returned.

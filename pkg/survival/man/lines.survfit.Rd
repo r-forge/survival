@@ -27,7 +27,7 @@ for \code{survfit} objects, and a connected line for \code{survexp} objects.
 vectors giving the mark symbol, color, line type and line width for the 
 added curves. 
 }
-\item{...} {other graphical parameters}
+\item{...}{other graphical parameters}
 \item{mark.time}{
 controls the labeling of the curves.   
 If \code{FALSE}, no labeling is done.   

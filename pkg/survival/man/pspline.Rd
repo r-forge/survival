@@ -25,8 +25,8 @@ pspline(x, df=4, theta, nterm=2.5 * df, degree=3, eps=0.1, method, ...)
     If theta is given, then 'fixed' is assumed.
     If the degrees of freedom is given, then 'df' is assumed.
     If method='aic' then the degrees of freedom is chosen automatically using
-    Akaike's information criterion.
-    \item{\dots}{optional arguments to the control function}
+    Akaike's information criterion.}
+  \item{\dots}{optional arguments to the control function}
   }
 }
 \description{

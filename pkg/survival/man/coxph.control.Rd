@@ -21,11 +21,11 @@ infinite coefficient value.}
 is an outer loop of iteration to determine the penalty parameters; maximum
 number of iterations for this outer loop.}
 }
-}
+
 \value{
   a list containing the values of each of the above constants
 }
 \author{Terry Therneau }
-\seealso{\code{\link{coxph}}}
-}
+\seealso{\code{\link{coxph}}
+  }
 \keyword{survival}

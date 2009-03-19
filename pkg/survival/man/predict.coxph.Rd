@@ -11,7 +11,8 @@
 \usage{
 \method{predict}{coxph}(object, newdata,
 type=c("lp", "risk", "expected", "terms"),
-se.fit=FALSE, terms=names(object$assign), collapse)
+se.fit=FALSE, terms=names(object$assign), collapse,
+safe=FALSE, ...)
 }
 \arguments{
 \item{object}{
@@ -41,6 +42,8 @@ optional vector of subject identifiers.
 If specified, the output will contain one entry per subject rather than one 
 entry per observation. 
 }
+\item{safe}{not used in R}
+\item{\dots}{For future methods}
 }
 \value{
 a vector or matrix of predictions, or a list containing the predictions 

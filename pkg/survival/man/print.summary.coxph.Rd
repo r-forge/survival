@@ -7,17 +7,16 @@
   Produces a printed summary of a fitted coxph model 
 }
 \usage{
-\method{print}{summary.coxph}(x, coef=T, conf.int=T,
-digits=max(options()$digits - 4, 3))
+\method{print}{summary.coxph}(x, digits=max(options()$digits - 4, 3),
+signif.stars = getOption("show.signif.stars"), ...)
 }
 \arguments{
   \item{x}{
     the result of a call to \code{summary.coxph} 
   }
-  \item{coef}{
-    logical flag: print the table of coefficients? 
+  \item{digits}{significant digits to print}
+  \item{signif.stars}{
+    Show stars to highlight small p-values
   }
-  \item{conf.int}{
-    logical flag: print the table of confidence intervals?
-  }
+  \item{\dots}{For future methods}
 }

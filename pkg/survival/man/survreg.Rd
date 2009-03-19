@@ -18,9 +18,9 @@ variable; the most common cases use a log transformation, leading to
 accelerated failure time models.
 }
 \usage{
-survreg(formula=formula(data), data, weights, subset, 
+survreg(formula=formula, data, weights, subset, 
         na.action, dist="weibull", init=NULL, scale=0, 
-        control=survreg.control(),parms=NULL,model=FALSE, x=FALSE,
+        control,parms=NULL,model=FALSE, x=FALSE,
         y=TRUE, robust=FALSE, score=FALSE, \dots)
 
 }
@@ -46,8 +46,8 @@ a missing-data filter function, applied to the model.frame, after any
 assumed distribution for y variable. 
 If the argument is a character string, then it is assumed to name an
 element from \code{\link{survreg.distributions}}. These include
-\code{"weibull"}, \code{"exponential"}, \code{"gaussian"}, \code{"logistic"}, \c
-ode{"lognormal"} and \code{"loglogistic"}.
+\code{"weibull"}, \code{"exponential"}, \code{"gaussian"},
+\code{"logistic"},\code{"lognormal"} and \code{"loglogistic"}.
 Otherwise, it is assumed to be a user defined list conforming to the
 format described in \code{\link{survreg.distributions}}.
 }
@@ -63,16 +63,20 @@ optional fixed value for the scale.  If set to <=0 then the scale is
 estimated.
 }
 \item{control}{
-a list of control values, in the format producted by \code{survreg.control}.
+a list of control values, in the format producted by
+\code{\link{survreg.control}}. The default value is \code{survreg.control()}
 }
 \item{model,x,y}{
 flags to control what is returned.  If any of these is true, then the
 model frame, the model matrix, and/or the vector of response times will be
 returned as components of the final result, with the same names as the
 flag arguments.}
-\item{score} {return the score vector. (This is expected to be zero upon
+\item{score}{return the score vector. (This is expected to be zero upon
 successful convergence.)
 }
+\item{robust}{Use robust 'sandwich' standard errors, based on
+  independence of individuals if there is no \code{cluster()} term in
+  the formula, based on independence of clusters if there is.}
 \item{...}{
 other arguments which will be passed to \code{survreg.control}.
 }}

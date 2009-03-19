@@ -19,7 +19,7 @@
 \description{Internal survival functions}
 \usage{
 survreg.fit(x, y, weights, offset, init, controlvals, dist, scale = 0,
-    nstrat = 1, strata, parms = NULL)
+    nstrat = 1, strata, parms = NULL,assign)
 survpenal.fit(x, y, weights, offset, init, controlvals, dist, scale = 0,
     nstrat = 1, strata, pcols, pattr, assign, parms = NULL)
 survdiff.fit(y, x, strat, rho = 0)
