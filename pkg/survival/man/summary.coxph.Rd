@@ -7,8 +7,7 @@
 Produces a summary of a fitted coxph model 
 }
 \usage{
-\method{summary}{coxph}(object, conf.int=0.95, scale=1,
-digits=max(options()$digits - 4, 3),...)
+\method{summary}{coxph}(object, conf.int=0.95, scale=1,...)
 }
 \arguments{
   \item{object}{
@@ -21,9 +20,6 @@ digits=max(options()$digits - 4, 3),...)
   \item{scale}{
     vector of scale factors for the coefficients, defaults to 1. 
     The confidence limits are for the risk change associated with one scale unit. 
-  }
-  \item{digits}{
-    number of significant digits to use in the printout. 
   }
   \item{\dots}{for future methods}
 }
