@@ -2,7 +2,7 @@
 print.survfit <- function(x, scale=1, 
 			  digits = max(options()$digits - 4, 3), 
                           print.rmean = getOption('survfit.print.rmean'),
-                          rmean = getOption('survfit.rmean'), ....) {
+                          rmean = getOption('survfit.rmean'), ...) {
 
     if (!is.null(cl<- x$call)) {
 	cat("Call: ")

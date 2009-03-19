@@ -1,7 +1,7 @@
 #
 # This is usually called from anova.coxph, not a user
 #  It's first argument must be a list of coxph models
-anova.coxphlist <- function (object, test =  NULL) {
+anova.coxphlist <- function (object, test =  NULL,...) {
     if (!is.list(object)) stop("First argument must be a list")
     if (!all(lapply(object, function(x) inherits(x, 'coxph'))))
 	     stop("Argument must be a list of coxph models")

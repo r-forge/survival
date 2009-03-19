@@ -16,7 +16,7 @@
 #    have meant an awful lot more stuff to pass, lots more work, for a test
 #    that is rarely used.
 #
-summary.aareg <- function(object, maxtime, test=c('aalen', 'nrisk'), scale=1) {
+summary.aareg <- function(object, maxtime, test=c('aalen', 'nrisk'), scale=1,...) {
     if (!inherits(object, 'aareg')) stop ("Must be an aareg object")
 
     if (missing(test)) test <- object$test

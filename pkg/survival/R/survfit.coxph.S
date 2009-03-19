@@ -5,7 +5,7 @@ if (!is.R()) setOldClass(c('survfit.cox', 'survfit'))
 survfit.coxph <-
   function(formula, newdata, se.fit=TRUE, conf.int=.95, individual=FALSE,
 	    type, vartype,
-	    conf.type=c('log', 'log-log', 'plain', 'none')) {
+	    conf.type=c('log', 'log-log', 'plain', 'none'),...) {
 
     Call <- match.call()
     Call[[1]] <- as.name('survfit')  #nicer output for the user
