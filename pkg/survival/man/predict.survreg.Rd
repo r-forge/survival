@@ -11,7 +11,7 @@ Predicted values for a \code{survreg} object
 \method{predict}{survreg}(object, newdata,  
 type=c("response", "link", "lp", "linear", "terms", "quantile",  
 	"uquantile"),  
- se.fit=FALSE, terms=NULL, p=c(0.1, 0.9))
+ se.fit=FALSE, terms=NULL, p=c(0.1, 0.9),...)
 }
 \arguments{
 \item{object}{
@@ -40,6 +40,7 @@ one column for every term (excluding the intercept) in the model.
 \item{p}{
 vector of percentiles.  This is used only for quantile predictions. 
 }
+\item{\dots}{for future methods}
 }
 \value{
 a vector or matrix of predicted values. 
