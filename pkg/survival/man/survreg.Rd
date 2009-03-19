@@ -18,7 +18,7 @@ variable; the most common cases use a log transformation, leading to
 accelerated failure time models.
 }
 \usage{
-survreg(formula=formula, data, weights, subset, 
+survreg(formula, data, weights, subset, 
         na.action, dist="weibull", init=NULL, scale=0, 
         control,parms=NULL,model=FALSE, x=FALSE,
         y=TRUE, robust=FALSE, score=FALSE, \dots)
