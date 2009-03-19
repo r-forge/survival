@@ -16,7 +16,6 @@ from a fitted Cox model.
 \usage{
 survfit(formula,...)
 \method{survfit}{formula}(formula, data, weights, subset, na.action,  
-        newdata, individual=FALSE,
         etype, id, ...)
 }
 \arguments{
@@ -59,14 +58,6 @@ survfit(formula,...)
     lines of data. when used with the \code{etype} variable, this allows
     the compuation of
     a cumulative prevalence estimate, i.e., the incidence over time.
-  }
-  \item{conf.int}{
-    the level for a two-sided confidence interval on the survival curve(s). 
-    Default is 0.95. 
-  }
-  \item{se.fit}{
-    a logical value indicating whether standard errors should be 
-    computed.  Default is \code{TRUE}. 
   }
   \item{\dots}{
     The following additional arguments are passed to internal functions
@@ -133,6 +124,15 @@ survfit(formula,...)
 	The resulting curve is the survival conditional on surviving to
 	\code{start.time}.
       }
+      \item{conf.int}{
+	the level for a two-sided confidence interval on the survival curve(s). 
+	Default is 0.95. 
+      }
+      \item{se.fit}{
+	a logical value indicating whether standard errors should be 
+	computed.  Default is \code{TRUE}. 
+      }
+      
     }
   }
 }
