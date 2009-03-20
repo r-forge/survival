@@ -1,4 +1,4 @@
-survival/src/Readme
-survival/src/surv_callback.csp
-survival/src/cox_Rcallback.csp
+src/Readme
+src/surv_callback.csp
+src/cox_Rcallback.csp
 
