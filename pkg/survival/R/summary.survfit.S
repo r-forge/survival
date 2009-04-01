@@ -183,11 +183,11 @@ summary.survfit <- function(object, times, censored=FALSE,
     #  the correct output structure
     #
     if (fit$type == 'right' || inherits(fit, 'survfit.cox')) 
-	    temp <- list(surv=surv, time=times, n.risk=n.risk, n.event=n.event,
+	    temp <- list(surv=surv, time=times/scale, n.risk=n.risk, n.event=n.event,
 			 conf.int=fit$conf.int, type=fit$type, table=table)
     
     if (fit$type == 'counting')
-	    temp <- list(surv=surv, time=times, n.risk=n.risk, n.event=n.event,
+	    temp <- list(surv=surv, time=times/scale, n.risk=n.risk, n.event=n.event,
 			 conf.int=fit$conf.int, n.enter=n.enter,
 			 n.censor=n.censor, type=fit$type, 
 			 table=table)
