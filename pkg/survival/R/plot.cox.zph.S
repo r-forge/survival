@@ -39,9 +39,11 @@ plot.cox.zph <- function(x, resid=TRUE, se=TRUE, df=4, nsmo=40, var, ...) {
 	}
     else if (x$transform != 'identity') {
 	xtime <- as.numeric(dimnames(yy)[[1]])
-	apr1  <- approx(xx, xtime, seq(min(xx), max(xx), length=17)[2*(1:8)])
+        indx <- !duplicated(xx)  #avoid a warning message in R
+	apr1  <- approx(xx[indx], xtime[indx], 
+                        seq(min(xx), max(xx), length=17)[2*(1:8)])
 	temp <- signif(apr1$y,2)
-	apr2  <- approx(xtime, xx, temp)
+	apr2  <- approx(xtime[indx], xx[indx], temp)
 	xaxisval <- apr2$y
 	xaxislab <- rep("",8)
 	for (i in 1:8) xaxislab[i] <- format(temp[i])
