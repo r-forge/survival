@@ -119,10 +119,6 @@ coxph <- function(formula, data, weights, subset, na.action,
 	if (any(ord>1)) stop ('Penalty terms cannot be in an interaction')
 	pcols <- assign[pterms]  
   
-	#penalized are hard sometimes	
-	if (control$eps.miss)   control$eps <- 1e-7
-	if (control$iter.miss)  control$iter.max <- 20  
-
         fit <- coxpenal.fit(X, Y, strats, offset, init=init,
 				control,
 				weights=weights, method=method,

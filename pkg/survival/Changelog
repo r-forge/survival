@@ -1,0 +1,15 @@
+22 April 2009.  The coxph code had an override to iter and eps, making both of
+them more strict for a penalized model.  However, the overall default values
+have changed over time, so that these lines actually decreased accuracy - the
+opposite of their intent.  Removed the lines.  Also removed the iter.miss and
+eps.miss components (on which this check depended) from coxph.control, which
+makes that function match its documentation.
+
+1 May 2009. The anova.coxph function was incorrect for models with a strata
+term.  Fixed this, and made chisquare tests the default.
+
+20 May 2009.  The manual page for survfit was confusing, since it tries to 
+document both the standard KM (formula method) and the coxph method.  I've
+split them out so that now survfit documents only the basic method and points 
+a user the appropriate specialized page.
+
