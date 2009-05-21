@@ -1,4 +1,4 @@
-#
+# $Id$
 # This is usually called from anova.coxph, not a user
 #  It's first argument must be a list of coxph models
 anova.coxphlist <- function (object, test =  'Chisq' ,...) {

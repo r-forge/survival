@@ -12,7 +12,7 @@
   \item{object}{An object of class \code{coxph}}
   \item{\dots}{Further \code{coxph} objects}
   \item{test}{a character string. The appropriate test is a chisquare, all
-other choices result in no test being done.
+other choices result in no test being done.}
 }
 \details{
   Specifying a single object gives a sequential analysis of deviance

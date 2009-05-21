@@ -18,31 +18,21 @@ coxph <- function(formula, data, weights, subset, na.action,
     temp <- Call[c(1,indx)]  # only keep the arguments we wanted
     temp[[1]] <- as.name('model.frame')  # change the function called
 
+    special <- c("strata", "cluster")
+    temp$formula <- if(missing(data)) terms(formula, special)
+                    else              terms(formula, special, data=data)
     if (is.R()) m <- eval(temp, parent.frame())
     else        m <- eval(temp, sys.parent())
 
     if (nrow(m) ==0) stop("No (non-missing) observations")
-
-    special <- c("strata", "cluster")
-    Terms <- if(missing(data)) terms(formula, special)
-	     else              terms(formula, special, data=data)
+    Terms <- attr(m, 'terms')
 
     if (missing(control)) control <- coxph.control(...)
     Y <- model.extract(m, "response")
     if (!inherits(Y, "Surv")) stop("Response must be a survival object")
-    weights <- model.extract(m, 'weights')
-    offset<- attr(Terms, "offset")
-    tt <- length(offset)
-    offset <- if(tt == 0)
-		    rep(0, nrow(Y))
-	      else if(tt == 1)
-		      m[[offset]]
-	      else {
-		    ff <- m[[offset[1]]]
-		    for(i in 2:tt)
-			    ff <- ff + m[[offset[i]]]
-		    ff
-		    }
+    weights <- model.weights(m)
+    offset <- model.offset(m)
+    if (is.null(offset) | all(offset==0)) offset <- rep(0., nrow(m))
 
     attr(Terms,"intercept")<- 1  #Cox model always has \Lambda_0
     strats <- attr(Terms, "specials")$strata
@@ -68,8 +58,6 @@ coxph <- function(formula, data, weights, subset, na.action,
 	# I need to keep the intercept in the model when creating the
 	#   model matrix (so factors generate correct columns), then
 	#   remove it.
-	# But subscripting removes the assign attribute (in R), so grab that
-	#   off first into newTerms
 	newTerms <- Terms[-dropx]
 	X <- model.matrix(newTerms, m)
 	}
@@ -78,9 +66,12 @@ coxph <- function(formula, data, weights, subset, na.action,
 	X <- model.matrix(Terms, m)
 	}
 
+    # Attributes of X need to be saved away before the X <- X[,-1] line removes the
+    #  intercept, since subscripting removes some of them!
     if (is.R()) {
 	 assign <- lapply(attrassign(X, newTerms)[-1], function(x) x-1)
          xlevels <- .getXlevels(newTerms, m)
+         contr.save <- attr(X, 'contrasts')
          }
     else {
         assign <- lapply(attr(X, 'assign')[-1], function(x) x -1)
@@ -93,6 +84,7 @@ coxph <- function(formula, data, weights, subset, na.action,
                         xlevels <- NULL
                 }
         else xlevels <- NULL
+        contr.save <- attr(X, 'contrasts')
         }
         
     X <- X[,-1, drop=F]  #remove the intercept column
@@ -205,7 +197,8 @@ coxph <- function(formula, data, weights, subset, na.action,
 
     fit$formula <- formula(Terms)
     if (length(xlevels) >0) fit$xlevels <- xlevels
-    fit$contrasts <- attr(X, 'contrasts')
+    fit$contrasts <- contr.save
+    if (any(offset !=0)) fit$offset <- offset
     fit$call <- Call
     fit$method <- method
     fit

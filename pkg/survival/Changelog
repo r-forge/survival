@@ -13,3 +13,7 @@ document both the standard KM (formula method) and the coxph method.  I've
 split them out so that now survfit documents only the basic method and points 
 a user the appropriate specialized page.
 
+21 May 2009 Create a test case for factor variables/newdata/predict for coxph 
+and survreg.  This led to a set of minor fixes; the code is now in line with
+the R standard for model functions.  One consequence is that model.frame.coxph
+and model.frame.survreg are no longer needed, so have been removed.
