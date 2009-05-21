@@ -8,7 +8,11 @@ fit1 <- coxph(Surv(time, status) ~ ph.ecog + wt.loss + strata(sex) +
               poly(age,3), lung)
 ztemp <- anova(fit1)
 
-tdata <- na.omit(lung[, c('time', 'status', 'ph.ecog', 'wt.loss', 'sex', 'age')])all.equal(ztemp2$P[2:3], ztemp$P[3:4])
+tdata <- na.omit(lung[, c('time', 'status', 'ph.ecog', 'wt.loss', 'sex', 'age')])
+fit2 <- coxph(Surv(time, status)~ ph.ecog + wt.loss + poly(age,3) + strata(sex),
+              data=tdata)
+ztemp2 <- anova(fit2)
+all.equal(ztemp, ztemp2)
 
 
 fit2 <-  coxph(Surv(time, status) ~ ph.ecog + wt.loss + strata(sex), tdata)

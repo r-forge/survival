@@ -1,3 +1,5 @@
+library(survival)
+
 #
 # Test the current prevalence version of the CI curve
 #

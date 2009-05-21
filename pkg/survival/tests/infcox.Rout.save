@@ -1,6 +1,6 @@
 
-R version 2.7.1 (2008-06-23)
-Copyright (C) 2008 The R Foundation for Statistical Computing
+R version 2.9.0 (2009-04-17)
+Copyright (C) 2009 The R Foundation for Statistical Computing
 ISBN 3-900051-07-0
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
@@ -30,9 +30,9 @@ Call:
 coxph(formula = Surv(futime, fustat) ~ x1 + x2, data = test3)
 
 
-    coef exp(coef) se(coef)         z p
-x1 -21.2  6.19e-10    23205 -0.000914 1
-x2 -21.9  2.96e-10    24795 -0.000885 1
+    coef exp(coef) se(coef)        z    p
+x1 -16.2  9.19e-08     1905 -0.00851 0.99
+x2 -16.9  4.39e-08     2035 -0.00832 0.99
 
 Likelihood ratio test=10.2  on 2 df, p=0.00625  n= 12 
 Warning message:

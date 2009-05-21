@@ -1,6 +1,6 @@
 
-R version 2.7.1 (2008-06-23)
-Copyright (C) 2008 The R Foundation for Statistical Computing
+R version 2.9.0 (2009-04-17)
+Copyright (C) 2009 The R Foundation for Statistical Computing
 ISBN 3-900051-07-0
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
@@ -96,11 +96,11 @@ Likelihood ratio test=118  on 25.4 df, p=7e-14  n= 253
 > #     same, but darn close.
 > 
 > temp <- coxph(Surv(start, stop, status) ~ rx + offset(r2fitm$frail[id]), rat2)
-> all.equal(temp$coef, r2fitm$coef[1])
+> all.equal(temp$coef, r2fitm$coef[1], tolerance=1e-7)
 [1] TRUE
 > 
 > temp <- coxph(Surv(start, stop, status) ~ rx + offset(r2fitg$frail[id]), rat2)
-> all.equal(temp$coef, r2fitg$coef[1])
+> all.equal(temp$coef, r2fitg$coef[1], tolerance=1e-7)
 [1] TRUE
 > 
 > #
