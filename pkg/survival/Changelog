@@ -17,3 +17,7 @@ a user the appropriate specialized page.
 and survreg.  This led to a set of minor fixes; the code is now in line with
 the R standard for model functions.  One consequence is that model.frame.coxph
 and model.frame.survreg are no longer needed, so have been removed.
+
+22 May 2009: Allow single subscripts to rate tables, e.g. survexp[1:10].  
+Returns a simple vector of values.  The str() function does this to print out
+a short summary.  Problem pointed out by Heinz Tuechler.

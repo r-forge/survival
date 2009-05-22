@@ -88,7 +88,7 @@ is.na.ratetable2 <- function(x) {
     attributes(x) <- aa[c("dim", "dimnames")]
     y <- NextMethod("[", drop=FALSE)
     newdim <- attr(y, 'dim')
-    if (is.null(newdim)) stop("Invalid subscript")
+    if (is.null(newdim)) return(y)  #when the subscript was a single vector
     dropped <- (newdim==1)
     if (drop)  change <- (newdim!=aa$dim & !dropped)
     else       change <- (newdim!=aa$dim)
