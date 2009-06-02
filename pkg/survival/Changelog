@@ -21,3 +21,6 @@ and model.frame.survreg are no longer needed, so have been removed.
 22 May 2009: Allow single subscripts to rate tables, e.g. survexp[1:10].  
 Returns a simple vector of values.  The str() function does this to print out
 a short summary.  Problem pointed out by Heinz Tuechler.
+
+2 June 2009: Surv(time1, time2, status, type='interval') would fail for an NA
+status code.  Pointed out by Achim Zeilus.
