@@ -84,7 +84,7 @@ survreg.fit<- function(x, y, weights, offset, init, controlvals, dist,
 	dtemp<- dmat[,3] * dmat[,4]    #f'
 	if (any(status==3)) {
 	    z2 <- (y[,2] - eta)/sigma
-	    dmat2 <- density(z2)
+	    dmat2 <- density(z2, parms)
 	    }
 	else {
 	    dmat2 <- matrix(0,1,5)   #dummy values

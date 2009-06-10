@@ -24,3 +24,9 @@ a short summary.  Problem pointed out by Heinz Tuechler.
 
 2 June 2009: Surv(time1, time2, status, type='interval') would fail for an NA
 status code.  Pointed out by Achim Zeilus.
+
+10 June 2009: Fix an error pointed out by Nick Reich, who was the first to use
+interval censored data + user defined distribution in survreg, jointly.  There
+was no test case and creating one uncovered several errors (but only for this
+combination).  All the error cases led to catastrophic failure, highlighting
+the extreme rarity of a user requesting this combination.
