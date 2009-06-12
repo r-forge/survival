@@ -29,7 +29,6 @@ match.ratetable(R, ratetable)
 \method{as.matrix}{ratetable}(x, ...)
 is.na.ratetable2(x)
 is.na.coxph.penalty(x)
-model.newframe(object, newdata, safe = FALSE, response = FALSE, ...)
 coxpenal.df(hmat, hinv, fdiag, assign.list, ptype, nvar, pen1,
     pen2, sparse)
 coxpenal.fit(x, y, strata, offset, init, control, weights, method,
