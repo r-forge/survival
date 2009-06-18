@@ -230,7 +230,7 @@ survfitCI <- function(X, Y, weights,
 	    kfit <- list(n=table(X),
 			 time= unlist(timex),
 			 n.risk= unlist(n.risk), 
-			 n.event=unlist(n.nevent),
+			 n.event=unlist(n.event),
 			 surv = t(matrix(unlist(surv), nrow=netype)),
 			 type='right', call=call)
 	    if (se.fit) kfit$std.err <- t(matrix(unlist(varhaz),nrow=netype))
