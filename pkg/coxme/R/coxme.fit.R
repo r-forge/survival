@@ -66,8 +66,8 @@
      if (any(nfrail != temp)) 
          stop("fmat must be a set of integer indices, with none missing")    
   dummy <- kfun(theta, varlist)
-  if (is.null(dummy@rmat) rtemp <- 0
-      else                rtemp <- ncol(dummy@rmat)
+  if (is.null(dummy@rmat)) rtemp <- 0
+      else                 rtemp <- ncol(dummy@rmat)
 
   for (i in 2:ncol(fmat)) fmat[,i] <- fmat[,i] + max(fmat[,i-1])
   findex <- matrix(0, nrow=max(fmat), ncol=ncol(fmat))
@@ -127,13 +127,13 @@
              R[t2 + indx2[i], t1+indx1[i]] <- temp@rmat[t2, t1]
              }
          if (zcount[i] >0) {
-             t1 <-  1:zcount[i], t2 <- t1 + fcount2[i]
+             t1 <-  1:zcount[i];  t2 <- t1 + fcount2[i]
              R[indx4[i] + t1, indx3[i]+t1] <- temp@rmat[t2, t2]
              }
          if (i==1) tsave <- temp
          }
      
-     bdsmatrix(blocksize=tsave@blocksize blocks=tsave@blocks, R=R)
+     bdsmatrix(blocksize=tsave@blocksize, blocks=tsave@blocks, R=R)
      }    
  logfun <- function(theta, varlist, parmlist, kfun,
                     init, fit0, iter, ofile) {
@@ -154,7 +154,7 @@
 
      -(1+ ilik - fit0)
      }
- if (length(theta) {
+ if (length(theta)) {
      logpar <- list(varlist=varlist, parmlist=parmlist,
                     kfun=kfun, init=c(rep(0., npenal), fit0$coef),
                     fit0= fit0$loglik[2],
@@ -169,7 +169,7 @@
      ikmat <- solve(gkmat)  #inverse of kmat, which is the penalty
      fit <- .C(ofile,
                iter= as.integer(c(0, control$iter.max)),
-               beta = as.double(c(rep(0. nfrail), fit0$coef),
+               beta = as.double(c(rep(0., nfrail), fit0$coef)),
                loglik = double(2),
                as.double(ikmat@blocks),
                as.double(ikmat@rmat),

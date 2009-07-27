@@ -182,12 +182,18 @@ to modify certain options.
 \end{description}
 
 Now we proceed through the list one element at a time, and do the necessary
-setup. The variables [[nfac]] and [[nslope]] contain the number of columns
-of [[fmat]] and [[zmat]] contributed by each term. 
+setup.
+The [[theta]] vector will contain starting values for all of the
+variance parameters that are \emph{not} fixed, and [[nthata[i]]] the
+number of values that each random term contributed.
+The final $\theta$ vector will be null if all the parameters are fixed. 
+%The variables [[nfac]] and [[nslope]] contain the number of columns
+%of [[fmat]] and [[zmat]] contributed by each term. 
 
 <<build-control-structures>>=    
 fmat <- zmat <- NULL
-nfac <- nslope <- integer(nrandom)
+ntheta <- integer(nrandom)
+theta <-  NULL   #initial values of parameters to iterate over
 stemp <- sparse
 for (i in 1:nrandom) {
     f2 <- formula2(flist$random[[i]])
@@ -200,16 +206,17 @@ for (i in 1:nrandom) {
                         groups, cmat, stemp)
     vparms[[i]] <- init$parms
 
+    theta <- c(theta, init$theta)
+    ntheta[i] <- length(init$theta)
+
     if (f2$intercept) {
         if (!is.matrix(init$F) || nrow(init$F) !=n) 
             stop("Invalid result from coxvar function for F")
-        nfac[i] <- ncol(init$F)
         fmat <- cbind(fmat, init$F)
-        if (stemp[2] < 1) {
-            nsparse <- init$sparse
-            stemp[2] <- 1
-            }
         }
+    if (i==1) nsparse <- init$sparse
+    stemp[2] <- 1   #force no other sparse terms
+
     if (!is.null(cmat)) {
         temp <- newzmat(cmat, fmat)
         zmat <- cbind(zmat, temp)
