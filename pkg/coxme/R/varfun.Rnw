@@ -1,0 +1,303 @@
+\section{Variance families}
+\subsection{Structure}
+Each distinct random effects term corresponds to a distinct
+diagonal block in the overall penalty matrix, along with a
+set of penalized coefficients $b$.
+To make life easier for the maximizer, there may also
+be a transformation between the displayed variance 
+coefficients and the internal ones.
+When there are multiple random terms in the formula then the
+[[varfun]], [[vinit]], and [[variance]] arguments must each be in
+the form of a list with one element per random term. 
+
+The variance family objects for [[coxme]] are similar in spirit to [[glm]]
+families: the functions set up the structure but do not do any
+work.  
+Each of them returns a list of 3 functions, [[init]], [[generate]], and
+[[wrapup]].
+Any optional arguments to the variance family are used to create these
+three; depending on the family they might apply to any one.
+
+The init function is called with the $Z$ and $G$ matrices for the
+given term, along with the sparse option and 
+the appropriate vectors of initial and fixed values.
+
+The return from a call to init is
+\begin{description}
+\item[theta] a vector of initial values for all the parameters
+that need to be optimized.  This implicitly gives the number
+of parameters to optimize.
+\item[X] the design matrix for any random slopes
+\item[G] the design matrix for any random factors
+\item[parm] a list of arguments to be passed forward to the 
+generate and wrapup functions.  
+\end{description}
+
+The $G$ matrix passed in and the $G$ matrix returned may not be the same.
+In particular, any class levels that are going to be treated as
+sparse will have been rearranged to so as to be the first columns of
+the penalty matrix (variance of the random effect), and so will have
+level indices of 1,2, \ldots.
+
+The \emph{generate} function is called at each iteration with the current
+vector of parameters $\theta$ and the parameter list.  It will generate
+the variance matrix of the random effect. 
+If there are multiple random effect terms, each of the generate
+functions creates the appropriate block.
+
+The \emph{wrapup} function is called when iteration is complete.  It's
+primary job is to return the extended and re-transformed $\theta$
+vector.  Fixed coefficients are re-inserted.
+
+\subsection{coxvarFull}
+This is the default routine, which assumes a simple nested structure
+for the variance.
+The only argument is \emph{collapse}, which determines the interal
+representation of nested categories.
+Assume that we have a classic nested categorical structure with
+two levels; $i=1, \ldots, g$ for the $g$ groups and $j=1, \ldots, h$
+for the $h$ subgroups within each of the $g$ groups.
+\begin{eqnarray*}
+ u_{ij}&=& b1_i + b2_{ij} \\
+ b1 &\sim& N(0, \sigma_1^2) \\
+ b2 &\sim& N(0, \sigma_2^2)
+\end{eqnarray*}
+This will lead to variables $b1$ with $g$ levels and $b2$ with $gh$
+levels, two colunms in the design matrix $G$, and a diagonal variance
+structure for these $g + gh$ variables.
+An alternate structure is to consider a single random effect
+$b3 \equiv b1 + b2$ which has $gh$ levels, and a block variance
+stucture.  There will be $g$ blocks of size $h \times h$ having
+a diagonal of $\sigma_1^2 + \sigma_2^2$ and off-diagonal elements
+of $\sigma_2^2$.  
+This latter is the collapsed form.
+We have found that the maximizer has a much easier time when this is used.
+
+The counterpoint to this is sparsity, where the collapsed form is
+somewhat harder to deal with.
+Note that any sparse coefficient must be first in the $b$ vector
+and in the $G$ matrix.
+
+The very first part of the routine is to pull off initial values and
+fixed values.  This will be a part of every initial routine, but
+unfortunately cannot be moved up the the caller, because the
+caller [[coxme]] does not know how many $\theta$ values will be
+used by each term.
+For both, the user can give either a named vector, in which case
+parameters are pulled off by name, or else a parameter vector
+of the correct length.  In the latter case a value of 0 for fixed
+means that the parameter is free.
+
+<<coxvarFull>>=
+coxvarFull <- function(collapse=TRUE) {
+    collapse <- collapse
+    # Because of R's lexical scoping, the values of the options
+    #  above, at the time the line below is run, are known to the
+    #  init function
+    init <- function(init, fixed, Z, G, gnames, sparse) {
+        ncluster <- length(gnames) # also = ncol(G)
+        my.init <- rep(.2, ncluster)
+        names(my.init) <- gnames
+        my.fixed <- rep(0, ncluster)
+
+        if (!missing(init)) {
+            if (length(init) != ncluster) 
+                    stop ("Wrong length for initial values")
+            my.init<- init
+            }
+
+        if (!missing(fixed)) {
+            if (length(fixed) != ncluster)
+                stop ("Wrong length for fixed variance vector")
+            my.fixed <- fixed
+            }
+@ 
+
+Tne next task of the routine is to count up the total number of
+groups, and from this the total number of parameters $\theta$
+for the matrix.
+The next part of the routine deals with the simple case of a single
+grouping variable.  (I expect this to be the case for most calls).
+If some terms can be considered sparse, then [[index]] will contain
+the new encoding of the data; e.g., old group 10 may have become
+group 1 so as to place the sparse groups first.  
+The dense part of the matrix $R$ will contain any non-sparse terms
+along with any random slope terms.
+<<coxvarFull>>=
+        if (is.null(Z)) nx <-0 else nx <- ncol(Z))
+        if (ncluster==1) {
+            temp <- table(G)
+            ngroup <- length(temp) * (nx+1)
+            nx2 <- nx* ngroup
+            vmat <
+            if (length(temp) >= sparse[1] && any(temp/sum(temp) < sparse[2])){
+                which.sparse <- which(temp/sum(temp) < sparse[2])
+                n.sparse <- length(which.sparse)
+                index <- c(which.sparse, 1:ngroup[-which.sparse])
+                n.dense <- ngroup - n.sparse
+                if (n.dense > 1) {
+                    vmat <- bdsmatrix(blocksize=rep(1, n.sparse),
+                                      blocks=rep(1.0, nsparse),
+                                  rmat=rbind(matrix(0., n.sparse, n.dense+nx2),
+                                             diag(n.dense+ nx2)))
+                    }
+                else {
+                    if (nx==0) vmat <- bdsmatrix(blocksize=rep(1, ngroup),
+                                                 blocks = rep(1.0, ngroup))
+                    else vmat <- bdsmatrix(blocksize=rep(1, ngroup),
+                                           blocks = rep(1.0, ngroup),
+                                           rmat= rbind(matrix(0., ngroup,nx2),
+                                                       diag(nx2))
+                }
+            else {
+                index <- 1:ngroup
+                vmat <- bdsmatrix(blocksize=ngroup, blocks=diag(ngroup))
+                }
+          list(theta=my.init,  
+                
+
+                
+        varmat <- vector(ncluster, 'list') 
+        if (ncluster >1) {
+            if (collapse) {
+                g <- strata(G, shortlabel=TRUE)
+                
+                
+            temp <- groups
+            for (i in 2:ncluster)
+                    temp[,i] <- strata2(groups[,1:i], shortlabel=shortlabel,
+                                 sep='/')
+            groups <- temp
+            }
+@ 
+    
+\subsection{coxvarMlist}
+In a mixed-effects model the random effects $b$ are assumed to
+follow a Gaussian distribution
+$$
+  b \sim N(0, \Sigma)
+$$
+In all the random effects modeling programs that I am aware of,
+the user specifies the structure of $\Sigma$ and the program
+constructs the actual matrix.  
+For instance, `independent', `compound symmetry', or 'autoregressive'.
+This basic approach does not work for genetic studies, since the
+correlation is based on family structure and cannot be inferred from
+a simple keyword.
+The [[coxvarMlist]] variance specification accepts a list of
+fixed matrices $A_1$, $A_2$, ... and fits the variance
+structure $\Sigma = \sigma_1^2 A_1 + \sigma_2^2 A_2 + \ldots$.
+The individual matrices are often in a block-diagonal sparse 
+representation due to size.
+(The motivating study for this structure had 26050 subjects with a
+random intercept per subject, so that $A$ was 26050 by 26050.)
+
+The matrices must have dimnames that match the levels of the 
+grouping variable.  Much of the initialization work is to verify
+this, remove unneeded columns of the matrices (if for instance a
+subject has been dropped due to missing values), and reorder the
+grouping variable to match the resulting matrix. ( Sparse matrices
+cannot be arbitrarily reordered, so whatever label is on row 1 of the
+variance matrix needs to become the first level of the grouping
+variable, the second row the second, etc, during the computations.)
+Much of this low level work is done by the [[coxme.varcheck]] routine.
+
+Three checks on the matrices are commonly added.  
+\begin{enumerate}
+\item A solution with $A^*= A/2$ and $\sigma^* = \sigma \sqrt{2}$ is
+of course equivalent to one with $A$ and $\sigma$.
+For uniqueness, the matrices $A_1$, $A_2$ etc are rescaled to have a
+diagonal of 1.  Kinship matrices in particular have a diagonal of 1/2.
+\item The individual $A$ matrices are checked to verify that each is
+positive definite.  If they are not this is most often reflects an 
+error in forming them.
+\item The parameters $\sigma$ are constrained to be $>0$.
+\end{enumerate}
+%I have had one problem where the first two had to be relaxed: to understand
+%the interaction of gender and inheritance in breast/prostate cancer,
+%we wanted to fit a model with the $n$ by $n$ kinship matrix $K$ as the
+% correlation, but
+%with separate scaling factors for male/male, male/female, and female/female
+%pairs of subjects.
+%This is easily done by a separation $K = K_{mm} + K_{ff} + K_{mf}$,
+%where the $K_{mm}$ matrix for instance has zeros for all male/female and
+%female/female elements.
+%The $K_{mf}$ matrix has zero on the diagonal, so cannot be rescaled nor is
+%it positive definite.
+
+<<coxvarMlist>>=
+coxvarMlist <- function(..., rescale=TRUE, pdcheck=TRUE,  positive=NULL) {
+    varlist <- list(...)
+    # Because of environments, the init function will inherit the
+    #  three variables below
+    rescale <- rescale
+    pdcheck <- pdcheck
+    positive <- positive
+    
+    init <- function(initial, fixed, intercept, G, Z, sparse) {
+        ncluster <- length(G)
+        if (ncluster==0) stop ("Mlist variance requires a grouping variable")
+        if (length(Z)>0) stop ("Mlist variance does not allow random slopes")
+        if (!intercept)  stop ("Mlist variance applies only to intercepts")
+
+        groups <- expand.nested(G)
+        temp <- coxme.varcheck(ncluster, varlist, n=length(G[[1]]),
+                               gvars= names(G), 
+                               groups= groups[[ncluster]], sparse,
+                               rescale, pdcheck)
+        ntheta <- temp$ntheta
+        theta <- seq(.2, .3, length=ntheta) 
+        if (length(initial)>0) {
+            if (length(initial) != ntheta) 
+                stop("Wrong length for initial vector")
+            theta <- initial
+            }
+        if (length(fixed) >0) {
+            if (length(fixed) != ntheta)
+                stop("Wrong length for fixed values")
+            which.fixed <- (!(is.na(fixed) | fixed==0))
+            }
+        else which.fixed <- rep(FALSE, ntheta)
+
+        if (is.null(positive)) positive <- rep(TRUE, ntheta)
+        else {
+            if (!is.logical(positive))
+                stop("Positivity constraint must be a logical vector")
+            if (length(positive) != ntheta) 
+                stop("Wrong length for positivity constraint")
+            }
+        if (any(positive & theta <=0))
+            stop("Invalid initial value, must be positive")        
+        theta[positive] <- log(theta[positive])
+
+        list(F=temp$kindex, X=NULL, theta=theta[!which.fixed],
+             parms=list(varlist =temp$varlist, theta=theta,
+                        fixed=which.fixed, positive=positive))
+        }
+    
+     generate <- function(newtheta, parms) {
+         theta <- parms$theta
+         theta[!parms$fixed] <- newtheta
+         theta[parms$positive] <- exp(theta[parms$positive])
+         
+         varmat <- parms$varlist[[1]] * theta[1]
+         if (length(theta) >1) {
+             for (i in 2:length(theta)) {
+                 varmat <- varmat + theta[i]*parms$varlist[[i]]
+                 }
+             }
+         varmat
+         }
+
+    wrapup <- function(newtheta,parms) {
+        theta <- parms$theta
+        theta[!parms.fixed] <- newtheta
+        theta[parms$positive] <- exp(theta[parms$positive])
+        theta
+        }
+    
+    out <- list(init=init, generate=generate, wrapup=wrapup)
+    oldClass(out) <- 'coxvar'
+    out
+    }
+@ 

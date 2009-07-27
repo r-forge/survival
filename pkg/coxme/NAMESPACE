@@ -1,0 +1,5 @@
+useDynLib(coxme)
+import(bdsmatrix)
+export("coxme")
+S3method(summary, coxme)
+S3method(print, coxme)

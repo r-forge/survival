@@ -1,0 +1,10 @@
+# Automatically generated from all.nw using noweb
+
+expand.nested <- function(x) {
+    if (length(x) >1) {
+        for (i in seq(2, length(x), by=1)) {
+            x[[i]] <- strata(x[,i-1], x[i], shortlabel=TRUE, sep='/')
+            }
+       } 
+    x
+    }

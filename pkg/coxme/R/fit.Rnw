@@ -1,0 +1,604 @@
+\section{Fitting}
+Consider the basic model
+\begin{eqnarray*}
+ \lambda(t) &=& \lambda_0(t) e^{X\beta + Zb} \\
+ b &\sim& N(0, \Sigma(\theta))
+\end{eqnarray*}
+
+There are two sets of parameters.
+The first is the set of regression coefficient $\beta$ and $b$,
+the second is the vector $\theta$ that determines the variance
+structure.
+The basic structure of the iteration is
+\begin{itemize}
+\item an outer iteration process for $\theta$ which uses the standard
+S routine [[optim]]
+\item for any given realization of $\theta$ a computation of the optimal
+values for $\beta$ and $b$
+\begin{itemize}
+\item S code is used to create the penalty matrix $\Sigma(\theta)$
+\item C code solves for the regression coefficients, given $\Sigma$.
+\end{itemize}
+\end{itemize}
+
+The overall outline of the routine is
+<<coxme.fit>>=
+ <<coxme-setup>>
+ <<null-fit>>
+ <<define-penalty>>
+ <<coxme-fit>>
+ <<coxme-finish>>
+@ 
+
+\subsection{Penalty matrix}
+For the C code, the variance matrices of the individual
+random effects are glued together into one
+large bdsmatrix object $\Sigma$, [[kmat]] in the code; 
+the inverse matrix $P = \Sigma^{-1}$ or 
+[[ikmat]] is the penalty matrix of the computation,
+is what is actually passed to C.
+(The first large use of this code was for family correlation, where
+$\Sigma$ is based on the \emph{kinship} matrix.  The variable names
+[[kmat]] = $\Sigma$, [[ikmat]] for the inverse and [[kfun]] for
+the calculation arise from this legacy.)
+In order to make use of sparseness, 
+the columns of [[kmat]] are expected to be in the following order
+\begin{enumerate}
+\item Random intercepts that are subject to sparse compuatation.
+Only one random term is allowed to use sparse representation, i.e., the
+first term in the model formula that has an intercept.
+We have reordered the random terms, if necessary, to make it first in the list.
+\item The remaining random intercepts
+\item Other random coefficients (slopes)
+\end{enumerate}
+The overall coefficient vector has the random effects $b$ followed
+by the fixed effects $\beta$,
+with $b$ in the same order as the penalty matrix.
+
+The key code chunk below creates kmat given the parameter vector $\theta$
+([[theta]] for the non-mathematics types) and the variance list information.
+Each of the [[generate]] functions creates a bdsmatrix consisting of a
+block-diagonal-sparse portion and a dense portion; however all terms but
+the first will have only a dense portion.
+Remember that [[kmat]] is added to the Cox model's second derivative matrix
+(hessian) which is nowhere sparse. 
+So even if some parts of the constructed matrix $R$ below are zero, we keep
+them so as to be conformant to the hessian.
+If there is a single random term then this routine becomes very short
+<<define-penalty>>=
+whichterm <- rep(1:nrandom, nfac)  # which term does each column of fmat go to
+kfun <- function(theta, varlist, parmlist, 
+                 fcount=tapply(nfac.nevel,whichterm, sum), 
+                 zcount = nslope) {
+
+    nrandom <- length(varlist)
+    if (nrandom == 1) return(varlist[[1]]$generate(theta, parmlist[[1]]))
+@ 
+If there is more than one, then we have some nitpicky bookkeeping.  Not
+particularly hard but a nuisance.
+Say for example that there are 3 terms with the following structure
+$$\begin{tabular}{rccc}
+& sparse & non-sparse \\
+& intercept & intercept & covariate \\ \hline
+term 1 & 60 & 2 & 64 \\
+term 2 &  0 & 5 & 0 \\
+term 3 &  0 & 8 & 16 \\
+\end{tabular}
+$$
+This corresponds to [[~ (1+x | g1) + (1|g2) + (1+ z1 + z2 | g3)]]
+where [[g1]] has two common and 60 uncommon levels; 
+a complicated random effects model I admit.
+The corresponding [[@rmat]] slots for the three [[bdsmatrix]] objects will
+be of dimension $T=124\times 64$, $U=5 \times 5$ and $V=24 \times 24$.
+The final bdsmatrix will have the block-diagonal portions from the first
+and an overall right-hand side matrix of the form
+$$
+R= \left( \begin{array}{ccccc}
+             T[1:62, 1:2] & 0 & 0 &0 &0\\
+              0 & U[1:5,1:5] &0 & 0 & 0 \\
+              0 & 0 & V[1:8, 1:8] &0 & 0 \\
+              0 & 0 & 0 & T[63:128, 63:128] & 0 \\
+              0 & 0 & 0  0 & V[9:24,9:24] \\ \end{array} \right)
+$$
+<<define-penalty>>=
+    # Need to build up the matrix by pasting up a composite R
+    nrow.R <- sum(fcount) + sum(zcount)
+    ncol.R <- nrow.R - nsparse
+    R <- matrix(0., nrow.R, ncol.R)
+    
+    fcount2 <- fcount; fcount2[1] <- fcount[1] - nsparse  
+    indx1 <- cumsum(c(0, fcount2))  #offsets for intercept columns
+    indx2 <- cumsum(c(0, fcount))   #offsets for intercept  rows
+    indx3 <- cumsum(c(sum(fcount2), zcount)) # offsets for slope cols
+    indx4 <- indx3 + nsparse  #     #offsets for slope rows
+    for (i in 1:nrandom) {
+        temp <- varlist[[i]]$generate(theta, parmlist[[i]])
+        if (!inherits(temp, 'bdsmatrix')) 
+            stop("penalty matrix for term", i, "must be a bdsmatrix")
+        if (any(dim(temp)) != rep(fcount[i] + zcount[i],2))
+            stop ("Invalid penalty matrix for term", i)
+        if (fcount2[i] >0){
+            t1 <- 1:fcount2[i]; t2 <- 1:fcount[i]
+            R[t2 + indx2[i], t1+indx1[i]] <- temp@rmat[t2, t1]
+            }
+        if (zcount[i] >0) {
+            t1 <-  1:zcount[i], t2 <- t1 + fcount2[i]
+            R[indx4[i] + t1, indx3[i]+t1] <- temp@rmat[t2, t2]
+            }
+        if (i==1) tsave <- temp
+        }
+    
+    bdsmatrix(blocksize=tsave@blocksize blocks=tsave@blocks, R=R)
+    }    
+@ 
+
+\subsection{C routines}
+The C-code underlying the computation is broken into 3 parts.
+This was done for memory efficiency; due to changes in R and
+S-Plus over time it may not as wise an idea as I once thought,
+this is an obvious area for future simplification.
+
+The initial call passes in the data, which is then copied to
+local memory (using calloc, not under control of S memory
+management) and saved.  The parameters of the call are
+\begin{description}
+  \item[n] number of observations
+  \item[nvar] number of fixed covariates in X 
+  \item[y] the matrix of survival times.  It will have 2 columns for normal
+    survival data and 3 columns for (start, stop) data
+  \item[x] the concatonated Z and X matrices
+  \item[offset] vector of offsets, usually 0
+  \item[weights] vector of case weights, usually 1
+  \item[newstrat] a vector that marks the end of each stratum.  If for 
+    instance there were 4 strata with 100 observations in each, this vector
+    would be c(100,200,300,400); the index of the last observation in each.
+  \item[sorted] A matrix giving the order vector for the data.  The first 
+    column orders by strata, time within strata (longest first), and status
+    within time (censored first).  For start, stop data a second column orders
+    by strata, and entry time within strata. The -1 is because subscripts 
+    start at 1 in S and 0 in C.
+  \item[fmat] matrix containing the indices for random intercepts.  This has
+    been preprocessed so that each column has coefficient indices into b
+    rather than the original 1,2, \ldots codes.
+  \item[findex] a 0/1 matrix with one column for each of fcol and nfrail
+    rows, which marks which coefficients of $b$ are a part of that set.
+    (A bookkeeping array for the C code that is easier to create here.)
+  \item[$P$] some paramters of the bdsmatrix representing the penalty  
+\end{description}
+The other control parameters are fairly obvious.  From this data the C
+routine can compute the total number of penalized terms and the number that
+are sparse from the structure of the bdsmatrix, and the total number of
+intercept terms as max(fmat).  Other dimensions follow from those.
+A dummy call to [[kfun]] gives the necessary sizes for the penalty matrix.
+All columns of the stored (Z,X) matrix are centered and scaled.
+
+<<coxfit6a-call>>=
+dummy <- kfun(theta, varlist)
+if (is.null(dummy@rmat) rtemp <- 0
+    else                rtemp <- ncol(dummy@rmat)
+
+for (i in 2:ncol(fmat)) fmat[,i] <- fmat[,i] + max(fmat[,i-1])
+findex <- matrix(0, nrow=max(fmat), ncol=ncol(fmat))
+for (i in 1:ncol(fmat)) findex[cbind(fmat[,i], i)] <- 1
+    
+ifit <- .C('coxfit6a', 
+               as.integer(n),
+               as.integer(nvar),
+               as.integer(ncol(y)),
+               as.double(c(y)),
+               as.double(x),
+               as.double(offset),
+               as.double(weights),
+               as.integer(length(newstrat)),
+               as.integer(newstrat),
+               as.integer(sorted-1),
+               as.integer(ncol(fmat)),
+               as.integer(fmat-1),
+               as.integer(findex),
+               as.integer(length(dummy@blocksize)),
+               as.integer(dummy@blocksize),
+               as.integer(rtemp),
+               means = double(temp.nvar),
+               scale = double(temp.nvar),
+               as.integer(ties=='efron'),
+               as.double(control$toler.chol),
+               as.double(control$eps),
+               as.integer(control$sparse.calc))
+    means   <- ifit$means
+    scale   <- ifit$scale
+@ 
+
+The second routine does the real work and is called within the [[logfun]]
+function, which is the minimization target of [[optim]]. 
+The function is called with a trial value of the variance parameters
+$\theta$, and computes the maximum likelihood estimates of $\beta$ and $b$
+for that (fixed) value of $\theta$, along with the penalized partial
+likelihood.  
+The normalization constants include the determinant of [[kmat]], but since
+we are using Cholesky decompositions this can be read off of the diagonal.
+Hopefully the coxvar routines have chosen a parameterization that will
+mostly avoid invalid solutions, i.e., those where [[kmat]] is not
+symmetric positive definite.
+
+The [[init]] parameter is a vector of starting estimates for the 
+$(b, \beta)$ solution.  It is tempting to use the final results from
+the prior iteration, but the solution from a model with no random effects
+seems to be safer.  The (1 -fit0) addition makes the solution be in the
+neighborhood of 1, which works well with the convergence criteria of
+the [[optim]] routine.
+We also found that it is best to always do the same number of iterations at
+each call.  Changes introduce little 'bumps' into the apparent loglik, which
+drives [[optim]] nuts. Hence the min and max iteration count is identical.
+
+There are actually two C routines `coxfit6b' and 'agfit6b', for ordinary
+and (start,stop) survival data, respectively.  The [[ofile]] argument 
+is a character string giving the choice.
+<<define-logfun>>=
+logfun <- function(theta, varlist, parmlist, kfun,
+                   init, fit0, iter, ofile) {
+    gkmat <- gchol(kfun(theta, varlist, parmlist))
+    ikmat <- solve(gkmat)  #inverse of kmat, which is the penalty
+    if (any(diag(ikmat) <=0)) { #Not an spd matrix
+        return(0)  # return a "worse than null" fit
+        }
+    fit <- .C(ofile,
+              iter= as.integer(c(iter,iter)),
+              beta = as.double(init),
+              loglik = double(2),
+              as.double(ikmat@blocks),
+              as.double(ikmat@rmat),
+              hdet = double(1))
+    ilik <- fit$loglik[2] -
+             .5*(sum(log(diag(gkmat))) + fit$hdet)
+
+    -(1+ ilik - fit0)
+    }
+@ 
+
+
+The third routine is used for iterative refinement of the Laplace
+estimate. The arguments in this case are
+\begin{description}
+  \item[rfun] either 'coxfit6d' or 'agfit6d'
+  \item[beta] the final solution vector or random effects $(b, \beta)$
+  \item[gkmat] the final variance-covariance matrix at the solution
+  \item[bmat] a matrix normal 0/1 random variables with nfrail rows (dimension
+    of beta and of gkmat) and refin.n columns.  
+    Each column of the product [[gkmat %*% bmat]] is a random Gaussian draw
+    with correlation [[kmat]].
+  \item[loglik] the actual log-likelihoods at the random points
+  \item[approx] the Laplace approx at the random points
+\end{description}
+The routine simulates the difference between the true and Laplace approximation 
+integrands.  
+
+<<refine>>=
+if (refine.n > 0) {
+    bmat <- matrix(rnorm(length(beta)*refine.n), ncol=refine.n)
+    sim.pen <- colSums(bmat^2)/2   #This is b' \Sigma^{-1} b /2 
+
+    rfit <- .C(rfun,
+               as.integer(refine.n),
+               as.double(beta),
+               as.double(gkmat %*% bmat),
+               loglik = double(refine.n),
+               approx = double(refine.n))
+    errhat <- exp(rfit$loglik- ilik) - 
+                      exp(fit$loglik[2] + sim.pen - (rfit$approx + ilik))
+    ilik = ilik + log(1 + mean(errhat))
+    r.correct <- c(correction=mean(errhat), var=var(errhat)/refine.n)
+    }
+@ 
+
+The final routine [[coxfit6c]] is used for cleanup, and is
+decribed in section \ref{sect:final}.
+
+\subsection{Setup}
+Preliminaries aside, let's now build the routine.
+The input arguments are as were set up by [[coxme]], this
+routine would never be called directly by a user.
+\begin{description}
+  \item[x] the matrix of fixed effects
+  \item[y] the survival times, an object of class 'Surv'
+  \item[strata] strata vector
+  \item[offset] vector of offsets, usually all zero
+  \item[control] the result of a call to coxme.control
+  \item[weights] vector of case weights. usually 1
+  \item[ties] the method for handling ties, 'breslow' or 'efron'
+  \item[rownames] needed for labeling the output, in the rare case that
+    the X matrix is null.
+  \item[fmat] matrix of random factor (intercepts) indices.  If fmat[4,2]=6,
+    this means that observation 4 is in the 6th level of the second
+    grouping variable.
+  \item[zmat] the Z matrix, the design matrix for random slopes
+  \item[varlist] the list describing the structure of the random effects
+  \item[theta] initial values for the random effects, e.g., the ones we need
+    to solve for  (may be null if the variances are all fixed)
+  \item[ntheta] vector giving the number of thetas for each random term
+  \item[refine.n] number of iterations for iterative refinement
+\end{description}
+<<coxme-setup>>=
+coxme.fit <- function(x, y, strata, offset, control,
+			weights, ties, rownames, 
+			fmat, zmat, varlist, theta, ntheta,
+                        refine.n) {
+    time0 <- proc.time()
+
+    n <-  nrow(y)
+    if (length(x) ==0) nvar <-0
+    else nvar <- ncol(as.matrix(x))
+    
+    if (missing(offset) || is.null(offset)) offset <- rep(0.0,n)
+    if (missing(weights)|| is.null(weights))weights<- rep(1.0,n)
+    else {
+	if (any(weights<=0)) stop("Invalid weights, must be >0")
+	}
+@ 
+The next step is to get a set of sort indices, but not to actually
+sort the data.  This was a key insight which allows the (start,stop)
+version to do necessary bookkeeping in time of $(2n)$ instead of $O(n^2)$.
+We sort by strata, time within strata (longest first), and status within
+time (censor before deaths).  For (start, stop) data a second index 
+orders the entry times.
+<<coxme-setup>>=
+    if (ncol(y) ==3) {
+	if (length(strata) ==0) {
+	    sorted <- cbind(order(-y[,2], y[,3]), 
+			    order(-y[,1]))
+	    newstrat <- n
+	    }
+	else {
+	    sorted <- cbind(order(strata, -y[,2], y[,3]),
+			    order(strata, -y[,1]))
+	    newstrat  <- cumsum(table(strata))
+	    }
+	status <- y[,3]
+        ofile <-  'agfit6b'
+        rfile <-  'agfit6d'
+        }
+    else {
+	if (length(strata) ==0) {
+	    sorted <- order(-y[,1], y[,2])
+	    newstrat <- n
+	    }
+	else {
+	    sorted <- order(strata, -y[,1], y[,2])
+	    strata <- (as.numeric(strata))[sorted]
+	    newstrat <-  cumsum(table(strata))
+	    }
+	status <- y[,2]
+        ofile <- 'coxfit6b' # fitting routine
+        rfile <- 'coxfit6d' # refine.n routine
+        }
+@ 
+
+Now for a bunch of checks.  These should not be necessary, since
+the [[coxme]] routine has done it all.  But I'm sometimes
+suspicious of my own code, and an extra check doesn't hurt.
+
+<<coxme-setup>>=
+    if (!is.list(varlist)) stop("variance matrix list isn't a list!")
+    if (is.matrix(fmat) && ncol(fmat >1)) {
+	ncluster <- ncol(fmat)
+	clnames <- dimnames(fmat)[[2]]
+	}
+    else ncluster <- 1
+    if (ncluster != length(varlist))
+        stop("Lengths of variance list and of fmat disagree")
+
+    #
+    # Check out fmat:
+    #   each column should be integer
+    #   each col must contain numbers from 1 to k for some k
+    #   column 1 should contain at least one "1" (the C routine
+    if (any(fmat != floor(fmat))) stop("fmat must be integers")
+    if (any(fmat <1)) stop("fmat must be >0")
+    fmat <- as.matrix(fmat)
+    nfrail <- apply(fmat, 2, max)
+    temp <- apply(as.matrix(fmat), 2, function(x) length(unique(x)))
+    if (any(nfrail != temp)) 
+	stop("fmat must be a set of integer indices, with none missing")    
+@ 
+
+Now set up the C code
+<<coxme-setup>>=
+ <<coxfit6a-call>>
+@ 
+The last step of the setup is to do an initial fit.  
+We want two numbers: the loglik for a no-covariate no-random-effects
+fit, and that for the best fixed effects fit.
+The first is the NULL model loglik for the fit as a whole, the second
+is used to scale the logliklihood during iteration, the [[fit0]] parameter
+in the [[logfun]] function.
+The easiest way to get these is from an ordinary [[coxph]] call.
+<<null-fit>>=
+fit0 <- coxph(y ~ x + offset(offset), weights=weights, method=ties)
+@ 
+
+\subsection{Doing the fit}
+If there are any paramters to optimize over, we do so.
+Below optpar is a list of control parameters for the [[optim]] function,
+which are defined in [[coxme.control]] and accessible for the user to
+change, and [[logpar]] is a list of parameters that will be needed by
+logfun.
+(In R, we may not need to pass the second of these)
+<<coxme-fit>>=
+<<define-logfun>>
+if (length(theta) {
+    logpar <- list(varlist=varlist, parmlist=parmlist,
+                   kfun=kfun, init=c(rep(0., npenal), fit0$coef),
+                   fit0= fit0$loglik[2],
+                   iter=coxme.control$inner.iter,
+                   ofile=ofile)
+  
+    mfit <- do.call('optim', c(list(par= theta[!fixed], fn=logfun, gr=NULL), 
+                           optpar, logpar))
+    theta <- mfit$par
+    }
+@
+The optimization finds the best value of theta, but does not return
+all the parameters we need from the fit.  So we make one more call.
+This is essentially the ``inside'' of [[logfun]].
+<<coxme-fit>>=
+    gkmat <- gchol(kfun(theta, varlist, parmlist))
+    ikmat <- solve(gkmat)  #inverse of kmat, which is the penalty
+    fit <- .C(ofile,
+              iter= as.integer(c(0, control$iter.max)),
+              beta = as.double(c(rep(0. nfrail), fit0$coef),
+              loglik = double(2),
+              as.double(ikmat@blocks),
+              as.double(ikmat@rmat),
+              hdet = double(1))
+    ilik <- fit$loglik[2] -
+             .5*(sum(log(diag(gkmat))) + fit$hdet)
+ <<refine>>
+@
+              
+\subsection{Finishing up}
+\label{sect:final}
+There are 4 tasks left to do
+<<coxme-finish>>=
+ <<release-memory>>
+ <<coxme-rescale>>
+ <<coxme-df>>
+ <<create-output-list>>
+@ 
+
+This routine finishes up with the C code.
+The first few lines reprise some variables
+found in the C code but not before needed here.
+It returns the score vector $u$, the 
+sparse and dense portions of the cholesky decompostion of the
+hessian matrix (h.b and h.r), the
+inverse hessian matrix (hi.b, hi.r), and the rank of the final 
+solution.  These are needed to compute the variance matrix of the
+estimates.
+It then releases all the memory allocated by the initial routine.
+<<release-memory>>=
+nfrail <- nrow(ikmat)  #total number of penalized terms
+nvar2  <- nvar + (nfrail - nsparse)  # total number of non-sparse coefs
+nvar3  <- nvar + nfrail              # total number of coefficients
+btot   <- length(ikmat@blocks)
+
+fit3 <- .C('coxfit6c',
+               u    = double(nvar3),
+               h.b  = double(btot),
+               h.r  = double(nvar2*nvar3),
+               hi.b = double(btot),
+               hi.r = double(nvar2*nvar3),
+               hrank= integer(1),
+               as.integer(ncol(y)),
+               )
+@ 
+
+Now create the hessian and inverse hessian matrices; the latter of
+these is the variance matrix.  
+The C code had centered and rescaled all $X$ matrix coefficients
+so we need to undo that scaling. 
+First we deal with a special case, if there are only sparse terms
+then [[hmat]] and [[hinv]] have only a block-diagonal component.
+(This happens more often than you might think, a random per-subject
+intercept for instance.)
+<<coxme-rescale>>=
+    if (nvar2 ==0) {
+        hmat <- new('gchol.bdsmatrix', .Dim=c(nvar3, nvar3),
+                    blocksize=ikmat@blocksize, blocks=fit3$h.b,
+                    rmat=numeric(0), rank=fit3$hrank)
+        hinv <- bdsmatrix(blocksize=ikmat@blocksize, blocks=fit3$hi.b)
+        }
+@ 
+And now three cases: no $X$ variables, a single $X$, or multiple $X$
+variables.
+Assume there are $p$=nvar variables and let [[V]] be the lower $p \times p$
+portion of the [[nvar3]] by [[nvar2]] $R$ matrix,
+and $S$ = [[diag(scale]]
+be the rescaling vector.
+$X$ was replaced by $X S^{-1}$ before computation.
+For the hessian, we want to replace $V$ with $SVS$ and for the
+inverse hessian with $S^{-1}V S^{-1}$.
+The matrix [[hmat]] is however a cholesky decomposition of the
+hessian $H=LDL'$ where $L$ is lower triangular with ones on the
+diagonal and $D$ is diagonal; $D$ is kept on the diagonal of $V$ and
+$L$ below the diagonal.
+A little algebra shows that we want to replace $D$ (the diagonal of $L$)
+with $S^2D$ and $L$ with SLS^{-1}.
+<<coxme-rescale>>=
+    else {
+        rmat1 <- matrix(fit3$h.r, nrow=nvar3)
+        rmat2 <- matrix(fit3$hi.r, nrow=nvar3)
+        if (nvar ==1 ) {
+            rmat1[nvar3,] <- rmat1[nvar3,]/scale
+            rmat2[nvar3,] <- rmat2[nvar3,]/scale
+            rmat1[,nvar2] <- rmat1[,nvar2]*scale
+            rmat2[,nvar2] <- rmat2[,nvar2]/scale
+            rmat1[nvar3,nvar2] <- rmat1[nvar3,nvar2]*scale^2
+            u <- fit3$u  # the efficient score vector U
+            u[nvar3] <- u[nvar3]*scale
+            }
+        else if (nvar >1) {
+            temp <- (nvar3-nvar):nvar3 
+            u <- fit$u
+            u[temp] <- u[temp]*scale
+            rmat1[temp,] <- (1/scale)*rmat1[temp,] #multiply rows* scale
+            rmat2[temp,] <- (1/scale)*rmat2[temp,] 
+
+            temp <- (nvar2-nvar):nvar2        #multiply cols
+            rmat1[,temp] <- rmat1[,temp] %*% diag(scale)
+            rmat2[,temp] <- rmat2[,temp] %*% diag(1/scale)
+            temp <- seq(length=length(scale), to=length(rmat1), by=1+nvar3)
+            rmat1[temp] <- rmat1[temp]*(scale^2)    #fix the diagonal
+            }
+        hmat <- new('gchol.bdsmatrix', .Dim=c(nvar3, nvar3),
+                    blocksize=ikmat@blocksize, blocks=fit3$h.b,
+                    rmat= rmat1, rank=fit3$hrank)
+        hinv <- bdsmatrix(blocksize=ikmat@blocksize, blocks=fit3$hi.b,
+                          rmat=rmat2)
+        }
+@             
+
+Now for the degrees of freedom, which is formula 5.16 of Therneau & Grambsch
+First we have a small utility function to compute the ${\rm trace}(AB)$ where
+$A$ and $B$ are bdsmatrix objects.  
+For ordinary matrices this is the sum of the elementwise product of $A$ and
+$B'$, but we have to account for the fact that bdsmatrix objects only
+keep the lower diagonal, so we need the diagonal sum + 2 times the off-diagonal
+sum.  
+<<coxme-df>>=
+traceprod <- function(H, P) {
+    #block-diagonal portions match
+    nfrail <- nrow(P)  #penalty matrix
+    temp1 <- sum(H@blocks * P@blocks)
+    if (length(P@rmat) >0) {
+        #I only want the penalized part of H
+        rd <- dim(P@rmat)
+        temp1 <- temp1 + sum(H@rmat[1:rd[1], 1:rd[2]] * P@rmat)
+        }
+    2*temp1 - sum(diag(H)[1:nfrail] * diag(P))
+    }
+df <- nvar + (nfrail - traceprod(hinv, ikmat))
+@ 
+
+And last, put together the output structure.
+<<create-output-list>>=
+    penalty <- sum(fcoef * (ikmat %*% fcoef))
+    idf <- nvar + sum(ntheta)
+
+    if (nvar > 0) {
+	out <- list(coefficients=list(fixed=fit$beta[-(1:nfrail)]/scale, 
+	                       random=theta),
+	     frail=fit$beta[1:nfrail], penalty=penalty,
+	     loglik=c(fit0$log[1], ilik, fit$log[2]), var=hinv,
+	     df=c(idf, df), hmat=hmat, iter=iter, control=control,
+	     u=u, means=means, scale=scale)
+	}
+    else out <- list(coefficients=list(fixed=NULL, random=theta),
+	      frail=fit$beta[1:nfrail], penalty= penalty,
+	      loglik=c(fit0$log[1], ilik, fit$log[2]), var=hinv,
+	      df=c(idf, df), hmat=hmat, iter=iter, control=control,
+	      u=fit3$u, means=means, scale=scale)    
+
+    if (refine.n>0) out<- c(out, list(errhat=errhat, refine=r.correct))
+
+    out
+    }
+@ 

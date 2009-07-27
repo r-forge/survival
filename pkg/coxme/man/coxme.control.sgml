@@ -1,0 +1,119 @@
+<!doctype s-function-doc system "s-function-doc.dtd" [
+<!entity % S-OLD "INCLUDE">
+]
+>
+<!-- $Id -->
+<s-function-doc>
+<s-topics>
+<s-topic> coxme.control </s-topic>
+</s-topics>
+<s-title>
+Control parameters for <s-expression>coxme</s-expression>
+</s-title>
+<s-description>
+Set various control parameters for the <s-expression>coxme</s-expression>
+function.
+</s-description>
+<s-usage>
+<s-old-style-usage>
+coxme.control(eps=0.00001, toler.chol=.Machine$double.eps^0.75, 
+toler.ms=.01, inner.iter=4, 
+iter.max=10, simplex=0, lower=1e-6, upper=Inf, sparse.calc=NULL )
+</s-old-style-usage>
+</s-usage>
+<s-args-required>
+</s-args-required>
+<s-args-optional>
+
+<s-arg name=" eps ">
+convergence criteria for the inner Cox model computations.  
+Iteration ceases when the relative change
+in the log-likelihood is less than <s-expression>eps</s-expression>.
+</s-arg>
+
+<s-arg name=" toler.chol ">
+tolerance that is used to detect singularity, i.e., redundant predictor
+variables in the model, in the underlying Cholesky decompostion
+routines.
+</s-arg>
+
+<s-arg name=" toler.ms ">
+convergence criteria for the minimization of the integrated loglikelihood
+over the variance parameters.
+Since this ``outer'' iteration uses the Cox iteration as an inner loop,
+and the Cox iteration in turn uses the cholesky decomposition as an inner
+look, each of these treating the computations below it as if they were
+exact, the cholesky tolerance should be tighter than the Cox tolerance,
+which in turn should be tighter than that for the variance estimates.
+</s-arg>
+
+<s-arg name=" inner.iter ">
+the number of iterations for the inner iteration loop.
+</s-arg>
+
+<s-arg name=" iter.max ">
+maximum number of iterations for solution of a Cox partial
+likelihood, given the values of the random effect variances.
+Calls with <s-expression>iter=0</s-expression> are useful to
+evaluate the likelihood for a prespecified parameter vector,
+such as in the computation of a profile likelihood.
+</s-arg>
+
+<s-arg name=" simplex ">
+number of iterations for the Nelder-Mead simplex algorithm.  
+The simplex method is very good at finding the general neighborhood
+of a minimum without getting lost, but can take a very large number
+of iterations to narrow in on the final answer; 
+opposite strentghs to the standard minimizer 
+<s-expression>nlminb</s-expression>.
+For hard problems, adding 50-100 iterations of the simplex as a
+starting estimate for the usual method can be very helpful.
+</s-arg>
+
+<s-arg name=" lower, upper ">
+limits for the variance parameters, used by nlminb.
+</s-arg>
+
+<s-arg name=" sparse.calc ">
+style of computation for the inner likelihood code.  The results
+of the two computations are identical, but can differ
+in total compute time.  The optional calculation (calc=1)
+uses somewhat more memory, but can be substantially faster when
+the total number of random effects is of order n, the total
+sample size.  The standard calculation (calc=0) is faster
+when the number of random effects is small.
+By default, the <s-expression>coxme.fit</s-expression> function chooses
+the method dynamically.  
+It may not always do so optimally.
+</s-arg>
+</s-args-optional>
+<s-value>
+a list containing values for each option.
+</s-value>
+<s-details>
+The central computation consists of an outer maximization to
+determine the variances of the random effects, performed by
+the <s-expression>nlmin</s-expression> function.  
+Each evaluation for nlmin, however, itself requires the
+solution of a minimization problem; this is the inner loop.
+It is important that the inner loop use a fixed number of
+iterations, but it is not yet clear what is the minimal
+sufficient number for that inner loop.  Making this number
+smaller will make the routine faster, but perhaps at the
+expense of accuracy.
+</s-details>
+<s-section name = "REFERENCES">
+Therneau and Pankratz
+</s-section>
+<s-see>
+coxme
+</s-see>
+<s-keywords>
+<s-keyword>
+survival
+</s-keyword>
+</s-keywords>
+<s-docclass>
+function
+</s-docclass>
+</s-function-doc>
