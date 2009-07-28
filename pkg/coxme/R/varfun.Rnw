@@ -52,6 +52,111 @@ vector.  Fixed coefficients are re-inserted.
 \subsection{coxvarFull}
 This is the default routine, which assumes a simple nested structure
 for the variance.
+
+To describe the layout, we consider four cases of increasing complexity.
+The first case is a simple random grouping effect [[(1|g1)]]. 
+The input will have $G$ as a single column data frame containing a single
+grouping variable, often represented as a factor and  $Z$ will be null.
+If $G$ has $g$ levels, then the vector of random intercepts will be of
+length $g$, there is a single random variance, and
+$$
+b_i \sim N(0, \sigma^2 I)
+$$
+
+Just slightly more complicated is a nested intercept [[(1 | g1/g2)]]
+Here the $G$ matrix will have 2 columns, there are two variance
+parameters, and we have
+\begin{eqnarray*}
+ b_i &\sim & N(0, \sigma_1^2 I) \\
+ b_{ij} \sim & N(0, \sigma_2^2 I)\\
+Assume that the first column of $G$ has levels
+ $i=1, \ldots, g$ for the $g$ groups and $j=1, \ldots, h$
+for the $h$ subgroups within each of the $g$, found in the second column of 
+$G$.
+\begin{eqnarray*}
+ u_{ij}&=& b1_i + b2_{ij} \\
+ b1 &\sim& N(0, \sigma_1^2) \\
+ b2 &\sim& N(0, \sigma_2^2)
+\end{eqnarray*}
+with $b_1$ and $b_2$ independent.
+This will lead to variables $b1$ with $g$ levels and $b2$ with $gh$
+levels, two colunms in the design matrix $G$, and a diagonal variance
+structure for these $g + gh$ variables.
+
+The input data [[G]] is a data frame with one variable per level of
+nesting.
+
+<<coxvarFull>>=
+coxvarFull <- function(collapse=TRUE) {
+    collapse <- collapse
+    # Because of R's lexical scoping, the values of the options
+    #  above, at the time the line below is run, are known to the
+    #  init function
+    init <- function(initial, fixed, intercept, G, Z,  sparse) {
+        if (is.null(Z)) nvar <- 0
+	else nvar <- ncol(Z)
+
+	if (intercept && nvar==0) {
+	    gname <- names(g)
+	    ntheta <- length(gname)
+	    theta <- rep(.2, ntheta)
+	    if (length(initial) >0) {
+	        if (length(fixed) != ntheta) 
+		    stop('Wrong length for initial values')
+		if (any(theta <=0) stop('Invalid initial value')
+		theta <- initial
+		}
+	    if (length(fixed)>0) {
+	        if (length(fixed) != ntheta)
+		    stop ('Wrong length for fixed values')
+		if (any(fixed <0)) stop ('Invalid variance value')
+		which.fixed <- !(is.na(fixed) | fixed==0)
+		theta[which.fixed] <- fixed[which.fixed]
+		}
+	    else which.fixed <- rep(FALSE, ntheta)
+	    
+	    if (ncol(G)==1) {
+	        gtemp <- as.factor(G[[1]])[,drop=TRUE] #drop unused levels
+		nlevel <- length(levels(gtemp))
+		gfrac <- table(gtemp)/ length(gtemp)
+		if (nlevel > sparse[1] && any(gfrac <= sparse[2])) {
+		    indx <- order((gfrac<= sparse[2]), 1:nlevel)
+		    gtemp <- factor(gtemp, levels=levels(gtemp)[order(gfad)])
+		    nsparse <- sum(gfrac <= sparse[2])
+		    if (nsparse < nlevels) {
+		        rmat <- rbind(matrix(0., nsparse, nlevels-nsparse),
+			              diag(nlevles-nsparse))
+		        vmat <- bdsmatrix(blocksize=rep(1, nsparse),
+		                   blocks=rep(1., nsparse), rmat=rmat)
+		        }
+		    else vmat <- bdsI(nsparse)
+		    }
+		
+		list(F=as.numeric(gtemp), X=NULL, 
+		     theta=log(theta[!which.fixed]),
+		     parms=list(vmat=vmat, theta=theta, fixed=which.fixed,
+		                bounds=rep('positive', ntheta)))
+		}
+@	    
+
+        ncluster <- length(gnames) # also = ncol(G)
+        my.init <- rep(.2, ncluster)
+        names(my.init) <- gnames
+        my.fixed <- rep(0, ncluster)
+
+        if (!missing(init)) {
+            if (length(init) != ncluster) 
+                    stop ("Wrong length for initial values")
+            my.init<- init
+            }
+
+        if (!missing(fixed)) {
+            if (length(fixed) != ncluster)
+                stop ("Wrong length for fixed variance vector")
+            my.fixed <- fixed
+            }
+@ 
+
 The only argument is \emph{collapse}, which determines the interal
 representation of nested categories.
 Assume that we have a classic nested categorical structure with
@@ -87,31 +192,6 @@ For both, the user can give either a named vector, in which case
 parameters are pulled off by name, or else a parameter vector
 of the correct length.  In the latter case a value of 0 for fixed
 means that the parameter is free.
-
-<<coxvarFull>>=
-coxvarFull <- function(collapse=TRUE) {
-    collapse <- collapse
-    # Because of R's lexical scoping, the values of the options
-    #  above, at the time the line below is run, are known to the
-    #  init function
-    init <- function(init, fixed, Z, G, gnames, sparse) {
-        ncluster <- length(gnames) # also = ncol(G)
-        my.init <- rep(.2, ncluster)
-        names(my.init) <- gnames
-        my.fixed <- rep(0, ncluster)
-
-        if (!missing(init)) {
-            if (length(init) != ncluster) 
-                    stop ("Wrong length for initial values")
-            my.init<- init
-            }
-
-        if (!missing(fixed)) {
-            if (length(fixed) != ncluster)
-                stop ("Wrong length for fixed variance vector")
-            my.fixed <- fixed
-            }
-@ 
 
 Tne next task of the routine is to count up the total number of
 groups, and from this the total number of parameters $\theta$

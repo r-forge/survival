@@ -60,7 +60,7 @@ The key code chunk below creates kmat given the parameter vector $\theta$
 Each of the [[generate]] functions creates a bdsmatrix consisting of a
 block-diagonal-sparse portion and a dense portion; however all terms but
 the first will have only a dense portion.
-Remember that [[kmat]] is added to the Cox model's second derivative matrix
+Remember that [[kmat]] is added to the Cox model's second derivative matrix %'
 (hessian) which is nowhere sparse. 
 So even if some parts of the constructed matrix $R$ below are zero, we keep
 them so as to be conformant to the hessian.
@@ -105,6 +105,7 @@ $$
     nrow.R <- sum(fcount) + sum(zcount)
     ncol.R <- nrow.R - nsparse
     R <- matrix(0., nrow.R, ncol.R)
+    sindex <- rep(1:nrandom, ntheta) #which thetas to which terms
     
     fcount2 <- fcount; fcount2[1] <- fcount[1] - nsparse  
     indx1 <- cumsum(c(0, fcount2))  #offsets for intercept columns
@@ -112,7 +113,7 @@ $$
     indx3 <- cumsum(c(sum(fcount2), zcount)) # offsets for slope cols
     indx4 <- indx3 + nsparse  #     #offsets for slope rows
     for (i in 1:nrandom) {
-        temp <- varlist[[i]]$generate(theta, parmlist[[i]])
+        temp <- varlist[[i]]$generate(theta[sindex==i], parmlist[[i]])
         if (!inherits(temp, 'bdsmatrix')) 
             stop("penalty matrix for term", i, "must be a bdsmatrix")
         if (any(dim(temp)) != rep(fcount[i] + zcount[i],2))
