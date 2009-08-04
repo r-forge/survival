@@ -30,7 +30,9 @@ of parameters to optimize.
 \item[X] the design matrix for any random slopes
 \item[G] the design matrix for any random factors
 \item[parm] a list of arguments to be passed forward to the 
-generate and wrapup functions.  
+generate and wrapup functions. 
+\item[error] optional error message.  This is passed up so the parent
+  can print an error message with more information.
 \end{description}
 
 The $G$ matrix passed in and the $G$ matrix returned may not be the same.
@@ -49,6 +51,38 @@ The \emph{wrapup} function is called when iteration is complete.  It's
 primary job is to return the extended and re-transformed $\theta$
 vector.  Fixed coefficients are re-inserted.
 
+For both initial values and fixed values we try to be as forgiving
+as possible, but first matching on names and then matching any
+unnamed arguments.
+Say for instance that the the term is [[(1| race/sex)]], then all of
+\begin{itemize}
+  \item [[vinit = list(1,2)]]
+  \item [[vinit = list(sex=2)]]
+  \item [[vinit = list(sex=2, 1)]]
+  \item [[vinit = c(sex=2, 1)]]
+\end{itemize}
+are legal.  We do this by augmenting pmatch to add in unnamed args.
+The return is a vector of integers of the same length as init showing
+which term they match to.
+So [[vinit=1:3]] would return $(1,2,0)$ and
+[[vinit=c(sex=2, school=3)]] would give $(2,0)$.
+<<initmatch>>=
+initmatch <- function(namelist, init) {
+    if (is.null(names(init))) iname <- rep('', length(init))
+    else iname <- names(init)
+    
+    indx1 <- pmatch(iname, namelist, nomatch=0, duplicates.ok=TRUE)
+    if (any(iname=='')) {
+        temp <- 1:length(namelist)
+        if (any(indx1>0)) temp <- temp[-indx1]   #already used
+        indx2 <- which(iname=='')
+        n <- min(length(indx2), length(temp))
+        if (n>0) indx1[indx2[1:n]] <- temp[1:n]
+        }
+    indx1
+    }
+@ 
+
 \subsection{coxvarFull}
 This is the default routine, which assumes a simple nested structure
 for the variance.
@@ -63,28 +97,11 @@ $$
 b_i \sim N(0, \sigma^2 I)
 $$
 
-Just slightly more complicated is a nested intercept [[(1 | g1/g2)]]
-Here the $G$ matrix will have 2 columns, there are two variance
-parameters, and we have
-\begin{eqnarray*}
- b_i &\sim & N(0, \sigma_1^2 I) \\
- b_{ij} \sim & N(0, \sigma_2^2 I)\\
-Assume that the first column of $G$ has levels
- $i=1, \ldots, g$ for the $g$ groups and $j=1, \ldots, h$
-for the $h$ subgroups within each of the $g$, found in the second column of 
-$G$.
-\begin{eqnarray*}
- u_{ij}&=& b1_i + b2_{ij} \\
- b1 &\sim& N(0, \sigma_1^2) \\
- b2 &\sim& N(0, \sigma_2^2)
-\end{eqnarray*}
-with $b_1$ and $b_2$ independent.
-This will lead to variables $b1$ with $g$ levels and $b2$ with $gh$
-levels, two colunms in the design matrix $G$, and a diagonal variance
-structure for these $g + gh$ variables.
 
 The input data [[G]] is a data frame with one variable per level of
-nesting.
+nesting.  We start by processing the initial value and fixed variance
+arguments, which in the intercept case match the names of the nesting
+variables.
 
 <<coxvarFull>>=
 coxvarFull <- function(collapse=TRUE) {
@@ -92,7 +109,14 @@ coxvarFull <- function(collapse=TRUE) {
     # Because of R's lexical scoping, the values of the options
     #  above, at the time the line below is run, are known to the
     #  init function
+    <<coxvarFull-init>>
+    <<coxvarFull-generate>>
+    <<coxvarFull-wrapup>>
+@ 
+
+<<coxvarFull-init>>= 
     init <- function(initial, fixed, intercept, G, Z,  sparse) {
+        <<initmatch>>
         if (is.null(Z)) nvar <- 0
 	else nvar <- ncol(Z)
 
@@ -100,21 +124,33 @@ coxvarFull <- function(collapse=TRUE) {
 	    gname <- names(g)
 	    ntheta <- length(gname)
 	    theta <- rep(.2, ntheta)
-	    if (length(initial) >0) {
-	        if (length(fixed) != ntheta) 
-		    stop('Wrong length for initial values')
-		if (any(theta <=0) stop('Invalid initial value')
-		theta <- initial
+            if (length(initial) >0) {
+                temp <- initmatch(gname, initial)
+	        if (any(temp==0))
+		    return(list(error=paste('Element', which(temp==0),
+                                            'of initial values not matched')))
+                else theta[temp] <- unlist(initial)
+		if (any(theta <=0))
+                    return(list(error='Invalid initial value'))
 		}
-	    if (length(fixed)>0) {
-	        if (length(fixed) != ntheta)
-		    stop ('Wrong length for fixed values')
-		if (any(fixed <0)) stop ('Invalid variance value')
-		which.fixed <- !(is.na(fixed) | fixed==0)
-		theta[which.fixed] <- fixed[which.fixed]
+
+            which.fixed <- rep(FALSE, ntheta)
+            if (length(fixed)>0) {
+	        temp <- initmatch(gname, fixed)
+		    return(list(error='Wrong length for fixed values'))
+	        if (any(temp==0))
+		    return(list(error=paste('Element', which(temp==0),
+                                            'of variance values not matched')))
+                else theta[temp] <- unlist(fixed)
+		which.fixed[temp] <- TRUE
 		}
-	    else which.fixed <- rep(FALSE, ntheta)
-	    
+@ 
+
+Now we deal with the case of a single grouping variable. If sparseness
+applies, then the levels of the variable are reordered to put the
+infrequent levels first.
+<<coxvarFull-init>>=
+@ 
 	    if (ncol(G)==1) {
 	        gtemp <- as.factor(G[[1]])[,drop=TRUE] #drop unused levels
 		nlevel <- length(levels(gtemp))
@@ -123,75 +159,167 @@ coxvarFull <- function(collapse=TRUE) {
 		    indx <- order((gfrac<= sparse[2]), 1:nlevel)
 		    gtemp <- factor(gtemp, levels=levels(gtemp)[order(gfad)])
 		    nsparse <- sum(gfrac <= sparse[2])
-		    if (nsparse < nlevels) {
-		        rmat <- rbind(matrix(0., nsparse, nlevels-nsparse),
-			              diag(nlevles-nsparse))
-		        vmat <- bdsmatrix(blocksize=rep(1, nsparse),
-		                   blocks=rep(1., nsparse), rmat=rmat)
-		        }
-		    else vmat <- bdsI(nsparse)
-		    }
-		
-		list(F=as.numeric(gtemp), X=NULL, 
-		     theta=log(theta[!which.fixed]),
-		     parms=list(vmat=vmat, theta=theta, fixed=which.fixed,
+                    }
+		else nsparse=0 
+                
+		list(F=as.numeric(gtemp), X=NULL, nsparse=nsparse
+		     theta=log(theta[!which.fixed]), levels=levels(gtemp),
+		     parms=list(vmat=bdsI(nlevel), theta=theta, 
+                                fixed=which.fixed, case=1,
 		                bounds=rep('positive', ntheta)))
 		}
 @	    
 
-        ncluster <- length(gnames) # also = ncol(G)
-        my.init <- rep(.2, ncluster)
-        names(my.init) <- gnames
-        my.fixed <- rep(0, ncluster)
+The generate function for this first case is quite simple.
+<<coxvarFull-generate>>=
+   generate= function(newtheta, parms) {
+       theta <- parms$theta
+       theta[!parms$fixed] <- exp(newtheta)
+       if (parms$case==1) {
+           theta * parms$vmat
+           }
+       
+@ 
 
-        if (!missing(init)) {
-            if (length(init) != ncluster) 
-                    stop ("Wrong length for initial values")
-            my.init<- init
+
+The second case is an intercept with nested grouping variables.
+We first expand out the second variable; for a term such as
+[[(1 | school/teacher)]] we need to relabel the [[teacher]] variable
+so that teacher 1 in school A is different than teacher 1 in school
+B.
+This will lead to a stucture with $g_1$ levels for the first variable
+$g_2 > g_1$ levels for the second, and so on.  (We need to
+do an sparse reordering of the first variable prior to the expansion,
+however, to make sure that all the labels stay correct).
+
+The simplest way to set this up is to create two columns in $F$, one
+for each variable, corresponding to the following structure.
+\begin{eqnarray*}
+ b_i &\sim & N(0, \sigma_1^2 I) \\
+ c_{ij} \sim & N(0, \sigma_2^2 I)\\
+
+<<coxvarFull-init>>=
+    else {  #ncol(G)>1, intercept=TRUE, nvar=0
+        gtemp <- as.factor(G[[i]])[,drop=TRUE]
+        nlevel <- length(levels(gtemp))
+        gfrac <- table(gtemp)/ length(gtemp)
+        if (nlevel > sparse[1] && any(gfrac <= sparse[2])) {
+            indx <- order((gfrac<= sparse[2]), 1:nlevel)
+            gtemp <- factor(gtemp, levels=levels(gtemp)[order(gfad)])
+            nsparse <- sum(gfrac <= sparse[2])
+            G[[1]] <- gtemp
             }
+        else nsparse=0
 
-        if (!missing(fixed)) {
-            if (length(fixed) != ncluster)
-                stop ("Wrong length for fixed variance vector")
-            my.fixed <- fixed
+        G <- expand.nested(G)
+        if (!collapse) {
+            F <- matrix(0, nrow=length(G[[1]]), ncol=ncol(G))
+            varlist <- levellist <- vector('list', ncol(G))
+            for (i in 1:ncol(G)) {
+	        gtemp <- as.factor(G[[i]])[,drop=TRUE] #drop unused levels
+                F[,i] <- as.numeric(gtemp)
+                varlist[[i]] <- bdsI(nlevel)
+                levellist[[i]] <- levels(gtemp)
+                }
+            list(F=F, X=NULL, 
+		     theta=log(theta[!which.fixed]), nsparse=nsparse,
+		     parms=list(varlist=varlist, theta=theta, 
+                                fixed=which.fixed,
+		                levels=levellist, case=2,
+                                bounds=rep('positive', ntheta)))
             }
 @ 
 
-The only argument is \emph{collapse}, which determines the interal
-representation of nested categories.
-Assume that we have a classic nested categorical structure with
-two levels; $i=1, \ldots, g$ for the $g$ groups and $j=1, \ldots, h$
-for the $h$ subgroups within each of the $g$ groups.
+This was hardly any different than the first case.
+The portion of the generate function is not much different; it creates
+a larger bdsmatrix object by concatonating their diagonals.
+ 
+This is a good point to remind myself of an important distinction.
+When fitting the Cox likelihood we have to be aware of which terms of the
+partial likelihood's hessian matrix (second derivative) can be
+considered 'sparse' or not.  Because the C code expects the Hessian and the
+penalty to have exactly the same bdsmatrix form, the [[kfun]] function
+in [[coxme.fit]] has to which parts of the penalty can be represented using
+the sparse part of a bdsmatrix (the blocks and blocksize components) and
+which has to use the dense part (the rmat component).  But that is a problem
+for that routine, and it will use as.matrix() as necessary to convert sparse
+to dense.  Here we are free to use full sparse whenever the penalty matrix
+actually is sparse, and we do.
+
+<<coxvarFull-generate>>= 
+  if (case==2) {
+    varlist <- vector('list', length(theta))
+    for (i in 1:theta) varlist[[i]] <- parms$varlist[[i]] * theta[i]
+    bdsmatrix(blocksize=unlist(lapply(varlist, function(x) x@blocksize)),
+              blocks=unlist(lapply(varlist, function(x) x@blocks)))
+    }
+@    
+
+Although the above is a simple approach, we have found the program 
+is often much more stable using an alternate
+representation. 
+I hypothesise that this is due to a smaller number of nuisance
+variables.  Let
 \begin{eqnarray*}
- u_{ij}&=& b1_i + b2_{ij} \\
- b1 &\sim& N(0, \sigma_1^2) \\
- b2 &\sim& N(0, \sigma_2^2)
+ d_{ij}&=& b_i + c_{ij} \\
+ d &\sim& N(0, A) \\
 \end{eqnarray*}
-This will lead to variables $b1$ with $g$ levels and $b2$ with $gh$
-levels, two colunms in the design matrix $G$, and a diagonal variance
-structure for these $g + gh$ variables.
-An alternate structure is to consider a single random effect
-$b3 \equiv b1 + b2$ which has $gh$ levels, and a block variance
-stucture.  There will be $g$ blocks of size $h \times h$ having
-a diagonal of $\sigma_1^2 + \sigma_2^2$ and off-diagonal elements
-of $\sigma_2^2$.  
-This latter is the collapsed form.
-We have found that the maximizer has a much easier time when this is used.
+where $A$ is a block diagonal array with one block for each level
+of the primary grouping variable$b$, and
+\begin{eqnarray*}
+  A_{ii} &=& \sigma_1^2 + \sigma_2^2\\
+  A_{ij} &=& \sigma_1^2
+\end{eqnarray*}
+for $i$ and $j$ in the same block, and 0 otherwise.
+The size of the first block is the number of unique levels of $c$ that
+occur for the first level of $b$.
+We can treat the fit as a single random effect $d$, but with a more
+complex variance/covariance matrix between the terms.
+What constitutes ``sufficient'' sparseness is not as clear in this
+case. I have not convinced myself that any route is safe and so we
+do not attempt it.
 
-The counterpoint to this is sparsity, where the collapsed form is
-somewhat harder to deal with.
-Note that any sparse coefficient must be first in the $b$ vector
-and in the $G$ matrix.
+Here is the
+code, which is fairly simple.
+The last loop helps computational speed, in a somewhat non-obvious
+way.  The [[generate]] routine below will add up these matrices.  That
+process goes much faster when they all conform exactly.  Because of
+their structure these matrices can be made to conform: adding 0 forces
+this at this point rather than waiting till later additions.
+<<coxvarFull-init>>=
+  else { #ncol(G)>1, intercept=T, nvar=0, collapse=T
+      varlist <- levellist <- vector('list', ncol(G))
+      ulist <- as.factor(G[[ncol(G)]])[,drop=TRUE]
+      for (i in 1:(ncol(G)-1)) {
+          gtemp <- as.factor(G[[i]])[,drop=TRUE]
+          bsize <- tapply(ulist, gtemp, function(x) length(unique(x)))
+          varlist[[i]] <- bdsmatrix(blocksize=bsize,
+                                    blocks=rep(1., sum((bsize*(bsize+1))/2)))
+          }
+      varlist[ncol(G)] <- bdsI(length(unique(ulist))) 
+      for (i in 2:ncol(G)) varlist[[i]] <- varlist[[i]] + 0*varlist[[1]]
+      
+      list(F=as.numeric(ulist), X=NULL, 
+           theta=log(theta[!which.fixed]), nsparse=nsparse,
+           parms=list(varlist=varlist, theta=theta, 
+                      fixed=which.fixed,
+                      levels=levellist, case=3,
+                      bounds=rep('positive', ntheta)))
+      }
+    } #matches  if(compress) {
+@ 
 
-The very first part of the routine is to pull off initial values and
-fixed values.  This will be a part of every initial routine, but
-unfortunately cannot be moved up the the caller, because the
-caller [[coxme]] does not know how many $\theta$ values will be
-used by each term.
-For both, the user can give either a named vector, in which case
-parameters are pulled off by name, or else a parameter vector
-of the correct length.  In the latter case a value of 0 for fixed
-means that the parameter is free.
+The generation routine is simple
+<<coxvarFull-generate>>=
+   if (case==3) {
+       temp <- parms$varlist[[1]] * theta[1]
+       for (i in 2:length(theta))
+           temp <- temp + parms$varlist[[i]] * theta[i]
+       temp
+       }
+@ 
+
+
 
 Tne next task of the routine is to count up the total number of
 groups, and from this the total number of parameters $\theta$
@@ -203,7 +331,7 @@ the new encoding of the data; e.g., old group 10 may have become
 group 1 so as to place the sparse groups first.  
 The dense part of the matrix $R$ will contain any non-sparse terms
 along with any random slope terms.
-<<coxvarFull>>=
+<<coxvarFull-init>>=
         if (is.null(Z)) nx <-0 else nx <- ncol(Z))
         if (ncluster==1) {
             temp <- table(G)
@@ -329,12 +457,12 @@ coxvarMlist <- function(..., rescale=TRUE, pdcheck=TRUE,  positive=NULL) {
         theta <- seq(.2, .3, length=ntheta) 
         if (length(initial)>0) {
             if (length(initial) != ntheta) 
-                stop("Wrong length for initial vector")
+                return(list(error="Wrong length for initial vector")
             theta <- initial
             }
         if (length(fixed) >0) {
             if (length(fixed) != ntheta)
-                stop("Wrong length for fixed values")
+                return(list(error="Wrong length for fixed values"))
             which.fixed <- (!(is.na(fixed) | fixed==0))
             }
         else which.fixed <- rep(FALSE, ntheta)
@@ -342,12 +470,13 @@ coxvarMlist <- function(..., rescale=TRUE, pdcheck=TRUE,  positive=NULL) {
         if (is.null(positive)) positive <- rep(TRUE, ntheta)
         else {
             if (!is.logical(positive))
-                stop("Positivity constraint must be a logical vector")
+                return(list(
+                       error="Positivity constraint must be a logical vector"))
             if (length(positive) != ntheta) 
-                stop("Wrong length for positivity constraint")
+                return(list(error="Wrong length for positivity constraint")
             }
         if (any(positive & theta <=0))
-            stop("Invalid initial value, must be positive")        
+            return(list(error="Invalid initial value, must be positive")        
         theta[positive] <- log(theta[positive])
 
         list(F=temp$kindex, X=NULL, theta=theta[!which.fixed],
