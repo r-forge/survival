@@ -33,7 +33,7 @@ off-diagonal elements that are not returned would not have been zero.
 \item{tolerance}{
 the tolerance for detecting singularity in the a matrix
 }
-\item{...} {other arguments are ignored}
+\item{...}{other arguments are ignored}
 }
 \value{
 if argument \code{b} is not present, the inverse of

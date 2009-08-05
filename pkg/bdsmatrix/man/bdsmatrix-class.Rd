@@ -110,7 +110,7 @@ the conversion an error is generated and conversion is not attempted.
 The default value for the option is 1000.
 }
 \author{Terry Therneau}
-\seealso{\code{\link{coxme}}, \code{\link{kinship}}, \code{\link{gchol}}
+\seealso{\code{\link{gchol}}
 }
 \examples{
 showClass("bdsmatrix")

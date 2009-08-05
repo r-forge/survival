@@ -43,10 +43,10 @@ These are created by the \code{gchol} function.
 }
 \author{Terry Therneau}
 \note{
-The Cholesky decompostion of a block diagonal sparse matrix is also
-block diagonal sparse, so is stored in the same manner as a
+The Cholesky decompostion of a block diagonal symmetric matrix is also
+block diagonal symmetric, so is stored in the same manner as a
 \code{bdsmatrix} object}
-\seealso{\dode{\link{bdsmatrix}}, \code{\link{gchol}}}
+\seealso{\code{\link{bdsmatrix}}, \code{\link{gchol}}}
 
 \examples{
 showClass("gchol.bdsmatrix")
