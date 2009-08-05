@@ -67,12 +67,12 @@ them so as to be conformant to the hessian.
 If there is a single random term then this routine becomes very short
 <<define-penalty>>=
 whichterm <- rep(1:nrandom, nfac)  # which term does each column of fmat go to
-kfun <- function(theta, varlist, parmlist, 
+kfun <- function(theta, varlist, vparm, 
                  fcount=tapply(nfac.nevel,whichterm, sum), 
                  zcount = nslope) {
 
     nrandom <- length(varlist)
-    if (nrandom == 1) return(varlist[[1]]$generate(theta, parmlist[[1]]))
+    if (nrandom == 1) return(varlist[[1]]$generate(theta, vparm[[1]]))
 @ 
 If there is more than one, then we have some nitpicky bookkeeping.  Not
 particularly hard but a nuisance.
@@ -113,7 +113,7 @@ $$
     indx3 <- cumsum(c(sum(fcount2), zcount)) # offsets for slope cols
     indx4 <- indx3 + nsparse  #     #offsets for slope rows
     for (i in 1:nrandom) {
-        temp <- varlist[[i]]$generate(theta[sindex==i], parmlist[[i]])
+        temp <- varlist[[i]]$generate(theta[sindex==i], vparm[[i]])
         if (!inherits(temp, 'bdsmatrix')) 
             stop("penalty matrix for term", i, "must be a bdsmatrix")
         if (any(dim(temp)) != rep(fcount[i] + zcount[i],2))
@@ -231,13 +231,13 @@ We also found that it is best to always do the same number of iterations at
 each call.  Changes introduce little 'bumps' into the apparent loglik, which
 drives [[optim]] nuts. Hence the min and max iteration count is identical.
 
-There are actually two C routines `coxfit6b' and 'agfit6b', for ordinary
+There are actually two C routines [[coxfit6b]] and [[agfit6b]], for ordinary
 and (start,stop) survival data, respectively.  The [[ofile]] argument 
 is a character string giving the choice.
 <<define-logfun>>=
-logfun <- function(theta, varlist, parmlist, kfun,
+logfun <- function(theta, varlist, vparm, kfun,
                    init, fit0, iter, ofile) {
-    gkmat <- gchol(kfun(theta, varlist, parmlist))
+    gkmat <- gchol(kfun(theta, varlist, vparm))
     ikmat <- solve(gkmat)  #inverse of kmat, which is the penalty
     if (any(diag(ikmat) <=0)) { #Not an spd matrix
         return(0)  # return a "worse than null" fit
@@ -295,7 +295,7 @@ The final routine [[coxfit6c]] is used for cleanup, and is
 decribed in section \ref{sect:final}.
 
 \subsection{Setup}
-Preliminaries aside, let's now build the routine.
+Preliminaries aside, let's now build the routine.               %'
 The input arguments are as were set up by [[coxme]], this
 routine would never be called directly by a user.
 \begin{description}
@@ -313,6 +313,7 @@ routine would never be called directly by a user.
     grouping variable.
   \item[zmat] the Z matrix, the design matrix for random slopes
   \item[varlist] the list describing the structure of the random effects
+  \item[vparm] the list of parameters for the variance functions
   \item[theta] initial values for the random effects, e.g., the ones we need
     to solve for  (may be null if the variances are all fixed)
   \item[ntheta] vector giving the number of thetas for each random term
@@ -428,7 +429,7 @@ however, I prefer to make such hidden arguments explicit.
 <<coxme-fit>>=
 <<define-logfun>>
 if (length(theta)) {
-    logpar <- list(varlist=varlist, parmlist=parmlist,
+    logpar <- list(varlist=varlist, vparm=vparm,
                    kfun=kfun, init=c(rep(0., npenal), fit0$coef),
                    fit0= fit0$loglik[2],
                    iter=coxme.control$inner.iter,
@@ -443,7 +444,7 @@ The optimization finds the best value of theta, but does not return
 all the parameters we need from the fit.  So we make one more call.
 This is essentially the ``inside'' of [[logfun]].
 <<coxme-fit>>=
-    gkmat <- gchol(kfun(theta, varlist, parmlist))
+    gkmat <- gchol(kfun(theta, varlist, vparm))
     ikmat <- solve(gkmat)  #inverse of kmat, which is the penalty
     fit <- .C(ofile,
               iter= as.integer(c(0, control$iter.max)),
@@ -520,7 +521,7 @@ $X$ was replaced by $X S^{-1}$ before computation.
 For the hessian, we want to replace $V$ with $SVS$ and for the
 inverse hessian with $S^{-1}V S^{-1}$.
 The matrix [[hmat]] is however a cholesky decomposition of the
-hessian $H=LDL'$ where $L$ is lower triangular with ones on the
+hessian $H=LDL'$ where $L$ is lower triangular with ones on the     %'
 diagonal and $D$ is diagonal; $D$ is kept on the diagonal of $V$ and
 $L$ below the diagonal.
 A little algebra shows that we want to replace $D$ (the diagonal of $L$)

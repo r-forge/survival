@@ -25,7 +25,6 @@ all.tex: all.nw
 	noweave -delay all.nw > all.tex
 
 fun:  $(SFUN)
-	touch fun
 
 $(SFUN) : all.nw
 

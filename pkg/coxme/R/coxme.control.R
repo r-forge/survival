@@ -5,7 +5,6 @@
 coxme.control <- function(eps=1e-8, 
                           toler.chol = .Machine$double.eps ^ .75, 
 			  inner.iter=5,
-			  optpar=list(method='BFGS'),
 			  sparse.calc=NULL,
                           optpar=list(method='BFGS'),
                           toler.opt=1e-3 )  {
@@ -23,5 +22,5 @@ coxme.control <- function(eps=1e-8,
     list(eps=eps, toler.chol=toler.chol, iter.max=iter.max,
 	 inner.iter=inner.iter, sparse.calc=sparse.calc,
          optpar=c(optpar, control=list(reltol=toler.opt))
-	 )c
+	 )
     }

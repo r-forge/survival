@@ -13,16 +13,16 @@ the form of a list with one element per random term.
 The variance family objects for [[coxme]] are similar in spirit to [[glm]]
 families: the functions set up the structure but do not do any
 work.  
-Each of them returns a list of 3 functions, [[init]], [[generate]], and
+Each of them returns a list of 3 functions, [[initialize]], [[generate]], and
 [[wrapup]].
 Any optional arguments to the variance family are used to create these
 three; depending on the family they might apply to any one.
 
-The init function is called with the $Z$ and $G$ matrices for the
+The initialize function is called with the $Z$ and $G$ matrices for the
 given term, along with the sparse option and 
 the appropriate vectors of initial and fixed values.
 
-The return from a call to init is
+The return from a call to initialize is
 \begin{description}
 \item[theta] a vector of initial values for all the parameters
 that need to be optimized.  This implicitly gives the number
@@ -109,18 +109,18 @@ coxvarFull <- function(collapse=TRUE) {
     collapse <- collapse
     # Because of R's lexical scoping, the values of the options
     #  above, at the time the line below is run, are known to the
-    #  init function
+    #  initialize function
     <<coxvarFull-init>>
     <<coxvarFull-generate>>
     <<coxvarFull-wrapup>>
-    out <- list(init=init, generate=generate, wrapup=wrapup)
+    out <- list(initialize=initialize, generate=generate, wrapup=wrapup)
     oldClass(out) <- 'coxvar'
     out
     }
 @ 
 
 <<coxvarFull-init>>= 
-    init <- function(initial, fixed, intercept, G, Z,  sparse) {
+    initialize <- function(initial, fixed, intercept, G, Z,  sparse) {
         <<initmatch>>
         if (is.null(Z)) nvar <- 0
 	else nvar <- ncol(Z)
@@ -146,7 +146,6 @@ coxvarFull <- function(collapse=TRUE) {
             which.fixed <- rep(FALSE, ntheta)
             if (length(fixed)>0) {
 	        temp <- initmatch(gname, fixed)
-		    return(list(error='Wrong length for fixed values'))
 	        if (any(temp==0))
 		    return(list(error=paste('Element', which(temp==0),
                                             'of variance values not matched')))
@@ -159,31 +158,48 @@ coxvarFull <- function(collapse=TRUE) {
 	  }
 	else {
 	  <<set-initial-3>>
-	}
+              }
+              
+        # The 5 cases
+        if (intercept && nvar==0) {
+            if (ncol(G)==1) {
+                <<coxvarFull-init1>>  
+                }
+            else {
+                <<coxvarFull-init2>>
+                <<coxvarFull-init3>>
+                }
+            }
+        else if (!intercept) {
+            <<coxvarFull-init4>>
+            }
+        else {
+            <<coxvarFull-init5>>
+                }
+        }
 @ 
 
-Now we deal with the case of a single grouping variable. If sparseness
+Case 1 is the simplest one of a single grouping variable and
+no covariates. If sparseness
 applies, then the levels of the variable are reordered to put the
 infrequent levels first.
-<<coxvarFull-init>>=
-   if (intercept && nvar==0) {
-	    if (ncol(G)==1) {
-	        gtemp <- as.factor(G[[1]])[,drop=TRUE] #drop unused levels
-		nlevel <- length(levels(gtemp))
-		gfrac <- table(gtemp)/ length(gtemp)
-		if (nlevel > sparse[1] && any(gfrac <= sparse[2])) {
-		    indx <- order((gfrac<= sparse[2]), 1:nlevel)
-		    gtemp <- factor(gtemp, levels=levels(gtemp)[order(gfad)])
-		    nsparse <- sum(gfrac <= sparse[2])
-                    }
-		else nsparse=0 
-                
-		list(F=as.numeric(gtemp), X=NULL, nsparse=nsparse,
-		     theta=log(theta[!which.fixed]), levels=levels(gtemp),
-		     parms=list(vmat=bdsI(nlevel), theta=theta, 
-                                fixed=which.fixed, case=1,
-		                bounds=rep('positive', ntheta)))
-		}
+<<coxvarFull-init1>>=
+    gtemp <- as.factor(G[[1]])[,drop=TRUE] #drop unused levels
+    nlevel <- length(levels(gtemp))
+    gfrac <- table(gtemp)/ length(gtemp)
+    if (nlevel > sparse[1] && any(gfrac <= sparse[2])) {
+        indx <- order((gfrac<= sparse[2]), 1:nlevel)
+        gtemp <- factor(gtemp, levels=levels(gtemp)[order(gfad)])
+        nsparse <- sum(gfrac <= sparse[2])
+        }
+    else nsparse=0 
+    
+    list(F=matrix(as.numeric(gtemp)), X=NULL, 
+         nsparse=nsparse, theta=log(theta[!which.fixed]), 
+         levels=levels(gtemp),
+         parms=list(vmat=bdsI(nlevel), theta=theta, 
+                    fixed=which.fixed, case=1))
+
 @	    
 
 The generate function for this first case is quite simple.
@@ -212,39 +228,37 @@ The simplest way to set this up is to create two columns in $F$, one
 for each variable, corresponding to the following structure.
 \begin{eqnarray*}
  b_i &\sim & N(0, \sigma_1^2 I) \\
- c_{ij} \sim & N(0, \sigma_2^2 I)\\
+ c_{ij} &\sim & N(0, \sigma_2^2 I)\\
 \end{eqnarray*}
 
-<<coxvarFull-init>>=
-    else {  #ncol(G)>1, intercept=TRUE, nvar=0
-        gtemp <- as.factor(G[[i]])[,drop=TRUE]
-        nlevel <- length(levels(gtemp))
-        gfrac <- table(gtemp)/ length(gtemp)
-        if (nlevel > sparse[1] && any(gfrac <= sparse[2])) {
-            indx <- order((gfrac<= sparse[2]), 1:nlevel)
-            gtemp <- factor(gtemp, levels=levels(gtemp)[order(gfad)])
-            nsparse <- sum(gfrac <= sparse[2])
-            G[[1]] <- gtemp
-            }
-        else nsparse=0
+<<coxvarFull-init2>>=
+    gtemp <- as.factor(G[[i]])[,drop=TRUE]
+    nlevel <- length(levels(gtemp))
+    gfrac <- table(gtemp)/ length(gtemp)
+    if (nlevel > sparse[1] && any(gfrac <= sparse[2])) {
+        indx <- order((gfrac<= sparse[2]), 1:nlevel)
+        gtemp <- factor(gtemp, levels=levels(gtemp)[order(gfad)])
+        nsparse <- sum(gfrac <= sparse[2])
+        G[[1]] <- gtemp
+        }
+    else nsparse=0
 
-        G <- expand.nested(G)
-        if (!collapse) {
-            F <- matrix(0, nrow=length(G[[1]]), ncol=ncol(G))
-            varlist <- levellist <- vector('list', ncol(G))
-            for (i in 1:ncol(G)) {
-	        gtemp <- as.factor(G[[i]])[,drop=TRUE] #drop unused levels
-                F[,i] <- as.numeric(gtemp)
-                varlist[[i]] <- bdsI(nlevel)
-                levellist[[i]] <- levels(gtemp)
-                }
-            list(F=F, X=NULL, 
-		     theta=log(theta[!which.fixed]), nsparse=nsparse,
-		     parms=list(varlist=varlist, theta=theta, 
-                                fixed=which.fixed,
-		                levels=levellist, case=2,
-                                bounds=rep('positive', ntheta)))
+    G <- expand.nested(G)
+    if (!collapse) {
+        F <- matrix(0, nrow=length(G[[1]]), ncol=ncol(G))
+        varlist <- levellist <- vector('list', ncol(G))
+        for (i in 1:ncol(G)) {
+            gtemp <- as.factor(G[[i]])[,drop=TRUE] #drop unused levels
+            F[,i] <- as.numeric(gtemp)
+            varlist[[i]] <- bdsI(nlevel)
+            levellist[[i]] <- levels(gtemp)
             }
+        list(F=F, X=NULL, 
+    	     theta=log(theta[!which.fixed]), nsparse=nsparse,
+    	     parms=list(varlist=varlist, theta=theta, 
+                        fixed=which.fixed,
+    	                levels=levellist, case=2))
+        }
 @ 
 
 This was hardly any different than the first case.
@@ -268,7 +282,7 @@ bsdmatrix objects can be done by simply concatonating their
 block and blocksize components.
 
 <<coxvarFull-generate>>= 
-  if (case==2) {
+  if (parms$case==2) {
     varlist <- vector('list', length(theta))
     for (i in 1:theta) varlist[[i]] <- parms$varlist[[i]] * theta[i]
     bdsmatrix(blocksize=unlist(lapply(varlist, function(x) x@blocksize)),
@@ -307,7 +321,7 @@ way.  The [[generate]] routine below will add up these matrices.  That
 process goes much faster when they all conform exactly.  Because of
 their structure these matrices can be made to conform: adding 0 forces
 them to do so at this point rather than waiting till later additions.
-<<coxvarFull-init>>=
+<<coxvarFull-init3>>=
   else { #ncol(G)>1, intercept=T, nvar=0, collapse=T
       varlist <- levellist <- vector('list', ncol(G))
       ulist <- as.factor(G[[ncol(G)]])[,drop=TRUE]
@@ -324,16 +338,13 @@ them to do so at this point rather than waiting till later additions.
            theta=log(theta[!which.fixed]), nsparse=nsparse,
            parms=list(varlist=varlist, theta=theta, 
                       fixed=which.fixed,
-                      levels=levellist, case=3,
-                      bounds=rep('positive', ntheta)))
+                      levels=levellist, case=3))
       }
-    } #matches the code  "if(compress) {"
-}     # close out the ncol(G)>1, intercept=T, nvar=0 case
 @ 
 
 The generation routine is simple
 <<coxvarFull-generate>>=
-   if (case==3) {
+   if (parms$case==3) {
        temp <- parms$varlist[[1]] * theta[1]
        for (i in 2:length(theta))
            temp <- temp + parms$varlist[[i]] * theta[i]
@@ -366,7 +377,8 @@ regression.
     else which.fixed <- FALSE
 @ 
 
-<<covarFull-init>>=
+<<coxvarFull-init4>>=
+#case 4
 if (nvar >0 && is.null(G)) {
    list(theta=theta[!which.fixed], F=NULL, X=Z, nsparse=0,
          parms=list(which.fixed=which.fixed, theta=theta, nvar=nvar,
@@ -375,7 +387,7 @@ if (nvar >0 && is.null(G)) {
 @ 
 
 <<coxvarFull-generate>>=
-    if (case==4) {
+    if (parms$case==4) {
         diag(nvar) * theta
         }
 @ 
@@ -386,8 +398,7 @@ covariates.
 Consider the simplest case of [[(1+age) | grp)]].
 The matrix $F$ and its sparsity is handled with the same logic as
 found above.  (We currently ignore the collapse argument).
-<<coxvarFull-init>>=
-if (nvar >0 && !is.null(G)) {
+<<coxvarFull-init5>>=
     if (ncol(G)==1) {
         gtemp <- as.factor(G[[1]])[,drop=TRUE] #drop unused levels
         nlevel <- length(levels(gtemp))
@@ -399,6 +410,7 @@ if (nvar >0 && !is.null(G)) {
             }
         else nsparse=0 
         F <- as.numeric(gtemp)
+        
 @ 
 The returned $X$ matrix, however, will have one regression column for
 age for each level of the grouping variable.  It has ngroup colums
@@ -414,7 +426,7 @@ $$
   \sigma_{13}I & \sigma_{23}I &  \sigma_3^2 \end{array} \right)
 $$
 where each of the identity matrices $I$ is of dimension ngroup.
-<<coxvarFull-init>>=
+<<coxvarFull-init5>>=
         ngroup <- length(levels(gtemp))
         X <- matrix(0., nrow=length(gtemp), ncol=ngroup*nvar)
         indx <- seq(0, length=nvar, by=ngroup)
@@ -425,8 +437,7 @@ where each of the identity matrices $I$ is of dimension ngroup.
              parms=list(theta[!which.fixed], which.fixed=which.fixed,
                         nvar=nvar, ngroup=ngroup, case=5))
         }
-}
-}
+    else stop("Case not yet coded")
 @                 
 
 The generation routine only needs to fill in above the diagonal.
@@ -435,7 +446,7 @@ sparseness is handled correctly).
 The parameter vector is stored as a set of transformed standard deviations
 and correlations.
 <<coxvarFull-generate>>=
-if (case==5) {
+if (parms$case==5) {
     ngroup <- parms$ngroup
     nvar <- parms$nvar
 
@@ -551,7 +562,7 @@ coxvarMlist <- function(..., rescale=TRUE, pdcheck=TRUE,  positive=NULL) {
     pdcheck <- pdcheck
     positive <- positive
     
-    init <- function(initial, fixed, intercept, G, Z, sparse) {
+    initialize <- function(initial, fixed, intercept, G, Z, sparse) {
         ncluster <- length(G)
         if (ncluster==0) stop ("Mlist variance requires a grouping variable")
         if (length(Z)>0) stop ("Mlist variance does not allow random slopes")
@@ -614,7 +625,7 @@ coxvarMlist <- function(..., rescale=TRUE, pdcheck=TRUE,  positive=NULL) {
         theta
         }
     
-    out <- list(init=init, generate=generate, wrapup=wrapup)
+    out <- list(initialize=initialize, generate=generate, wrapup=wrapup)
     oldClass(out) <- 'coxvar'
     out
     }

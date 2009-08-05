@@ -117,12 +117,7 @@ effort to do so appears daunting and it is left for some future coder.
     if (any(pterms)) {
 	stop("You cannot have penalized terms in coxme")
 	}
-    if (missing(variance)) theta <- NULL
-    else  theta <- variance 
+
+    if (missing(control)) control <- coxme.control(...)
+    if (missing(init)) init <- NULL
 @ 
-The last two statements might be opaque: the technical documentation
-for the mixed effects Cox model refers to the set of
-variances as a vector $\theta$, and that is the notation used
-from this point forward in the code.
-But for users of the routine [[variance]] was felt to be a 
-better label for the option.

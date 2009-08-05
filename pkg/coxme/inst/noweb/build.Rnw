@@ -94,8 +94,8 @@ fixed effects.
     symmetry.  There are many possible correlation structures.
   \item If there are multiple random terms, each creates a block of columns
     in $Z$ and block of values in $\Sigma$.
-  \item For efficiency, some or all of the class variables in $Z$ may be
-    represented in compressed form.  
+  \item For efficiency, any class variables in $Z$ are
+    represented in compressed form, i.e., random intercepts.  
     Such variables are stored in a matrix $F$ which has a single column 
     for each class variable, with integer
     values of 1,2, \ldots. $Z$ will contain the remaining
@@ -104,20 +104,16 @@ fixed effects.
 The basic flow of the routine is to process the random terms one at a time.
 The [[varlist]] component describes a variance family for each term; and
 we do two calls for each.
-The first call is to the \emph{init} member of the family, giving it the
+The first call is to the \emph{initialize} member of the family, giving it the
 $G$ containing the grouping variables along with the number of columns in
-$C$ and whether or not the left hand side contained an intercept.
-It returns corresponding columns of $F$ and $Z$, a named vector of parameters
-$\theta$ containing the set of variance parameters to be optimized, and
+$C$ and whether or not the left hand side contained an intercept, and
+appropriate portions of the initial values (vinit) or fixed variance
+(variance) specification.
+It returns corresponding columns of $F$ and $Z$, a vector [[theta]] containing
+the initial values for the non-fixed variance parameters (possibly on
+a transformed scale), and
 a parameter list which will be used in the [[coxme.fit]] routine.
- 
-Given the names of the $\theta$ parameters, the routine is now able to match
-any elements of the [[vinit]] and [[variance]] arguments to it, in order
-to set either initial values or fixed values for them.
-The second call is to the \emph{iparm} member of the family, which then sets
-initial values for the remainder of the parameters, as well as possibly
-transforming some or all of them to a different scale.  
-Such a transformation is private to the variance family function.
+Any transformation is private to the variance family function.
 
 The [[formula2]] function is desribed later; it is responsible for 
 further separating the components of each random terms for us: 
@@ -164,7 +160,7 @@ else {
     }
 @ 
 At this point we have a valid [[varlist]] object, with is a list with
-one element per random term, each element is an object of class `coxvar'.
+one element per random term, each element is an object of class `coxvar'. %'`
 The current options for these elements are
 \begin{description}
 \item [coxvarFull] All variance/covariance terms between random elements are
@@ -187,8 +183,6 @@ The [[theta]] vector will contain starting values for all of the
 variance parameters that are \emph{not} fixed, and [[nthata[i]]] the
 number of values that each random term contributed.
 The final $\theta$ vector will be null if all the parameters are fixed. 
-%The variables [[nfac]] and [[nslope]] contain the number of columns
-%of [[fmat]] and [[zmat]] contributed by each term. 
 
 <<build-control-structures>>=    
 fmat <- zmat <- NULL
@@ -202,19 +196,28 @@ for (i in 1:nrandom) {
 
     cmat <- getcmat(f2$fixed, m)
     groups <- getgroups(f2$group, m)
-    init <- vfun$init(vinit[[i]], variance[[i]], intercept=f2$intercept, 
+    ifun <- vfun$initialize(vinit[[i]], variance[[i]], intercept=f2$intercept, 
                         groups, cmat, stemp)
-    vparms[[i]] <- init$parms
+    if (!is.null(ifun$error)) 
+        stop(paste("In random term ", i, ": ", ifun$error, sep=''))
+    vparms[[i]] <- ifun$parms
 
-    theta <- c(theta, init$theta)
-    ntheta[i] <- length(init$theta)
+    theta <- c(theta, ifun$theta)
+    ntheta[i] <- length(ifun$theta)
 
     if (f2$intercept) {
-        if (!is.matrix(init$F) || nrow(init$F) !=n) 
-            stop("Invalid result from coxvar function for F")
-        fmat <- cbind(fmat, init$F)
+        if (!is.matrix(ifun$F) || nrow(ifun$F) !=n) 
+            stop(paste("In random term ", i, 
+                       ": Invalid intercept matrix F", sep=''))
+        for (i in 1:ncol(ifun$F)) {
+            temp <- as.integer(factor(ifun$F[,i]))
+            if (any(temp != ifun$F[,i]))
+                stop(paste("In random term ", i,
+                           ": intercept matrix has an invalid column", sep=''))
+            }
+        fmat <- cbind(fmat, ifun$F)
         }
-    if (i==1) nsparse <- init$sparse
+    if (i==1) nsparse <- ifun$sparse
     stemp[2] <- 1   #force no other sparse terms
 
     if (!is.null(cmat)) {
@@ -223,10 +226,6 @@ for (i in 1:nrandom) {
         nslope[i] <- ncol(temp)
         }
 } 
-if (nsparse>0 & nfac[1]==0) { #must reorder
-    # Fix this later
-    stop("Only the first random term can be sparse")
-    }
 @ 
 The matrix $F$ holds the columns associated with intercept terms,
 so has columns added only if the new random terms has a 1 on the
@@ -235,26 +234,9 @@ It is also (at present) the only case in which sparse computation is
 known to be valid.  However, only one term can be sparse:  once one
 has been found the second element of stemp is set to 1 to ensure no
 others.
-
- The underlying C programs can't deal with holes in a factor variable.
+The underlying C programs can't deal with holes in a factor variable. %'
 That is, every column of fmat must be integers, with minimum 1 and no
-gaps.  We ensure this, at the same time remembering the number of
-unique levels in each, which is what will determines the number of
-random coefficients $b$.
-<<build-control-structuer>>=
-if (is.null(fmat)) nfac.nlevel <- NULL
-else {
-    nfac.nlevel <- integer(ncol(fmat))
-    for (i in 1:ncol(fmat)) {
-        if (any(fmat[,i] != as.integer(fmat[,i]))) 
-            stop("Invalid code for group")
-        temp <- sort(unique(fmat[,i]))
-        if (temp != 1:(max(temp)))
-            stop ("Missing code in group")
-        nfac.nlevel[i] <- max(temp)
-        }
-    }
-
+gaps.  
 
 Now to fill in a few blanks from the above discussion.
 First the vector (list) of initial values [[vinit]] or fixed variance
@@ -311,9 +293,9 @@ managable chunks.
 <<call-computation-routine>>=
 browser()
 fit <- coxme.fit(X, Y, strats, offset, init, control, weights=weights,
-                 ties=ties, row.names(m), refine.n,
-                 varlist, vparm, thetalist, fixed, 
-                 fmat, zmat, refine.n)
+                 ties=ties, row.names(m),
+                 fmat, zmat, varlist, vparms, 
+                 theta, ntheta, refine.n)
 @ 
 
 Then we finish up be packaging up the results for a user.
@@ -432,7 +414,7 @@ A common task for the variance functions is to exand [[school/teacher]]
 type terms into a set of unique levels, i.e., to find all the unique
 combinations of the two variables.  Teacher 1 in school 1 is not the same
 person as teacher 1 in school 2.
-We can't use the usual processing functions such as [[model.matrix]]
+We can't use the usual processing functions such as [[model.matrix]]  %'
 to create the nesting variables, since it also expands the factors
 into multiple columns of a matrix.  (This is how [[lmer]] does it.)
 We will use the [[strata]] function from the standard survival library.
