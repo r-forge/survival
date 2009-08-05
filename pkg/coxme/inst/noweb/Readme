@@ -1,9 +1,9 @@
  Some portions of the coxme package have been written using the literate
 programming paradym.  These are contained here, and have a .Rnw suffix.
-Long term, it would be ideal to have all of the code source here to maximize
+Long term, the plan is to have all of the code source here to maximize
 the documentation, and through it the reliability of the package.
 
-These files are NOT intended for processing by Sweave.  The funcion of Sweave
+These files are NOT intended for processing by Sweave.  The function of Sweave
 is to execute R fragments, interspersing code and results.  The purpose of
 this material is to create the .R source code and a detailed latex commentary
 on that code.  In particular, Sweave does not echo code verbatim, it echos
@@ -11,5 +11,16 @@ the R parser's rewrite of the code.  This is necessary to correctly interleave
 output but is counterproductive to our purposes since it removes useful
 formatting.
 
+The result file all.pdf is documentation for understanding the code, 
+not how to use the coxme function for data analysis.  For those who
+maintain the code it should be a big help, for everyone else I'd bet on
+"deathly boring".  
+
+It would be nice if Rtangle could be used to extract the code since that would
+make the library self contained for compilation purposes.  But, Rtangle
+does not know how to pull out named code chunks.
+
 The .Rnw suffix causes emacs work perfectly for either a noweb or Sweave 
-target.
+target, however, which is very nice.
+
+	Terry Therneau

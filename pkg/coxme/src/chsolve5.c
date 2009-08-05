@@ -16,7 +16,7 @@
 **
 **  Terry Therneau
 */
-#include "kinproto.h"
+#include "coxmeproto.h"
 #include <math.h>
 
 void chsolve5(double **matrix, int n, double *y, int flag)

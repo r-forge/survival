@@ -12,7 +12,7 @@
 **
 **  Terry Therneau
 */
-#include "kinproto.h"
+#include "coxmeproto.h"
 
 void chinv5(double **matrix , int n, int flag)
      {

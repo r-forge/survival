@@ -524,7 +524,7 @@ hessian $H=LDL'$ where $L$ is lower triangular with ones on the
 diagonal and $D$ is diagonal; $D$ is kept on the diagonal of $V$ and
 $L$ below the diagonal.
 A little algebra shows that we want to replace $D$ (the diagonal of $L$)
-with $S^2D$ and $L$ with SLS^{-1}.
+with $S^2D$ and $L$ with $SLS^{-1}$.
 <<coxme-rescale>>=
     else {
         rmat1 <- matrix(fit3$h.r, nrow=nvar3)
@@ -559,7 +559,7 @@ with $S^2D$ and $L$ with SLS^{-1}.
         }
 @             
 
-Now for the degrees of freedom, which is formula 5.16 of Therneau & Grambsch
+Now for the degrees of freedom, which is formula 5.16 of Therneau and Grambsch
 First we have a small utility function to compute the ${\rm trace}(AB)$ where
 $A$ and $B$ are bdsmatrix objects.  
 For ordinary matrices this is the sum of the elementwise product of $A$ and

@@ -19,7 +19,7 @@
 */
 #include "coxmeS.h"
 #include "coxfit6.h"
-#include "kinproto.h"
+#include "coxmeproto.h"
 #include <math.h>
 #include <stdio.h>
 

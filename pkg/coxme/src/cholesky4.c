@@ -28,7 +28,7 @@
 **
 **   Terry Therneau
 */
-#include "kinproto.h"
+#include "coxmeproto.h"
 #include <math.h> 
 int cholesky4(double **matrix, int n, int nblock, int *bsize,
 	      double *bd, double toler) {

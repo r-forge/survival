@@ -150,7 +150,7 @@ vparms <- vector('list', nrandom)
 fname <- zname <- thetalist <- vparms
 if (missing(varlist)) {
     varlist <- vector('list', nrandom)
-    for (i in 1:nrandom) varlist[[i]] <- coxvarFull #default
+    for (i in 1:nrandom) varlist[[i]] <- coxvarFull() #default
     }
 else {
     if (nrandom==1) { # allow a single non-list

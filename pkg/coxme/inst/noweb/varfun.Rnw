@@ -47,7 +47,7 @@ the variance matrix of the random effect.
 If there are multiple random effect terms, each of the generate
 functions creates the appropriate block.
 
-The \emph{wrapup} function is called when iteration is complete.  It's
+The \emph{wrapup} function is called when iteration is complete.  It's  %'
 primary job is to return the extended and re-transformed $\theta$
 vector.  Fixed coefficients are re-inserted.
 
@@ -101,7 +101,8 @@ $$
 The input data [[G]] is a data frame with one variable per level of
 nesting.  We start by processing the initial value and fixed variance
 arguments, which in the intercept case match the names of the nesting
-variables.
+variables.  Definition of the two other cases for initial values are
+deferred until later.
 
 <<coxvarFull>>=
 coxvarFull <- function(collapse=TRUE) {
@@ -112,6 +113,10 @@ coxvarFull <- function(collapse=TRUE) {
     <<coxvarFull-init>>
     <<coxvarFull-generate>>
     <<coxvarFull-wrapup>>
+    out <- list(init=init, generate=generate, wrapup=wrapup)
+    oldClass(out) <- 'coxvar'
+    out
+    }
 @ 
 
 <<coxvarFull-init>>= 
@@ -120,8 +125,12 @@ coxvarFull <- function(collapse=TRUE) {
         if (is.null(Z)) nvar <- 0
 	else nvar <- ncol(Z)
 
-	if (intercept && nvar==0) {
-	    gname <- names(g)
+        if (nvar==0 & is.null(G))
+            return(list(error=("Invalid null random term (1|1)")))
+
+	# Initial values
+        if (intercept && nvar==0) {
+	    gname <- names(G)
 	    ntheta <- length(gname)
 	    theta <- rep(.2, ntheta)
             if (length(initial) >0) {
@@ -144,13 +153,20 @@ coxvarFull <- function(collapse=TRUE) {
                 else theta[temp] <- unlist(fixed)
 		which.fixed[temp] <- TRUE
 		}
+            }
+        else if (nvar>0 & !intercept) {
+	  <<set-initial-2>>
+	  }
+	else {
+	  <<set-initial-3>>
+	}
 @ 
 
 Now we deal with the case of a single grouping variable. If sparseness
 applies, then the levels of the variable are reordered to put the
 infrequent levels first.
 <<coxvarFull-init>>=
-@ 
+   if (intercept && nvar==0) {
 	    if (ncol(G)==1) {
 	        gtemp <- as.factor(G[[1]])[,drop=TRUE] #drop unused levels
 		nlevel <- length(levels(gtemp))
@@ -162,7 +178,7 @@ infrequent levels first.
                     }
 		else nsparse=0 
                 
-		list(F=as.numeric(gtemp), X=NULL, nsparse=nsparse
+		list(F=as.numeric(gtemp), X=NULL, nsparse=nsparse,
 		     theta=log(theta[!which.fixed]), levels=levels(gtemp),
 		     parms=list(vmat=bdsI(nlevel), theta=theta, 
                                 fixed=which.fixed, case=1,
@@ -197,6 +213,7 @@ for each variable, corresponding to the following structure.
 \begin{eqnarray*}
  b_i &\sim & N(0, \sigma_1^2 I) \\
  c_{ij} \sim & N(0, \sigma_2^2 I)\\
+\end{eqnarray*}
 
 <<coxvarFull-init>>=
     else {  #ncol(G)>1, intercept=TRUE, nvar=0
@@ -236,15 +253,19 @@ a larger bdsmatrix object by concatonating their diagonals.
  
 This is a good point to remind myself of an important distinction.
 When fitting the Cox likelihood we have to be aware of which terms of the
-partial likelihood's hessian matrix (second derivative) can be
-considered 'sparse' or not.  Because the C code expects the Hessian and the
+partial likelihood's hessian matrix (second derivative) can be      %'
+considered ``sparse'' or not.  Because the C code expects the Hessian and the
 penalty to have exactly the same bdsmatrix form, the [[kfun]] function
-in [[coxme.fit]] has to which parts of the penalty can be represented using
+in [[coxme.fit]] has to orchestrate which parts of the penalty 
+can be represented using
 the sparse part of a bdsmatrix (the blocks and blocksize components) and
 which has to use the dense part (the rmat component).  But that is a problem
 for that routine, and it will use as.matrix() as necessary to convert sparse
 to dense.  Here we are free to use full sparse whenever the penalty matrix
-actually is sparse, and we do.
+actually is sparse, and we do.  
+In particular creating a new block diagonal matrix from two
+bsdmatrix objects can be done by simply concatonating their
+block and blocksize components.
 
 <<coxvarFull-generate>>= 
   if (case==2) {
@@ -285,7 +306,7 @@ The last loop helps computational speed, in a somewhat non-obvious
 way.  The [[generate]] routine below will add up these matrices.  That
 process goes much faster when they all conform exactly.  Because of
 their structure these matrices can be made to conform: adding 0 forces
-this at this point rather than waiting till later additions.
+them to do so at this point rather than waiting till later additions.
 <<coxvarFull-init>>=
   else { #ncol(G)>1, intercept=T, nvar=0, collapse=T
       varlist <- levellist <- vector('list', ncol(G))
@@ -306,7 +327,8 @@ this at this point rather than waiting till later additions.
                       levels=levellist, case=3,
                       bounds=rep('positive', ntheta)))
       }
-    } #matches  if(compress) {
+    } #matches the code  "if(compress) {"
+}     # close out the ncol(G)>1, intercept=T, nvar=0 case
 @ 
 
 The generation routine is simple
@@ -321,62 +343,149 @@ The generation routine is simple
 
 
 
-Tne next task of the routine is to count up the total number of
-groups, and from this the total number of parameters $\theta$
-for the matrix.
-The next part of the routine deals with the simple case of a single
-grouping variable.  (I expect this to be the case for most calls).
-If some terms can be considered sparse, then [[index]] will contain
-the new encoding of the data; e.g., old group 10 may have become
-group 1 so as to place the sparse groups first.  
-The dense part of the matrix $R$ will contain any non-sparse terms
-along with any random slope terms.
-<<coxvarFull-init>>=
-        if (is.null(Z)) nx <-0 else nx <- ncol(Z))
-        if (ncluster==1) {
-            temp <- table(G)
-            ngroup <- length(temp) * (nx+1)
-            nx2 <- nx* ngroup
-            vmat <
-            if (length(temp) >= sparse[1] && any(temp/sum(temp) < sparse[2])){
-                which.sparse <- which(temp/sum(temp) < sparse[2])
-                n.sparse <- length(which.sparse)
-                index <- c(which.sparse, 1:ngroup[-which.sparse])
-                n.dense <- ngroup - n.sparse
-                if (n.dense > 1) {
-                    vmat <- bdsmatrix(blocksize=rep(1, n.sparse),
-                                      blocks=rep(1.0, nsparse),
-                                  rmat=rbind(matrix(0., n.sparse, n.dense+nx2),
-                                             diag(n.dense+ nx2)))
-                    }
-                else {
-                    if (nx==0) vmat <- bdsmatrix(blocksize=rep(1, ngroup),
-                                                 blocks = rep(1.0, ngroup))
-                    else vmat <- bdsmatrix(blocksize=rep(1, ngroup),
-                                           blocks = rep(1.0, ngroup),
-                                           rmat= rbind(matrix(0., ngroup,nx2),
-                                                       diag(nx2))
-                }
-            else {
-                index <- 1:ngroup
-                vmat <- bdsmatrix(blocksize=ngroup, blocks=diag(ngroup))
-                }
-          list(theta=my.init,  
-                
-
-                
-        varmat <- vector(ncluster, 'list') 
-        if (ncluster >1) {
-            if (collapse) {
-                g <- strata(G, shortlabel=TRUE)
-                
-                
-            temp <- groups
-            for (i in 2:ncluster)
-                    temp[,i] <- strata2(groups[,1:i], shortlabel=shortlabel,
-                                 sep='/')
-            groups <- temp
+The next case to process is a shrinkage term such as 
+[[(x1 + x2 | 1)]].
+In this case the two coefficients for [[x1]] and [[x2]] are considered
+to come from a Gaussian with a common variance $\sigma^2$.
+If the variance is fixed, this is equivalent to ordinary ridge
+regression.
+<<set-initial-2>>=
+    if (length(initial) >0) {
+        if (length(initial)==1) theta <- as.numreric(initial)
+        else return(list(error="Initial value should have length 1"))
+        }
+    else theta=.2
+    
+    if (length(variance) >0) {
+        if (length(variance)==1) {
+            which.fixed <- TRUE
+            theta <- variance
             }
+        else return(list(error="Fixed variance should have a length of 1"))
+        }
+    else which.fixed <- FALSE
+@ 
+
+<<covarFull-init>>=
+if (nvar >0 && is.null(G)) {
+   list(theta=theta[!which.fixed], F=NULL, X=Z, nsparse=0,
+         parms=list(which.fixed=which.fixed, theta=theta, nvar=nvar,
+                    case=4))
+    }
+@ 
+
+<<coxvarFull-generate>>=
+    if (case==4) {
+        diag(nvar) * theta
+        }
+@ 
+
+
+The last case is the hardest; we have both grouping factors and
+covariates.
+Consider the simplest case of [[(1+age) | grp)]].
+The matrix $F$ and its sparsity is handled with the same logic as
+found above.  (We currently ignore the collapse argument).
+<<coxvarFull-init>>=
+if (nvar >0 && !is.null(G)) {
+    if (ncol(G)==1) {
+        gtemp <- as.factor(G[[1]])[,drop=TRUE] #drop unused levels
+        nlevel <- length(levels(gtemp))
+        gfrac <- table(gtemp)/ length(gtemp)
+        if (nlevel > sparse[1] && any(gfrac <= sparse[2])) {
+            indx <- order((gfrac<= sparse[2]), 1:nlevel)
+            gtemp <- factor(gtemp, levels=levels(gtemp)[order(gfad)])
+            nsparse <- sum(gfrac <= sparse[2])
+            }
+        else nsparse=0 
+        F <- as.numeric(gtemp)
+@ 
+The returned $X$ matrix, however, will have one regression column for
+age for each level of the grouping variable.  It has ngroup colums
+for the first variable, then ngroup for the second, etc.
+Since in this structure the coefficients for someone in group 1 will
+be in position 1, 1+ngroup, 1+ 2*ngroup, \ldots, the variance matrix
+will be a set of blocks.  
+If there were two variables the matrix would be
+$$
+\left( \begin{array}{ccc}
+  \sigma^2_1 I & \sigma_{12} I & \sigma_{13}I \\
+  \sigma_{12}I & \sigma_2^2 I &  \sigma_{23}I \\
+  \sigma_{13}I & \sigma_{23}I &  \sigma_3^2 \end{array} \right)
+$$
+where each of the identity matrices $I$ is of dimension ngroup.
+<<coxvarFull-init>>=
+        ngroup <- length(levels(gtemp))
+        X <- matrix(0., nrow=length(gtemp), ncol=ngroup*nvar)
+        indx <- seq(0, length=nvar, by=ngroup)
+        for (i in 1:ngroup) 
+            X[,i+indx] <- Z * (F==i)
+                    
+        list(theta=theta[!fixed], F=F, X=X, nsparse=nsparse,
+             parms=list(theta[!which.fixed], which.fixed=which.fixed,
+                        nvar=nvar, ngroup=ngroup, case=5))
+        }
+}
+}
+@                 
+
+The generation routine only needs to fill in above the diagonal.
+It will use a bdsmatrix with the first block for intercept terms (so that
+sparseness is handled correctly).
+The parameter vector is stored as a set of transformed standard deviations
+and correlations.
+<<coxvarFull-generate>>=
+if (case==5) {
+    ngroup <- parms$ngroup
+    nvar <- parms$nvar
+
+    vmat <- diag(nvar+1)  #variance matrix = transformed parameters
+    k <- nvar+2
+    temp <- exp(parms)            
+    for (i in 1:nvar) {
+        for (j in (i+1):(nvar+1)) {
+            cmat[i,j] <- (temp[k] -1) /(temp[k] +1)
+            k <- k+1
+            }
+        vmat[i,] <- vmat[i,] * temp[i]
+        vmat[,i] <- vmat[,i] * temp[i]
+        }   
+    
+    
+    rtemp <- matrix(0., nrow=ngroup * (nvar+1),
+                        ncol=ngroup * (nvar+1))
+    indx1 <- seq(1, by=nrow(rtemp)+1, length=ngroup)
+    for (i in 1:(nvar+1)) {
+        for (j in i:(nvar+1)) {
+            indx2 <- (i-1)*ngroup + (j-1)*nrow(rtemp)
+            rtemp[indx1+indx2] <- vmat[i,j]
+            }
+        }
+    bdsmatrix(blocksize=ngroup, blocks=rep(vmat[1,1], ngroup),
+              rmat=rtemp[,-(1:ngroup)])
+    }
+}
+@ 
+
+Finally, here is the initialiation code for this last case.
+<<set-initial-3>>=
+if (ncol(G) > 1) 
+    return(list(error="Not yet written- nested groups + random slopes"))
+ngroup <- length(unique(G))
+theta <- c(rep(.44, nvar+1), rep(0., nvar*(nvar+1)/2))
+@ 
+  
+
+The wrapup function transforms theta back, and adds names.
+<<coxvarFull-wrapup>>=
+wrapup <- function(theta, parms) {
+    newtheta <- parms$theta
+    newtheta[!parms$which.fixed] <- exp(theta)
+    
+    if (parms$case == 5)  # correlations
+        newtheta=newtheta
+    newtheta
+    }
 @ 
     
 \subsection{coxvarMlist}
@@ -388,7 +497,7 @@ $$
 In all the random effects modeling programs that I am aware of,
 the user specifies the structure of $\Sigma$ and the program
 constructs the actual matrix.  
-For instance, `independent', `compound symmetry', or 'autoregressive'.
+For instance, `independent', `compound symmetry', or `autoregressive'.
 This basic approach does not work for genetic studies, since the
 correlation is based on family structure and cannot be inferred from
 a simple keyword.
@@ -457,7 +566,7 @@ coxvarMlist <- function(..., rescale=TRUE, pdcheck=TRUE,  positive=NULL) {
         theta <- seq(.2, .3, length=ntheta) 
         if (length(initial)>0) {
             if (length(initial) != ntheta) 
-                return(list(error="Wrong length for initial vector")
+                return(list(error="Wrong length for initial vector"))
             theta <- initial
             }
         if (length(fixed) >0) {
@@ -473,10 +582,10 @@ coxvarMlist <- function(..., rescale=TRUE, pdcheck=TRUE,  positive=NULL) {
                 return(list(
                        error="Positivity constraint must be a logical vector"))
             if (length(positive) != ntheta) 
-                return(list(error="Wrong length for positivity constraint")
+                return(list(error="Wrong length for positivity constraint"))
             }
         if (any(positive & theta <=0))
-            return(list(error="Invalid initial value, must be positive")        
+            return(list(error="Invalid initial value, must be positive"))        
         theta[positive] <- log(theta[positive])
 
         list(F=temp$kindex, X=NULL, theta=theta[!which.fixed],
