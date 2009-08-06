@@ -26,6 +26,7 @@ The overall outline of the routine is
  <<coxme-setup>>
  <<null-fit>>
  <<define-penalty>>
+ <<coxfit6a-call>>
  <<coxme-fit>>
  <<coxme-finish>>
 @ 
@@ -57,24 +58,28 @@ with $b$ in the same order as the penalty matrix.
 
 The key code chunk below creates kmat given the parameter vector $\theta$
 ([[theta]] for the non-mathematics types) and the variance list information.
-Each of the [[generate]] functions creates a bdsmatrix consisting of a
-block-diagonal-sparse portion and a dense portion; however all terms but
-the first will have only a dense portion.
-Remember that [[kmat]] is added to the Cox model's second derivative matrix %'
-(hessian) which is nowhere sparse. 
-So even if some parts of the constructed matrix $R$ below are zero, we keep
-them so as to be conformant to the hessian.
-If there is a single random term then this routine becomes very short
+Each of the [[generate]] functions creates either an ordinary matrix or
+one represented in \emph{b}lock \emph{d}iagonal \emph{symmetic} form,
+which consists of a block diagonal portion in the upper left bounded by a
+dense portion on the right.
+(A bdsmatrix with only one diagonal block is dense, one with many blocks
+will be sparse.)
+The C code expects a single bdsmatrix, so any term after the first is
+is added to the dense portion of the first matrix.
 <<define-penalty>>=
-whichterm <- rep(1:nrandom, nfac)  # which term does each column of fmat go to
-kfun <- function(theta, varlist, vparm, 
-                 fcount=tapply(nfac.nevel,whichterm, sum), 
-                 zcount = nslope) {
+kfun <- function(theta, varlist, vparm, ntheta,
+                 fcount=apply(fmat,2,max), zcount = ncol(Z)) {
 
     nrandom <- length(varlist)
-    if (nrandom == 1) return(varlist[[1]]$generate(theta, vparm[[1]]))
+    sindex <- rep(1:nrandom, ntheta) #which thetas to which terms
+
+    tmat <- varlist[[1]]$generate(theta[sindex==1], vparm[[1]]) 
+    if (!inherits(tmat, 'bdsmatrix')) 
+        tmat <- bdsmatrix(blocksize=nrow(tmat), blocks=tmat)
+        
 @ 
-If there is more than one, then we have some nitpicky bookkeeping.  Not
+If there is only a single random term, then our work is done.
+Otherwise we have some nitpicky bookkeeping.  Not
 particularly hard but a nuisance.
 Say for example that there are 3 terms with the following structure
 $$\begin{tabular}{rccc}
@@ -85,51 +90,83 @@ term 2 &  0 & 5 & 0 \\
 term 3 &  0 & 8 & 16 \\
 \end{tabular}
 $$
+Here ``sparse'' means precisely the block-diagonal portion of the
+returned variance matrix.
 This corresponds to [[~ (1+x | g1) + (1|g2) + (1+ z1 + z2 | g3)]]
-where [[g1]] has two common and 60 uncommon levels; 
-a complicated random effects model I admit.
-The corresponding [[@rmat]] slots for the three [[bdsmatrix]] objects will
-be of dimension $T=124\times 64$, $U=5 \times 5$ and $V=24 \times 24$.
-The final bdsmatrix will have the block-diagonal portions from the first
+where [[g1]] has two common and 60 uncommon levels, [[g2]] has 5
+levels and [[g3]] has 8.
+(A complicated random effects model I admit.)
+The first variance matrix is required to be of a [[bsdmatrix]]
+form with an [[rmat]] slot of dimension $124 \times 64$, call this $T$.
+The variance structure for the other two terms, call them $U$ and
+$V$$, can be of any matrix type.
+The final bdsmatrix will have the block-diagonal portions for the
+first 60 elements
 and an overall right-hand side matrix of the form
 $$
 R= \left( \begin{array}{ccccc}
-             T[1:62, 1:2] & 0 & 0 &0 &0\\
-              0 & U[1:5,1:5] &0 & 0 & 0 \\
-              0 & 0 & V[1:8, 1:8] &0 & 0 \\
-              0 & 0 & 0 & T[63:128, 63:128] & 0 \\
-              0 & 0 & 0  0 & V[9:24,9:24] \\ \end{array} \right)
+             T[1--62, 1--2] & 0 & 0 &T[1--62, 63-128] &0\\
+              0 & U &0 & 0 & 0 \\
+              0 & 0 & V[1--8, 1--8] &0 & V[1--8, 9--24]\\
+              0 & 0 & 0 & T[63--128, 63--128] & 0 \\
+              0 & 0 & 0 & 0 & V[9--24,9--24] \\ \end{array} \right)
 $$
-<<define-penalty>>=
+
+First we set up the total number of rows and columns of R,
+then march through the matrix.  
+We need to first process the non-sparse rows of the first variance
+matrix [[tmat]]; if that contains a substantial number of sparse
+columns then it is important to subset \emph{before} creating a
+regular metrix from the remainder.
+<<define-penalty>>=    
+    if (nrandom ==1) return(tmat)
+
     # Need to build up the matrix by pasting up a composite R
-    nrow.R <- sum(fcount) + sum(zcount)
+    nsparse <- sum(tmat@blocksize)
+    nrow.R <- sum(fcount) + zcount
     ncol.R <- nrow.R - nsparse
     R <- matrix(0., nrow.R, ncol.R)
-    sindex <- rep(1:nrandom, ntheta) #which thetas to which terms
+    indx1 <- 0            #current row  wrt filling in intercepts
+    indx2 <- sum(fcount)  #current row wrt filling in slopes
     
-    fcount2 <- fcount; fcount2[1] <- fcount[1] - nsparse  
-    indx1 <- cumsum(c(0, fcount2))  #offsets for intercept columns
-    indx2 <- cumsum(c(0, fcount))   #offsets for intercept  rows
-    indx3 <- cumsum(c(sum(fcount2), zcount)) # offsets for slope cols
-    indx4 <- indx3 + nsparse  #     #offsets for slope rows
-    for (i in 1:nrandom) {
-        temp <- varlist[[i]]$generate(theta[sindex==i], vparm[[i]])
-        if (!inherits(temp, 'bdsmatrix')) 
-            stop("penalty matrix for term", i, "must be a bdsmatrix")
-        if (any(dim(temp)) != rep(fcount[i] + zcount[i],2))
-            stop ("Invalid penalty matrix for term", i)
-        if (fcount2[i] >0){
-            t1 <- 1:fcount2[i]; t2 <- 1:fcount[i]
-            R[t2 + indx2[i], t1+indx1[i]] <- temp@rmat[t2, t1]
+    if (ncol(tmat) > nsparse) {
+        k <- (nsparse+1):ncol(tmat)
+        temp <- as.matrix(tmat[k,k])
+        }
+    if (fcount[1] > nsparse) {
+        j <- fcount[1] - nsparse   #number of intercept columns
+        R[1:nrow(temp), 1:j] <- temp[,1:j]
+        indx1 <- indx1 +j
+        }
+    else j <- 0
+    if (ncol(tmat) > fcount[1]) {
+        k <- ncol(tmat) - fcount[1]  #number of slopes
+        if (fcount[1]>0) {
+            R[1:fcount[1], indx2+1:k] <- temp[1:fcount[1], 1:k]
+            R[1:k, indx2+1:k] <- temp[fcount[1]+1:k, 1:k]
             }
-        if (zcount[i] >0) {
-            t1 <-  1:zcount[i];  t2 <- t1 + fcount2[i]
-            R[indx4[i] + t1, indx3[i]+t1] <- temp@rmat[t2, t2]
-            }
-        if (i==1) tsave <- temp
+        else R[1:nrow(temp1) + indx2, 1:k+indx2] <- temp[, j +1:k]
+
+        indx2 <- indx2+k
         }
     
-    bdsmatrix(blocksize=tsave@blocksize, blocks=tsave@blocks, R=R)
+    for (i in 2:nrandom) {
+        temp <- as.matrix(varlist[[i]]$generate(theta[sindex==i], vparm[[i]]))
+        j <- fcount[i]
+        if (j >0) {
+            R[1:j + indx1, 1:j+indx1] <- temp[1:j, 1:j]
+            }
+        if (ncol(temp) > fcount[i]) {
+            k <- ncol(temp) - fcount[i]
+            if (j>0) 
+                R[1:j+indx1, 1:k + indx2] <- temp[1:j, j+1:k]
+            R[1:k+indx2, 1:k + indx2] <- temp[j+ 1:k, j+ 1:k]
+            indx2 <- indx2 +k
+            }
+        indx1 <- indx1 +j
+        }
+    
+    bdsmatrix(blocksize=tmat@blocksize, blocks=tmat@blocks, R=R)
     }    
 @ 
 
@@ -174,7 +211,7 @@ A dummy call to [[kfun]] gives the necessary sizes for the penalty matrix.
 All columns of the stored (Z,X) matrix are centered and scaled.
 
 <<coxfit6a-call>>=
-dummy <- kfun(theta, varlist)
+dummy <- kfun(theta, varlist, vparm, nsparse, ntheta)
 if (is.null(dummy@rmat)) rtemp <- 0
     else                 rtemp <- ncol(dummy@rmat)
 
@@ -235,9 +272,9 @@ There are actually two C routines [[coxfit6b]] and [[agfit6b]], for ordinary
 and (start,stop) survival data, respectively.  The [[ofile]] argument 
 is a character string giving the choice.
 <<define-logfun>>=
-logfun <- function(theta, varlist, vparm, kfun,
+logfun <- function(theta, varlist, vparm, kfun, nsparse, ntheta,
                    init, fit0, iter, ofile) {
-    gkmat <- gchol(kfun(theta, varlist, vparm))
+    gkmat <- gchol(kfun(theta, varlist, vparm, nsparse, ntheta))
     ikmat <- solve(gkmat)  #inverse of kmat, which is the penalty
     if (any(diag(ikmat) <=0)) { #Not an spd matrix
         return(0)  # return a "worse than null" fit
@@ -322,8 +359,8 @@ routine would never be called directly by a user.
 <<coxme-setup>>=
 coxme.fit <- function(x, y, strata, offset, ifixed, control,
 			weights, ties, rownames, 
-			fmat, zmat, varlist, vparm, theta, ntheta,
-                        refine.n) {
+			fmat, zmat, varlist, vparm, theta, nsparse,
+                        ntheta, refine.n) {
     time0 <- proc.time()
 
     n <-  nrow(y)
@@ -402,12 +439,9 @@ suspicious of my own code, and an extra check doesn't hurt.
 	stop("fmat must be a set of integer indices, with none missing")    
 @ 
 
-Now set up the C code
-<<coxme-setup>>=
- <<coxfit6a-call>>
-@ 
 The last step of the setup is to do an initial fit.  
-We want two numbers: the loglik for a no-covariate no-random-effects
+We want two numbers: the loglik for a  no-random-effects and
+initial-values-for-fixed (usually 0)
 fit, and that for the best fixed effects fit.
 The first is the NULL model loglik for the fit as a whole, the second
 is used to scale the logliklihood during iteration, the [[fit0]] parameter
@@ -434,8 +468,9 @@ however, I prefer to make such hidden arguments explicit.
 <<coxme-fit>>=
 <<define-logfun>>
 if (length(theta)) {
-    logpar <- list(varlist=varlist, vparm=vparm,
-                   kfun=kfun, init=c(rep(0., npenal), fit0$coef),
+    logpar <- list(varlist=varlist, vparm=vparm, nsparse=nsparse,
+                   ntheta=ntheta, kfun=kfun,
+                   init=c(rep(0., npenal), fit0$coef),
                    fit0= fit0$loglik[2],
                    iter=coxme.control$inner.iter,
                    ofile=ofile)
@@ -449,7 +484,7 @@ The optimization finds the best value of theta, but does not return
 all the parameters we need from the fit.  So we make one more call.
 This is essentially the ``inside'' of [[logfun]].
 <<coxme-fit>>=
-    gkmat <- gchol(kfun(theta, varlist, vparm))
+    gkmat <- gchol(kfun(theta, varlist, vparm, nsparse, ntheta))
     ikmat <- solve(gkmat)  #inverse of kmat, which is the penalty
     fit <- .C(ofile,
               iter= as.integer(c(0, control$iter.max)),

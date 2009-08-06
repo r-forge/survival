@@ -188,7 +188,6 @@ The final $\theta$ vector will be null if all the parameters are fixed.
 fmat <- zmat <- NULL
 ntheta <- integer(nrandom)
 theta <-  NULL   #initial values of parameters to iterate over
-stemp <- sparse
 for (i in 1:nrandom) {
     f2 <- formula2(flist$random[[i]])
     vfun <- varlist[[i]]
@@ -197,7 +196,7 @@ for (i in 1:nrandom) {
     cmat <- getcmat(f2$fixed, m)
     groups <- getgroups(f2$group, m)
     ifun <- vfun$initialize(vinit[[i]], variance[[i]], intercept=f2$intercept, 
-                        groups, cmat, stemp)
+                        groups, cmat, sparse)
     if (!is.null(ifun$error)) 
         stop(paste("In random term ", i, ": ", ifun$error, sep=''))
     vparms[[i]] <- ifun$parms
@@ -217,7 +216,6 @@ for (i in 1:nrandom) {
             }
         fmat <- cbind(fmat, ifun$F)
         }
-    if (i==1) nsparse <- ifun$sparse
     stemp[2] <- 1   #force no other sparse terms
 
     if (!is.null(cmat)) {
@@ -231,9 +229,9 @@ The matrix $F$ holds the columns associated with intercept terms,
 so has columns added only if the new random terms has a 1 on the
 left side of the formula.
 It is also (at present) the only case in which sparse computation is
-known to be valid.  However, only one term can be sparse:  once one
-has been found the second element of stemp is set to 1 to ensure no
-others.
+known to be valid. 
+Further discussion of this rather subtle topic is found in the section
+on variance functions.
 The underlying C programs can't deal with holes in a factor variable. %'
 That is, every column of fmat must be integers, with minimum 1 and no
 gaps.  
@@ -291,7 +289,6 @@ The actual computation of the model is done in [[coxme.fit]].
 This was separated from the main routine partly to leave the code in
 managable chunks.
 <<call-computation-routine>>=
-browser()
 fit <- coxme.fit(X, Y, strats, offset, init, control, weights=weights,
                  ties=ties, row.names(m),
                  fmat, zmat, varlist, vparms, 
@@ -432,7 +429,7 @@ expand.nested <- function(x) {
 Creation of the $C$ matrix is just a bit more work.  
 One issue is that none of the standard S contrast options is correct.
 With a Gaussian random effect, either a random intercept or a random slope,  
-the proper constraint is $b' \Sigma =0$;
+the proper constraint is $b' \Sigma =0$;       %'
 this is familiar from older statistics textbooks for ANOVA as the ``sum 
 constraint''. 
 For a random effect this constraint is automatically enforced by the 

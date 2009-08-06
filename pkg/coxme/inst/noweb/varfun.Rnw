@@ -83,9 +83,38 @@ initmatch <- function(namelist, init) {
     }
 @ 
 
+\subsection{Sparseness}
+
+This is a good point to remind myself of an important distinction.
+When fitting the Cox likelihood we have to be aware of which terms of the
+partial likelihood's hessian matrix (second derivative) can be      %'
+considered ``sparse'' or not.  Because the C code expects the Hessian and the
+penalty to have exactly the same bdsmatrix form, the [[kfun]] function
+in [[coxme.fit]] has to orchestrate which parts of the penalty 
+can be represented using
+the sparse part of a bdsmatrix (the blocks and blocksize components) and
+which has to use the dense part (the rmat component).  
+Essentially, it treats terms 2, 3, \ldots as dense, and for the first
+term it believes what the variance function sends it.
+Thus, this is the point at which ``sparseness'' is determined.
+
+A \emph{b}lock \emph{d}iagonal \emph{s}ymmetric [[bdsmatrix]] object 
+consists of two portions: a block diagonal section in the upper left and
+a dense border.  Since it is symmetric only the right hand border is
+retained.
+If the block diagonal section has only a single block, then the matrix
+is dense; if there are many blocks then it will be sparse.
+
+Although the variance matrices themselves are often very sparse, in
+particular multiple random terms are independent, the Cox model's
+Hessian matrix is never sparse.  What we have found is that for some
+cases, one can pretend the Hessian is sparse.  They are captured below.
+
 \subsection{coxvarFull}
 This is the default routine, which assumes a simple nested structure
 for the variance.
+Sparsity is assumed only for random intercepts, for those groups which
+have a small percent of the total.
 
 To describe the layout, we consider four cases of increasing complexity.
 The first case is a simple random grouping effect [[(1|g1)]]. 
@@ -206,10 +235,10 @@ The generate function for this first case is quite simple.
 <<coxvarFull-generate>>=
    generate= function(newtheta, parms) {
        theta <- parms$theta
-       theta[!parms$fixed] <- exp(newtheta)
-       if (parms$case==1) {
-           theta * parms$vmat
-           }
+       if (length(newtheta)>0) theta[!parms$fixed] <- exp(newtheta)
+       switch(parms$case,
+           theta * parms$vmat,
+           
        
 @ 
 
@@ -265,29 +294,13 @@ This was hardly any different than the first case.
 The portion of the generate function is not much different; it creates
 a larger bdsmatrix object by concatonating their diagonals.
  
-This is a good point to remind myself of an important distinction.
-When fitting the Cox likelihood we have to be aware of which terms of the
-partial likelihood's hessian matrix (second derivative) can be      %'
-considered ``sparse'' or not.  Because the C code expects the Hessian and the
-penalty to have exactly the same bdsmatrix form, the [[kfun]] function
-in [[coxme.fit]] has to orchestrate which parts of the penalty 
-can be represented using
-the sparse part of a bdsmatrix (the blocks and blocksize components) and
-which has to use the dense part (the rmat component).  But that is a problem
-for that routine, and it will use as.matrix() as necessary to convert sparse
-to dense.  Here we are free to use full sparse whenever the penalty matrix
-actually is sparse, and we do.  
-In particular creating a new block diagonal matrix from two
-bsdmatrix objects can be done by simply concatonating their
-block and blocksize components.
 
 <<coxvarFull-generate>>= 
-  if (parms$case==2) {
-    varlist <- vector('list', length(theta))
-    for (i in 1:theta) varlist[[i]] <- parms$varlist[[i]] * theta[i]
-    bdsmatrix(blocksize=unlist(lapply(varlist, function(x) x@blocksize)),
+    {varlist <- vector('list', length(theta))
+        for (i in 1:theta) varlist[[i]] <- parms$varlist[[i]] * theta[i]
+        bdsmatrix(blocksize=unlist(lapply(varlist, function(x) x@blocksize)),
               blocks=unlist(lapply(varlist, function(x) x@blocks)))
-    }
+        },
 @    
 
 Although the above is a simple approach, we have found the program 
@@ -344,12 +357,10 @@ them to do so at this point rather than waiting till later additions.
 
 The generation routine is simple
 <<coxvarFull-generate>>=
-   if (parms$case==3) {
-       temp <- parms$varlist[[1]] * theta[1]
-       for (i in 2:length(theta))
-           temp <- temp + parms$varlist[[i]] * theta[i]
-       temp
-       }
+       {temp <- parms$varlist[[1]] * theta[1]
+           for (i in 2:length(theta))
+               temp <- temp + parms$varlist[[i]] * theta[i]
+           temp},
 @ 
 
 
@@ -387,9 +398,7 @@ if (nvar >0 && is.null(G)) {
 @ 
 
 <<coxvarFull-generate>>=
-    if (parms$case==4) {
-        diag(nvar) * theta
-        }
+        diag(nvar) * theta,
 @ 
 
 
@@ -446,8 +455,7 @@ sparseness is handled correctly).
 The parameter vector is stored as a set of transformed standard deviations
 and correlations.
 <<coxvarFull-generate>>=
-if (parms$case==5) {
-    ngroup <- parms$ngroup
+    {ngroup <- parms$ngroup
     nvar <- parms$nvar
 
     vmat <- diag(nvar+1)  #variance matrix = transformed parameters
@@ -474,7 +482,7 @@ if (parms$case==5) {
         }
     bdsmatrix(blocksize=ngroup, blocks=rep(vmat[1,1], ngroup),
               rmat=rtemp[,-(1:ngroup)])
-    }
+    })
 }
 @ 
 
