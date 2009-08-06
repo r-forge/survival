@@ -320,9 +320,9 @@ routine would never be called directly by a user.
   \item[refine.n] number of iterations for iterative refinement
 \end{description}
 <<coxme-setup>>=
-coxme.fit <- function(x, y, strata, offset, control,
+coxme.fit <- function(x, y, strata, offset, ifixed, control,
 			weights, ties, rownames, 
-			fmat, zmat, varlist, theta, ntheta,
+			fmat, zmat, varlist, vparm, theta, ntheta,
                         refine.n) {
     time0 <- proc.time()
 
@@ -414,7 +414,12 @@ is used to scale the logliklihood during iteration, the [[fit0]] parameter
 in the [[logfun]] function.
 The easiest way to get these is from an ordinary [[coxph]] call.
 <<null-fit>>=
-fit0 <- coxph(y ~ x + offset(offset), weights=weights, method=ties)
+if (is.null(ifixed) ) ifixed <- rep(0., ncol(x))
+else if (length(ifixed) != ncol(x))
+    stop("Wrong lenth for initial parameters of the fixed effects")
+                                  
+fit0 <- coxph(y ~ x + offset(offset), weights=weights, method=ties,
+              init=ifixed, iter=0)
 @ 
 
 \subsection{Doing the fit}
