@@ -216,7 +216,6 @@ for (i in 1:nrandom) {
             }
         fmat <- cbind(fmat, ifun$F)
         }
-    stemp[2] <- 1   #force no other sparse terms
 
     if (!is.null(cmat)) {
         temp <- newzmat(cmat, fmat)
@@ -326,28 +325,10 @@ if (length(fcoef) >0) {
     fit$coefficients <- list(fixed=fcoef, random=fit$coeff$random)
     }
 
-if (ncluster==1) {
-    names(fit$frail) <- dimnames(varlist[[1]][[1]])[[1]]
-    flinear <- fit$frail[kindex]
-    }
-else {
-    ftemp <- vector('list', ncluster)
-    j <- 0
-    flinear <- 0
-    for (i in 1:ncluster) {
-        tname <- dimnames(varlist[[i]][[1]])[[1]]
-        nf <- length(tname)
-        temp <- fit$frail[j + 1:nf]
-        flinear <- flinear + temp[kindex[,i]]
-        names(temp) <- tname
-        ftemp[[i]]<- temp
-        j <- j+nf
-        }
-    names(ftemp) <- gnames
-    fit$frail <- ftemp
-    }
 
-if (nvar ==0) fit$linear.predictor <- as.vector(flinear)
+# next line is temporary fill, flinear should be the random part
+flinear <- rep(0., nrow(Y))
+if (nvar==0) fit$linear.predictor <- flinear
 else fit$linear.predictor <- as.vector(flinear + c(X %*% fit$coef$fixed))
 @ 
 Last fill in a set of miscellaneous members of the structure
@@ -365,17 +346,9 @@ if (x)  {
 if (y)     fit$y <- Y
 if (!is.null(weights) && any(weights!=1)) fit$weights <- weights
 
-time3 <- proc.time()
-timeused <- c((time1[1]+ time1[2]) - (time0[1] + time0[2]), fit$timeused,
-              (time3[1]+ time3[2]) - (time2[1] + time2[2]))
-timeused <- c(sum(timeused), timeused)
-names(timeused) <- c("Total", "setup", "fit1", "fit2", "fit3", "finish")
-fit$timeused <- timeused
-
 fit$formula <- as.vector(attr(Terms, "formula"))
 fit$call <- Call
 fit$ties <- ties
-fit$kindex <- kindex
 names(fit$loglik) <- c("NULL", "Integrated", "Penalized")
 oldClass(fit) <- 'coxme'
 fit
@@ -417,6 +390,7 @@ into multiple columns of a matrix.  (This is how [[lmer]] does it.)
 We will use the [[strata]] function from the standard survival library.
 <<expand.nested>>=
 expand.nested <- function(x) {
+    x[[1]] <- as.factor(x[[1]])[,drop=T]
     if (length(x) >1) {
         for (i in seq(2, length(x), by=1)) {
             x[[i]] <- strata(x[,i-1], x[i], shortlabel=TRUE, sep='/')

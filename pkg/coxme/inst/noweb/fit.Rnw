@@ -65,7 +65,8 @@ dense portion on the right.
 (A bdsmatrix with only one diagonal block is dense, one with many blocks
 will be sparse.)
 The C code expects a single bdsmatrix, so any term after the first is
-is added to the dense portion of the first matrix.
+is added to the dense portion of the first matrix, and the first is turned
+into a single large block, if necessary.
 <<define-penalty>>=
 kfun <- function(theta, varlist, vparm, ntheta,
                  fcount=apply(fmat,2,max), zcount = ncol(Z)) {
@@ -99,7 +100,7 @@ levels and [[g3]] has 8.
 The first variance matrix is required to be of a [[bsdmatrix]]
 form with an [[rmat]] slot of dimension $124 \times 64$, call this $T$.
 The variance structure for the other two terms, call them $U$ and
-$V$$, can be of any matrix type.
+$V$, can be of any matrix type.
 The final bdsmatrix will have the block-diagonal portions for the
 first 60 elements
 and an overall right-hand side matrix of the form
@@ -207,18 +208,32 @@ The other control parameters are fairly obvious.  From this data the C
 routine can compute the total number of penalized terms and the number that
 are sparse from the structure of the bdsmatrix, and the total number of
 intercept terms as max(fmat).  Other dimensions follow from those.
+
 A dummy call to [[kfun]] gives the necessary sizes for the penalty matrix.
-All columns of the stored (Z,X) matrix are centered and scaled.
+All columns of the stored $X$ matrix are centered and scaled, and these
+factors are returned.
 
 <<coxfit6a-call>>=
-dummy <- kfun(theta, varlist, vparm, nsparse, ntheta)
+dummy <- kfun(theta, varlist, vparm, ntheta)
 if (is.null(dummy@rmat)) rtemp <- 0
     else                 rtemp <- ncol(dummy@rmat)
 
-for (i in 2:ncol(fmat)) fmat[,i] <- fmat[,i] + max(fmat[,i-1])
+if (ncol(fmat) >1) {
+    for (i in 2:ncol(fmat)) fmat[,i] <- fmat[,i] + max(fmat[,i-1])
+    }  
 findex <- matrix(0, nrow=max(fmat), ncol=ncol(fmat))
 for (i in 1:ncol(fmat)) findex[cbind(fmat[,i], i)] <- 1
     
+if (is.null(control$sparse.calc)) {
+    nevent <- sum(y[,ncol(y)])
+    if (length(dummy@blocksize)==1) nsparse<- 0
+    else nsparse <- sum(dummy@blocksize)
+    rcol <- max(fmat) - nsparse  #number of non-sparse intercepts
+    
+    if ((2*n) > (nevent*(nsparse-rcol))) control$sparse.calc <- 0
+    else control$sparse.calc <- 1
+}
+
 ifit <- .C('coxfit6a', 
                as.integer(n),
                as.integer(nvar),
@@ -236,8 +251,8 @@ ifit <- .C('coxfit6a',
                as.integer(length(dummy@blocksize)),
                as.integer(dummy@blocksize),
                as.integer(rtemp),
-               means = double(temp.nvar),
-               scale = double(temp.nvar),
+               means = double(nvar),
+               scale = double(nvar),
                as.integer(ties=='efron'),
                as.double(control$toler.chol),
                as.double(control$eps),
@@ -272,9 +287,9 @@ There are actually two C routines [[coxfit6b]] and [[agfit6b]], for ordinary
 and (start,stop) survival data, respectively.  The [[ofile]] argument 
 is a character string giving the choice.
 <<define-logfun>>=
-logfun <- function(theta, varlist, vparm, kfun, nsparse, ntheta,
+logfun <- function(theta, varlist, vparm, kfun, ntheta,
                    init, fit0, iter, ofile) {
-    gkmat <- gchol(kfun(theta, varlist, vparm, nsparse, ntheta))
+    gkmat <- gchol(kfun(theta, varlist, vparm, ntheta))
     ikmat <- solve(gkmat)  #inverse of kmat, which is the penalty
     if (any(diag(ikmat) <=0)) { #Not an spd matrix
         return(0)  # return a "worse than null" fit
@@ -359,7 +374,7 @@ routine would never be called directly by a user.
 <<coxme-setup>>=
 coxme.fit <- function(x, y, strata, offset, ifixed, control,
 			weights, ties, rownames, 
-			fmat, zmat, varlist, vparm, theta, nsparse,
+			fmat, zmat, varlist, vparm, theta,
                         ntheta, refine.n) {
     time0 <- proc.time()
 
@@ -468,9 +483,9 @@ however, I prefer to make such hidden arguments explicit.
 <<coxme-fit>>=
 <<define-logfun>>
 if (length(theta)) {
-    logpar <- list(varlist=varlist, vparm=vparm, nsparse=nsparse,
+    logpar <- list(varlist=varlist, vparm=vparm, 
                    ntheta=ntheta, kfun=kfun,
-                   init=c(rep(0., npenal), fit0$coef),
+                   init=c(rep(0., npenal), scale*fit0$coef),
                    fit0= fit0$loglik[2],
                    iter=coxme.control$inner.iter,
                    ofile=ofile)
@@ -478,23 +493,27 @@ if (length(theta)) {
     mfit <- do.call('optim', c(list(par= theta[!fixed], fn=logfun, gr=NULL), 
                            optpar, logpar))
     theta <- mfit$par
+    iter <- mfit$counts[1] * c(1, coxme.control$inner.iter)
     }
+else iter <- c(0,0)
+
 @
 The optimization finds the best value of theta, but does not return
 all the parameters we need from the fit.  So we make one more call.
 This is essentially the ``inside'' of [[logfun]].
 <<coxme-fit>>=
-    gkmat <- gchol(kfun(theta, varlist, vparm, nsparse, ntheta))
+    gkmat <- gchol(kfun(theta, varlist, vparm, ntheta))
     ikmat <- solve(gkmat)  #inverse of kmat, which is the penalty
     fit <- .C(ofile,
               iter= as.integer(c(0, control$iter.max)),
-              beta = as.double(c(rep(0., nfrail), fit0$coef)),
+              beta = as.double(c(rep(0., nfrail), fit0$coef*scale)),
               loglik = double(2),
               as.double(ikmat@blocks),
               as.double(ikmat@rmat),
               hdet = double(1))
     ilik <- fit$loglik[2] -
              .5*(sum(log(diag(gkmat))) + fit$hdet)
+    iter[2] <- iter[2] + fit$iter[2]
  <<refine>>
 @
               
@@ -505,6 +524,7 @@ There are 4 tasks left to do
  <<release-memory>>
  <<coxme-rescale>>
  <<coxme-df>>
+ <<finish-random>>
  <<create-output-list>>
 @ 
 
@@ -520,6 +540,7 @@ estimates.
 It then releases all the memory allocated by the initial routine.
 <<release-memory>>=
 nfrail <- nrow(ikmat)  #total number of penalized terms
+nsparse <- sum(ikmat@blocksize)
 nvar2  <- nvar + (nfrail - nsparse)  # total number of non-sparse coefs
 nvar3  <- nvar + nfrail              # total number of coefficients
 btot   <- length(ikmat@blocks)
@@ -531,7 +552,7 @@ fit3 <- .C('coxfit6c',
                hi.b = double(btot),
                hi.r = double(nvar2*nvar3),
                hrank= integer(1),
-               as.integer(ncol(y)),
+               as.integer(ncol(y))
                )
 @ 
 
@@ -545,9 +566,10 @@ then [[hmat]] and [[hinv]] have only a block-diagonal component.
 intercept for instance.)
 <<coxme-rescale>>=
     if (nvar2 ==0) {
-        hmat <- new('gchol.bdsmatrix', .Dim=c(nvar3, nvar3),
+        hmat <- new('gchol.bdsmatrix', Dim=c(nvar3, nvar3),
                     blocksize=ikmat@blocksize, blocks=fit3$h.b,
-                    rmat=numeric(0), rank=fit3$hrank)
+                    rmat=matrix(0,0,0), rank=fit3$hrank,
+                    Dimnames=list(NULL, NULL))
         hinv <- bdsmatrix(blocksize=ikmat@blocksize, blocks=fit3$hi.b)
         }
 @ 
@@ -580,19 +602,19 @@ with $S^2D$ and $L$ with $SLS^{-1}$.
             u[nvar3] <- u[nvar3]*scale
             }
         else if (nvar >1) {
-            temp <- (nvar3-nvar):nvar3 
-            u <- fit$u
+            temp <- seq(to=nvar3, length=length(scale))
+            u <- fit3$u
             u[temp] <- u[temp]*scale
             rmat1[temp,] <- (1/scale)*rmat1[temp,] #multiply rows* scale
             rmat2[temp,] <- (1/scale)*rmat2[temp,] 
 
-            temp <- (nvar2-nvar):nvar2        #multiply cols
+            temp <- temp-nfrail          #multiply cols
             rmat1[,temp] <- rmat1[,temp] %*% diag(scale)
             rmat2[,temp] <- rmat2[,temp] %*% diag(1/scale)
             temp <- seq(length=length(scale), to=length(rmat1), by=1+nvar3)
             rmat1[temp] <- rmat1[temp]*(scale^2)    #fix the diagonal
             }
-        hmat <- new('gchol.bdsmatrix', .Dim=c(nvar3, nvar3),
+        hmat <- new('gchol.bdsmatrix', Dim=c(nvar3, nvar3),
                     blocksize=ikmat@blocksize, blocks=fit3$h.b,
                     rmat= rmat1, rank=fit3$hrank)
         hinv <- bdsmatrix(blocksize=ikmat@blocksize, blocks=fit3$hi.b,
@@ -622,20 +644,33 @@ traceprod <- function(H, P) {
 df <- nvar + (nfrail - traceprod(hinv, ikmat))
 @ 
 
+Our last action for the random terms is to call the 
+[[wrapup]] functions, which retransform (if needed) 
+$\theta$ back to the user's scale, re-insert (if needed)
+any fixed parameters, label the vector.
+<<finish-random>>=
+newtheta <- NULL   
+nrandom <- length(varlist)
+sindex <- rep(1:nrandom, ntheta) #which thetas to which terms
+
+for (i in 1:nrandom) 
+    newtheta <- c(newtheta, varlist[[i]]$wrapup(theta[sindex==i], vparm[[i]]))
+@ 
 And last, put together the output structure.
 <<create-output-list>>=
+    fcoef <- fit$beta[1:nfrail]
     penalty <- sum(fcoef * (ikmat %*% fcoef))
     idf <- nvar + sum(ntheta)
 
     if (nvar > 0) {
 	out <- list(coefficients=list(fixed=fit$beta[-(1:nfrail)]/scale, 
-	                       random=theta),
+	                       random=newtheta),
 	     frail=fit$beta[1:nfrail], penalty=penalty,
 	     loglik=c(fit0$log[1], ilik, fit$log[2]), var=hinv,
 	     df=c(idf, df), hmat=hmat, iter=iter, control=control,
 	     u=u, means=means, scale=scale)
 	}
-    else out <- list(coefficients=list(fixed=NULL, random=theta),
+    else out <- list(coefficients=list(fixed=NULL, random=newtheta),
 	      frail=fit$beta[1:nfrail], penalty= penalty,
 	      loglik=c(fit0$log[1], ilik, fit$log[2]), var=hinv,
 	      df=c(idf, df), hmat=hmat, iter=iter, control=control,

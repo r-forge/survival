@@ -22,10 +22,9 @@ if (!missing(random)) {
     if (class(random) != 'formula' || length(random) !=2) 
         stop("Invalid random formula")
     j <- length(formula)   #will be 2 or 3, depending on if there is a y
-    # Add parens to the random formula
-    rtemp <- formula(paste('(', paste(deparse(random[[2]]), collapse=''), 
-                                    ')'))  
-    formula[[j]] <- call('+', formula[[j]], rtemp)  # paste it on
+
+    # Add parens to the random formula and paste it on
+    formula[[j]] <- call('+', formula[[j]], call('(', random[[2]]))  
     }
 @
 A formula in S is represented as a list of length 2 or 3, whose first element

@@ -35,7 +35,7 @@ generate and wrapup functions.
   can print an error message with more information.
 \end{description}
 
-The $G$ matrix passed in and the $G$ matrix returned may not be the same.
+The $G$ matrix passed in and the $F$ matrix returned may not be the same.
 In particular, any class levels that are going to be treated as
 sparse will have been rearranged to so as to be the first columns of
 the penalty matrix (variance of the random effect), and so will have
@@ -47,12 +47,12 @@ the variance matrix of the random effect.
 If there are multiple random effect terms, each of the generate
 functions creates the appropriate block.
 
-The \emph{wrapup} function is called when iteration is complete.  It's  %'
+The \emph{wrapup} function is called when iteration is complete.  Its
 primary job is to return the extended and re-transformed $\theta$
 vector.  Fixed coefficients are re-inserted.
 
 For both initial values and fixed values we try to be as forgiving
-as possible, but first matching on names and then matching any
+as possible, by first matching on names and then matching any
 unnamed arguments.
 Say for instance that the the term is [[(1| race/sex)]], then all of
 \begin{itemize}
@@ -95,7 +95,7 @@ can be represented using
 the sparse part of a bdsmatrix (the blocks and blocksize components) and
 which has to use the dense part (the rmat component).  
 Essentially, it treats terms 2, 3, \ldots as dense, and for the first
-term it believes what the variance function sends it.
+term it \emph{believes what the variance function sends it}.
 Thus, this is the point at which ``sparseness'' is determined.
 
 A \emph{b}lock \emph{d}iagonal \emph{s}ymmetric [[bdsmatrix]] object 
@@ -103,7 +103,7 @@ consists of two portions: a block diagonal section in the upper left and
 a dense border.  Since it is symmetric only the right hand border is
 retained.
 If the block diagonal section has only a single block, then the matrix
-is dense; if there are many blocks then it will be sparse.
+is dense; if there are many blocks it will be sparse.
 
 Although the variance matrices themselves are often very sparse, in
 particular multiple random terms are independent, the Cox model's
@@ -211,22 +211,31 @@ coxvarFull <- function(collapse=TRUE) {
 Case 1 is the simplest one of a single grouping variable and
 no covariates. If sparseness
 applies, then the levels of the variable are reordered to put the
-infrequent levels first.
+infrequent levels first, and the variance matrix starts with
+nsparse $1\times 1$ blocks.
 <<coxvarFull-init1>>=
     gtemp <- as.factor(G[[1]])[,drop=TRUE] #drop unused levels
     nlevel <- length(levels(gtemp))
     gfrac <- table(gtemp)/ length(gtemp)
     if (nlevel > sparse[1] && any(gfrac <= sparse[2])) {
         indx <- order((gfrac<= sparse[2]), 1:nlevel)
-        gtemp <- factor(gtemp, levels=levels(gtemp)[order(gfad)])
+        gtemp <- factor(gtemp, levels=levels(gtemp)[indx])
         nsparse <- sum(gfrac <= sparse[2])
+        if (nsparse== nlevel) vmat<- bdsI(nsparse)
+        else {
+            k <- nlevel - nsparse  #number of non-sparse levels
+            rmat <- matrix(0., nrow=nlevel, ncol=k)
+            rmat[1:k + nsparse, 1:k] <- 1.0
+            vmat <- bdsmatrix(blocksize=rep(1,nsparse), 
+                               blocks= rep(1,nsparse), rmat=rmat)
+            }
         }
-    else nsparse=0 
+    else vmat <- diag(nlevel)
     
     list(F=matrix(as.numeric(gtemp)), X=NULL, 
-         nsparse=nsparse, theta=log(theta[!which.fixed]), 
+         theta=log(theta[!which.fixed]), 
          levels=levels(gtemp),
-         parms=list(vmat=bdsI(nlevel), theta=theta, 
+         parms=list(vmat=vmat, theta=theta, level=levels(gtemp),
                     fixed=which.fixed, case=1))
 
 @	    
@@ -249,58 +258,66 @@ We first expand out the second variable; for a term such as
 so that teacher 1 in school A is different than teacher 1 in school
 B.
 This will lead to a stucture with $g_1$ levels for the first variable
-$g_2 > g_1$ levels for the second, and so on.  (We need to
-do an sparse reordering of the first variable prior to the expansion,
-however, to make sure that all the labels stay correct).
-
+$g_1*g_2$ levels for the second, and so on. 
 The simplest way to set this up is to create two columns in $F$, one
 for each variable, corresponding to the following structure.
 \begin{eqnarray*}
  b_i &\sim & N(0, \sigma_1^2 I) \\
  c_{ij} &\sim & N(0, \sigma_2^2 I)\\
 \end{eqnarray*}
+Sparseness is applied to the \emph{last} variable in the nesting, since
+it has the largest number of levels.
+This ends up reversing the parameters, which we will undo later in the
+wrapup function.
 
 <<coxvarFull-init2>>=
-    gtemp <- as.factor(G[[i]])[,drop=TRUE]
-    nlevel <- length(levels(gtemp))
-    gfrac <- table(gtemp)/ length(gtemp)
-    if (nlevel > sparse[1] && any(gfrac <= sparse[2])) {
-        indx <- order((gfrac<= sparse[2]), 1:nlevel)
-        gtemp <- factor(gtemp, levels=levels(gtemp)[order(gfad)])
-        nsparse <- sum(gfrac <= sparse[2])
-        G[[1]] <- gtemp
-        }
-    else nsparse=0
-
     G <- expand.nested(G)
     if (!collapse) {
-        F <- matrix(0, nrow=length(G[[1]]), ncol=ncol(G))
-        varlist <- levellist <- vector('list', ncol(G))
-        for (i in 1:ncol(G)) {
-            gtemp <- as.factor(G[[i]])[,drop=TRUE] #drop unused levels
-            F[,i] <- as.numeric(gtemp)
-            varlist[[i]] <- bdsI(nlevel)
-            levellist[[i]] <- levels(gtemp)
+        n.nest <- ncol(G)
+        F <- matrix(0, nrow=nrow(G), ncol=n.nest)
+        nlevel <- sapply(G, function(x) length(levels(x)))
+        levellist <- vector('list', n.nest)
+        vars <- vector('list', n.nest)
+        
+        # last first
+        gtemp <- as.factor(G[n.nest])[,drop=TRUE]
+        gfrac <- table(gtemp)/ length(gtemp)
+        if (nlevel[ncol(G)] > sparse[1] && any(gfrac <= sparse[2])) {
+            indx <- order((gfrac<= sparse[2]), 1:nlevel)
+            gtemp <- factor(gtemp, levels=levels(gtemp)[indx])
+            nsparse <- sum(gfrac <= sparse[2])
             }
+        else nsparse <- 0
+        F[,1] <- as.integer(gtemp) 
+        levellist[[1]] <- levels(gtemp)
+        
+        for (i in 2:n.nest) {
+            j <- 1 + n.nest -i
+            F[,i] <- as.numeric(G[,j])
+            levellist[[i]] <- levels(G[,j])
+            }
+ 
         list(F=F, X=NULL, 
-    	     theta=log(theta[!which.fixed]), nsparse=nsparse,
-    	     parms=list(varlist=varlist, theta=theta, 
-                        fixed=which.fixed,
-    	                levels=levellist, case=2))
+    	     theta=log(theta[!which.fixed]),
+    	     parms=list(nlevel=rev(nlevel), nsparse=nsparse, 
+                        fixed=which.fixed, levels=levellist, case=2))
         }
 @ 
 
-This was hardly any different than the first case.
-The portion of the generate function is not much different; it creates
-a larger bdsmatrix object by concatonating their diagonals.
- 
+All of the variance parameters are independent, so the generate function
+needs to create a diagonal matrix, as either a matrix or bdsmatrix 
+(if nsparse>0) or matrix object.
 
 <<coxvarFull-generate>>= 
-    {varlist <- vector('list', length(theta))
-        for (i in 1:theta) varlist[[i]] <- parms$varlist[[i]] * theta[i]
-        bdsmatrix(blocksize=unlist(lapply(varlist, function(x) x@blocksize)),
-              blocks=unlist(lapply(varlist, function(x) x@blocks)))
-        },
+    {if (parms$nsparse >0) {
+        temp <- nlevel
+        temp[1] <- temp[1] - nsparse
+        bdsmatrix(blocksize=rep(1, nsparse), blocks=rep(1., nsparse),
+                  rmat=rbind(matrix(0.,nrow=nsparse, ncol=sum(nlevel)),
+                             diag(rep(theta, temp))))
+        }
+     else diag(rep(theta, parms$nlevel))
+     },
 @    
 
 Although the above is a simple approach, we have found the program 
@@ -336,11 +353,10 @@ their structure these matrices can be made to conform: adding 0 forces
 them to do so at this point rather than waiting till later additions.
 <<coxvarFull-init3>>=
   else { #ncol(G)>1, intercept=T, nvar=0, collapse=T
-      varlist <- levellist <- vector('list', ncol(G))
-      ulist <- as.factor(G[[ncol(G)]])[,drop=TRUE]
+      varlist <- vector('list', ncol(G))
+      ulist <- G[,ncol(G)]
       for (i in 1:(ncol(G)-1)) {
-          gtemp <- as.factor(G[[i]])[,drop=TRUE]
-          bsize <- tapply(ulist, gtemp, function(x) length(unique(x)))
+          bsize <- tapply(ulist, G[,i], function(x) length(unique(x)))
           varlist[[i]] <- bdsmatrix(blocksize=bsize,
                                     blocks=rep(1., sum((bsize*(bsize+1))/2)))
           }
@@ -348,19 +364,21 @@ them to do so at this point rather than waiting till later additions.
       for (i in 2:ncol(G)) varlist[[i]] <- varlist[[i]] + 0*varlist[[1]]
       
       list(F=as.numeric(ulist), X=NULL, 
-           theta=log(theta[!which.fixed]), nsparse=nsparse,
+           theta=log(theta[!which.fixed]),
            parms=list(varlist=varlist, theta=theta, 
                       fixed=which.fixed,
-                      levels=levellist, case=3))
+                      levels=lapply(G, function(x) levels(x)), case=3))
       }
 @ 
 
-The generation routine is simple
+The generation routine is simple.  Although all of our arithmetic is done
+with [[bdsmatrix]] objects for speed and size, the result is a matrix
+so as not to imply sparseness.
 <<coxvarFull-generate>>=
        {temp <- parms$varlist[[1]] * theta[1]
-           for (i in 2:length(theta))
-               temp <- temp + parms$varlist[[i]] * theta[i]
-           temp},
+        for (i in 2:length(theta))
+            temp <- temp + parms$varlist[[i]] * theta[i]
+        as.matrix(temp)},
 @ 
 
 
@@ -391,7 +409,7 @@ regression.
 <<coxvarFull-init4>>=
 #case 4
 if (nvar >0 && is.null(G)) {
-   list(theta=theta[!which.fixed], F=NULL, X=Z, nsparse=0,
+   list(theta=theta[!which.fixed], F=NULL, X=Z,
          parms=list(which.fixed=which.fixed, theta=theta, nvar=nvar,
                     case=4))
     }
@@ -422,8 +440,9 @@ found above.  (We currently ignore the collapse argument).
         
 @ 
 The returned $X$ matrix, however, will have one regression column for
-age for each level of the grouping variable.  It has ngroup colums
-for the first variable, then ngroup for the second, etc.
+the covariate [[age]] for each level of the grouping variable.  
+In general it has ngroup colums
+for the first covariate, then ngroup for the second, etc.
 Since in this structure the coefficients for someone in group 1 will
 be in position 1, 1+ngroup, 1+ 2*ngroup, \ldots, the variance matrix
 will be a set of blocks.  
@@ -442,7 +461,7 @@ where each of the identity matrices $I$ is of dimension ngroup.
         for (i in 1:ngroup) 
             X[,i+indx] <- Z * (F==i)
                     
-        list(theta=theta[!fixed], F=F, X=X, nsparse=nsparse,
+        list(theta=theta[!fixed], F=F, X=X, 
              parms=list(theta[!which.fixed], which.fixed=which.fixed,
                         nvar=nvar, ngroup=ngroup, case=5))
         }
@@ -499,7 +518,7 @@ The wrapup function transforms theta back, and adds names.
 <<coxvarFull-wrapup>>=
 wrapup <- function(theta, parms) {
     newtheta <- parms$theta
-    newtheta[!parms$which.fixed] <- exp(theta)
+    newtheta[!parms$fixed] <- exp(theta)
     
     if (parms$case == 5)  # correlations
         newtheta=newtheta
