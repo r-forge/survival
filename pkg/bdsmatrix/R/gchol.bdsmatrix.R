@@ -1,11 +1,6 @@
 #
 # Cholesky decompostition for block-diagonal square matrices
 #
-
-#
-# Insightful decided to include this in their main library,
-#  causing an error message when I define it.  One of the
-#  many hassels with new style classes.
 if (is.R() || length(getClass('gchol.bdsmatrix')@slots)==0) {
     setClass('gchol.bdsmatrix',
 	 representation(blocksize = 'integer',
@@ -48,7 +43,8 @@ setMethod('gchol', 'bdsmatrix', function(x, tolerance=1e-9) {
                                 flag= as.double(tolerance))
 
         new('gchol.bdsmatrix', blocksize=x@blocksize, blocks=temp$blocks, 
-	                rmat=numeric(0), Dim=x@Dim, rank=as.integer(temp$flag),
+	                rmat=matrix(0,0,0), Dim=x@Dim, 
+                        rank=as.integer(temp$flag),
 	                Dimnames=x@Dimnames)
         }
     })

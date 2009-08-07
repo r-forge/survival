@@ -22,8 +22,6 @@ a list, each element of which is a matrix or bdsmatrix object
 a vector of dimnames, the target match for matrice's dimnames
 }
 }
-\details{
-}
 \value{
 a varlist, whose individual elements may have had row/column  rearrangment.
 }
