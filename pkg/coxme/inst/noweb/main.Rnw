@@ -15,7 +15,7 @@
 
 \begin{document}
 \maketitle
-
+\tableofcontents
 \section{Introduction}
  The [[coxme]] function for mixed effects analyses based on a Cox
 proportional hazards model is one of the later additions to the

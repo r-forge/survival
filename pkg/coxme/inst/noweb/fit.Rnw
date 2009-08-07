@@ -65,8 +65,11 @@ dense portion on the right.
 (A bdsmatrix with only one diagonal block is dense, one with many blocks
 will be sparse.)
 The C code expects a single bdsmatrix, so any term after the first is
-is added to the dense portion of the first matrix, and the first is turned
-into a single large block, if necessary.
+is added to the dense portion of the first matrix.
+It also expects the bdsmatrix to have at least one ``block'', and that
+block must involve no more than the first column of $F$.
+If the first term is a simple matrix, we just split off its first
+element.
 <<define-penalty>>=
 kfun <- function(theta, varlist, vparm, ntheta,
                  fcount=apply(fmat,2,max), zcount = ncol(Z)) {
@@ -76,7 +79,7 @@ kfun <- function(theta, varlist, vparm, ntheta,
 
     tmat <- varlist[[1]]$generate(theta[sindex==1], vparm[[1]]) 
     if (!inherits(tmat, 'bdsmatrix')) 
-        tmat <- bdsmatrix(blocksize=nrow(tmat), blocks=tmat)
+        tmat <- bdsmatrix(blocksize=1, blocks=tmat[1], rmat=tmat[,-1])
         
 @ 
 If there is only a single random term, then our work is done.
@@ -215,8 +218,9 @@ factors are returned.
 
 <<coxfit6a-call>>=
 dummy <- kfun(theta, varlist, vparm, ntheta)
-if (is.null(dummy@rmat)) rtemp <- 0
-    else                 rtemp <- ncol(dummy@rmat)
+if (is.null(dummy@rmat)) rcol <- 0
+    else                 rcol <- ncol(dummy@rmat)
+npenal <- ncol(dummy)  #total number of penalized terms
 
 if (ncol(fmat) >1) {
     for (i in 2:ncol(fmat)) fmat[,i] <- fmat[,i] + max(fmat[,i-1])
@@ -228,9 +232,9 @@ if (is.null(control$sparse.calc)) {
     nevent <- sum(y[,ncol(y)])
     if (length(dummy@blocksize)==1) nsparse<- 0
     else nsparse <- sum(dummy@blocksize)
-    rcol <- max(fmat) - nsparse  #number of non-sparse intercepts
+    itemp <- max(fmat) - nsparse  #number of non-sparse intercepts
     
-    if ((2*n) > (nevent*(nsparse-rcol))) control$sparse.calc <- 0
+    if ((2*n) > (nevent*(nsparse-itemp))) control$sparse.calc <- 0
     else control$sparse.calc <- 1
 }
 
@@ -250,7 +254,7 @@ ifit <- .C('coxfit6a',
                as.integer(findex),
                as.integer(length(dummy@blocksize)),
                as.integer(dummy@blocksize),
-               as.integer(rtemp),
+               as.integer(rcol),
                means = double(nvar),
                scale = double(nvar),
                as.integer(ties=='efron'),
@@ -432,19 +436,11 @@ suspicious of my own code, and an extra check doesn't hurt.
 
 <<coxme-setup>>=
     if (!is.list(varlist)) stop("variance matrix list isn't a list!")
-    if (is.matrix(fmat) && ncol(fmat >1)) {
-	ncluster <- ncol(fmat)
-	clnames <- dimnames(fmat)[[2]]
-	}
-    else ncluster <- 1
-    if (ncluster != length(varlist))
-        stop("Lengths of variance list and of fmat disagree")
-
     #
     # Check out fmat:
     #   each column should be integer
     #   each col must contain numbers from 1 to k for some k
-    #   column 1 should contain at least one "1" (the C routine
+    #   column 1 should contain at least one "1" 
     if (any(fmat != floor(fmat))) stop("fmat must be integers")
     if (any(fmat <1)) stop("fmat must be >0")
     fmat <- as.matrix(fmat)
@@ -487,29 +483,32 @@ if (length(theta)) {
                    ntheta=ntheta, kfun=kfun,
                    init=c(rep(0., npenal), scale*fit0$coef),
                    fit0= fit0$loglik[2],
-                   iter=coxme.control$inner.iter,
+                   iter=control$inner.iter,
                    ofile=ofile)
   
-    mfit <- do.call('optim', c(list(par= theta[!fixed], fn=logfun, gr=NULL), 
-                           optpar, logpar))
+    mfit <- do.call('optim', c(list(par= theta, fn=logfun, gr=NULL), 
+                           control$optpar, logpar))
     theta <- mfit$par
-    iter <- mfit$counts[1] * c(1, coxme.control$inner.iter)
+    iter <- mfit$counts[1] * c(1, control$inner.iter)
     }
 else iter <- c(0,0)
 
 @
 The optimization finds the best value of theta, but does not return
 all the parameters we need from the fit.  So we make one more call.
-This is essentially the ``inside'' of [[logfun]].
+This is essentially the ``inside'' of [[logfun]].  
+The phrase [[c(ikmat@rmat,0)]] makes sure something is passed when
+[[rmat]] is of length 0.
+
 <<coxme-fit>>=
     gkmat <- gchol(kfun(theta, varlist, vparm, ntheta))
     ikmat <- solve(gkmat)  #inverse of kmat, which is the penalty
     fit <- .C(ofile,
               iter= as.integer(c(0, control$iter.max)),
-              beta = as.double(c(rep(0., nfrail), fit0$coef*scale)),
+              beta = as.double(c(rep(0., npenal), fit0$coef*scale)),
               loglik = double(2),
               as.double(ikmat@blocks),
-              as.double(ikmat@rmat),
+              as.double(c(ikmat@rmat,0)),
               hdet = double(1))
     ilik <- fit$loglik[2] -
              .5*(sum(log(diag(gkmat))) + fit$hdet)
@@ -608,7 +607,7 @@ with $S^2D$ and $L$ with $SLS^{-1}$.
             rmat1[temp,] <- (1/scale)*rmat1[temp,] #multiply rows* scale
             rmat2[temp,] <- (1/scale)*rmat2[temp,] 
 
-            temp <- temp-nfrail          #multiply cols
+            temp <- temp-nsparse          #multiply cols
             rmat1[,temp] <- rmat1[,temp] %*% diag(scale)
             rmat2[,temp] <- rmat2[,temp] %*% diag(1/scale)
             temp <- seq(length=length(scale), to=length(rmat1), by=1+nvar3)
@@ -626,7 +625,7 @@ Now for the degrees of freedom, which is formula 5.16 of Therneau and Grambsch
 First we have a small utility function to compute the ${\rm trace}(AB)$ where
 $A$ and $B$ are bdsmatrix objects.  
 For ordinary matrices this is the sum of the elementwise product of $A$ and
-$B'$, but we have to account for the fact that bdsmatrix objects only
+$B'$, but we have to account for the fact that bdsmatrix objects only %'
 keep the lower diagonal, so we need the diagonal sum + 2 times the off-diagonal
 sum.  
 <<coxme-df>>=
@@ -646,7 +645,7 @@ df <- nvar + (nfrail - traceprod(hinv, ikmat))
 
 Our last action for the random terms is to call the 
 [[wrapup]] functions, which retransform (if needed) 
-$\theta$ back to the user's scale, re-insert (if needed)
+$\theta$ back to the user's scale, re-insert (if needed)  %'
 any fixed parameters, label the vector.
 <<finish-random>>=
 newtheta <- NULL   
@@ -659,7 +658,7 @@ for (i in 1:nrandom)
 And last, put together the output structure.
 <<create-output-list>>=
     fcoef <- fit$beta[1:nfrail]
-    penalty <- sum(fcoef * (ikmat %*% fcoef))
+    penalty <- sum(fcoef * (ikmat %*% fcoef))/2
     idf <- nvar + sum(ntheta)
 
     if (nvar > 0) {

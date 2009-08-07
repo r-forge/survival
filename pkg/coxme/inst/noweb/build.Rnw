@@ -38,7 +38,6 @@ parentheses.
         }
     if (length(strats)) {
         temp <- untangle.specials(Terms, 'strata', 1)
-        dropx <- c(dropx, temp$terms)
         if (length(temp$vars)==1) strata.keep <- m[[temp$vars]]
         else strata.keep <- strata(m[,temp$vars], shortlabel=T)
         strats <- as.numeric(strata.keep)
@@ -150,7 +149,8 @@ if (missing(varlist)) {
     }
 else {
     if (nrandom==1) { # allow a single non-list
-        if (!is.list(varlist)) varlist <- list(varlist)
+        if (inherits(varlist, 'coxvar') || !is.list(varlist)) 
+            varlist <- list(varlist)
         }
     if (length(varlist) != nrandom) stop ("Wrong length for varlist")
     for (i in 1:length(varlist)) {
@@ -222,8 +222,9 @@ for (i in 1:nrandom) {
         zmat <- cbind(zmat, temp)
         nslope[i] <- ncol(temp)
         }
-} 
+    } 
 @ 
+
 The matrix $F$ holds the columns associated with intercept terms,
 so has columns added only if the new random terms has a 1 on the
 left side of the formula.
@@ -310,7 +311,6 @@ The [[coefficients]] portion of the returned object conttains the
 values for $\hat \beta$ (fixed) and for the variances $\hat \theta$.
 The [[frail]] component contains the values for $\hat b$.
 <<finish-up>>=
-time2 <- proc.time()
 fcoef <- fit$coefficients$fixed
 nvar <- length(fcoef)
 if (length(fcoef)>0 && any(is.na(fcoef))) {
@@ -324,12 +324,26 @@ if (length(fcoef) >0) {
     names(fcoef) <- dimnames(X)[[2]]
     fit$coefficients <- list(fixed=fcoef, random=fit$coeff$random)
     }
+@ 
 
+Add up the part of the linear predictor due to random terms, 
+and add this to the fixed portion to get a linear predictor
+<<finish-up>>=
+rlinear <- rep(0., nrow(Y))
+indx <- 0
+if (length(fmat)) {
+    for (i in 1:ncol(fmat)) {
+        rlinear <- rlinear + fit$frail[fmat[,i]+indx]
+        indx <- indx + max(fmat[,i])
+        }
+    }
+if (length(zmat)) {
+    for (i in 1:ncol(zmat))
+        rlinear <- rlinear + fit$frail[indx+i]*zmat[,i]
+    }
 
-# next line is temporary fill, flinear should be the random part
-flinear <- rep(0., nrow(Y))
-if (nvar==0) fit$linear.predictor <- flinear
-else fit$linear.predictor <- as.vector(flinear + c(X %*% fit$coef$fixed))
+if (nvar==0) fit$linear.predictor <- rlinear
+else fit$linear.predictor <- as.vector(rlinear + c(X %*% fit$coef$fixed))
 @ 
 Last fill in a set of miscellaneous members of the structure
 <<finish-up>>=
@@ -393,7 +407,7 @@ expand.nested <- function(x) {
     x[[1]] <- as.factor(x[[1]])[,drop=T]
     if (length(x) >1) {
         for (i in seq(2, length(x), by=1)) {
-            x[[i]] <- strata(x[,i-1], x[i], shortlabel=TRUE, sep='/')
+            x[[i]] <- strata(x[[i-1]], x[[i]], shortlabel=TRUE, sep='/')
             }
        } 
     x

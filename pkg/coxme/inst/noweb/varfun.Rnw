@@ -106,7 +106,7 @@ If the block diagonal section has only a single block, then the matrix
 is dense; if there are many blocks it will be sparse.
 
 Although the variance matrices themselves are often very sparse, in
-particular multiple random terms are independent, the Cox model's
+particular multiple random terms are independent, the Cox model's    %'
 Hessian matrix is never sparse.  What we have found is that for some
 cases, one can pretend the Hessian is sparse.  They are captured below.
 
@@ -190,6 +190,7 @@ coxvarFull <- function(collapse=TRUE) {
               }
               
         # The 5 cases
+        gname <- names(G)
         if (intercept && nvar==0) {
             if (ncol(G)==1) {
                 <<coxvarFull-init1>>  
@@ -217,8 +218,8 @@ nsparse $1\times 1$ blocks.
     gtemp <- as.factor(G[[1]])[,drop=TRUE] #drop unused levels
     nlevel <- length(levels(gtemp))
     gfrac <- table(gtemp)/ length(gtemp)
-    if (nlevel > sparse[1] && any(gfrac <= sparse[2])) {
-        indx <- order((gfrac<= sparse[2]), 1:nlevel)
+    if (nlevel >= sparse[1] && any(gfrac <= sparse[2])) {
+        indx <- order((gfrac> sparse[2]), 1:nlevel)  #False then True for order
         gtemp <- factor(gtemp, levels=levels(gtemp)[indx])
         nsparse <- sum(gfrac <= sparse[2])
         if (nsparse== nlevel) vmat<- bdsI(nsparse)
@@ -231,12 +232,12 @@ nsparse $1\times 1$ blocks.
             }
         }
     else vmat <- diag(nlevel)
-    
+
     list(F=matrix(as.numeric(gtemp)), X=NULL, 
          theta=log(theta[!which.fixed]), 
          levels=levels(gtemp),
          parms=list(vmat=vmat, theta=theta, level=levels(gtemp),
-                    fixed=which.fixed, case=1))
+                    fixed=which.fixed, case=1, gname=gname))
 
 @	    
 
@@ -277,30 +278,41 @@ wrapup function.
         F <- matrix(0, nrow=nrow(G), ncol=n.nest)
         nlevel <- sapply(G, function(x) length(levels(x)))
         levellist <- vector('list', n.nest)
-        vars <- vector('list', n.nest)
         
-        # last first
-        gtemp <- as.factor(G[n.nest])[,drop=TRUE]
+        # Sparsity?
+        gtemp <- as.factor(G[,n.nest])[,drop=TRUE]
         gfrac <- table(gtemp)/ length(gtemp)
         if (nlevel[ncol(G)] > sparse[1] && any(gfrac <= sparse[2])) {
-            indx <- order((gfrac<= sparse[2]), 1:nlevel)
+            # Yes
+            indx <- order((gfrac> sparse[2]), 1:nlevel)
             gtemp <- factor(gtemp, levels=levels(gtemp)[indx])
             nsparse <- sum(gfrac <= sparse[2])
-            }
-        else nsparse <- 0
-        F[,1] <- as.integer(gtemp) 
-        levellist[[1]] <- levels(gtemp)
         
-        for (i in 2:n.nest) {
-            j <- 1 + n.nest -i
-            F[,i] <- as.numeric(G[,j])
-            levellist[[i]] <- levels(G[,j])
+            F[,1] <- as.integer(gtemp) 
+            levellist[[1]] <- levels(gtemp)
+            nlevel <- rev(nlevel)
+            gname <- rev(gname)
+            
+            for (i in 2:n.nest) {
+                j <- 1 + n.nest -i
+                F[,i] <- as.numeric(G[,j])
+                levellist[[i]] <- levels(G[,j])
+                }
+            }
+        else { # No sparse, so don't reverse the levels & annoy user
+            nsparse <- 0
+            for (i in 1:n.nest) {
+                gtemp <- G[,i ,drop=T]
+                F[,i] <- as.numeric(gtemp)
+                levellist[[i]] <- levels(gtemp)
+                }
             }
  
         list(F=F, X=NULL, 
     	     theta=log(theta[!which.fixed]),
-    	     parms=list(nlevel=rev(nlevel), nsparse=nsparse, 
-                        fixed=which.fixed, levels=levellist, case=2))
+    	     parms=list(nlevel=nlevel, nsparse=nsparse, gname=gname,
+                        fixed=which.fixed, levels=levellist, 
+                        theta=theta, case=2))
         }
 @ 
 
@@ -309,11 +321,12 @@ needs to create a diagonal matrix, as either a matrix or bdsmatrix
 (if nsparse>0) or matrix object.
 
 <<coxvarFull-generate>>= 
-    {if (parms$nsparse >0) {
+    {        if (parms$nsparse >0) {
         temp <- nlevel
         temp[1] <- temp[1] - nsparse
-        bdsmatrix(blocksize=rep(1, nsparse), blocks=rep(1., nsparse),
-                  rmat=rbind(matrix(0.,nrow=nsparse, ncol=sum(nlevel)),
+        bdsmatrix(blocksize=rep(1, parms$nsparse),
+                  blocks=rep(1., parms$nsparse),
+                  rmat=rbind(matrix(0.,nrow=parms$nsparse, ncol=sum(nlevel)),
                              diag(rep(theta, temp))))
         }
      else diag(rep(theta, parms$nlevel))
@@ -363,10 +376,10 @@ them to do so at this point rather than waiting till later additions.
       varlist[ncol(G)] <- bdsI(length(unique(ulist))) 
       for (i in 2:ncol(G)) varlist[[i]] <- varlist[[i]] + 0*varlist[[1]]
       
-      list(F=as.numeric(ulist), X=NULL, 
+      list(F=matrix(as.numeric(ulist)), X=NULL, 
            theta=log(theta[!which.fixed]),
            parms=list(varlist=varlist, theta=theta, 
-                      fixed=which.fixed,
+                      fixed=which.fixed, gname=gname,
                       levels=lapply(G, function(x) levels(x)), case=3))
       }
 @ 
@@ -411,7 +424,7 @@ regression.
 if (nvar >0 && is.null(G)) {
    list(theta=theta[!which.fixed], F=NULL, X=Z,
          parms=list(which.fixed=which.fixed, theta=theta, nvar=nvar,
-                    case=4))
+                    gname=gname, case=4))
     }
 @ 
 
@@ -431,8 +444,8 @@ found above.  (We currently ignore the collapse argument).
         nlevel <- length(levels(gtemp))
         gfrac <- table(gtemp)/ length(gtemp)
         if (nlevel > sparse[1] && any(gfrac <= sparse[2])) {
-            indx <- order((gfrac<= sparse[2]), 1:nlevel)
-            gtemp <- factor(gtemp, levels=levels(gtemp)[order(gfad)])
+            indx <- order((gfrac> sparse[2]), 1:nlevel)
+            gtemp <- factor(gtemp, levels=levels(gtemp)[indx])
             nsparse <- sum(gfrac <= sparse[2])
             }
         else nsparse=0 
@@ -463,7 +476,7 @@ where each of the identity matrices $I$ is of dimension ngroup.
                     
         list(theta=theta[!fixed], F=F, X=X, 
              parms=list(theta[!which.fixed], which.fixed=which.fixed,
-                        nvar=nvar, ngroup=ngroup, case=5))
+                        nvar=nvar, ngroup=ngroup, gname=gname, case=5))
         }
     else stop("Case not yet coded")
 @                 
@@ -519,6 +532,7 @@ The wrapup function transforms theta back, and adds names.
 wrapup <- function(theta, parms) {
     newtheta <- parms$theta
     newtheta[!parms$fixed] <- exp(theta)
+    names(newtheta) <- parms$gname
     
     if (parms$case == 5)  # correlations
         newtheta=newtheta
