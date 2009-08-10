@@ -16,6 +16,7 @@ void gchol_bds(Sint   *nb,     Sint   *bs2,  Sint *n2,
     int i,j;
 
     int *bsize,
+	bsum,
 	n, 
 	nblock;
     double **mat;
@@ -25,22 +26,27 @@ void gchol_bds(Sint   *nb,     Sint   *bs2,  Sint *n2,
     /* 
     ** copy over arguments from long to int form, if needed 
     ** (it will be needed in Splus, not needed currently in R)
-    ** recant -- even when sizeof(long) == sizeof(int), crashes linux
+    ** recant -- even when sizeof(long) == sizeof(int), crashes linux/R
     */
     /* if (sizeof(Sint) != sizeof(int)) {  */
     bsize = (int *) ALLOC(nblock, sizeof(int));
-    j =0;
+    bsum =0;
     for (i=0; i<nblock; i++) {
 	bsize[i] = bs2[i];
-	j += bsize[i];
+	bsum += bsize[i];
 	}
 
     /* create indices for the right-hand side matrix, if it is present */
     if (n > j) {
-	mat = dmatrix(rmat, n, n-j);
+	mat = dmatrix(rmat, n, n-bsum);
 	}
     i = cholesky4(mat, n, nblock, bsize, dmat, *toler);
     *toler = i; 
+
+    /* zero out the upper triangle */
+    for (i=0; i<n-bsum; i++){  /*columns of R */
+	for (j= 1+i+bsum; j<n; j++) mat[i][j] =0;  /* zero below diagonal */
+	}
     }
 
 /*
@@ -67,6 +73,7 @@ void gchol_bdsinv(Sint   *nb,     Sint   *bs2,  Sint *n2,
     int i,j;
 
     int *bsize,
+	bsum,
 	n, 
 	nblock;
     double **mat;
@@ -75,21 +82,25 @@ void gchol_bdsinv(Sint   *nb,     Sint   *bs2,  Sint *n2,
     nblock = *nb;
     n = *n2;
     bsize = (int *) ALLOC(nblock, sizeof(int));
-    j =0;
+    bsum =0;
     for (i=0; i<nblock; i++) {
 	bsize[i] = bs2[i];
-	j += bsize[i];            /* also total up the block sizes */
+	bsum += bsize[i];            /* also total up the block sizes */
 	}
 
     /* create indices for the right-hand side matrix, if it is present */
     if (n > j) {
-	mat = dmatrix(rmat, n, n-j);
+	mat = dmatrix(rmat, n, n-bsum);
 	}
 
     if (*flag==0 || *flag==2) {
 	i = cholesky4(mat, n, nblock, bsize, dmat, *toler);
 	*toler = i;
+	for (i=0; i<n-bsum; i++) {  /*columns of R */
+	    for (j= 1+i+bsum; j<n; j++) mat[i][j] =0; /*zero out */
+	    }
 	}
+
     if (*flag>=2) chinv4(mat, n, nblock, bsize, dmat, 0);
     else          chinv4(mat, n, nblock, bsize, dmat, 1);
     }
@@ -110,6 +121,7 @@ void gchol_bdssolve(Sint   *nb,     Sint   *bs2,  Sint *n2,
     int i,j;
 
     int *bsize,
+	bsum,
 	n, 
 	nblock;
     double **mat;
@@ -118,19 +130,22 @@ void gchol_bdssolve(Sint   *nb,     Sint   *bs2,  Sint *n2,
     nblock = *nb;
     n = *n2;
     bsize = (int *) ALLOC(nblock, sizeof(int));
-    j =0;
+    bsum =0;
     for (i=0; i<nblock; i++) {
 	bsize[i] = bs2[i];
-	j += bsize[i];
+	bsum += bsize[i];
 	}
 
     /* create indices for the right-hand side matrix, if it is present */
     if (n > j) {
-	mat = dmatrix(rmat, n, n-j);
+	mat = dmatrix(rmat, n, n-bsum);
 	}
 
     if (*flag==0 || *flag==2) {
 	i = cholesky4(mat, n, nblock, bsize, blocks, *toler);
+	for (i=0; i<n-bsum; i++) {  /*columns of R */
+	    for (j= 1+i+bsum; j<n; j++) mat[i][j] =0; /*zero out */
+	    }
 	}
 
     if (*flag >1) chsolve4(mat, n, nblock, bsize, blocks, y, 1);

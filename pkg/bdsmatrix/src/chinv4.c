@@ -30,6 +30,7 @@
 **  Terry Therneau
 */
 #include "bdsproto.h"
+#include "stdio.h"
 
 void chinv4(double **matrix, int n, int nblock, int *bsize, double *bd,
             int flag) {
@@ -118,7 +119,7 @@ void chinv4(double **matrix, int n, int nblock, int *bsize, double *bd,
 		}
 	    else {
 		/*
-		** compute inner product of cols i and i,
+		** compute inner product of cols i and j,
 		**  and at the same time scale col i for the further work
 		*/
 		temp = bd[ii];
