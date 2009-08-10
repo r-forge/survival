@@ -19,7 +19,7 @@
 */
 #include "coxmeS.h"
 #include "coxfit6.h"
-#include "coxmeproto.h"
+#include "bdsmatrix.h"
 #include <math.h>
 #include <stdio.h>
 

@@ -77,6 +77,7 @@ coxvarMlist <- function(..., rescale=TRUE, pdcheck=TRUE,  positive=NULL) {
                                rescale, pdcheck)
         ntheta <- temp$ntheta
         theta <- seq(.2, .3, length=ntheta) 
+
         if (length(initial)>0) {
             if (length(initial) != ntheta) 
                 return(list(error="Wrong length for initial vector"))
@@ -86,6 +87,7 @@ coxvarMlist <- function(..., rescale=TRUE, pdcheck=TRUE,  positive=NULL) {
             if (length(fixed) != ntheta)
                 return(list(error="Wrong length for fixed values"))
             which.fixed <- (!(is.na(fixed) | fixed==0))
+            theta[which.fixed] <- fixed
             }
         else which.fixed <- rep(FALSE, ntheta)
 

@@ -20,7 +20,7 @@
 #include "coxmeS.h"
 #include "coxfit6.h"
 #include <math.h>
-#include "coxmeproto.h"
+#include "bdsmatrix.h"
 #include <stdio.h>
 
 /* the next line is just so that I can use "c6.n" instead of "coxfit6.n", etc*/
