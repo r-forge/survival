@@ -19,8 +19,7 @@ solve.bdsmatrix<- function(a, b, full=TRUE, tolerance=1e-10, ...) {
                                    dmat= as.double(a@blocks),
                                    rmat= as.double(a@rmat),
                                    flag= as.double(tolerance),
-	                           as.integer(0),
-                                   copy=c(F,F,T,T,T,F))
+	                           as.integer(0))
 
             if (length(a@rmat) >0) {
                 new("bdsmatrix", blocksize=a@blocksize,
@@ -46,8 +45,8 @@ solve.bdsmatrix<- function(a, b, full=TRUE, tolerance=1e-10, ...) {
                                    dmat= as.double(a@blocks),
                                    rmat= as.double(a@rmat),
                                    flag= as.double(tolerance),
-	                           as.integer(2),
-                                   copy=c(F,F,T,T,T,F))
+	                           as.integer(2))
+
             inv <- new('gchol.bdsmatrix', blocksize=a@blocksize, 
                        blocks=temp$dmat, 
                        rmat=matrix(temp$rmat, ncol=ncol(a@rmat)),
@@ -72,8 +71,7 @@ solve.bdsmatrix<- function(a, b, full=TRUE, tolerance=1e-10, ...) {
 	       		        rmat= as.double(a@rmat),
 	       		        as.double(tolerance),
 	       		        beta= as.double(b),
-	                        flag=as.integer(0),
-                                copy=c(F,F,F,T,T,F,T,F))$beta
+	                        flag=as.integer(0))$beta
 	    }
 	else {
             # The rhs is a matrix.  

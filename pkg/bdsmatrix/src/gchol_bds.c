@@ -37,7 +37,7 @@ void gchol_bds(Sint   *nb,     Sint   *bs2,  Sint *n2,
 	}
 
     /* create indices for the right-hand side matrix, if it is present */
-    if (n > j) {
+    if (n > bsum) {
 	mat = dmatrix(rmat, n, n-bsum);
 	}
     i = cholesky4(mat, n, nblock, bsize, dmat, *toler);
@@ -89,7 +89,7 @@ void gchol_bdsinv(Sint   *nb,     Sint   *bs2,  Sint *n2,
 	}
 
     /* create indices for the right-hand side matrix, if it is present */
-    if (n > j) {
+    if (n > bsum) {
 	mat = dmatrix(rmat, n, n-bsum);
 	}
 
@@ -100,7 +100,6 @@ void gchol_bdsinv(Sint   *nb,     Sint   *bs2,  Sint *n2,
 	    for (j= 1+i+bsum; j<n; j++) mat[i][j] =0; /*zero out */
 	    }
 	}
-
     if (*flag>=2) chinv4(mat, n, nblock, bsize, dmat, 0);
     else          chinv4(mat, n, nblock, bsize, dmat, 1);
     }
@@ -137,7 +136,7 @@ void gchol_bdssolve(Sint   *nb,     Sint   *bs2,  Sint *n2,
 	}
 
     /* create indices for the right-hand side matrix, if it is present */
-    if (n > j) {
+    if (n > bsum) {
 	mat = dmatrix(rmat, n, n-bsum);
 	}
 
