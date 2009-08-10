@@ -14,7 +14,7 @@
 ** result	the result of the calcluation -- a vector like "y"
 ** itemp     	a scratch vector of integers, of length >= max(bsize)
 */
-#include "bdsproto.h"
+#include "bdsmatrix.h"
 void bdsmatrix_prod2(int nblock,     int *bsize,     int nrow,
 		     double *bmat,   double *rmat,  
 		     double *y,      double *result, int *itemp) {

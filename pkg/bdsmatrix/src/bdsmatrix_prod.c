@@ -15,7 +15,7 @@
 ** of the bdsmatrix, thus the dim of rmat can be found by subtraction
 */
 #include "bdsS.h"
-#include "bdsproto.h"
+#include "bdsmatrix.h"
 void bdsmatrix_prod(Sint *nb,	  Sint *bsize,     Sint *ydim,
 		    double *bmat, double *rmat,    double *offdiag,
 		    double *temp, Sint *itemp,     double *y) {

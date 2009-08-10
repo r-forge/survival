@@ -15,7 +15,7 @@
 **
 **  Terry Therneau
 */
-#include "bdsproto.h"
+#include "bdsmatrix.h"
 #include <math.h>
 
 void chsolve5(double **matrix, int n, double *y, int flag)

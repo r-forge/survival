@@ -4,7 +4,7 @@
 **  the list of column numbers
 */
 #include "bdsS.h"
-#include "bdsproto.h"
+#include "bdsmatrix.h"
 void bdsmatrix_index2(Sint *nblock, Sint *bsize, 
 		      Sint *rows,   Sint *cols) { 
 

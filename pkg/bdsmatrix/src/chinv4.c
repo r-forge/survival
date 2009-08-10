@@ -29,7 +29,7 @@
 **
 **  Terry Therneau
 */
-#include "bdsproto.h"
+#include "bdsmatrix.h"
 #include "stdio.h"
 
 void chinv4(double **matrix, int n, int nblock, int *bsize, double *bd,

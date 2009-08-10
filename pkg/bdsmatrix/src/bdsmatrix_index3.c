@@ -5,7 +5,7 @@
 **  The "1+" on all output is to S-subscripts, starting at 1
 */
 #include "bdsS.h"
-#include "bdsproto.h"
+#include "bdsmatrix.h"
 #include <stdio.h>
 void bdsmatrix_index3(Sint *nblock, Sint *bsize, Sint *index) {
     int i, j; 

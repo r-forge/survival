@@ -6,7 +6,7 @@
 ** 
 */
 #include "bdsS.h"
-#include "bdsproto.h"
+#include "bdsmatrix.h"
 
 /*
 ** Create a Cholesky decompostion

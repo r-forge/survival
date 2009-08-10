@@ -14,7 +14,7 @@
 ** y	        the left hand matrix, which will be overwritten
 **
 */
-#include "bdsproto.h"
+#include "bdsmatrix.h"
 double sqrt(double);
 
 void bdsmatrix_prod4(int nrow,  int nblock,  int *bsize, 

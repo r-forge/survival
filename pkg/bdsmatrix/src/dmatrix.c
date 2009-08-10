@@ -2,7 +2,7 @@
 ** set up ragged arrays, with #of columns and #of rows
 */
 #include "bdsS.h"
-#include "bdsproto.h"
+#include "bdsmatrix.h"
 
 double **dmatrix(double *array, int ncol, int nrow)
     {

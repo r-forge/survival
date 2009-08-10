@@ -15,7 +15,7 @@
 ** The S code has already verified that the dimensions of y match those of L
 */
 #include "bdsS.h"
-#include "bdsproto.h"
+#include "bdsmatrix.h"
 #include <stdio.h>
 double sqrt(double);
 

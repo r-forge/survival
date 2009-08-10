@@ -2,7 +2,7 @@
 ** General cholesky decompostion
 */
 #include "bdsS.h"
-#include "bdsproto.h"
+#include "bdsmatrix.h"
 
 void gchol(Sint *n2, double *matrix, double *toler) {
     int i,j;

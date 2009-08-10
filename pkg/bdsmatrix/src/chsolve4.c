@@ -20,7 +20,7 @@
 **         =1, solve L sqrt(D)b=y, where A=LDL', L lower triangular
 **  Terry Therneau
 */
-#include "bdsproto.h"
+#include "bdsmatrix.h"
 #include <math.h>
 
 void chsolve4(double **matrix, int n, int nblock, int *bsize,
