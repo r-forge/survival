@@ -2,7 +2,7 @@
 solve.bdsmatrix<- function(a, b, full=TRUE, tolerance=1e-10, ...) {
     if (class(a) != 'bdsmatrix') 
 	    stop("First argument must be a bdsmatrix")
-    if (a@offdiag !=0) solve(as.matrix(a), b, tolerance=tolerance)
+    if (a@offdiag !=0) return(solve(as.matrix(a), b, tolerance=tolerance))
     nblock <- length(a@blocksize)
     adim <- dim(a)
 
