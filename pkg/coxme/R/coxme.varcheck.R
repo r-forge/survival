@@ -1,9 +1,6 @@
 # $Id: coxme.varcheck.s,v 1.7 2005/04/06 03:17:02 therneau Exp $
 # Do error checking and preprocssing of the variance list that was
 #  given as an argument to coxme.
-# This is pulled out as a separate function only because lmekin also
-#  uses it.  Any user that tries to call it directly has no sympathy
-#  from me.
 coxme.varcheck <- function(ncluster, varlist, n, gvars, groups, sparse,
                            rescale, pdcheck) {
     if (is.null(varlist)) {

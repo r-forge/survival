@@ -5,6 +5,7 @@ Package: coxme
 Version: 1.0
 Date: 2009-03-01
 Depends: bsdmatrix, R (>= 2.0.0)
+LinkingTo: bdsmatrix
 LazyData: Yes
 LazyLoad: Yes
 Author: Terry Therneau

@@ -2,7 +2,7 @@ PARTS = main.Rnw \
 	basic.Rnw \
 	build.Rnw \
 	formula.Rnw \
-	varfun.Rnw \
+	varfun.Rnw  varfun2.Rnw \
 	fit.Rnw 
 
 SFUN =  coxme.R \
