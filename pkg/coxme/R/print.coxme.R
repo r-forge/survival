@@ -29,15 +29,7 @@ print.coxme <- function(x, digits=options()$digits, ...) {
         format(signif(1- pchisq(chi,x$df[1]),2)),"\n\n")
 
     if (nvar > 0)  { # Not a ~1 model
-        fixF <- x$call$fixed
-        if(inherits(fixF, "formula") || is.call(fixF)) {
-            cat("Fixed effects:", deparse(as.vector(x$call$fixed)), "\n")
-            }
-        else {
-            cat("Fixed effects:", deparse(lapply(fixF, function(el)
-                                      as.name(deparse(as.vector(el))))), "\n")
-            }
-
+        cat("Fixed effects:", deparse(x$formulaList$fixed), "\n")
         coef <- beta$fixed
         se <- sqrt(diag(x$var)[nfrail+1:nvar])
         tmp <- cbind(coef, exp(coef), se, round(coef/se,2),

@@ -79,7 +79,7 @@ kfun <- function(theta, varlist, vparm, ntheta,
 
     tmat <- varlist[[1]]$generate(theta[sindex==1], vparm[[1]]) 
     if (!inherits(tmat, 'bdsmatrix')) 
-        tmat <- bdsmatrix(blocksize=1, blocks=tmat[1], rmat=tmat[,-1])
+        tmat <- bdsmatrix(blocksize=integer(0), blocks=numeric(0), rmat=tmat)
         
 @ 
 If there is only a single random term, then our work is done.
@@ -225,25 +225,28 @@ npenal <- ncol(dummy)  #total number of penalized terms
 if (ncol(fmat) >1) {
     for (i in 2:ncol(fmat)) fmat[,i] <- fmat[,i] + max(fmat[,i-1])
     }  
-findex <- matrix(0, nrow=max(fmat), ncol=ncol(fmat))
-for (i in 1:ncol(fmat)) findex[cbind(fmat[,i], i)] <- 1
+if (ncol(fmat)>0) {
+    findex <- matrix(0, nrow=max(fmat), ncol=ncol(fmat))
+    for (i in 1:ncol(fmat)) findex[cbind(fmat[,i], i)] <- 1
+    }
+else findex <- 0  # dummy value
     
 if (is.null(control$sparse.calc)) {
     nevent <- sum(y[,ncol(y)])
-    if (length(dummy@blocksize)==1) nsparse<- 0
+    if (length(dummy@blocksize)<=1) nsparse<- 0
     else nsparse <- sum(dummy@blocksize)
-    itemp <- max(fmat) - nsparse  #number of non-sparse intercepts
+    itemp <- max(c(0,fmat)) - nsparse  #number of non-sparse intercepts
     
     if ((2*n) > (nevent*(nsparse-itemp))) control$sparse.calc <- 0
     else control$sparse.calc <- 1
-}
+    }
 
 ifit <- .C('coxfit6a', 
                as.integer(n),
                as.integer(nvar),
                as.integer(ncol(y)),
                as.double(c(y)),
-               as.double(x),
+               as.double(cbind(zmat,x)),
                as.double(offset),
                as.double(weights),
                as.integer(length(newstrat)),
@@ -428,26 +431,6 @@ orders the entry times.
         ofile <- 'coxfit6b' # fitting routine
         rfile <- 'coxfit6d' # refine.n routine
         }
-@ 
-
-Now for a bunch of checks.  These should not be necessary, since
-the [[coxme]] routine has done it all.  But I'm sometimes
-suspicious of my own code, and an extra check doesn't hurt.
-
-<<coxme-setup>>=
-    if (!is.list(varlist)) stop("variance matrix list isn't a list!")
-    #
-    # Check out fmat:
-    #   each column should be integer
-    #   each col must contain numbers from 1 to k for some k
-    #   column 1 should contain at least one "1" 
-    if (any(fmat != floor(fmat))) stop("fmat must be integers")
-    if (any(fmat <1)) stop("fmat must be >0")
-    fmat <- as.matrix(fmat)
-    nfrail <- apply(fmat, 2, max)
-    temp <- apply(as.matrix(fmat), 2, function(x) length(unique(x)))
-    if (any(nfrail != temp)) 
-	stop("fmat must be a set of integer indices, with none missing")    
 @ 
 
 The last step of the setup is to do an initial fit.  

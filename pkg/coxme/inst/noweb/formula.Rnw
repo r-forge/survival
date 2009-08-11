@@ -50,7 +50,7 @@ At each level the figure lists the class of the object along with its name;
 to lessen crowding in the plot objects of class `name' do not have the class
 listed.
 The arguments to a call are the branched below each call.
-A formula is structured like a call to the `\verb2~2' operator, and a
+A formula is structured like a call to the ``\verb2~2'' operator, and a
 parenthesised expression like a call with a single argument.
 
 The [[formula1]] routine is called with the model formula,
@@ -102,7 +102,7 @@ formula1 <- function(x) {
             }
         }
 @ %$
-Next we deal with the four operators one by one, starting with `+'.
+Next we deal with the four operators one by one, starting with ``+''.
 We know that this call has exactly two arguments; 
 the routine recurs on the left and then the right hand portions, and
 then merges the results.  
@@ -130,7 +130,7 @@ properly even if one of them is null.
             }
         }
 @  
-The code for `-' is identical except for one extra wrinkle: you cannot
+The code for ``-'' is identical except for one extra wrinkle: you cannot
 have a random term after a minus sign.
 Becase the expressions are parsed from left to right [[~ age-1 + (1|group)]]
 will be okay (though -1 makes no sense in a Cox model),
@@ -158,7 +158,7 @@ Interactions are a bit harder.  The model formula
 [[~ (age + (1|group))*sex]] for instance has an [[age*sex]] fixed term and
 a [[(1|group)*sex]] random term.  
 Interactions between random effects are not defined.
-I don't know what they would mean if they were \ldots.
+I don't know what they would mean if they were \ldots.   %'
 <<formula>>=
     if (class(x)== 'call' && (x[[1]] == '*' || x[[1]] == ':')) {
         temp1 <- formula1(x[[2]])
@@ -170,9 +170,9 @@ I don't know what they would mean if they were \ldots.
         if (!is.null(temp1$random) && !is.null(temp2$random))
                 stop ("The interaction of two random terms is not defined")
 @ 
-Create the new `fixed' term.  In the case of [[(1|group):sex]], there is no
+Create the new ``fixed'' term.  In the case of [[(1|group):sex]], there is no
 fixed term in the result.  
-For [[(1|group) *sex]] the fixed term will be `sex'.
+For [[(1|group) *sex]] the fixed term will be ``sex''.
 These are the two cases (and their mirror images) where only one of the left
 or right parts has a fixed portion.
 If both have a fixed portion then we glue them together.
@@ -188,7 +188,7 @@ If both have a fixed portion then we glue them together.
 Create the new random term.  The lapply is needed for
 [[(((1|group) + (1|region)) * sex]], i.e., there are multiple groups
 in the random list.
-I can't imagine anyone using this, but if I leave it out they surely
+I can't imagine anyone using this, but if I leave it out they surely %'
 will and confuse the parser.
 <<formula>>= 
         if (is.null(temp2$random))  #left hand side was random
@@ -205,7 +205,7 @@ will and confuse the parser.
 The last bit of the routine is for everything else, we treat it as a 
 fixed effects term.
 A possible addition would be look for any vertical bars, which by definition
-are not a part of a random term --- we've already checked for parentheses ---
+are not a part of a random term --- we've already checked for parentheses ---%'
 and issue an error message.  We do this instead in the parent routine.
 <<formula>>=
     return(list(fixed=x))
@@ -243,9 +243,10 @@ formula2 <- function(term) {
         stop("Formula error: Expected a random term") 
 
     term <- term[[2]]  # move past the parenthesis
-    out <- findIntercept(term[[2]])
+    out <- list(intercept=findIntercept(term[[2]]))
     out$group<- term[[3]]
     out$interaction <- interact
+    out$fixed <- term[[2]]
     out
   }
 @ 
@@ -253,22 +254,19 @@ formula2 <- function(term) {
 This routine looks for an intercept term - that's all.
 It's easiest to use the built in [[terms]] function for this,
 since the intercept could be anywhere, and someone might have put
-in a -1 term which makes it trickier.  
-We turn the formula fragment back into a real formula, as required
-by the terms funcion, by a call to the tilde function.
-This will change the formula [[x*z]] into [[x + z + x:z]], but I don't
-really care since the fixed portion is only going to be used as input
-into [[model.matrix]].
+in a -1 term which makes it trickier.   However, we can't: the   %'
+default S strategy would claim that [[(age+weight) |1)]] has an intercept.
+As an advantage, we know that there can be no operators except ``+''
+signs in the formula, or perhaps a ``-1''.  
 <<formula>>=
 findIntercept <- function(x) {
-   tt <- terms(eval(call('~',x)))
-   if (length(attr(tt, 'term.labels')) > 0) {
-       temp <- paste(attr(tt, 'term.labels'), collapse= '+')
-       list(intercept= (attr(tt, 'intercept') ==1),
-            fixed = formula(paste('~', temp)))
+   if (is.call(x)) {
+       if (x[[1]] == as.name('+')) findIntercept(x[[2]]) |findIntercept(x[[3]])
+       else FALSE
        }
-   else list(intercept= (attr(tt, 'intercept') ==1))
- }
+   else if (x==1) TRUE
+        else FALSE
+}
 @ 
 
 \subsection{Miscellaneous}
@@ -279,11 +277,12 @@ e.g., [[if length(x)==3]] on the fourth line.
 shows that it must be a pretty sound idea, given the extensive use
 that code has seen.)
 However, that line would recur into other functions, like [[logb(x5, 2)]]
-for instance.  I've never seen of an instance where this would lead
-us to a bar that we ``shouldn't see'', but still I'm taking the paranoid
+for instance.  
+For instance the following is legal but has a vertical bar we wish to
+ignore: [[I(x1 | x2)]].
+I have never seen an \emph{actual} use of something like this,
+but nevertheless I'm taking the paranoid  %'
 route.  
-Looking inside single parameter functions likely would get us caught
-someday with [[I(x1 | x2)]], which is certainly legal.
 
 <<formula>>=
 hasAbar <- function(x) {

@@ -248,8 +248,6 @@ The generate function for this first case is quite simple.
        if (length(newtheta)>0) theta[!parms$fixed] <- exp(newtheta)
        switch(parms$case,
            theta * parms$vmat,
-           
-       
 @ 
 
 
@@ -409,10 +407,10 @@ regression.
         }
     else theta=.2
     
-    if (length(variance) >0) {
-        if (length(variance)==1) {
+    if (length(fixed) >0) {
+        if (length(fixed)==1) {
             which.fixed <- TRUE
-            theta <- variance
+            theta <- fixed
             }
         else return(list(error="Fixed variance should have a length of 1"))
         }
@@ -423,13 +421,13 @@ regression.
 #case 4
 if (nvar >0 && is.null(G)) {
    list(theta=theta[!which.fixed], F=NULL, X=Z,
-         parms=list(which.fixed=which.fixed, theta=theta, nvar=nvar,
+         parms=list(fixed=which.fixed, theta=theta, nvar=nvar,
                     gname=gname, case=4))
     }
 @ 
 
 <<coxvarFull-generate>>=
-        diag(nvar) * theta,
+        diag(parms$nvar) * theta,
 @ 
 
 
@@ -475,7 +473,7 @@ where each of the identity matrices $I$ is of dimension ngroup.
             X[,i+indx] <- Z * (F==i)
                     
         list(theta=theta[!fixed], F=F, X=X, 
-             parms=list(theta[!which.fixed], which.fixed=which.fixed,
+             parms=list(theta[!which.fixed], fixed=which.fixed,
                         nvar=nvar, ngroup=ngroup, gname=gname, case=5))
         }
     else stop("Case not yet coded")

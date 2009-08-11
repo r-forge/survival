@@ -185,11 +185,14 @@ number of values that each random term contributed.
 The final $\theta$ vector will be null if all the parameters are fixed. 
 
 <<build-control-structures>>=    
-fmat <- zmat <- NULL
+fmat <- zmat <- matrix(0, nrow=n, ncol=0)
 ntheta <- integer(nrandom)
 theta <-  NULL   #initial values of parameters to iterate over
 for (i in 1:nrandom) {
     f2 <- formula2(flist$random[[i]])
+    if (f2$intercept & f2$group==1)
+        stop(paste("Error in random term ", i, 
+                   ": Random intercepts require a grouping variable", sep=''))
     vfun <- varlist[[i]]
     if (!is.null(f2$interaction)) stop("Interactions not yet written")
 
@@ -220,7 +223,6 @@ for (i in 1:nrandom) {
     if (!is.null(cmat)) {
         temp <- newzmat(cmat, fmat)
         zmat <- cbind(zmat, temp)
-        nslope[i] <- ncol(temp)
         }
     } 
 @ 
@@ -350,6 +352,7 @@ Last fill in a set of miscellaneous members of the structure
 fit$n <- nrow(Y)
 fit$terms <- Terms
 fit$assign <- attr(X, 'assign')
+fit$formulaList <- flist
 
 na.action <- attr(m, "na.action")
 if (length(na.action)) fit$na.action <- na.action
@@ -376,22 +379,22 @@ as a factor.  This is then submitted to the
 appropriate coxvar family function, which
 creates the integer matrix of codes that are actually used.
 
-The allnames function will be given a single right-hand side of a
-single random effects term, so it does not need to be fancy.
-(Question - is there  a standard R function for this?)
+We extract the list of variable names for the nesting portion,
+at the same time checking that it consists of nothing but variables
+and slash operators.
 <<get-groups>>=
-allnames <- function(x){
-    if (is.call(x)) {
-        if (length(x) == 3) return( c(allnames(x[[2]]), allnames(x[[3]])))
-        else return(allnames(x[[2]]))
-      }
-    if (is.name(x)) as.character(x) else NULL
-  }
+getGroupNames <- function(x) {
+    if (is.call(x) && x[[1]]==as.name('/')) 
+        c(getGroupNames(x[[2]]), getGroupNames(x[[3]]))
+    else deparse(x)
+    }
 
 getgroups <- function(x, mf) {
-    varname <- allnames(x)
-    if (is.null(varname)) return(NULL)  # a shrinkage effect like (x1+x2 | 1)
-    data.frame(lapply(mf[varname], as.factor))
+    varname <- getGroupNames(x)
+    if (varname=='1') return(NULL)  # a shrinkage effect like (x1+x2 | 1)
+    else indx <- match(varname, names(mf), nomatch=0)
+    if (any(indx==0)) stop(paste("Invalid grouping factor", varname[indx==0]))
+    else data.frame(lapply(mf[indx], as.factor))
     }
 @ 
 A common task for the variance functions is to exand [[school/teacher]]
@@ -428,15 +431,20 @@ The formula inherited from [[formula2]] already has any intercept removed.
 <<get-cmat>>=
 getcmat <- function(x, mf) {
     if (is.null(x)) return(NULL)
-    varname <- allnames(x)
-    m2 <-  mf[,varname]
-    for (i in 1:ncol(m2)) {
-        if (is.factor(m2[[i]])) {
-            nlev <- length(levels(m2[[i]]))
-            contrasts(m2[[i]], nlev) <- diag(nlev)
+    Terms <- terms(eval(call("~", x)))
+    attr(Terms, 'intercept') <- 0
+
+    if (!is.null(attr(Terms, 'factors'))) {
+        fname <- dimnames(attr(Terms, 'factors'))[[1]]
+        clist <- vector('list', length(fname))
+        names(clist) <- fname
+        for (i in fname) {
+            nlev <- length(levels(mf[[i]]))
+            clist[[i]] <- diag(nlev)
             }
+        model.matrix(Terms, mf, contrasts.arg =clist)
         }
-    model.matrix(terms(x), m2)
+    else model.matrix(Terms, m2)
     }
 @ 
 
@@ -453,6 +461,7 @@ so that the expanded $Z$ need never be created.
 
 <<newzmat>>=
 newzmat <- function(cmat, fmat) {
+    if (length(fmat)==0) return(cmat)  # a formula with (... | 1)
     newcol <- ncol(cmat) * sum(apply(fmat,2,max))
     newz <- matrix(0., nrow=nrow(cmat), ncol=newcol)
     indx <- 0
