@@ -8,7 +8,7 @@
 #include "bdsmatrix.h"
 
 void R_init_bdsmatrix(DllInfo *info) {
-    R_RegisterCCallable("bdsmatrix","bdsmatric_prod2", 
+    R_RegisterCCallable("bdsmatrix","bdsmatrix_prod2", 
 			(DL_FUNC) &bdsmatrix_prod2);
     R_RegisterCCallable("bdsmatrix","bdsmatric_prod4", 
 			(DL_FUNC) &bdsmatrix_prod4);
@@ -25,11 +25,7 @@ void R_init_bdsmatrix(DllInfo *info) {
 **   typedef void * (*DL_FUNC)();
 **
 ** (DL_FUNC) is defined as "pointer to a function returning a pointer to void", 
-**  which is a lie for all of the above; but that is what the RegisterCCallable
+**  which is a fib for 3 of the above; but that is what the RegisterCCallable
 **  routine wants.  The bsdmatrix.h file contains the truth, which is what
-**  users will want.
-**
-** From the R include file R_ext/Rdynload.h
-**   typedef void * (*DL_FUNC)();
-**
+**  users will want.  "Pointer to a function" is the important part.
 */

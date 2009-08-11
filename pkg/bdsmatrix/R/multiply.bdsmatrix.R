@@ -20,7 +20,7 @@ bdsmult <- function(x, y) {
 	       as.double(x@rmat),
 	       as.double(x@offdiag),
 	       temp = double(dy[1]),
-	       itemp= integer(max(x@blocksize)),
+	       itemp= integer(max(1,x@blocksize)),
 	       y =   as.double(y))
     z <- matrix(temp$y, nrow=dx[1])
 
