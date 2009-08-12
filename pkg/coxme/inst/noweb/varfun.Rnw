@@ -149,64 +149,64 @@ coxvarFull <- function(collapse=TRUE) {
 @ 
 
 <<coxvarFull-init>>= 
-    initialize <- function(initial, fixed, intercept, G, Z,  sparse) {
-        <<initmatch>>
-        if (is.null(Z)) nvar <- 0
-	else nvar <- ncol(Z)
+initialize <- function(initial, fixed, intercept, G, Z,  sparse) {
+    <<initmatch>>
+    if (is.null(Z)) nvar <- 0
+    else nvar <- ncol(Z)
 
-        if (nvar==0 & is.null(G))
-            return(list(error=("Invalid null random term (1|1)")))
+    if (nvar==0 & is.null(G))
+        return(list(error=("Invalid null random term (1|1)")))
 
-	# Initial values
-        if (intercept && nvar==0) {
-	    gname <- names(G)
-	    ntheta <- length(gname)
-	    theta <- rep(.2, ntheta)
-            if (length(initial) >0) {
-                temp <- initmatch(gname, initial)
-	        if (any(temp==0))
-		    return(list(error=paste('Element', which(temp==0),
-                                            'of initial values not matched')))
-                else theta[temp] <- unlist(initial)
-		if (any(theta <=0))
-                    return(list(error='Invalid initial value'))
-		}
-
-            which.fixed <- rep(FALSE, ntheta)
-            if (length(fixed)>0) {
-	        temp <- initmatch(gname, fixed)
-	        if (any(temp==0))
-		    return(list(error=paste('Element', which(temp==0),
-                                            'of variance values not matched')))
-                else theta[temp] <- unlist(fixed)
-		which.fixed[temp] <- TRUE
-		}
-            }
-        else if (nvar>0 & !intercept) {
-	  <<set-initial-2>>
-	  }
-	else {
-	  <<set-initial-3>>
-              }
-              
-        # The 5 cases
+    # Initial values
+    if (intercept && nvar==0) {
         gname <- names(G)
-        if (intercept && nvar==0) {
-            if (ncol(G)==1) {
-                <<coxvarFull-init1>>  
-                }
-            else {
-                <<coxvarFull-init2>>
-                <<coxvarFull-init3>>
-                }
+        ntheta <- length(gname)
+        theta <- rep(.2, ntheta)
+        if (length(initial) >0) {
+            temp <- initmatch(gname, initial)
+            if (any(temp==0))
+                return(list(error=paste('Element', which(temp==0),
+                                        'of initial values not matched')))
+            else theta[temp] <- unlist(initial)
+            if (any(theta <=0))
+                return(list(error='Invalid initial value'))
             }
-        else if (!intercept) {
-            <<coxvarFull-init4>>
+
+        which.fixed <- rep(FALSE, ntheta)
+        if (length(fixed)>0) {
+            temp <- initmatch(gname, fixed)
+            if (any(temp==0))
+                return(list(error=paste('Element', which(temp==0),
+                                        'of variance values not matched')))
+            else theta[temp] <- unlist(fixed)
+            which.fixed[temp] <- TRUE
             }
+        }
+    else if (nvar>0 & !intercept) {
+        <<set-initial-2>>
+            }
+    else {
+        <<set-initial-3>>
+            }
+    
+    # The 5 cases
+    gname <- names(G)
+    if (intercept && nvar==0) {
+        if (ncol(G)==1) {
+            <<coxvarFull-init1>>  
+                }
         else {
-            <<coxvarFull-init5>>
+            <<coxvarFull-init2>>
+            <<coxvarFull-init3>>
                 }
         }
+    else if (!intercept) {
+        <<coxvarFull-init4>>
+            }
+    else {
+        <<coxvarFull-init5>>
+            }
+    }
 @ 
 
 Case 1 is the simplest one of a single grouping variable and
@@ -472,8 +472,8 @@ where each of the identity matrices $I$ is of dimension ngroup.
         for (i in 1:ngroup) 
             X[,i+indx] <- Z * (F==i)
                     
-        list(theta=theta[!fixed], F=F, X=X, 
-             parms=list(theta[!which.fixed], fixed=which.fixed,
+        list(theta=theta[!which.fixed], F=F, X=X, 
+             parms=list(theta=theta, fixed=which.fixed,
                         nvar=nvar, ngroup=ngroup, gname=gname, case=5))
         }
     else stop("Case not yet coded")
@@ -522,6 +522,7 @@ if (ncol(G) > 1)
     return(list(error="Not yet written- nested groups + random slopes"))
 ngroup <- length(unique(G))
 theta <- c(rep(.44, nvar+1), rep(0., nvar*(nvar+1)/2))
+which.fixed <- rep(FALSE, nvar+1)
 @ 
   
 

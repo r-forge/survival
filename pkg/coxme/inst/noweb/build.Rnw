@@ -427,24 +427,19 @@ For a random effect this constraint is automatically enforced by the
 penalized optimization, so the proper coding of a factor with $k$ levels
 is as $k$ indicator variables.
 We do this by imposing our own contrasts. 
-The formula inherited from [[formula2]] already has any intercept removed.
 <<get-cmat>>=
 getcmat <- function(x, mf) {
     if (is.null(x)) return(NULL)
     Terms <- terms(eval(call("~", x)))
-    attr(Terms, 'intercept') <- 0
+    attr(Terms, 'intercept') <- 0  #ignore any "1+" that is present
 
-    if (!is.null(attr(Terms, 'factors'))) {
-        fname <- dimnames(attr(Terms, 'factors'))[[1]]
-        clist <- vector('list', length(fname))
-        names(clist) <- fname
-        for (i in fname) {
-            nlev <- length(levels(mf[[i]]))
-            clist[[i]] <- diag(nlev)
-            }
+    varnames <-  attr(Terms, 'term.labels')
+    ftemp <- sapply(mf[varnames], is.factor)
+    if (any(ftemp)) {
+        clist <- lapply(mf[ftemp], function(x) diag(length(levels(x))))
         model.matrix(Terms, mf, contrasts.arg =clist)
         }
-    else model.matrix(Terms, m2)
+    else model.matrix(Terms, mf)
     }
 @ 
 
