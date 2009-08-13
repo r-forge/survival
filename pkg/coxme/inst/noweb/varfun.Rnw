@@ -174,12 +174,7 @@ initialize <- function(initial, fixed, intercept, G, Z,  sparse) {
         <<coxvarFull-init-3>>
             }
     else {
-        if (ncol(G) ==1) {
-            <<incoxvarFull-init-4>>
-                }
-        else {
-            <<coxvarFull-init-5>>
-                }
+        <<coxvarFull-init-4>>
         }
     }
 @ 
@@ -243,7 +238,7 @@ if (nlevel >= sparse[1] && any(gfrac <= sparse[2])) {
     else {
         k <- nlevel - nsparse  #number of non-sparse levels
         rmat <- matrix(0., nrow=nlevel, ncol=k)
-        rmat[seq(nsparse+1, by= nlevel+1, length=k] <- 1.0
+        rmat[seq(nsparse+1, by= nlevel+1, length=k)] <- 1.0
         vmat <- bdsmatrix(blocksize=rep(1,nsparse), 
                           blocks= rep(1,nsparse), rmat=rmat)
         }
@@ -257,7 +252,7 @@ log value.
 list(F=matrix(as.numeric(gtemp)), X=NULL, 
      theta=log(theta[!which.fixed]), 
      parms=list(vmat=vmat, theta=theta, level=levels(gtemp),
-                fixed=which.fixed, case=1, tname=gname))
+                fixed=which.fixed, case=1, gname=gname))
 @	    
 
 The generate function for this first case is quite simple.
@@ -327,7 +322,7 @@ if (!collapse) {
 
     list(F=F, X=NULL, 
 	     theta=log(theta[!which.fixed]),
-	     parms=list(nlevel=nlevel, nsparse=nsparse, tname=gname,
+	     parms=list(nlevel=nlevel, nsparse=nsparse, gname=gname,
                     fixed=which.fixed, levels=levellist, 
                     theta=theta, case=2))
     }
@@ -409,7 +404,7 @@ else { #ncol(G)>1, intercept=T, nvar=0, collapse=T
         tsize <- temp@blocksize[1:max(1,nsparse)]
         dense <- (1 + sum(tsize)):ncoef
         rtemp <- matrix(0, sum(tsize), ncoef)
-        rmat[by=nrow(rmat)+1, to=length(rmat), length=ncol(rmat)] <- 1.0
+        rmat[seq(by=nrow(rmat)+1, to=length(rmat), length=ncol(rmat))] <- 1.0
         varlist[[1]] <- bdsmatrix(blocksize=tsize,
                               blocks=temp@blocks[1:sum(tsize*(tsize+1)/2)],
                               rmat=rbind(rtemp, as.matrix(temp[dense,dense])))
@@ -430,7 +425,7 @@ them to do so at this point rather than waiting till later additions.
     list(F=matrix(as.numeric(ulist)), X=NULL, 
          theta=log(theta[!which.fixed]),
          parms=list(varlist=varlist, theta=theta, 
-                    fixed=which.fixed, tname=gname,
+                    fixed=which.fixed, gname=gname,
                     levels=lapply(G, function(x) levels(x)), case=2.5))
       }
 @ 
@@ -482,7 +477,6 @@ if (theta <=0) return(list(error="Invalid variance value, must be >0"))
 list(theta=theta[!which.fixed], F=NULL, X=Z,
          parms=list(fixed=which.fixed, theta=theta,
                     xname=xname, case=3))
-    }
 @ 
 
 <<coxvarFull-generate>>=
@@ -497,7 +491,7 @@ levels are not reversed.  Whatever the sparseness result, we
 create a bdsmatrix for the intercepts so that the generate
 routine can deal with a fixed quantity.
 <<coxvarFull-init-4>>=
-gtemp <- as.factor(G[[1]])[,drop=TRUE] #drop unused levels
+gtemp <- as.factor(G[[1]])[,drop=TRUE] #toss unused levels
 nlevel <- length(levels(gtemp))
 gfrac <- table(gtemp)/ length(gtemp)
 if (nlevel[1] > sparse[1] && any(gfrac <= sparse[2])) {
@@ -519,15 +513,16 @@ if (ngroup==1 && nsparse==nlevel[1]) vmat <- bdsI(nlevel[1])
 else {
     if (nsparse==0) { #make the whole first term a block
         rmat <- matrix(0., nrow=sum(nlevel), ncol=sum(nlevel[-1]))
-        rmat[nlevel[1]+1, by=nrow(rmat) +1, length=ncol(rmat)] <- 1.0
+        rmat[seq(nlevel[1]+1, by=nrow(rmat) +1, length=ncol(rmat))] <- 1.0
         vmat <- bdsmatrix(blocksize=nlevel[1], blocks=diag(nlevel[1]),rmat=rmat)
         }
     else {
         rmat <- matrix(0., nrow=sum(nlevel), ncol=sum(nlevel)-nsparse)        
-        rmat[nlevel[1]+1, by=nrow(rmat) +1, length=ncol(rmat)] <- 1.0
+        rmat[seq(nlevel[1]+1, by=nrow(rmat) +1, length=ncol(rmat))] <- 1.0
         vmat <- bdsmatrix(blocksize=rep(1,nsparse), blocks=rep(1., nsparse),
                           rmat=rmat)
         }
+    }
 @ 
 
 The returned $X$ matrix is more complex, it will have one regression column for
@@ -564,7 +559,7 @@ for (i in 1:ngroup) {
     }
 @ 
 
-I've not yet taken care of the intitial values.  
+I've not yet taken care of the intitial values.    %'
 The parameter list $\theta$ will consist of first the variances
 of the blocking factors, then of the covariates, then the correlations.
 The default values for $\theta$ are 0 for the correlations and .2 for the
@@ -572,11 +567,8 @@ variances.
 For computation they are transformed with variances=$e^\theta$ and
 correlations=$(e^\theta -1)/(e^\theta +1)$.
 <<covarvFull-init-4>>=
-temp1 <- outer(dimnames(Z)[[2]], names(G), paste, sep=':')
-temp2 <- outer(dimnames(Z)[[2]], dimnames(Z)[[2]], paste, sep=':')
-tname <- c(names(G), dimnames(Z)[[2]], temp1, temp2[row(temp2)>=col(temp2)])
 theta <- c(rep(.2, ngroup), .2/sqrt(apply(Z,2,var)),
-           rep(0., length(tname) - (nvar + ngroup)))
+           rep(0., ngroup*nvar + nvar*(nva-1)/2))
 
 if (length(initial) > 0) {
     temp <- initmatch(tname, initial)
@@ -604,7 +596,8 @@ theta <- c(log(theta[indx]), log((1+temp)/(1-temp)))
 list(theta=theta[!which.fixed], F=F, X=X, 
              parms=list(theta=theta, fixed=which.fixed, 
                         nlevel=nlevel, levellist=levellist,
-                        nvar=nvar, tname=name, case=4))
+                        nvar=nvar, gname=names(G),
+                        xname=dimnames(Z)[[2]], case=4))
 @                 
 
 In the generation routine we first recreate the set of variances and
@@ -669,6 +662,7 @@ main diagonal, then finally populate the main diagonal.
     diag(final) <- rep(diag(vmat), rep(parms$nlevel, nvar+1))
     final
     }
+}
 @ 
  
 
@@ -676,13 +670,13 @@ The wrapup function transforms theta back, and adds names, and
 formats the vector of random coefficients $b$
 <<coxvarFull-wrapup>>=
 wrapup <- function(theta, b, parms) {
-    if (parms$case <5) {
+    if (parms$case <4) {
         newtheta <- parms$theta
         newtheta[!parms$fixed] <- exp(theta)
-        names(newtheta) <- parms$tname
         }
     
-    if (parms$case==1 || parms$case==3) {
+    if (parms$case==1) {
+        names(theta) <- parms$gname
         names(b) <- parms$levels
         return(list(theta=newtheta, random=b))
         }
@@ -692,7 +686,13 @@ wrapup <- function(theta, b, parms) {
         names(b) <- unlist(parms$levellist)
         random <- split(b, rep(1:ngroup, parms$nlevel))
         names(random) <- parms$tname
-        list(theta=newtheta, random=random)
+        return(list(theta=newtheta, random=random))
+        }
+
+    if (parms$case==3) {
+        names(theta) <- parms$xname
+        names(b) <- parms$levels
+        return(list(theta=newtheta, random=b))
         }
     
     if (parms$case==4) {
@@ -726,10 +726,10 @@ wrapup <- function(theta, b, parms) {
          names(vars) <- temp[indx]
          names(vars) <- parms$tname[indx]
          dimnames(cmat) <- list(parms$tname, parms$tname)
-         list(theta=list(variance=vars, correlation=cmat),
-              random=random)
+         return(list(theta=list(variance=vars, correlation=cmat),
+              random=random))
          }
     
-    if (parms$case==3) stop("Wrapup not finished")
+    if (parms$case==2.5) stop("Wrapup not finished")
     }
 @ 

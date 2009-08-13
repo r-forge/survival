@@ -1,5 +1,4 @@
 # Automatically generated from all.nw using noweb
-
 formula1 <- function(x) {
     if (class(x)=='formula') {  #top level call
         n <- length(x)  # 2 if there is no left hand side, 3 otherwise
@@ -94,20 +93,20 @@ formula2 <- function(term) {
         stop("Formula error: Expected a random term") 
 
     term <- term[[2]]  # move past the parenthesis
-    out <- findIntercept(term[[2]])
+    out <- list(intercept=findIntercept(term[[2]]))
     out$group<- term[[3]]
     out$interaction <- interact
+    out$fixed <- term[[2]]
     out
   }
 findIntercept <- function(x) {
-   tt <- terms(eval(call('~',x)))
-   if (length(attr(tt, 'term.labels')) > 0) {
-       temp <- paste(attr(tt, 'term.labels'), collapse= '+')
-       list(intercept= (attr(tt, 'intercept') ==1),
-            fixed = formula(paste('~', temp)))
+   if (is.call(x)) {
+       if (x[[1]] == as.name('+')) findIntercept(x[[2]]) |findIntercept(x[[3]])
+       else FALSE
        }
-   else list(intercept= (attr(tt, 'intercept') ==1))
- }
+   else if (x==1) TRUE
+        else FALSE
+}
 hasAbar <- function(x) {
   if (class(x)== 'call') {
         if (x[[1]]== as.name('|')) return(TRUE)

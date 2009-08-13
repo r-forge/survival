@@ -629,7 +629,8 @@ df <- nvar + (nfrail - traceprod(hinv, ikmat))
 Our last action for the random terms is to call the 
 [[wrapup]] functions, which retransform (if needed) 
 $\theta$ back to the user's scale, re-insert (if needed)  %'
-any fixed parameters, label the vector.
+any fixed parameters, add labels, and format the
+random coefficients.
 <<finish-random>>=
 newtheta <- NULL   
 nrandom <- length(varlist)

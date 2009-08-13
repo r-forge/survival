@@ -4,7 +4,7 @@ Priority: optional
 Package: coxme
 Version: 1.0
 Date: 2009-03-01
-Depends: bsdmatrix, R (>= 2.0.0)
+Depends: bdsmatrix, R (>= 2.0.0)
 LinkingTo: bdsmatrix
 LazyData: Yes
 LazyLoad: Yes
@@ -13,3 +13,5 @@ Description: Cox proportional hazards models containing Gaussian random
   effects, also known as frailty models.
 License: GPL2
 URL: http://r-forge.r-project.org
+
+

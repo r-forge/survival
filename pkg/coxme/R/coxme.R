@@ -1,5 +1,4 @@
 # Automatically generated from all.nw using noweb
-
 coxme <- function(formula,  data, 
         weights, subset, na.action, init, 
         control, ties= c("efron", "breslow", "exact"),
@@ -23,10 +22,9 @@ coxme <- function(formula,  data,
         if (class(random) != 'formula' || length(random) !=2) 
             stop("Invalid random formula")
         j <- length(formula)   #will be 2 or 3, depending on if there is a y
-        # Add parens to the random formula
-        rtemp <- formula(paste('(', paste(deparse(random[[2]]), collapse=''), 
-                                        ')'))  
-        formula[[j]] <- call('+', formula[[j]], rtemp)  # paste it on
+
+        # Add parens to the random formula and paste it on
+        formula[[j]] <- call('+', formula[[j]], call('(', random[[2]]))  
         }
     temp <- call('model.frame', formula= subbar(formula))
     for (i in c('data', 'subset', 'weights', 'na.action'))
@@ -54,8 +52,9 @@ coxme <- function(formula,  data,
         if (any(pterms)) {
             stop("You cannot have penalized terms in coxme")
             }
-        if (missing(variance)) theta <- NULL
-        else  theta <- variance 
+
+        if (missing(control)) control <- coxme.control(...)
+        if (missing(init)) init <- NULL
         flist <- formula1(formula)
         if (hasAbar(flist$fixed))
             stop("Invalid formula: a '|' outside of a valid random effects term")
@@ -70,7 +69,6 @@ coxme <- function(formula,  data,
             }
         if (length(strats)) {
             temp <- untangle.specials(Terms, 'strata', 1)
-            dropx <- c(dropx, temp$terms)
             if (length(temp$vars)==1) strata.keep <- m[[temp$vars]]
             else strata.keep <- strata(m[,temp$vars], shortlabel=T)
             strats <- as.numeric(strata.keep)
@@ -83,28 +81,29 @@ coxme <- function(formula,  data,
     if (nrandom ==0) stop("No random effects terms found")
     getcmat <- function(x, mf) {
         if (is.null(x)) return(NULL)
-        varname <- allnames(x)
-        m2 <-  mf[,varname]
-        for (i in 1:ncol(m2)) {
-            if (is.factor(m2[[i]])) {
-                nlev <- length(levels(m2[[i]]))
-                contrasts(m2[[i]], nlev) <- diag(nlev)
-                }
+        Terms <- terms(eval(call("~", x)))
+        attr(Terms, 'intercept') <- 0  #ignore any "1+" that is present
+
+        varnames <-  attr(Terms, 'term.labels')
+        ftemp <- sapply(mf[varnames], is.factor)
+        if (any(ftemp)) {
+            clist <- lapply(mf[ftemp], function(x) diag(length(levels(x))))
+            model.matrix(Terms, mf, contrasts.arg =clist)
             }
-        model.matrix(terms(x), m2)
+        else model.matrix(Terms, mf)
         }
-    allnames <- function(x){
-        if (is.call(x)) {
-            if (length(x) == 3) return( c(allnames(x[[2]]), allnames(x[[3]])))
-            else return(allnames(x[[2]]))
-          }
-        if (is.name(x)) as.character(x) else NULL
-      }
+    getGroupNames <- function(x) {
+        if (is.call(x) && x[[1]]==as.name('/')) 
+            c(getGroupNames(x[[2]]), getGroupNames(x[[3]]))
+        else deparse(x)
+        }
 
     getgroups <- function(x, mf) {
-        varname <- allnames(x)
-        if (is.null(varname)) return(NULL)  # a shrinkage effect like (x1+x2 | 1)
-        data.frame(lapply(mf[varname], as.factor))
+        varname <- getGroupNames(x)
+        if (varname=='1') return(NULL)  # a shrinkage effect like (x1+x2 | 1)
+        else indx <- match(varname, names(mf), nomatch=0)
+        if (any(indx==0)) stop(paste("Invalid grouping factor", varname[indx==0]))
+        else data.frame(lapply(mf[indx], as.factor))
         }
     if (missing(vinit)) vinit <- vector('list', nrandom)
     else {
@@ -144,6 +143,7 @@ coxme <- function(formula,  data,
             }
       }
     newzmat <- function(cmat, fmat) {
+        if (length(fmat)==0) return(cmat)  # a formula with (... | 1)
         newcol <- ncol(cmat) * sum(apply(fmat,2,max))
         newz <- matrix(0., nrow=nrow(cmat), ncol=newcol)
         indx <- 0
@@ -160,11 +160,12 @@ coxme <- function(formula,  data,
     fname <- zname <- thetalist <- vparms
     if (missing(varlist)) {
         varlist <- vector('list', nrandom)
-        for (i in 1:nrandom) varlist[[i]] <- coxvarFull #default
+        for (i in 1:nrandom) varlist[[i]] <- coxvarFull() #default
         }
     else {
         if (nrandom==1) { # allow a single non-list
-            if (!is.list(varlist)) varlist <- list(varlist)
+            if (inherits(varlist, 'coxvar') || !is.list(varlist)) 
+                varlist <- list(varlist)
             }
         if (length(varlist) != nrandom) stop ("Wrong length for varlist")
         for (i in 1:length(varlist)) {
@@ -172,51 +173,55 @@ coxme <- function(formula,  data,
                 varlist[[i]] <- coxvarMlist(varlist[[i]])
             }
         }
-    fmat <- zmat <- NULL
-    nfac <- nslope <- integer(nrandom)
-    stemp <- sparse
+    fmat <- zmat <- matrix(0, nrow=n, ncol=0)
+    ntheta <- integer(nrandom)
+    theta <-  NULL   #initial values of parameters to iterate over
     for (i in 1:nrandom) {
         f2 <- formula2(flist$random[[i]])
+        if (f2$intercept & f2$group==1)
+            stop(paste("Error in random term ", i, 
+                       ": Random intercepts require a grouping variable", sep=''))
         vfun <- varlist[[i]]
         if (!is.null(f2$interaction)) stop("Interactions not yet written")
 
         cmat <- getcmat(f2$fixed, m)
         groups <- getgroups(f2$group, m)
-        init <- vfun$init(vinit[[i]], variance[[i]], intercept=f2$intercept, 
-                            groups, cmat, stemp)
-        vparms[[i]] <- init$parms
+        ifun <- vfun$initialize(vinit[[i]], variance[[i]], intercept=f2$intercept, 
+                            groups, cmat, sparse)
+        if (!is.null(ifun$error)) 
+            stop(paste("In random term ", i, ": ", ifun$error, sep=''))
+        vparms[[i]] <- ifun$parms
+
+        theta <- c(theta, ifun$theta)
+        ntheta[i] <- length(ifun$theta)
 
         if (f2$intercept) {
-            if (!is.matrix(init$F) || nrow(init$F) !=n) 
-                stop("Invalid result from coxvar function for F")
-            nfac[i] <- ncol(init$F)
-            fmat <- cbind(fmat, init$F)
-            if (stemp[2] < 1) {
-                nsparse <- init$sparse
-                stemp[2] <- 1
+            if (!is.matrix(ifun$F) || nrow(ifun$F) !=n) 
+                stop(paste("In random term ", i, 
+                           ": Invalid intercept matrix F", sep=''))
+            for (i in 1:ncol(ifun$F)) {
+                temp <- as.integer(factor(ifun$F[,i]))
+                if (any(temp != ifun$F[,i]))
+                    stop(paste("In random term ", i,
+                               ": intercept matrix has an invalid column", sep=''))
                 }
+            fmat <- cbind(fmat, ifun$F)
             }
+
         if (!is.null(cmat)) {
             temp <- newzmat(cmat, fmat)
             zmat <- cbind(zmat, temp)
-            nslope[i] <- ncol(temp)
             }
-    } 
-    if (nsparse>0 & nfac[1]==0) { #must reorder
-        # Fix this later
-        stop("Only the first random term can be sparse")
-        }
-    browser()
+        } 
     fit <- coxme.fit(X, Y, strats, offset, init, control, weights=weights,
-                     ties=ties, row.names(m), refine.n,
-                     varlist, vparm, thetalist, fixed, 
-                     fmat, zmat, refine.n)
+                     ties=ties, row.names(m),
+                     fmat, zmat, varlist, vparms, 
+                     theta, ntheta, refine.n)
     if (is.character(fit)) {
         fit <- list(fail=fit)
         oldClass(fit) <- 'coxme'
         return(fit)
         }
-    time2 <- proc.time()
     fcoef <- fit$coefficients$fixed
     nvar <- length(fcoef)
     if (length(fcoef)>0 && any(is.na(fcoef))) {
@@ -230,33 +235,25 @@ coxme <- function(formula,  data,
         names(fcoef) <- dimnames(X)[[2]]
         fit$coefficients <- list(fixed=fcoef, random=fit$coeff$random)
         }
-
-    if (ncluster==1) {
-        names(fit$frail) <- dimnames(varlist[[1]][[1]])[[1]]
-        flinear <- fit$frail[kindex]
-        }
-    else {
-        ftemp <- vector('list', ncluster)
-        j <- 0
-        flinear <- 0
-        for (i in 1:ncluster) {
-            tname <- dimnames(varlist[[i]][[1]])[[1]]
-            nf <- length(tname)
-            temp <- fit$frail[j + 1:nf]
-            flinear <- flinear + temp[kindex[,i]]
-            names(temp) <- tname
-            ftemp[[i]]<- temp
-            j <- j+nf
+    rlinear <- rep(0., nrow(Y))
+    indx <- 0
+    if (length(fmat)) {
+        for (i in 1:ncol(fmat)) {
+            rlinear <- rlinear + fit$frail[fmat[,i]+indx]
+            indx <- indx + max(fmat[,i])
             }
-        names(ftemp) <- gnames
-        fit$frail <- ftemp
+        }
+    if (length(zmat)) {
+        for (i in 1:ncol(zmat))
+            rlinear <- rlinear + fit$frail[indx+i]*zmat[,i]
         }
 
-    if (nvar ==0) fit$linear.predictor <- as.vector(flinear)
-    else fit$linear.predictor <- as.vector(flinear + c(X %*% fit$coef$fixed))
+    if (nvar==0) fit$linear.predictor <- rlinear
+    else fit$linear.predictor <- as.vector(rlinear + c(X %*% fit$coef$fixed))
     fit$n <- nrow(Y)
     fit$terms <- Terms
     fit$assign <- attr(X, 'assign')
+    fit$formulaList <- flist
 
     na.action <- attr(m, "na.action")
     if (length(na.action)) fit$na.action <- na.action
@@ -267,17 +264,9 @@ coxme <- function(formula,  data,
     if (y)     fit$y <- Y
     if (!is.null(weights) && any(weights!=1)) fit$weights <- weights
 
-    time3 <- proc.time()
-    timeused <- c((time1[1]+ time1[2]) - (time0[1] + time0[2]), fit$timeused,
-                  (time3[1]+ time3[2]) - (time2[1] + time2[2]))
-    timeused <- c(sum(timeused), timeused)
-    names(timeused) <- c("Total", "setup", "fit1", "fit2", "fit3", "finish")
-    fit$timeused <- timeused
-
     fit$formula <- as.vector(attr(Terms, "formula"))
     fit$call <- Call
     fit$ties <- ties
-    fit$kindex <- kindex
     names(fit$loglik) <- c("NULL", "Integrated", "Penalized")
     oldClass(fit) <- 'coxme'
     fit
