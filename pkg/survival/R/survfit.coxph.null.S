@@ -36,11 +36,11 @@ survfit.coxph.null <-
 	if (is.null(stratx)) {
 	    temp <- untangle.specials(Terms, 'strata', 1)
 	    stratx <- strata(m[temp$vars])
-	    n.all <- table(stratx)
 	    }
 	if (is.null(y)) y <- model.extract(m, 'response')
 	}
     if (is.null(stratx)) stratx <- rep(1,n)
+    n.all <- table(stratx)
     ny <- ncol(y)
     if (nrow(y) != n) stop ("Mismatched lengths: logic error")
 

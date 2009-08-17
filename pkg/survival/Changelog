@@ -30,3 +30,7 @@ interval censored data + user defined distribution in survreg, jointly.  There
 was no test case and creating one uncovered several errors (but only for this
 combination).  All the error cases led to catastrophic failure, highlighting
 the extreme rarity of a user requesting this combination.
+
+17 Aug 2009: Small bug in survfit.coxph.null pointed out by Frank Harrell.  The
+'n' component would be missing if the input data included strata, i.e., the
+initial model had used x=TRUE.  He also pointed out the fix.
