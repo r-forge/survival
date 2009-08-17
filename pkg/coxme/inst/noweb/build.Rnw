@@ -366,7 +366,7 @@ for (i in 1:nrandom) {
     temp <- varlist[[i]]$wrapup(fit$theta[sindex==i], fit$frail[bindex==i], 
                                 vparm[[i]])
     newtheta <- c(newtheta, temp$theta)
-    random.coef <- c(random.coef, temp$coef)
+    random.coef <- c(random.coef, temp$b)
     }
 fit$coefficients <- list(fixed=fcoef, random=newtheta)
 fit$frail <- random.coef

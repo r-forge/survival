@@ -94,9 +94,8 @@ fit2 <- coxme(Surv(pgtime, pgstat) ~ stage + trt + (trt |institution) +
               strata(institution), data=colon2)
 }
 # Shrinkage effects (equivalent to ridge regression)
-temp <- with(lung, scale(age, wt.loss, meal.cal))
+temp <- with(lung, scale(cbind(age, wt.loss, meal.cal)))
 rfit <- coxme(Surv(time, status) ~ ph.ecog + (temp | 1), data=lung)
 }
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
+
 \keyword{survival}

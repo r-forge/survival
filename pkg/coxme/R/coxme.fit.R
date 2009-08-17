@@ -2,7 +2,7 @@
  coxme.fit <- function(x, y, strata, offset, ifixed, control,
                          weights, ties, rownames, 
                          fmat, zmat, varlist, vparm, theta,
-                         ntheta, refine.n) {
+                         ntheta, ncoef, refine.n) {
      time0 <- proc.time()
 
      n <-  nrow(y)
@@ -49,13 +49,14 @@
                                    
  fit0 <- coxph(y ~ x + offset(offset), weights=weights, method=ties,
                init=ifixed, iter=0)
- kfun <- function(theta, varlist, vparm, ntheta,
-                  fcount=apply(fmat,2,max), zcount = ncol(Z)) {
+ kfun <- function(theta, varlist, vparm, ntheta, ncoef) {
 
      nrandom <- length(varlist)
      sindex <- rep(1:nrandom, ntheta) #which thetas to which terms
 
      tmat <- varlist[[1]]$generate(theta[sindex==1], vparm[[1]]) 
+     if (any(dim(tmat) != rep(ncoef[1,1]+ncoef[1,2], 2)))
+         stop("Incorrect dimensions for generated penalty matrix, term 1")
      if (!inherits(tmat, 'bdsmatrix')) 
          tmat <- bdsmatrix(blocksize=integer(0), blocks=numeric(0), rmat=tmat)
          
@@ -63,52 +64,58 @@
 
      # Need to build up the matrix by pasting up a composite R
      nsparse <- sum(tmat@blocksize)
-     nrow.R <- sum(fcount) + zcount
+     nrow.R <- sum(ncoef)
      ncol.R <- nrow.R - nsparse
      R <- matrix(0., nrow.R, ncol.R)
-     indx1 <- 0            #current row  wrt filling in intercepts
-     indx2 <- sum(fcount)  #current row wrt filling in slopes
+     indx1 <- 0               #current offset  wrt filling in intercepts
+     indx2 <- sum(ncoef[,1])  #current offset  wrt filling in slopes
      
-     if (ncol(tmat) > nsparse) {
+     if (ncol(tmat) > nsparse) { #first matrix has an rmat component
          k <- (nsparse+1):ncol(tmat)
          temp <- as.matrix(tmat[k,k])
-         }
-     if (fcount[1] > nsparse) {
-         j <- fcount[1] - nsparse   #number of intercept columns
-         R[1:nrow(temp), 1:j] <- temp[,1:j]
-         indx1 <- indx1 +j
-         }
-     else j <- 0
-     if (ncol(tmat) > fcount[1]) {
-         k <- ncol(tmat) - fcount[1]  #number of slopes
-         if (fcount[1]>0) {
-             R[1:fcount[1], indx2+1:k] <- temp[1:fcount[1], 1:k]
-             R[1:k, indx2+1:k] <- temp[fcount[1]+1:k, 1:k]
-             }
-         else R[1:nrow(temp1) + indx2, 1:k+indx2] <- temp[, j +1:k]
 
-         indx2 <- indx2+k
+         if (ncoef[1,1] > nsparse) { #intercept contribution to rmat
+             j <- ncoef[1,1] - nsparse   #number of intercept columns
+             R[1:nrow(temp), 1:j] <- temp[,1:j]
+             indx1 <- indx1 +j
+             }
+         else j <- 0
+         
+         if (ncoef[1,2] >0) { #has a slope contribution to rmat
+             k <- 1:ncoef[1,2]
+             R[1:ncoef[1,1], indx2+k] <- temp[1:ncoef[1,1], j+k]
+             R[indx1+k, indx2+k] <- temp[ncoef[1,1]+k, j+k]
+             indx2 <- indx2 + ncoef[1,2]
+             }
          }
      
      for (i in 2:nrandom) {
          temp <- as.matrix(varlist[[i]]$generate(theta[sindex==i], vparm[[i]]))
-         j <- fcount[i]
-         if (j >0) {
-             R[1:j + indx1, 1:j+indx1] <- temp[1:j, 1:j]
+         if (any(dim(temp) != rep(ncoef[i,1]+ncoef[i,2], 2)))
+             stop(paste("Invalid dimension for generated penalty matrix, term",
+                        i))
+         
+         if (ncoef[i,1] >0)  { # intercept contribution
+             j <- ncoef[i,1]
+             R[indx1 +1:j, indx1 +1:j-nsparse] <- temp[1:j,1:j]
+             indx1 <- indx1 + j
+             
+             if (ncoef[i,2] >0) {
+                 k <- 1:ncoef[i,2]
+                 R[indx1+1:j, indx2 +k -nsparse] <- temp[1:j, k+ j]
+                 R[indx2+k, indx2 +k -nsparse] <- temp[k+j, k+j]
+                 }
              }
-         if (ncol(temp) > fcount[i]) {
-             k <- ncol(temp) - fcount[i]
-             if (j>0) 
-                 R[1:j+indx1, 1:k + indx2] <- temp[1:j, j+1:k]
-             R[1:k+indx2, 1:k + indx2] <- temp[j+ 1:k, j+ 1:k]
-             indx2 <- indx2 +k
+         else if (ncoef[i,2]>0) {
+             k <- 1:ncoef[i,2]
+             R[indx2+k, indx2+k -nsparse] <- temp
              }
-         indx1 <- indx1 +j
+         indx2 <- indx1 +ncoef[i,2]
          }
      
-     bdsmatrix(blocksize=tmat@blocksize, blocks=tmat@blocks, R=R)
+     bdsmatrix(blocksize=tmat@blocksize, blocks=tmat@blocks, rmat=R)
      }    
- dummy <- kfun(theta, varlist, vparm, ntheta)
+ dummy <- kfun(theta, varlist, vparm, ntheta, ncoef)
  if (is.null(dummy@rmat)) rcol <- 0
      else                 rcol <- ncol(dummy@rmat)
  npenal <- ncol(dummy)  #total number of penalized terms
@@ -159,7 +166,7 @@
      scale   <- ifit$scale
  logfun <- function(theta, varlist, vparm, kfun, ntheta,
                     init, fit0, iter, ofile) {
-     gkmat <- gchol(kfun(theta, varlist, vparm, ntheta))
+     gkmat <- gchol(kfun(theta, varlist, vparm, ntheta, ncoef))
      ikmat <- solve(gkmat)  #inverse of kmat, which is the penalty
      if (any(diag(ikmat) <=0)) { #Not an spd matrix
          return(0)  # return a "worse than null" fit
@@ -178,7 +185,7 @@
      }
  if (length(theta)) {
      logpar <- list(varlist=varlist, vparm=vparm, 
-                    ntheta=ntheta, kfun=kfun,
+                    ntheta=ntheta, ncoef=ncoef, kfun=kfun,
                     init=c(rep(0., npenal), scale*fit0$coef),
                     fit0= fit0$loglik[2],
                     iter=control$inner.iter,
@@ -191,7 +198,7 @@
      }
  else iter <- c(0,0)
 
-     gkmat <- gchol(kfun(theta, varlist, vparm, ntheta))
+     gkmat <- gchol(kfun(theta, varlist, vparm, ntheta, ncoef))
      ikmat <- solve(gkmat)  #inverse of kmat, which is the penalty
      fit <- .C(ofile,
                iter= as.integer(c(0, control$iter.max)),
@@ -207,7 +214,7 @@
       bmat <- matrix(rnorm(length(beta)*refine.n), ncol=refine.n)
       sim.pen <- colSums(bmat^2)/2   #This is b' \Sigma^{-1} b /2 
 
-      rfit <- .C(rfun,
+      rfit <- .C(rfile,
                  as.integer(refine.n),
                  as.double(beta),
                  as.double(gkmat %*% bmat),
@@ -283,26 +290,19 @@
       2*temp1 - sum(diag(H)[1:nfrail] * diag(P))
       }
   df <- nvar + (nfrail - traceprod(hinv, ikmat))
-  newtheta <- NULL   
-  nrandom <- length(varlist)
-  sindex <- rep(1:nrandom, ntheta) #which thetas to which terms
-
-  for (i in 1:nrandom) 
-      newtheta <- c(newtheta, varlist[[i]]$wrapup(theta[sindex==i], vparm[[i]]))
       fcoef <- fit$beta[1:nfrail]
       penalty <- sum(fcoef * (ikmat %*% fcoef))/2
       idf <- nvar + sum(ntheta)
 
       if (nvar > 0) {
-          out <- list(coefficients=list(fixed=fit$beta[-(1:nfrail)]/scale, 
-                                 random=newtheta),
-               frail=fit$beta[1:nfrail], penalty=penalty,
+          out <- list(coefficients = fit$beta[-(1:nfrail)]/scale, frail=fcoef, 
+               theta=theta, penalty=penalty,
                loglik=c(fit0$log[1], ilik, fit$log[2]), var=hinv,
                df=c(idf, df), hmat=hmat, iter=iter, control=control,
                u=u, means=means, scale=scale)
           }
-      else out <- list(coefficients=list(fixed=NULL, random=newtheta),
-                frail=fit$beta[1:nfrail], penalty= penalty,
+      else out <- list(coefficients=NULL, frail=fcoef, 
+                       theta=theta, penalty=penalty,
                 loglik=c(fit0$log[1], ilik, fit$log[2]), var=hinv,
                 df=c(idf, df), hmat=hmat, iter=iter, control=control,
                 u=fit3$u, means=means, scale=scale)    

@@ -505,10 +505,10 @@ else nsparse <- 0
 
 G <- expand.nested(G)
 ngroup <- ncol(G)
-F <- matrix(0, nrow=nrow(G), ncol=n.nest)
+F <- matrix(0, nrow=nrow(G), ncol=ngroup)
 nlevel <- sapply(G, function(x) length(levels(x)))
 levellist <- lapply(G, levels)
-for (i in 1:n.nest) 
+for (i in 1:ngroup) 
     F[,i] <- as.numeric(G[,i])
 
 if (ngroup==1 && nsparse==nlevel[1]) vmat <- bdsI(nlevel[1])
@@ -550,16 +550,25 @@ have a 4 by 4 block, with $\sigma_{12}=0$ (nested grouping variables
 are assumed independent), and the identity matrices would have
 either $g_1$ or $g_2$ columns as appropriate.
 
-I've not yet taken care of the intitial values.  
-The parameter list $\theta$ will consist of first the variances
-of the blocking factors, then of the covariates, then the correlations.
+
+The set of paramters $\theta$ is most easily arranged in the
+following way:
+for each level of the grouping variable we have an 
+(nvar +1) by (nvar +1) set of variances/covariances, with the
+intercept as the first column.
+We will let theta have this structure.
+The [[tname]] vector gives names to \emph{most} of the elements, in
+order to allow a user to set selected values.
 The default values for $\theta$ are 0 for the correlations and .2 for the
 variances.  
 For computation they are transformed with variances=$e^\theta$ and
 correlations=$(e^\theta -1)/(e^\theta +1)$.
-<<covarvFull-init-4>>=
-theta <- c(rep(.2, ngroup), .2/sqrt(apply(Z,2,var)),
-           rep(0., nvar*ngroup + nvar*(nvar-1)/2)
+
+<<coxvarFull-init-4>>=
+theta <- rep(c(.2, .2/sqrt(apply(X,2,var)), rep(0., nvar*(nvar+1)/2)), ngroup)
+tname <- outer(c("", paste(parms$xname, '/',sep=''), rep('/',nvar*(nvar-1)/2)),
+               names(G), paste, sep='')
+tname <- c(tname)
 
 if (length(initial) > 0) {
     temp <- initmatch(tname, initial)
@@ -569,14 +578,17 @@ if (length(initial) > 0) {
     else theta[temp] <- unlist(initial)
     }
 
+which.fixed <- rep(FALSE, length(theta))
 if (length(fixed) > 0) {
     temp <- initmatch(tname, fixed)
     if (any(temp==0))
       return(list(error=paste('Element(s)', which(temp==0),
                               'of initial values not matched')))
     else theta[temp] <- unlist(fixed)
+    which.fixed[temp] <- TRUE
     }
 
+# Check for legality of the values
 indx <- 1:(nvar + ngroup)  # the variance parameters
 if (any(theta[indx] <=0)) return(list(error="Variances must be >0"))
 temp <- theta[-indx]
@@ -584,44 +596,56 @@ if (any(temp<=-1) || any(temp >=1))
     return(list(error="Correlations must be between 0 and 1"))
 theta <- c(log(theta[indx]), log((1+temp)/(1-temp)))
 
-list(theta=theta[!which.fixed], F=F, X=X, 
+return(list(theta=theta[!which.fixed], F=F, X=X, 
              parms=list(theta=theta, fixed=which.fixed, 
                         nlevel=nlevel, levellist=levellist,
-                        nvar=nvar, gname=gname, 
-                        xname=dimnames(X)[[2]], case=4))
+                        nvar=nvar, gname=names(G), 
+                        xname=dimnames(X)[[2]], case=4)))
 @                 
+
+
+For both the the generation routine and the wrapup routine it
+is useful to have the following bit of code.
+It takes the vector $\theta$ and creates a variance vector
+and a correlation matrix.  From these it is easy to
+pick off the parameters that we need.
+
+<<case-4-vmat>>=
+temp <- parms$theta
+temp[!parms$fixed] <- theta
+temp <- exp(temp)
+
+ngroup <- length(parms$nlevel)
+nvar <- parms$nvar
+
+variance <- temp[1:(nvar+ngroup)]  #variances
+cmat <- diag(nvar+ngroup)  #correlation matrix
+offset <- ngroup + nvar
+for (i in 1:ngroup) {
+    temp2 <- temp[1:nvar +offset]
+    vmat[i, -(1:ngroup)] <- (temp2-1)/(temp2+1)
+    }
+for (i in 1:nvar) {
+    if (i<nvar){
+        temp2 <- temp[1:(nvar-i) + offset]
+        vmat[i+ngroup, i+ngroup +1:(nvar-i)] <- (temp2-1)/(temp2+1)
+        offset <- offset + nvar -i
+        }
+    }   
+@ 
 
 In the generation routine we first recreate the set of variances and
 covariances from the transformed input parameters.
-<<coxvarFull-generate>>=
-if (parms$case==4) {
-    ngroup <- parms$ngroup
-    nvar <- parms$nvar
-
-    vmat <- diag(nvar+ngroup)  #var/cov matrix = transformed parameters
-    temp <- exp(parms)            
-    std <- sqrt(temp[1:(nvar+ngroup)])
-    offset <- ngroup + nvar
-
-    for (i in 1:ngroup) {
-        temp2 <- temp[1:nvar +offset]
-        vmat[i, -(1:ngroup)] <- (temp2-1)/(temp2+1)
-        }
-    for (i in 1:nvar) {
-        if (i<nvar){
-            temp2 <- temp[1:(nvar-i) + offset]
-            vmat[i+ngroup, i+ngroup +1:(nvar-i)] <- (temp2-1)/(temp2+1)
-            offset <- offset + nvar -i
-            }
-        }   
-    vmat <- diag(std) %*% vmat %*% diag(std)   
-@ 
 From this we can build up the variance-covarinance matrix for the
 random coefficients $b$ as shown in equation \ref{eq:varcov}.
 Only the upper portion of the matrix is needed.
 First fill in all the diagonal blocks that are not a part of the
 main diagonal, then finally populate the main diagonal.
 <<coxvarFull-generate>>=
+if (parms$case==4) {
+    <<case-4-vmat>>
+
+    vmat <- (cmat* sqrt(variance)) diag(sqrt(variance))   
     n1 <- sum(parms$nlevel)  #number of intercept coefs
     n2 <- n1*nvar            #number of slope coefs
     rcol <- ncol(parms$vmat@rmat)
@@ -686,7 +710,7 @@ wrapup <- function(theta, b, parms) {
         names(theta) <- parms$gname
         b <- list(b)
         names(b) <- parms$gname
-        return(list(theta=theta, random=b))
+        return(list(theta=theta, b=b))
         }
 
     if (parms$case==2) {
@@ -697,7 +721,7 @@ wrapup <- function(theta, b, parms) {
         names(b) <- unlist(parms$levellist)
         random <- split(b, rep(1:ngroup, parms$nlevel))
         names(random) <- parms$gname
-        list(theta=newtheta, random=random)
+        return(list(theta=newtheta, b=random))
         }
 
     if (parms$case==2.5) stop("This case not written yet")
@@ -706,47 +730,29 @@ wrapup <- function(theta, b, parms) {
         theta <- list(c('Shrinkage' = newtheta[1]))
         names(theta) <- '1'
         names(b) <- parms$xname
-        list(theta =theta, b=list('1'=b))
+        return(list(theta =theta, b=list('1'=b)))
         }
         
     
     if (parms$case==4) {
-        newtheta <- parms$theta
-        newtheta[!parms$fixed] <- theta
-        newtheta <- exp(newtheta)   #exponentiate all, not just iterated ones
+        <<case-4-vmat>>
 
+browser()
         ngroup <- length(parms$nlevel)
-        nvar <- parms$nvar
         names(b) <- rep(unlist(parms$levellist, 1+nvar))
         random <- split(b, rep(rep(1:ngroup, parms$nlevel), 1+nvar))
         names(random) <- parms$gname
          
-         cmat <- diag(nvar+ngroup)  #correlation matrix
-         temp <- exp(parms$theta)
-         temp[!parms$fixed] <- exp(theta)
-         offset <- ngroup + nvar
-
-         for (i in 1:ngroup) {
-             temp2 <- temp[1:nvar +offset]
-             cmat[i, -(1:ngroup)] <- (temp2-1)/(temp2+1)
-             }
-         for (i in 1:nvar) {
-             if (i<nvar){
-                 temp2 <- temp[1:(nvar-i) + offset]
-                 cmat[i+ngroup, i+ngroup +1:(nvar-i)] <- (temp2-1)/(temp2+1)
-                 offset <- offset + nvar -i
-                 }
-             }   
-         
-        temp <- rep(0L, length(theta))
-        j <- nvar-1
+        # Reformat theta for printing: a list with one element per
+        #  group, containing a matrix.
+        theta <- vector('list', ngroup)
+        names(theta) <- names(parms$nlevel)
+        indx <- rep(1:ngroup, parms$nlevel) #fixed effects
+        indx <- c(indx, rep(indx, each=nvar*(nvar+1)/2))
         for (i in 1:ngroup) {
-            temp[c(i, 1:(2*nvar)+j)] <- i
-            j <= j+ 2*nvar
-            }
-        theta <- split(newtheta, parms$gname[temp])
+            tmat <- cmat[
         
-        list(theta=theta, random=random)
+        return(list(theta=theta, b=random))
         }
     }
 @ 

@@ -4,9 +4,9 @@ coxvarFull <- function(collapse=FALSE) {
     # Because of R's lexical scoping, the values of the options
     #  above, at the time the line below is run, are known to the
     #  initialize function
-    initialize <- function(initial, fixed, intercept, G, Z,  sparse) {
-        if (is.null(Z)) nvar <- 0
-        else nvar <- ncol(Z)
+    initialize <- function(initial, fixed, intercept, G, X,  sparse) {
+        if (is.null(X)) nvar <- 0
+        else nvar <- ncol(X)
         initmatch <- function(namelist, init) {
             if (is.null(names(init))) iname <- rep('', length(init))
             else iname <- names(init)
@@ -60,7 +60,7 @@ coxvarFull <- function(collapse=FALSE) {
                     else {
                         k <- nlevel - nsparse  #number of non-sparse levels
                         rmat <- matrix(0., nrow=nlevel, ncol=k)
-                        rmat[seq(nsparse+1, by= nlevel+1, length=k] <- 1.0
+                        rmat[seq(nsparse+1, by= nlevel+1, length=k)] <- 1.0
                         vmat <- bdsmatrix(blocksize=rep(1,nsparse), 
                                           blocks= rep(1,nsparse), rmat=rmat)
                         }
@@ -116,7 +116,7 @@ coxvarFull <- function(collapse=FALSE) {
                     }
                 else { #ncol(G)>1, intercept=T, nvar=0, collapse=T
                     gtemp <- as.factor(G[,1])[,drop=TRUE]
-                    gfrac <- table(gtemp)/ n
+                    gfrac <- table(gtemp)/ length(gtemp)
                     if (nlevel[ncol(G)] > sparse[1] && any(gfrac <= sparse[2])) {
                         indx <- order((gfrac> sparse[2]), 1:nlevel)
                         G[,1] <- factor(gtemp, levels=levels(gtemp)[indx])
@@ -140,15 +140,14 @@ coxvarFull <- function(collapse=FALSE) {
                         tsize <- temp@blocksize[1:max(1,nsparse)]
                         dense <- (1 + sum(tsize)):ncoef
                         rtemp <- matrix(0, sum(tsize), ncoef)
-                        rmat[by=nrow(rmat)+1, to=length(rmat), length=ncol(rmat)] <- 1.0
+                        rmat[seq(by=nrow(rmat)+1, to=length(rmat), length=ncol(rmat))] <- 1.0
                         varlist[[1]] <- bdsmatrix(blocksize=tsize,
                                               blocks=temp@blocks[1:sum(tsize*(tsize+1)/2)],
                                               rmat=rbind(rtemp, as.matrix(temp[dense,dense])))
-                        }
-                    
+                        } 
                     for (i in 2:ncol(G)) varlist[[i]] <- varlist[[i]] + 0*varlist[[1]]
                       
-                    list(F=matrix(as.numeric(ulist)), X=NULL, 
+                    list(F=matrix(as.numeric(G[,ncol(G)])), X=NULL, 
                          theta=log(theta[!which.fixed]),
                          parms=list(varlist=varlist, theta=theta, 
                                     fixed=which.fixed, gname=gname,
@@ -157,7 +156,7 @@ coxvarFull <- function(collapse=FALSE) {
                     }
             }
         else if (is.null(G)) {
-            xname <- dimnames(Z)[[2]]
+            xname <- dimnames(X)[[2]]
             if (length(initial) >0) {
               temp <- initmatch(xname[1], initial)
               if (any(temp==0)) 
@@ -165,7 +164,7 @@ coxvarFull <- function(collapse=FALSE) {
                                           'of initial values not matched')))
               else theta <- initial
               }
-            else theta <- .2 / mean(sqrt(apply(Z,2,var)))
+            else theta <- .2 / mean(sqrt(apply(X,2,var)))
               
             if (length(fixed) >0) {
                 temp <- initmatch(xname[1], fixed)
@@ -178,10 +177,9 @@ coxvarFull <- function(collapse=FALSE) {
             else which.fixed <- FALSE
             if (theta <=0) return(list(error="Invalid variance value, must be >0"))
 
-            list(theta=theta[!which.fixed], F=NULL, X=Z,
+            list(theta=theta[!which.fixed], F=NULL, X=X,
                      parms=list(fixed=which.fixed, theta=theta,
                                 xname=xname, case=3))
-                }
                 }
         else {
             gtemp <- as.factor(G[[1]])[,drop=TRUE] #drop unused levels
@@ -206,23 +204,14 @@ coxvarFull <- function(collapse=FALSE) {
             else {
                 if (nsparse==0) { #make the whole first term a block
                     rmat <- matrix(0., nrow=sum(nlevel), ncol=sum(nlevel[-1]))
-                    rmat[nlevel[1]+1, by=nrow(rmat) +1, length=ncol(rmat)] <- 1.0
+                    rmat[seq(nlevel[1]+1, by=nrow(rmat) +1, length=ncol(rmat))] <- 1.0
                     vmat <- bdsmatrix(blocksize=nlevel[1], blocks=diag(nlevel[1]),rmat=rmat)
                     }
                 else {
                     rmat <- matrix(0., nrow=sum(nlevel), ncol=sum(nlevel)-nsparse)        
-                    rmat[nlevel[1]+1, by=nrow(rmat) +1, length=ncol(rmat)] <- 1.0
+                    rmat[seq(nlevel[1]+1, by=nrow(rmat) +1, length=ncol(rmat))] <- 1.0
                     vmat <- bdsmatrix(blocksize=rep(1,nsparse), blocks=rep(1., nsparse),
                                       rmat=rmat)
-                    }
-            X <- matrix(0., nrow=n, ncol=sum(nlevel)*nvar)
-            indx <- seq(0, length=nvar, by=sum(nlevel))
-            offset <-0
-            for (i in 1:ngroup) { 
-                for (j in 1:nvar) {
-                    for (k in 1:nvlevel[i])
-                        X[,offset+ k +indx] <- Z[,j] * (F[,i]==k)
-                    offset <- offset + nlevel[i]
                     }
                 }
             }
@@ -237,7 +226,8 @@ coxvarFull <- function(collapse=FALSE) {
         if (parms$nsparse >0) {
             bdsmatrix(blocksize=rep(1, parms$nsparse),
                       blocks=temp[1:parms$nsparse],
-                      rmat=rbind(matrix(0.,nrow=parms$nsparse, ncol=sum(nlevel)),
+                      rmat=rbind(matrix(0.,nrow=parms$nsparse, 
+                                        ncol=sum(parms$nlevel)),
                                  diag(temp[-(1:parms$nsparse)])))
             }
          else diag(temp)
@@ -301,6 +291,7 @@ coxvarFull <- function(collapse=FALSE) {
         diag(final) <- rep(diag(vmat), rep(parms$nlevel, nvar+1))
         final
         }
+    }
     wrapup <- function(theta, b, parms) {
         if (parms$case <4) {
             newtheta <- parms$theta
@@ -308,31 +299,46 @@ coxvarFull <- function(collapse=FALSE) {
             }
         
         if (parms$case==1) {
-            names(theta) <- parms$gname
+            names(newtheta) <- 'Intercept'
             names(b) <- parms$levels
-            return(list(theta=newtheta, random=b))
+            theta <- list(newtheta)
+            names(theta) <- parms$gname
+            b <- list(b)
+            names(b) <- parms$gname
+            return(list(theta=theta, random=b))
             }
 
         if (parms$case==2) {
             ngroup <- length(parms$nlevel)
+            theta <- vector('list', ngroup)
+            for (i in 1:ngroup) 
+                theta[[parms$gname[i]]] <- c('Intercept'=newtheta[i])
             names(b) <- unlist(parms$levellist)
             random <- split(b, rep(1:ngroup, parms$nlevel))
-            names(random) <- parms$tname
-            return(list(theta=newtheta, random=random))
+            names(random) <- parms$gname
+            list(theta=newtheta, random=random)
             }
 
+        if (parms$case==2.5) stop("This case not written yet")
+        
         if (parms$case==3) {
-            names(theta) <- parms$xname
-            names(b) <- parms$levels
-            return(list(theta=newtheta, random=b))
+            theta <- list(c('Shrinkage' = newtheta[1]))
+            names(theta) <- '1'
+            names(b) <- parms$xname
+            list(theta =theta, b=list('1'=b))
             }
+            
         
         if (parms$case==4) {
-             ngroup <- length(parms$nlevel)
-             nvar <- parms$nvar
-             names(b) <- rep(unlist(parms$levellist, 1+nvar))
-             random <- split(b, rep(rep(1:ngroup, parms$nlevel), 1+nvar))
-             names(random) <- parms$tname[1:(ngroup+nvar)]
+            newtheta <- parms$theta
+            newtheta[!parms$fixed] <- theta
+            newtheta <- exp(newtheta)   #exponentiate all, not just iterated ones
+
+            ngroup <- length(parms$nlevel)
+            nvar <- parms$nvar
+            names(b) <- rep(unlist(parms$levellist, 1+nvar))
+            random <- split(b, rep(rep(1:ngroup, parms$nlevel), 1+nvar))
+            names(random) <- parms$gname
              
              cmat <- diag(nvar+ngroup)  #correlation matrix
              temp <- exp(parms$theta)
@@ -350,19 +356,17 @@ coxvarFull <- function(collapse=FALSE) {
                      offset <- offset + nvar -i
                      }
                  }   
-             cmat <- cmat + t(cmat)
-             diag(cmat) <- 1.0
              
-             indx <- 1:(nvar+ngroup)
-             vars <- temp[]
-             names(vars) <- temp[indx]
-             names(vars) <- parms$tname[indx]
-             dimnames(cmat) <- list(parms$tname, parms$tname)
-             return(list(theta=list(variance=vars, correlation=cmat),
-                  random=random))
-             }
-        
-        if (parms$case==2.5) stop("Wrapup not finished")
+            temp <- rep(0L, length(theta))
+            j <- nvar-1
+            for (i in 1:ngroup) {
+                temp[c(i, 1:(2*nvar)+j)] <- i
+                j <= j+ 2*nvar
+                }
+            theta <- split(newtheta, parms$gname[temp])
+            
+            list(theta=theta, random=random)
+            }
         }
     out <- list(initialize=initialize, generate=generate, wrapup=wrapup)
     oldClass(out) <- 'coxvar'

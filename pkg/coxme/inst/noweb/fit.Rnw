@@ -301,7 +301,7 @@ There are actually two C routines [[coxfit6b]] and [[agfit6b]], for ordinary
 and (start,stop) survival data, respectively.  The [[ofile]] argument 
 is a character string giving the choice.
 <<define-logfun>>=
-logfun <- function(theta, varlist, vparm, kfun, ntheta,
+logfun <- function(theta, varlist, vparm, kfun, ntheta, ncoef, 
                    init, fit0, iter, ofile) {
     gkmat <- gchol(kfun(theta, varlist, vparm, ntheta, ncoef))
     ikmat <- solve(gkmat)  #inverse of kmat, which is the penalty

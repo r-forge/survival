@@ -1,9 +1,9 @@
 # Automatically generated from all.nw using noweb
 coxme <- function(formula,  data, 
         weights, subset, na.action, init, 
-        control, ties= c("efron", "breslow", "exact"),
-        singular.ok =T, varlist=NULL, variance, vinit=.2, sparse=c(50,.02),
-        rescale=TRUE, pdcheck=TRUE, x=FALSE, y=TRUE, shortlabel=TRUE, 
+        control, ties= c("efron", "breslow"),
+        varlist=NULL, variance, vinit=.2, sparse=c(50,.02),
+        x=FALSE, y=TRUE, 
         refine.n=0, random, fixed, ...) {
 
     time0 <- proc.time()    #debugging line
@@ -156,8 +156,8 @@ coxme <- function(formula,  data,
             }
         newz
         }
-    vparms <- vector('list', nrandom)
-    fname <- zname <- thetalist <- vparms
+    vparm <- vector('list', nrandom)
+    fname <- zname <- thetalist <- vparm
     if (missing(varlist)) {
         varlist <- vector('list', nrandom)
         for (i in 1:nrandom) varlist[[i]] <- coxvarFull() #default
@@ -175,6 +175,7 @@ coxme <- function(formula,  data,
         }
     fmat <- zmat <- matrix(0, nrow=n, ncol=0)
     ntheta <- integer(nrandom)
+    ncoef  <- matrix(0L, nrandom, 2, dimnames=list(NULL, c("intercept", "slope")))
     theta <-  NULL   #initial values of parameters to iterate over
     for (i in 1:nrandom) {
         f2 <- formula2(flist$random[[i]])
@@ -190,7 +191,7 @@ coxme <- function(formula,  data,
                             groups, cmat, sparse)
         if (!is.null(ifun$error)) 
             stop(paste("In random term ", i, ": ", ifun$error, sep=''))
-        vparms[[i]] <- ifun$parms
+        vparm[[i]] <- ifun$parms
 
         theta <- c(theta, ifun$theta)
         ntheta[i] <- length(ifun$theta)
@@ -206,34 +207,34 @@ coxme <- function(formula,  data,
                                ": intercept matrix has an invalid column", sep=''))
                 }
             fmat <- cbind(fmat, ifun$F)
+            ncoef[i,1] <- sum(apply(ifun$F, 2,max))
             }
 
         if (!is.null(cmat)) {
             temp <- newzmat(cmat, fmat)
+            ncoef[i,2] <- ncol(temp)
             zmat <- cbind(zmat, temp)
             }
         } 
     fit <- coxme.fit(X, Y, strats, offset, init, control, weights=weights,
                      ties=ties, row.names(m),
-                     fmat, zmat, varlist, vparms, 
-                     theta, ntheta, refine.n)
+                     fmat, zmat, varlist, vparm, 
+                     theta, ntheta, ncoef, refine.n)
     if (is.character(fit)) {
         fit <- list(fail=fit)
         oldClass(fit) <- 'coxme'
         return(fit)
         }
-    fcoef <- fit$coefficients$fixed
+    fcoef <- fit$coefficients
     nvar <- length(fcoef)
     if (length(fcoef)>0 && any(is.na(fcoef))) {
         vars <- (1:length(fcoef))[is.na(fcoef)]
         msg <-paste("X matrix deemed to be singular; variable",
                         paste(vars, collapse=" "))
-        if (singular.ok) warning(msg)
-        else             stop(msg)
+        warning(msg)
         }
     if (length(fcoef) >0) {
         names(fcoef) <- dimnames(X)[[2]]
-        fit$coefficients <- list(fixed=fcoef, random=fit$coeff$random)
         }
     rlinear <- rep(0., nrow(Y))
     indx <- 0
@@ -249,7 +250,21 @@ coxme <- function(formula,  data,
         }
 
     if (nvar==0) fit$linear.predictor <- rlinear
-    else fit$linear.predictor <- as.vector(rlinear + c(X %*% fit$coef$fixed))
+    else fit$linear.predictor <- as.vector(rlinear + c(X %*% fit$coef))
+    newtheta <- random.coef <- list()  
+    nrandom <- length(varlist)
+    sindex <- rep(1:nrandom, ntheta) #which thetas to which terms
+    bindex <- rep(1:nrandom, rowSums(ncoef)) # which b's to which terms
+    for (i in 1:nrandom) {
+        temp <- varlist[[i]]$wrapup(fit$theta[sindex==i], fit$frail[bindex==i], 
+                                    vparm[[i]])
+        newtheta <- c(newtheta, temp$theta)
+        random.coef <- c(random.coef, temp$coef)
+        }
+    fit$coefficients <- list(fixed=fcoef, random=newtheta)
+    fit$frail <- random.coef
+    fit$beta <- NULL
+    fit$theta <- NULL
     fit$n <- nrow(Y)
     fit$terms <- Terms
     fit$assign <- attr(X, 'assign')
