@@ -71,13 +71,14 @@ block must involve no more than the first column of $F$.
 If the first term is a simple matrix, we just split off its first
 element.
 <<define-penalty>>=
-kfun <- function(theta, varlist, vparm, ntheta,
-                 fcount=apply(fmat,2,max), zcount = ncol(Z)) {
+kfun <- function(theta, varlist, vparm, ntheta, ncoef) {
 
     nrandom <- length(varlist)
     sindex <- rep(1:nrandom, ntheta) #which thetas to which terms
 
     tmat <- varlist[[1]]$generate(theta[sindex==1], vparm[[1]]) 
+    if (any(dim(tmat) != rep(ncoef[1,1]+ncoef[1,2], 2)))
+        stop("Incorrect dimensions for generated penalty matrix, term 1")
     if (!inherits(tmat, 'bdsmatrix')) 
         tmat <- bdsmatrix(blocksize=integer(0), blocks=numeric(0), rmat=tmat)
         
@@ -101,7 +102,7 @@ where [[g1]] has two common and 60 uncommon levels, [[g2]] has 5
 levels and [[g3]] has 8.
 (A complicated random effects model I admit.)
 The first variance matrix is required to be of a [[bsdmatrix]]
-form with an [[rmat]] slot of dimension $124 \times 64$, call this $T$.
+form with an [[rmat]] slot of dimension $124 \times 66$, call this $T$.
 The variance structure for the other two terms, call them $U$ and
 $V$, can be of any matrix type.
 The final bdsmatrix will have the block-diagonal portions for the
@@ -109,11 +110,11 @@ first 60 elements
 and an overall right-hand side matrix of the form
 $$
 R= \left( \begin{array}{ccccc}
-             T[1--62, 1--2] & 0 & 0 &T[1--62, 63-128] &0\\
+             T[1-62, 1-2] & 0 & 0 &T[1-62, 3-66] &0\\
               0 & U &0 & 0 & 0 \\
-              0 & 0 & V[1--8, 1--8] &0 & V[1--8, 9--24]\\
-              0 & 0 & 0 & T[63--128, 63--128] & 0 \\
-              0 & 0 & 0 & 0 & V[9--24,9--24] \\ \end{array} \right)
+              0 & 0 & V[1-8, 1-8] &0 & V[1-8, 9-24]\\
+              0 & 0 & 0 & T[63-128, 3-66] & 0 \\
+              0 & 0 & 0 & 0 & V[9-24,9-24] \\ \end{array} \right)
 $$
 
 First we set up the total number of rows and columns of R,
@@ -127,50 +128,56 @@ regular metrix from the remainder.
 
     # Need to build up the matrix by pasting up a composite R
     nsparse <- sum(tmat@blocksize)
-    nrow.R <- sum(fcount) + zcount
+    nrow.R <- sum(ncoef)
     ncol.R <- nrow.R - nsparse
     R <- matrix(0., nrow.R, ncol.R)
-    indx1 <- 0            #current row  wrt filling in intercepts
-    indx2 <- sum(fcount)  #current row wrt filling in slopes
+    indx1 <- 0               #current offset  wrt filling in intercepts
+    indx2 <- sum(ncoef[,1])  #current offset  wrt filling in slopes
     
-    if (ncol(tmat) > nsparse) {
+    if (ncol(tmat) > nsparse) { #first matrix has an rmat component
         k <- (nsparse+1):ncol(tmat)
         temp <- as.matrix(tmat[k,k])
-        }
-    if (fcount[1] > nsparse) {
-        j <- fcount[1] - nsparse   #number of intercept columns
-        R[1:nrow(temp), 1:j] <- temp[,1:j]
-        indx1 <- indx1 +j
-        }
-    else j <- 0
-    if (ncol(tmat) > fcount[1]) {
-        k <- ncol(tmat) - fcount[1]  #number of slopes
-        if (fcount[1]>0) {
-            R[1:fcount[1], indx2+1:k] <- temp[1:fcount[1], 1:k]
-            R[1:k, indx2+1:k] <- temp[fcount[1]+1:k, 1:k]
-            }
-        else R[1:nrow(temp1) + indx2, 1:k+indx2] <- temp[, j +1:k]
 
-        indx2 <- indx2+k
+        if (ncoef[1,1] > nsparse) { #intercept contribution to rmat
+            j <- ncoef[1,1] - nsparse   #number of intercept columns
+            R[1:nrow(temp), 1:j] <- temp[,1:j]
+            indx1 <- indx1 +j
+            }
+        else j <- 0
+        
+        if (ncoef[1,2] >0) { #has a slope contribution to rmat
+            k <- 1:ncoef[1,2]
+            R[1:ncoef[1,1], indx2+k] <- temp[1:ncoef[1,1], j+k]
+            R[indx1+k, indx2+k] <- temp[ncoef[1,1]+k, j+k]
+            indx2 <- indx2 + ncoef[1,2]
+            }
         }
     
     for (i in 2:nrandom) {
         temp <- as.matrix(varlist[[i]]$generate(theta[sindex==i], vparm[[i]]))
-        j <- fcount[i]
-        if (j >0) {
-            R[1:j + indx1, 1:j+indx1] <- temp[1:j, 1:j]
+        if (any(dim(temp) != rep(ncoef[i,1]+ncoef[i,2], 2)))
+            stop(paste("Invalid dimension for generated penalty matrix, term",
+                       i))
+        
+        if (ncoef[i,1] >0)  { # intercept contribution
+            j <- ncoef[i,1]
+            R[indx1 +1:j, indx1 +1:j-nsparse] <- temp[1:j,1:j]
+            indx1 <- indx1 + j
+            
+            if (ncoef[i,2] >0) {
+                k <- 1:ncoef[i,2]
+                R[indx1+1:j, indx2 +k -nsparse] <- temp[1:j, k+ j]
+                R[indx2+k, indx2 +k -nsparse] <- temp[k+j, k+j]
+                }
             }
-        if (ncol(temp) > fcount[i]) {
-            k <- ncol(temp) - fcount[i]
-            if (j>0) 
-                R[1:j+indx1, 1:k + indx2] <- temp[1:j, j+1:k]
-            R[1:k+indx2, 1:k + indx2] <- temp[j+ 1:k, j+ 1:k]
-            indx2 <- indx2 +k
+        else if (ncoef[i,2]>0) {
+            k <- 1:ncoef[i,2]
+            R[indx2+k, indx2+k -nsparse] <- temp
             }
-        indx1 <- indx1 +j
+        indx2 <- indx1 +ncoef[i,2]
         }
     
-    bdsmatrix(blocksize=tmat@blocksize, blocks=tmat@blocks, R=R)
+    bdsmatrix(blocksize=tmat@blocksize, blocks=tmat@blocks, rmat=R)
     }    
 @ 
 
@@ -217,7 +224,7 @@ All columns of the stored $X$ matrix are centered and scaled, and these
 factors are returned.
 
 <<coxfit6a-call>>=
-dummy <- kfun(theta, varlist, vparm, ntheta)
+dummy <- kfun(theta, varlist, vparm, ntheta, ncoef)
 if (is.null(dummy@rmat)) rcol <- 0
     else                 rcol <- ncol(dummy@rmat)
 npenal <- ncol(dummy)  #total number of penalized terms
@@ -296,7 +303,7 @@ is a character string giving the choice.
 <<define-logfun>>=
 logfun <- function(theta, varlist, vparm, kfun, ntheta,
                    init, fit0, iter, ofile) {
-    gkmat <- gchol(kfun(theta, varlist, vparm, ntheta))
+    gkmat <- gchol(kfun(theta, varlist, vparm, ntheta, ncoef))
     ikmat <- solve(gkmat)  #inverse of kmat, which is the penalty
     if (any(diag(ikmat) <=0)) { #Not an spd matrix
         return(0)  # return a "worse than null" fit
@@ -319,7 +326,7 @@ logfun <- function(theta, varlist, vparm, kfun, ntheta,
 The third routine is used for iterative refinement of the Laplace
 estimate. The arguments in this case are
 \begin{description}
-  \item[rfun] either 'coxfit6d' or 'agfit6d'
+  \item[rfile] either 'coxfit6d' or 'agfit6d'
   \item[beta] the final solution vector or random effects $(b, \beta)$
   \item[gkmat] the final variance-covariance matrix at the solution
   \item[bmat] a matrix normal 0/1 random variables with nfrail rows (dimension
@@ -337,7 +344,7 @@ if (refine.n > 0) {
     bmat <- matrix(rnorm(length(beta)*refine.n), ncol=refine.n)
     sim.pen <- colSums(bmat^2)/2   #This is b' \Sigma^{-1} b /2 
 
-    rfit <- .C(rfun,
+    rfit <- .C(rfile,
                as.integer(refine.n),
                as.double(beta),
                as.double(gkmat %*% bmat),
@@ -382,7 +389,7 @@ routine would never be called directly by a user.
 coxme.fit <- function(x, y, strata, offset, ifixed, control,
 			weights, ties, rownames, 
 			fmat, zmat, varlist, vparm, theta,
-                        ntheta, refine.n) {
+                        ntheta, ncoef, refine.n) {
     time0 <- proc.time()
 
     n <-  nrow(y)
@@ -463,7 +470,7 @@ however, I prefer to make such hidden arguments explicit.
 <<define-logfun>>
 if (length(theta)) {
     logpar <- list(varlist=varlist, vparm=vparm, 
-                   ntheta=ntheta, kfun=kfun,
+                   ntheta=ntheta, ncoef=ncoef, kfun=kfun,
                    init=c(rep(0., npenal), scale*fit0$coef),
                    fit0= fit0$loglik[2],
                    iter=control$inner.iter,
@@ -484,7 +491,7 @@ The phrase [[c(ikmat@rmat,0)]] makes sure something is passed when
 [[rmat]] is of length 0.
 
 <<coxme-fit>>=
-    gkmat <- gchol(kfun(theta, varlist, vparm, ntheta))
+    gkmat <- gchol(kfun(theta, varlist, vparm, ntheta, ncoef))
     ikmat <- solve(gkmat)  #inverse of kmat, which is the penalty
     fit <- .C(ofile,
               iter= as.integer(c(0, control$iter.max)),
@@ -506,7 +513,6 @@ There are 4 tasks left to do
  <<release-memory>>
  <<coxme-rescale>>
  <<coxme-df>>
- <<finish-random>>
  <<create-output-list>>
 @ 
 
@@ -626,19 +632,6 @@ traceprod <- function(H, P) {
 df <- nvar + (nfrail - traceprod(hinv, ikmat))
 @ 
 
-Our last action for the random terms is to call the 
-[[wrapup]] functions, which retransform (if needed) 
-$\theta$ back to the user's scale, re-insert (if needed)  %'
-any fixed parameters, add labels, and format the
-random coefficients.
-<<finish-random>>=
-newtheta <- NULL   
-nrandom <- length(varlist)
-sindex <- rep(1:nrandom, ntheta) #which thetas to which terms
-
-for (i in 1:nrandom) 
-    newtheta <- c(newtheta, varlist[[i]]$wrapup(theta[sindex==i], vparm[[i]]))
-@ 
 And last, put together the output structure.
 <<create-output-list>>=
     fcoef <- fit$beta[1:nfrail]
@@ -646,15 +639,14 @@ And last, put together the output structure.
     idf <- nvar + sum(ntheta)
 
     if (nvar > 0) {
-	out <- list(coefficients=list(fixed=fit$beta[-(1:nfrail)]/scale, 
-	                       random=newtheta),
-	     frail=fit$beta[1:nfrail], penalty=penalty,
+	out <- list(coefficients = fit$beta[-(1:nfrail)]/scale, frail=fcoef, 
+	     theta=theta, penalty=penalty,
 	     loglik=c(fit0$log[1], ilik, fit$log[2]), var=hinv,
 	     df=c(idf, df), hmat=hmat, iter=iter, control=control,
 	     u=u, means=means, scale=scale)
 	}
-    else out <- list(coefficients=list(fixed=NULL, random=newtheta),
-	      frail=fit$beta[1:nfrail], penalty= penalty,
+    else out <- list(coefficients=NULL, frail=fcoef, 
+                     theta=theta, penalty=penalty,
 	      loglik=c(fit0$log[1], ilik, fit$log[2]), var=hinv,
 	      df=c(idf, df), hmat=hmat, iter=iter, control=control,
 	      u=fit3$u, means=means, scale=scale)    

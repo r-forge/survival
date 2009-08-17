@@ -141,8 +141,8 @@ if (nrandom ==0) stop("No random effects terms found")
 <<get-groups>>
 <<make-vinit>>
 <<newzmat>>
-vparms <- vector('list', nrandom)
-fname <- zname <- thetalist <- vparms
+vparm <- vector('list', nrandom)
+fname <- zname <- thetalist <- vparm
 if (missing(varlist)) {
     varlist <- vector('list', nrandom)
     for (i in 1:nrandom) varlist[[i]] <- coxvarFull() #default
@@ -180,13 +180,16 @@ to modify certain options.
 Now we proceed through the list one element at a time, and do the necessary
 setup.
 The [[theta]] vector will contain starting values for all of the
-variance parameters that are \emph{not} fixed, and [[nthata[i]]] the
+variance parameters that are \emph{not} fixed, and [[ntheta[i]]] the
 number of values that each random term contributed.
 The final $\theta$ vector will be null if all the parameters are fixed. 
+The [[ncoef]] matrix has a row for each term, containing the number
+of intercepts and slopes for that term.
 
 <<build-control-structures>>=    
 fmat <- zmat <- matrix(0, nrow=n, ncol=0)
 ntheta <- integer(nrandom)
+ncoef  <- matrix(0L, nrandom, 2, dimnames=list(NULL, c("intercept", "slope")))
 theta <-  NULL   #initial values of parameters to iterate over
 for (i in 1:nrandom) {
     f2 <- formula2(flist$random[[i]])
@@ -202,7 +205,7 @@ for (i in 1:nrandom) {
                         groups, cmat, sparse)
     if (!is.null(ifun$error)) 
         stop(paste("In random term ", i, ": ", ifun$error, sep=''))
-    vparms[[i]] <- ifun$parms
+    vparm[[i]] <- ifun$parms
 
     theta <- c(theta, ifun$theta)
     ntheta[i] <- length(ifun$theta)
@@ -218,10 +221,12 @@ for (i in 1:nrandom) {
                            ": intercept matrix has an invalid column", sep=''))
             }
         fmat <- cbind(fmat, ifun$F)
+        ncoef[i,1] <- sum(apply(ifun$F, 2,max))
         }
 
     if (!is.null(cmat)) {
         temp <- newzmat(cmat, fmat)
+        ncoef[i,2] <- ncol(temp)
         zmat <- cbind(zmat, temp)
         }
     } 
@@ -293,8 +298,8 @@ managable chunks.
 <<call-computation-routine>>=
 fit <- coxme.fit(X, Y, strats, offset, init, control, weights=weights,
                  ties=ties, row.names(m),
-                 fmat, zmat, varlist, vparms, 
-                 theta, ntheta, refine.n)
+                 fmat, zmat, varlist, vparm, 
+                 theta, ntheta, ncoef, refine.n)
 @ 
 
 Then we finish up be packaging up the results for a user.
@@ -308,23 +313,22 @@ if (is.character(fit)) {
     return(fit)
     }
 @ 
+
 Now add labels to the fixed coefficients and to the frailty terms.
 The [[coefficients]] portion of the returned object conttains the
 values for $\hat \beta$ (fixed) and for the variances $\hat \theta$.
 The [[frail]] component contains the values for $\hat b$.
 <<finish-up>>=
-fcoef <- fit$coefficients$fixed
+fcoef <- fit$coefficients
 nvar <- length(fcoef)
 if (length(fcoef)>0 && any(is.na(fcoef))) {
     vars <- (1:length(fcoef))[is.na(fcoef)]
     msg <-paste("X matrix deemed to be singular; variable",
                     paste(vars, collapse=" "))
-    if (singular.ok) warning(msg)
-    else             stop(msg)
+    warning(msg)
     }
 if (length(fcoef) >0) {
     names(fcoef) <- dimnames(X)[[2]]
-    fit$coefficients <- list(fixed=fcoef, random=fit$coeff$random)
     }
 @ 
 
@@ -345,8 +349,31 @@ if (length(zmat)) {
     }
 
 if (nvar==0) fit$linear.predictor <- rlinear
-else fit$linear.predictor <- as.vector(rlinear + c(X %*% fit$coef$fixed))
+else fit$linear.predictor <- as.vector(rlinear + c(X %*% fit$coef))
+@
+
+Our last action for the random terms is to call the 
+[[wrapup]] functions, which retransform (if needed) 
+$\theta$ back to the user's scale, re-insert (if needed)  %'
+any fixed parameters, label the vector, and label/arrange
+the random coefficients $b$.
+<<finish-up>>=
+newtheta <- random.coef <- list()  
+nrandom <- length(varlist)
+sindex <- rep(1:nrandom, ntheta) #which thetas to which terms
+bindex <- rep(1:nrandom, rowSums(ncoef)) # which b's to which terms
+for (i in 1:nrandom) {
+    temp <- varlist[[i]]$wrapup(fit$theta[sindex==i], fit$frail[bindex==i], 
+                                vparm[[i]])
+    newtheta <- c(newtheta, temp$theta)
+    random.coef <- c(random.coef, temp$coef)
+    }
+fit$coefficients <- list(fixed=fcoef, random=newtheta)
+fit$frail <- random.coef
+fit$beta <- NULL
+fit$theta <- NULL
 @ 
+ 
 Last fill in a set of miscellaneous members of the structure
 <<finish-up>>=
 fit$n <- nrow(Y)

@@ -19,7 +19,7 @@ Each of them returns a list of 3 functions, [[initialize]], [[generate]], and
 Any optional arguments to the variance family are used to create these
 three; depending on the family they might apply to any one.
 
-The initialize function is called with the $Z$ and $G$ matrices for the
+The initialize function is called with the $X$ and $G$ matrices for the
 given term, along with the sparse option and 
 the appropriate vectors of initial and fixed values.
 
@@ -29,13 +29,12 @@ The return from a call to initialize is
 that need to be optimized.  This implicitly gives the number
 of parameters to optimize.
 \item[F] the design matrix for any random factors
-\item[X] the design matrix for any random slopes
+\item[X] the covariate matrix for random slopes
 \item[parm] a list of arguments to be passed forward to the 
 generate and wrapup functions. 
 \item[error] optional error message.  This is passed up so the parent
   can print an error message with more information.
 \end{description}
-
 
 The input data [[G]] is a data frame with one variable per level of
 nesting.  
@@ -44,6 +43,9 @@ In particular, any class levels that are going to be treated as
 sparse will have been rearranged to so as to be the first columns of
 the penalty matrix (variance of the random effect), and so will have
 level indices of 1,2, \ldots.
+In all the current routines the $X$ matrix returned is
+identical to the $X$ matrix input. In the future we may add scaling,
+however.
 
 The \emph{generate} function is called at each iteration with the current
 vector of estimates $\hat\theta$ and the appropriate parameter list.  
@@ -153,9 +155,9 @@ To describe the layout, we consider five cases of increasing complexity.
 The [[initialize]] and [[generate]] routines each start by
 defining a few variables, and then treating the five cases one by one.
 <<coxvarFull-init>>= 
-initialize <- function(initial, fixed, intercept, G, Z,  sparse) {
-    if (is.null(Z)) nvar <- 0
-    else nvar <- ncol(Z)
+initialize <- function(initial, fixed, intercept, G, X,  sparse) {
+    if (is.null(X)) nvar <- 0
+    else nvar <- ncol(X)
     <<initmatch>>
     
     if (intercept & is.null(G))
@@ -215,7 +217,7 @@ applies, then the levels of the variable are reordered to put the
 infrequent levels first, and the variance matrix starts with
 nsparse $1\times 1$ blocks.
 The input will have $G$ as a single column data frame containing a single
-grouping variable, often represented as a factor and  $Z$ will be null.
+grouping variable, often represented as a factor and  $X$ will be null.
 If $G$ has $g$ levels, then the vector of random intercepts will be of
 length $g$, there is a single random variance, and
 $$
@@ -338,7 +340,8 @@ if (parms$case==2) {
     if (parms$nsparse >0) {
         bdsmatrix(blocksize=rep(1, parms$nsparse),
                   blocks=temp[1:parms$nsparse],
-                  rmat=rbind(matrix(0.,nrow=parms$nsparse, ncol=sum(nlevel)),
+                  rmat=rbind(matrix(0.,nrow=parms$nsparse, 
+                                    ncol=sum(parms$nlevel)),
                              diag(temp[-(1:parms$nsparse)])))
         }
      else diag(temp)
@@ -380,7 +383,7 @@ So all this computation works on that unique subset.
 <<coxvarFull-init-2>>=
 else { #ncol(G)>1, intercept=T, nvar=0, collapse=T
     gtemp <- as.factor(G[,1])[,drop=TRUE]
-    gfrac <- table(gtemp)/ n
+    gfrac <- table(gtemp)/ length(gtemp)
     if (nlevel[ncol(G)] > sparse[1] && any(gfrac <= sparse[2])) {
         indx <- order((gfrac> sparse[2]), 1:nlevel)
         G[,1] <- factor(gtemp, levels=levels(gtemp)[indx])
@@ -408,8 +411,7 @@ else { #ncol(G)>1, intercept=T, nvar=0, collapse=T
         varlist[[1]] <- bdsmatrix(blocksize=tsize,
                               blocks=temp@blocks[1:sum(tsize*(tsize+1)/2)],
                               rmat=rbind(rtemp, as.matrix(temp[dense,dense])))
-        }
-    
+        } 
 @ 
 
 A last loop  helps computational speed, in a somewhat non-obvious
@@ -422,7 +424,7 @@ them to do so at this point rather than waiting till later additions.
 <<coxvarFull-init-2>>=
     for (i in 2:ncol(G)) varlist[[i]] <- varlist[[i]] + 0*varlist[[1]]
       
-    list(F=matrix(as.numeric(ulist)), X=NULL, 
+    list(F=matrix(as.numeric(G[,ncol(G)])), X=NULL, 
          theta=log(theta[!which.fixed]),
          parms=list(varlist=varlist, theta=theta, 
                     fixed=which.fixed, gname=gname,
@@ -449,11 +451,11 @@ If the variance is fixed, this is equivalent to ordinary ridge
 regression.
 First deal with initial values.  There should be either 0 or 1 of
 them, named (if at all) with the first covariate. 
-As a default starting value we have std(b *Z) = .2.
+As a default starting value we have std(b *X) = .2.
 The variance matrix will be a diagonal, non-sparse, so after checking
 initial values there is almost nothing left to do.
 <<coxvarFull-init-3>>=
-xname <- dimnames(Z)[[2]]
+xname <- dimnames(X)[[2]]
 if (length(initial) >0) {
   temp <- initmatch(xname[1], initial)
   if (any(temp==0)) 
@@ -461,7 +463,7 @@ if (length(initial) >0) {
                               'of initial values not matched')))
   else theta <- initial
   }
-else theta <- .2 / mean(sqrt(apply(Z,2,var)))
+else theta <- .2 / mean(sqrt(apply(X,2,var)))
   
 if (length(fixed) >0) {
     temp <- initmatch(xname[1], fixed)
@@ -474,7 +476,7 @@ if (length(fixed) >0) {
 else which.fixed <- FALSE
 if (theta <=0) return(list(error="Invalid variance value, must be >0"))
 
-list(theta=theta[!which.fixed], F=NULL, X=Z,
+list(theta=theta[!which.fixed], F=NULL, X=X,
          parms=list(fixed=which.fixed, theta=theta,
                     xname=xname, case=3))
 @ 
@@ -491,7 +493,7 @@ levels are not reversed.  Whatever the sparseness result, we
 create a bdsmatrix for the intercepts so that the generate
 routine can deal with a fixed quantity.
 <<coxvarFull-init-4>>=
-gtemp <- as.factor(G[[1]])[,drop=TRUE] #toss unused levels
+gtemp <- as.factor(G[[1]])[,drop=TRUE] #drop unused levels
 nlevel <- length(levels(gtemp))
 gfrac <- table(gtemp)/ length(gtemp)
 if (nlevel[1] > sparse[1] && any(gfrac <= sparse[2])) {
@@ -524,9 +526,10 @@ else {
         }
     }
 @ 
-
-The returned $X$ matrix is more complex, it will have one regression column for
-the covariate [[age]] for each level of the grouping variable.  
+The parent routine will compute the actual design matrix $Z$ from $X$ and
+the groupings.  
+It will have one regression column for each covariate 
+for each level of the grouping variable.  
 In general it has ngroup colums
 for the first covariate, then ngroup for the second, etc.
 Since in this structure the coefficients for someone in group 1 will
@@ -538,7 +541,7 @@ matrix for the coefficients would be:
 \left( \begin{array}{ccc}
   \sigma^2_1 I & \sigma_{12} I & \sigma_{13}I \\
   \sigma_{12}I & \sigma_2^2 I &  \sigma_{23}I \\
-  \sigma_{13}I & \sigma_{23}I &  \sigma_3^2 \end{array} \right)
+  \sigma_{13}I & \sigma_{23}I &  \sigma_3^2 I\end{array} \right)
 \label{eq:varcov}
 \end{equation}
 where each of the identity matrices $I$ is of dimension ngroup.
@@ -546,20 +549,8 @@ If there were 2 grouping variables and two covariates we would
 have a 4 by 4 block, with $\sigma_{12}=0$ (nested grouping variables
 are assumed independent), and the identity matrices would have
 either $g_1$ or $g_2$ columns as appropriate.
-<<coxvarFull-init-4>>=
-X <- matrix(0., nrow=n, ncol=sum(nlevel)*nvar)
-indx <- seq(0, length=nvar, by=sum(nlevel))
-offset <-0
-for (i in 1:ngroup) { 
-    for (j in 1:nvar) {
-        for (k in 1:nvlevel[i])
-            X[,offset+ k +indx] <- Z[,j] * (F[,i]==k)
-        offset <- offset + nlevel[i]
-        }
-    }
-@ 
 
-I've not yet taken care of the intitial values.    %'
+I've not yet taken care of the intitial values.  
 The parameter list $\theta$ will consist of first the variances
 of the blocking factors, then of the covariates, then the correlations.
 The default values for $\theta$ are 0 for the correlations and .2 for the
@@ -568,7 +559,7 @@ For computation they are transformed with variances=$e^\theta$ and
 correlations=$(e^\theta -1)/(e^\theta +1)$.
 <<covarvFull-init-4>>=
 theta <- c(rep(.2, ngroup), .2/sqrt(apply(Z,2,var)),
-           rep(0., ngroup*nvar + nvar*(nva-1)/2))
+           rep(0., nvar*ngroup + nvar*(nvar-1)/2)
 
 if (length(initial) > 0) {
     temp <- initmatch(tname, initial)
@@ -596,8 +587,8 @@ theta <- c(log(theta[indx]), log((1+temp)/(1-temp)))
 list(theta=theta[!which.fixed], F=F, X=X, 
              parms=list(theta=theta, fixed=which.fixed, 
                         nlevel=nlevel, levellist=levellist,
-                        nvar=nvar, gname=names(G),
-                        xname=dimnames(Z)[[2]], case=4))
+                        nvar=nvar, gname=gname, 
+                        xname=dimnames(X)[[2]], case=4))
 @                 
 
 In the generation routine we first recreate the set of variances and
@@ -667,7 +658,20 @@ main diagonal, then finally populate the main diagonal.
  
 
 The wrapup function transforms theta back, and adds names, and
-formats the vector of random coefficients $b$
+formats the vector of random coefficients $b$.
+For a complicated random effect [[(1+ age |institution/sex)]] it should return
+a two element list for [[theta]] with names 'institution' and
+'institution/sex', each of which has the variance for the intercept, for
+age, and then the correlation (appropriately labeled).
+(We are echoing the desired form for the printout).
+The random effect has the same form, containing the named portions of the
+$b$ vector.
+
+[[theta=list('institution'= theta[1])]] for the variances, where
+[[theta[[1]]]] has been labeled with 'Intercept' as the term name,
+and a similar list for the random effects, with each random effect
+labeled by the group to which it belongs.
+
 <<coxvarFull-wrapup>>=
 wrapup <- function(theta, b, parms) {
     if (parms$case <4) {
@@ -676,31 +680,46 @@ wrapup <- function(theta, b, parms) {
         }
     
     if (parms$case==1) {
-        names(theta) <- parms$gname
+        names(newtheta) <- 'Intercept'
         names(b) <- parms$levels
-        return(list(theta=newtheta, random=b))
+        theta <- list(newtheta)
+        names(theta) <- parms$gname
+        b <- list(b)
+        names(b) <- parms$gname
+        return(list(theta=theta, random=b))
         }
 
     if (parms$case==2) {
         ngroup <- length(parms$nlevel)
+        theta <- vector('list', ngroup)
+        for (i in 1:ngroup) 
+            theta[[parms$gname[i]]] <- c('Intercept'=newtheta[i])
         names(b) <- unlist(parms$levellist)
         random <- split(b, rep(1:ngroup, parms$nlevel))
-        names(random) <- parms$tname
-        return(list(theta=newtheta, random=random))
+        names(random) <- parms$gname
+        list(theta=newtheta, random=random)
         }
 
+    if (parms$case==2.5) stop("This case not written yet")
+    
     if (parms$case==3) {
-        names(theta) <- parms$xname
-        names(b) <- parms$levels
-        return(list(theta=newtheta, random=b))
+        theta <- list(c('Shrinkage' = newtheta[1]))
+        names(theta) <- '1'
+        names(b) <- parms$xname
+        list(theta =theta, b=list('1'=b))
         }
+        
     
     if (parms$case==4) {
-         ngroup <- length(parms$nlevel)
-         nvar <- parms$nvar
-         names(b) <- rep(unlist(parms$levellist, 1+nvar))
-         random <- split(b, rep(rep(1:ngroup, parms$nlevel), 1+nvar))
-         names(random) <- parms$tname[1:(ngroup+nvar)]
+        newtheta <- parms$theta
+        newtheta[!parms$fixed] <- theta
+        newtheta <- exp(newtheta)   #exponentiate all, not just iterated ones
+
+        ngroup <- length(parms$nlevel)
+        nvar <- parms$nvar
+        names(b) <- rep(unlist(parms$levellist, 1+nvar))
+        random <- split(b, rep(rep(1:ngroup, parms$nlevel), 1+nvar))
+        names(random) <- parms$gname
          
          cmat <- diag(nvar+ngroup)  #correlation matrix
          temp <- exp(parms$theta)
@@ -718,18 +737,16 @@ wrapup <- function(theta, b, parms) {
                  offset <- offset + nvar -i
                  }
              }   
-         cmat <- cmat + t(cmat)
-         diag(cmat) <- 1.0
          
-         indx <- 1:(nvar+ngroup)
-         vars <- temp[]
-         names(vars) <- temp[indx]
-         names(vars) <- parms$tname[indx]
-         dimnames(cmat) <- list(parms$tname, parms$tname)
-         return(list(theta=list(variance=vars, correlation=cmat),
-              random=random))
-         }
-    
-    if (parms$case==2.5) stop("Wrapup not finished")
+        temp <- rep(0L, length(theta))
+        j <- nvar-1
+        for (i in 1:ngroup) {
+            temp[c(i, 1:(2*nvar)+j)] <- i
+            j <= j+ 2*nvar
+            }
+        theta <- split(newtheta, parms$gname[temp])
+        
+        list(theta=theta, random=random)
+        }
     }
 @ 

@@ -56,9 +56,9 @@ The [[coxme]] code starts with a fairly standard argument list.
 <<coxme>>=
 coxme <- function(formula,  data, 
 	weights, subset, na.action, init, 
-	control, ties= c("efron", "breslow", "exact"),
-	singular.ok =T, varlist=NULL, variance, vinit=.2, sparse=c(50,.02),
-	rescale=TRUE, pdcheck=TRUE, x=FALSE, y=TRUE, shortlabel=TRUE, 
+	control, ties= c("efron", "breslow"),
+	varlist=NULL, variance, vinit=.2, sparse=c(50,.02),
+	x=FALSE, y=TRUE, 
         refine.n=0, random, fixed, ...) {
 
     time0 <- proc.time()    #debugging line
