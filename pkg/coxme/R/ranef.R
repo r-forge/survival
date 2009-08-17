@@ -2,7 +2,7 @@ ranef <- function(object, ...) {
     UseMethod("ranef")
     }
 random.effects <- function(object,...) {
-    UseMethood("ranef")
+    UseMethod("ranef")
     }
 
 fixef <- function(object, ...) {
@@ -14,3 +14,6 @@ fixed.effects <- function(object, ...) {
 
 fixef.coxme <- function(object, ...)
     object$coefficients$fixed
+
+ranef.coxme <- function(object, ...)
+    object$coefficients$random
