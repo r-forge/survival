@@ -494,7 +494,7 @@ newzmat <- function(xmat, xmap) {
     n <- nrow(xmap)
     newz <- matrix(0., nrow=n, ncol=max(xmap))
     for (i in 1:ncol(xmap)) 
-        newz[cbind(1:n, xmap[,i]) <- xmat[,i]
+        newz[cbind(1:n, xmap[,i])] <- xmat[,i]
     newz
     }
 @ 

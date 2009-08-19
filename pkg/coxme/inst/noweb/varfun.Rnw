@@ -297,7 +297,7 @@ if (nvar==0)
     return(list(imap=imap, X=NULL, 
                 theta=theta[!which.fixed]), 
                 parms=list(vmat=vmat, theta=theta, levellist=levellist,
-                           fixed=which.fixed, case=2, gname=gname)))
+                           fixed=which.fixed, case=2, gname=gname))
 @	    
 
 The generate function for this case is quite simple.
@@ -485,7 +485,7 @@ for (i in 1:ngroup)
     varlist[[i]] <- bdsBlock(1:nlevel[1], G[indx,i])
 
 if (sum(block.sparse) <=1) {#make them all ordinary matrices
-    for (1 in 1:ngroup) varlist[[i]] <- as.matrix(varlist[[i]])
+    for (i in 1:ngroup) varlist[[i]] <- as.matrix(varlist[[i]])
     }
 else {
     if (!all(block.sparse)) { # Only a part is sparse
