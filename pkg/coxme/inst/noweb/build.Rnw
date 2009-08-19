@@ -89,29 +89,32 @@ fixed effects.
 \begin{itemize}
   \item We need to create both the $Z$ matrix and $\Sigma$.
   \item The actual form of $Z$ depends on the type of random
-    effect: a familial correlation will be different than an compound
-    symmetry.  There are many possible correlation structures.
+    effect, but often looks like the design matrix for a one way anova.
+    There are many possible correlation structures $\Sigma$.
   \item If there are multiple random terms, each creates a block of columns
     in $Z$ and block of values in $\Sigma$.
   \item For efficiency, any class variables in $Z$ are
     represented in compressed form, i.e., random intercepts.  
     Such variables are stored in a matrix $F$ which has a single column 
     for each class variable, with integer
-    values of 1,2, \ldots. $Z$ will contain the remaining
+    values of 1,2, \ldots that state which coefficient each observation
+    contributes to.. $Z$ will contain the remaining
     columns.
 \end{itemize}
 The basic flow of the routine is to process the random terms one at a time.
 The [[varlist]] component describes a variance family for each term; and
 we do two calls for each.
 The first call is to the \emph{initialize} member of the family, giving it the
-$G$ containing the grouping variables along with the number of columns in
+$G$ containing the grouping variables along with covariates
 $C$ and whether or not the left hand side contained an intercept, and
 appropriate portions of the initial values (vinit) or fixed variance
 (variance) specification.
-It returns corresponding columns of $F$ and $Z$, a vector [[theta]] containing
+It returns corresponding columns of $F$, $Z$ and a mapping [[zmap]] for
+each column of $Z$,  a vector [[theta]] containing
 the initial values for the non-fixed variance parameters (possibly on
-a transformed scale), and
-a parameter list which will be used in the [[coxme.fit]] routine.
+a transformed scale), and a private 
+parameter list which will be passed forward to the matching [[generate]]
+and [[wrapup]] routines.
 Any transformation is private to the variance family function.
 
 The [[formula2]] function is desribed later; it is responsible for 
@@ -211,21 +214,26 @@ for (i in 1:nrandom) {
     ntheta[i] <- length(ifun$theta)
 
     if (f2$intercept) {
-        if (!is.matrix(ifun$F) || nrow(ifun$F) !=n) 
+        if (!is.matrix(ifun$imap) || nrow(ifun$imap) !=n) 
             stop(paste("In random term ", i, 
                        ": Invalid intercept matrix F", sep=''))
-        for (i in 1:ncol(ifun$F)) {
-            temp <- as.integer(factor(ifun$F[,i]))
-            if (any(temp != ifun$F[,i]))
-                stop(paste("In random term ", i,
-                           ": intercept matrix has an invalid column", sep=''))
-            }
-        fmat <- cbind(fmat, ifun$F)
-        ncoef[i,1] <- sum(apply(ifun$F, 2,max))
+        temp <- sort(unique(ifun$imap))
+        if (any(temp) != 1:length(temp))
+            stop(paste("In random term ", i,
+                       ": intercept matrix has an invalid element", sep=''))
+
+        fmat <- cbind(fmat, ifun$imap)
+        ncoef[i,1] <- 1+ max(ifun$imap) - min(ifun$imap)
         }
 
     if (!is.null(cmat)) {
-        temp <- newzmat(cmat, fmat)
+        if (f2$intercept) xmap <- ifun$xmap - max(ifun$imap)
+        else xmap <- ifun$xmap
+        if (any(sort(unique(xmap)) != 1:max(xmap)))
+             stop(paste("In random term ", i,
+                       ": xmap matrix has an invalid element", sep=''))
+        
+        temp <- newzmat(ifun$X, xmap)
         ncoef[i,2] <- ncol(temp)
         zmat <- cbind(zmat, temp)
         }
@@ -470,10 +478,10 @@ getcmat <- function(x, mf) {
     }
 @ 
 
-The $C$ matrix is crossed with the random effects to get the $Z$
-matrix $Z=(C_{11}, C_{2}, \ldots, C_{21}, \ldots)$,
-where $C_{ij}$ is [[cmat * (fmt[,i]==j])]]. 
-If $F$ has multiple columns and/or any one of the columns has a lot of 
+The initial function returns both a set of covariates $X$ and
+a coefficient map for each column of $X$, showing for each
+row of data which coefficient the term maps to.
+If the map has multiple columns and/or any one of the columns has a lot of 
 levels then $Z$ can get very large.  
 Additionally, if $Z$ has $p$ columns then the Hessian matrix 
 for the corresponding
@@ -482,18 +490,11 @@ This is an area where the code could use more sparse matrix intelligence, i.e.,
 so that the expanded $Z$ need never be created.
 
 <<newzmat>>=
-newzmat <- function(cmat, fmat) {
-    if (length(fmat)==0) return(cmat)  # a formula with (... | 1)
-    newcol <- ncol(cmat) * sum(apply(fmat,2,max))
-    newz <- matrix(0., nrow=nrow(cmat), ncol=newcol)
-    indx <- 0
-    nc <- ncol(cmat)
-    for (i in 1:ncol(fmat)){
-        for (j in 1:max(fmat[,i])) {
-            newz[, 1:nc + indx] <- cmat * (fmat[,i]==j)
-            indx <- indx + nc
-            }
-        }
+newzmat <- function(xmat, xmap) {
+    n <- nrow(xmap)
+    newz <- matrix(0., nrow=n, ncol=max(xmap))
+    for (i in 1:ncol(xmap)) 
+        newz[cbind(1:n, xmap[,i]) <- xmat[,i]
     newz
     }
 @ 

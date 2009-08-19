@@ -574,10 +574,14 @@ following way:
 for each grouping variable we have an 
 (nvar +1) by (nvar +1) set of variances/covariances, with the
 intercept as the first column.
-We will let theta have this structure.
-The [[tname]] vector gives names to \emph{most} of the elements, in
+The $\theta$ vector has the lower triangle of this (in standard R
+matrix order) for the first grouping variable, then for the second, 
+etc.
+The [[tname]] vector gives names to the elements, in
 order to allow a user to set selected values.
-(I haven't thought of a good idea for naming the correlations.) %'
+Fpr the random term [[1 + x1 + x2 | g1/g2]] the names would be
+[[g1, x1:g1, x2:g1, x1/g1, x1:x2/g1, x2/g1]], I don't particularly like it.
+If you can think of a better one let me know.
 The default values for $\theta$ are 0 for the correlations and .2 for the
 variances.  
 For computation they are transformed with variances=$e^\theta$ and
@@ -586,10 +590,16 @@ correlations=$(e^\theta -1)/(e^\theta +1)$.
 <<coxvarFull-init-4>>=
 xmean <- apply(X,2,mean)
 xstd  <- sqrt(apply(X,2,var))
-theta <- rep(c(.2, .2/xstd, rep(0., nvar*(nvar+1)/2)), ngroup)
-tname <- outer(c("", paste(parms$xname, '/',sep=''), rep('/',nvar*(nvar-1)/2)),
-               names(G), paste, sep='')
-tname <- c(tname)
+theta.temp <- diag(c(.2, .2/xstd))
+theta <- rep(theta.temp[row(theta.temp) >= col(theta.temp)], ngroup)
+
+name.temp <- outer(xname, xname, paste, sep=":")
+diag(name.temp) <- xname
+name.temp <- name.temp[row(name.temp) >= col(name.temp)]
+tname <- ""
+for (i in 1:ngroup)
+    tname <- c(tname, gname[i], paste(xname, gname[i], sep=':'),
+               paste(tname, gname[i], sep='/'))
 
 if (length(initial) > 0) {
     temp <- initmatch(tname, initial)
@@ -687,11 +697,15 @@ covariates.
 All of these matrices \emph{have exactly the same form}!
 <<coxvarFull-generate>>=
 if (parms$case==4) {
+    newtheta <- parms$theta
+    newtheta[!parms$fixed] <- theta
+    theta <- exp(newtheta)
+    
     ngroup <- length(parms$nlevel)
     n1 <- sum(parms$nlevel)  #number of intercept coefs
     n2 <- n1*nvar            #number of slope coefs
     theta.per.group <- length(theta)/ngroup
-    tindx <- seq(0, by=theta.per.group, length=ngroup)
+    tindx <- seq(1, by=theta.per.group, length=ngroup)
     
     addup <- function(theta, parms) {
         if (length(theta)==1) theta*parms$varmat
@@ -703,8 +717,8 @@ if (parms$case==4) {
         }
                                                 
     # upper left corner
-    itheta <- theta[1+tindx]
-    corner <- addup(theta[1+tindx])
+    ivar <- theta[tindx]  #variances of the intercepts
+    corner <- addup(ivar)
     if (inherits(corner, 'bdsmatrix')) {
         nsparse <- sum(corner@blocksize)
         rmat <- matrix(0., nrow=n1+n2, ncol=n1+n2 - nsparse)
@@ -713,65 +727,47 @@ if (parms$case==4) {
     else {
         nsparse <- 0
         rmat <- matrix(0., n1+n2, n1+n2)
+        rmat[1:n1, 1:n1] <- corner
         }
     
+    # Now for the rest
+    indx2 <- nvar +1
     for (i in 1:nvar) {
-        # diagonal
-        rmat[1:n1+ i*n1, 1:n1 +i*n1] <- addup(theta[1+i+tindx]) #diagonal
-        if (ngroup==1) tmat <- itheta[1]*parms$vmat
-        else {
-            tmat <- itheta[1] * parms$varlist[[1]]
-            for (i in 2:group) tmat <- tmat + itheta[i]*parms$varlist[[i]]
-            }
+        xvar <- theta[indx2 + tindx]  #variances of the slopes
+        rmat[1:n1, 1:n1 +i*n1 -nsparse] <- addup(xvar)
+        # intercept-variate covariance
+        icov <- sqrt(ivar* xvar) * theta[i + tindx]
+        rmat[1:n1,  1:n1 +i*n1-nsparse] <- addup(icov)
         
-    
-    rcol <- ncol(parms$vmat@rmat)
-    rtemp <- matrix(0., nrow=n1 + n2, ncol=n2+ rcol)
-    indx1 <- seq(1, by=nrow(rtemp)+1, length=ngroup)
-    indx2 <- 0   
-    for (i in 1:ngroup) {
-        for (j in 1:nvar) {
-            indx3 <- (rcol+j-1)*nrow(rtemp)
-            rtemp[indx1+indx2+indx3] <- vmat[i,j]
-            }
-        indx2 <- indx2 + parms$nlevel[i]
-        } 
-    if (nvar >1) {
-        for (i in 1:ngroup) {
-            for (j in 1:(nvar-1)) {
-                for (k in (j+1):nvar) {
-                    indx3 <- (rcol+j-1)*nrow(rtemp)
-                    rtemp[indx1+indx2+indx3] <- vmat[ngroup+i, ngroup+j]
-                    }
+        # covariate-covariate
+        if (i<nvar) {
+            indx3 <- indx2 + 1 + nvar -1
+            for (j in (i+1):nvar) {
+                zvar <- theta[indx3]
+                icov <- sqrt(xvar*zvar) * theta[j+indx2 + tindx]
+                rmat[1:n1+ i*n1, 1:n1+ j*n1 - nsparse] <- addup(icov)
                 }
-            indx2 <- indx2 + parms$nlevel[i]
+            indx2 <- indx2 + 1+nvar -i
             }
         }
+    
 
-    final <- bdsmatrix(blocksize=parms$vmat@blocksize,
-                      blocks=parms@vat@blocks,
-                      rmat=rtemp)
-    diag(final) <- rep(diag(vmat), rep(parms$nlevel, nvar+1))
-    final
+    if (inherits(corner, 'bdsmatrix'))
+        bdsmatrix(blocksize=corner@blocksize, blocks=corner@blocks, rmat=rmat)
+    else rmat
     }
-}
 @ 
  
 
-The wrapup function transforms theta back, and adds names, and
+The wrapup function transforms theta back, adds names, and
 formats the vector of random coefficients $b$.
 For a complicated random effect [[(1+ age |institution/sex)]] it should return
 a two element list for [[theta]] with names 'institution' and
-'institution/sex', each of which has the variance for the intercept, for
-age, and then the correlation (appropriately labeled).
+'institution/sex', each of which contains a matrix with variances on
+the diagonal and correlations off the diagonal.
 (We are echoing the desired form for the printout).
-The random effect has the same form, containing the named portions of the
+The random effect has the same form, containing named values of the
 $b$ vector.
-
-[[theta=list('institution'= theta[1])]] for the variances, where
-[[theta[[1]]]] has been labeled with 'Intercept' as the term name,
-and a similar list for the random effects, with each random effect
-labeled by the group to which it belongs.
 
 <<coxvarFull-wrapup>>=
 wrapup <- function(theta, b, parms) {
@@ -780,7 +776,7 @@ wrapup <- function(theta, b, parms) {
         newtheta[!parms$fixed] <- exp(theta)
         }
     
-    if (parms$case==1) {
+    if (parms$case==2) {
         names(newtheta) <- 'Intercept'
         names(b) <- parms$levels
         theta <- list(newtheta)
@@ -790,20 +786,26 @@ wrapup <- function(theta, b, parms) {
         return(list(theta=theta, b=b))
         }
 
-    if (parms$case==2) {
+    if (parms$case==3) {
         ngroup <- length(parms$nlevel)
         theta <- vector('list', ngroup)
         for (i in 1:ngroup) 
             theta[[parms$gname[i]]] <- c('Intercept'=newtheta[i])
-        names(b) <- unlist(parms$levellist)
-        random <- split(b, rep(1:ngroup, parms$nlevel))
-        names(random) <- parms$gname
+
+        if (parms$collapse) {
+            names(b) <- parms$levellist[[ngroup]]
+            random <- list(b)
+            names(random) <- parms$gname[[ngroup]]
+            }
+        else {
+            names(b) <- unlist(parms$levellist)
+            random <- split(b, rep(1:ngroup, parms$nlevel))
+            names(random) <- parms$gname
+            }
         return(list(theta=newtheta, b=random))
         }
 
-    if (parms$case==2.5) stop("This case not written yet")
-    
-    if (parms$case==3) {
+    if (parms$case==1) {
         theta <- list(c('Shrinkage' = newtheta[1]))
         names(theta) <- '1'
         names(b) <- parms$xname
@@ -812,22 +814,27 @@ wrapup <- function(theta, b, parms) {
         
     
     if (parms$case==4) {
-        <<case-4-vmat>>
-
-browser()
+        browser()
         ngroup <- length(parms$nlevel)
         names(b) <- rep(unlist(parms$levellist, 1+nvar))
         random <- split(b, rep(rep(1:ngroup, parms$nlevel), 1+nvar))
         names(random) <- parms$gname
-         
+        for (i in 1:ngroup) {
+            random[[i]] <- split(random[[i]], rep(c("Intercept", parms$xname),
+                                           each=parms$nlevel[i]))
+            }
         # Reformat theta for printing: a list with one element per
         #  group, containing a matrix.
         theta <- vector('list', ngroup)
         names(theta) <- names(parms$nlevel)
-        indx <- rep(1:ngroup, parms$nlevel) #fixed effects
-        indx <- c(indx, rep(indx, each=nvar*(nvar+1)/2))
-        for (i in 1:ngroup) {
-            tmat <- cmat[
+        tfun <- function(x, n=1+ parms$nvar) {
+            tmat <- matrix(0., n, n)
+            tmat[row(tmat) >= col(tmat)] <- x
+            tmat + t(tmat) - diag(diag(tmat))
+            }
+        parms.per.group <- length(theta)/ngroup
+        for (i in 1:ngroup) 
+            theta[[i]] <- tfun(theta[1:parms.per.group + parms.per.group*(i-1)])
         
         return(list(theta=theta, b=random))
         }
