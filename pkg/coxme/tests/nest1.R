@@ -1,6 +1,13 @@
+library(coxme)
+options(na.action='na.exclude', contrasts=c('contr.treatment', 'contr.poly'))
+aeq <- function(x,y) all.equal(as.vector(x), as.vector(y))
 #
 # Very simple data set, to test out nested factors
 #
+# The first version of coxme put f1 before f1/f2, the current does
+#  the opposite
+# old: indx <- 1:10
+indx <- c(4:9, 1:3, 10)
 
 # Undo a gchol: given gchol(x), returns x
 #
@@ -36,10 +43,7 @@ itrue <- bdsmatrix(c(ta, tb, tb, tc, tg, tf, th, tf, th,
                                              te, ti, tk,
                                                  td, ti, te),
                    blocksize=9, rmat=as.matrix(tx))
-ibreslow <- 2*as.matrix(itrue)
-# Oops - coxme now puts the f1/f2 before f1 in the calc
-#diag(ibreslow) <- diag(ibreslow) + rep(c(1,1/2,0), c(3,6,1))
-ibreslow <- ibreslow[c(4:9, 1:3, 10), c(4:9,1:3,10)]
+ibreslow <- 2*itrue[indx, indx]
 diag(ibreslow) <- diag(ibreslow) + rep(c(1,1/2,0), c(6,3,1))
 
 aeq(as.matrix(igchol(sfit$hmat)), as.matrix(ibreslow))
@@ -69,8 +73,7 @@ i2 <- bdsmatrix(c( 60, -30, -30,  40,  20, -24,  -6, -24,  -6,
                                                       48,  -4,     
 		                                           15),
                    blocksize=9, rmat=as.matrix(tx))
-iefron <- as.matrix(itrue + i2/256)
-iefron <- iefron[c(4:9, 1:3, 10), c(4:9,1:3,10)]
+iefron <- (itrue + i2/256)[indx, indx]
 diag(iefron) <- diag(iefron) +  rep(c(1,1/2,0), c(6,3,1)) #add penalty
 aeq(as.matrix(igchol(sfit$hmat)), as.matrix(iefron))
 

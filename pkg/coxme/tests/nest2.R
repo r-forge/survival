@@ -1,6 +1,11 @@
-#   Identical to cross1.R, except I use (start, stop]
+library(coxme)
+options(na.action='na.exclude', contrasts=c('contr.treatment', 'contr.poly'))
+aeq <- function(x,y) all.equal(as.vector(x), as.vector(y))
+
+#   Identical to nest1.R, except I use (start, stop]
 # The data set has one more person, censored, who enters at 4 and 
 #   leaves at 6, to test the "take away" part of the code.
+indx <- c(4:9, 1:3, 10)
 simple <- data.frame(time2=c(9:3,1,1,6), status=c(rep(0,7),1,1,0),
                      f1=c(rep(1:3,3),2), f2=c(rep(1,6), rep(2,3),2), x=1:10,
 		     time1=c(rep(0,9), 4))
@@ -29,8 +34,8 @@ itrue <- bdsmatrix(c(ta, tb, tb, tc, tg, tf, th, tf, th,
                                              te, ti, tk,
                                                  td, ti, te),
                    blocksize=9, rmat=as.matrix(tx))
-ibreslow <- 2*itrue
-diag(ibreslow) <- diag(ibreslow) + rep(c(1,1/2,0), c(3,6,1))
+ibreslow <- 2*itrue[indx, indx]
+diag(ibreslow) <- diag(ibreslow) + rep(c(1,1/2,0), c(6,3,1))
 igchol <- function(x) {
     dd <- diag(x)
     ll <- as.matrix(x)
@@ -64,8 +69,8 @@ i2 <- bdsmatrix(c( 60, -30, -30,  40,  20, -24,  -6, -24,  -6,
                                                       48,  -4,     
 		                                           15),
                    blocksize=9, rmat=as.matrix(tx))
-iefron <- itrue + i2/256
-diag(iefron) <- diag(iefron) +  rep(c(1,1/2,0), c(3,6,1)) #add penalty
+iefron <- (itrue + i2/256)[indx,indx]
+diag(iefron) <- diag(iefron) +  rep(c(1,1/2,0), c(6,3,1)) #add penalty
 aeq(as.matrix(igchol(sfit$hmat)), as.matrix(iefron))
 
 sfit2 <- coxme(Surv(time1, time2, status) ~ x + (1| f1/f2), data=simple, 

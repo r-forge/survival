@@ -432,7 +432,7 @@ getGroupNames <- function(x) {
     }
 
 getgroups <- function(x, mf) {
-    if (is.integer(x)) return(NULL)  # a shrinkage effect like (x1+x2 | 1)
+    if (is.numeric(x)) return(NULL)  # a shrinkage effect like (x1+x2 | 1)
     varname <- getGroupNames(x)
     indx <- match(varname, names(mf), nomatch=0)
     if (any(indx==0)) stop(paste("Invalid grouping factor", varname[indx==0]))

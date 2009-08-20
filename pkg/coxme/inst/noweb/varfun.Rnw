@@ -367,7 +367,7 @@ ngroup <- ncol(G)
 imap <- matrix(0L, nrow=nrow(G), ncol=ngroup)
 imap[,1] <- as.numeric(G[,1])
 for (i in 2:ngroup) 
-    imap[,i] <- as.numeric(levels(G[,i])) + max(imap[,i-1])
+    imap[,i] <- as.numeric(G[,i]) + max(imap[,i-1])
 levellist <- lapply(G, levels)
 nlevel <- sapply(levellist, length)
 
