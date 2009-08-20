@@ -1,9 +1,15 @@
-library(coxme)
-aeq <- function(x,y) all.equal(as.vector(x), as.vector(y))
+#
+# Very simple data set, to test out nested factors
+#
 
+# Undo a gchol: given gchol(x), returns x
 #
-# Very simple data set, to test out crossed factors
-#
+igchol <- function(x) {
+    dd <- diag(x)
+    ll <- as.matrix(x)
+    ll %*% diag(dd) %*% t(ll)
+    }
+
 simple <- data.frame(time=c(9:3,1,1), status=c(rep(0,7),1,1),
                      f1=rep(1:3,3), f2=c(rep(1,6), rep(2,3)), x=1:9)
 sfit <- coxme(Surv(time, status) ~ x + (1| f1/f2), data=simple, ties='breslow',
@@ -30,15 +36,12 @@ itrue <- bdsmatrix(c(ta, tb, tb, tc, tg, tf, th, tf, th,
                                              te, ti, tk,
                                                  td, ti, te),
                    blocksize=9, rmat=as.matrix(tx))
-ibreslow <- 2*itrue
-diag(ibreslow) <- diag(ibreslow) + rep(c(1,1/2,0), c(3,6,1))
+ibreslow <- 2*as.matrix(itrue)
+# Oops - coxme now puts the f1/f2 before f1 in the calc
+#diag(ibreslow) <- diag(ibreslow) + rep(c(1,1/2,0), c(3,6,1))
+ibreslow <- ibreslow[c(4:9, 1:3, 10), c(4:9,1:3,10)]
+diag(ibreslow) <- diag(ibreslow) + rep(c(1,1/2,0), c(6,3,1))
 
-# Undo a gchol: given gchol(x), returns x
-igchol <- function(x) {
-    dd <- diag(x)
-    ll <- as.matrix(x)
-    ll %*% diag(dd) %*% t(ll)
-    }
 aeq(as.matrix(igchol(sfit$hmat)), as.matrix(ibreslow))
 
 
@@ -66,11 +69,17 @@ i2 <- bdsmatrix(c( 60, -30, -30,  40,  20, -24,  -6, -24,  -6,
                                                       48,  -4,     
 		                                           15),
                    blocksize=9, rmat=as.matrix(tx))
-iefron <- itrue + i2/256
-diag(iefron) <- diag(iefron) +  rep(c(1,1/2,0), c(3,6,1)) #add penalty
+iefron <- as.matrix(itrue + i2/256)
+iefron <- iefron[c(4:9, 1:3, 10), c(4:9,1:3,10)]
+diag(iefron) <- diag(iefron) +  rep(c(1,1/2,0), c(6,3,1)) #add penalty
 aeq(as.matrix(igchol(sfit$hmat)), as.matrix(iefron))
 
 sfit2 <- coxme(Surv(time, status) ~ x + (1| f1/f2), data=simple, ties='efron', 
               varlist=coxvarFull(collapse=FALSE), variance=c(1,2), 
                iter=0, sparse.calc=1)
 aeq(as.matrix(igchol(sfit2$hmat)), as.matrix(iefron))
+
+rm(ta, tb, tc, td,te, tf, tg,th, ti,tk,tx)
+rm(sfit, itrue)
+rm(sfit2, i2, iefron)
+rm(simple)

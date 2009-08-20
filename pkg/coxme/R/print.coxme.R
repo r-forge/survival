@@ -40,7 +40,7 @@ print.coxme <- function(x, rcoef=FALSE, digits=options()$digits, ...) {
         dimnames(tmp) <- list(names(coef), c("coef", "exp(coef)",
             "se(coef)", "z", "p"))
         }
-    if (rcoef) { #random coefs
+    if (rcoef) { # print the random coefs
         coef <- unlist(x$frail)
         se <- sqrt(diag(x$var)[1:nfrail])
         rtmp <- cbind(coef, exp(coef), se, round(coef/se,2),
@@ -63,63 +63,41 @@ print.coxme <- function(x, rcoef=FALSE, digits=options()$digits, ...) {
         }
 
     cat("\nRandom effects\n")
-    # for each term: grouping name and nrow/ncol for each group
-    tfun <- function(x) {
-        gname <- as.list(names(x))
-        nrow <- ncol <- xname <- vector('list', length(x))
-        for (i in 1:length(x)) {
-            if (is.list(x[[i]])) {
-                temp <- tfun(x[[i]])
-                gname[[i]] <- temp$gname
-                nrow[[i]] <- temp$nrow
-                ncol[[i]] <- temp$ncol
-                xname[[i]]<- temp$xname
-                }
-            else {
-                if (is.matrix(x[[i]])) {
-                    nrow[[i]] <- nrow(x[[i]])
-                    ncol[[i]] <- ncol(x[[i]])
-                    xname[[i]] <- dimnames(x[[i]])[[1]]
-                    }
-                else {
-                    nrow[[i]] <- length(x[[i]])
-                    ncol[[i]] <- 1
-                    xname <- names(x[[i]])
-                    }
-                }
-            }
-        list(gname=unlist(gname), nrow=unlist(nrow), ncol=unlist(ncol),
-             xname=unlist(xname))
-        }
 
-    rtype <- tfun(beta$random)
-    maxcol <- max(rtype$ncol)
-    temp1 <- matrix(NA, nrow=sum(rtype$nrow), ncol=1+ maxcol)
+    random <- x$coefficients$random
+    gname <- names(random)
+    nrow <-  sapply(random, 
+                    function(x) if (is.matrix(x)) nrow(x) else length(x))
+    maxcol <-max(sapply(random,
+                        function(x) if (is.matrix(x)) 1+ncol(x) else 2))
+    temp1 <- matrix(NA, nrow=sum(nrow), ncol=maxcol)
     indx <- 0
-    for (i in  beta$random) {
-        if (!is.list(i)) i <- list(i)
-        for (j in i) {
-            if (is.matrix(j)) {
-                k <- ncol(j)
-                temp1[1:k + indx, 1] <- sqrt(diag(j))
-                for (i in 1:k) temp1[i+indx, i:k +1] <- j[i, i:k]
-                }
-            else {
-                k <- length(j)
-                temp1[1:k + indx,1] <- sqrt(j)
-                temp1[1:k + indx,2] <- j
-                }
+    for (i in  random) {
+        if (is.matrix(i)) {
+            k <- ncol(i)
+            temp1[1:k + indx, 1] <- sqrt(diag(i))  #std
+            temp1[1:k + indx, 2] <- diag(i)        #variancw
+            for (j in 1:(k-1)) temp1[j+indx, 1+(j+1):k ] <- i[j, (j+1):k]  #corr
             }
+        else {
+            k <- length(i)
+            temp1[1:k + indx,1] <- sqrt(i)
+            temp1[1:k + indx,2] <- i
+            }
+        indx <- indx + k
         }
-
-    indx <- cumsum(c(1, rtype$nrow))
+        
+    indx <- cumsum(c(1, nrow))   # starting row of each effect
     temp3 <- rep("", nrow(temp1))
-    temp3[indx[-length(indx)]] <- rtype$gname
-    temp <- cbind(temp3, rtype$xname, format(temp1))
-    if (maxcol == 1)
+    temp3[indx[-length(indx)]] <- names(random)
+    xname <- unlist(lapply(random, 
+                  function(x) if (is.matrix(x)) dimnames(x)[[1]] else names(x)))
+    temp <- cbind(temp3, xname, format(temp1))
+    if (maxcol == 2)
         temp4 <- c("Group", "Variable", "Std Dev", "Variance")
     else 
-        temp4 <- c("Group","Variable", "Std Dev", "Var/Cov", rep("", maxcol-2))
+        temp4 <- c("Group","Variable", "Std Dev", "Variance", "Corr", 
+                   rep("", maxcol-2))
     dimnames(temp) <- list(rep("", nrow(temp)), temp4)
     print(temp, quote=F)
     invisible(x)

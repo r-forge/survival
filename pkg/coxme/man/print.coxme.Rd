@@ -8,17 +8,19 @@ Print method for a coxme fit.
 Print out the result of a coxme fit.
 }
 \usage{
-print.coxme(x, digits = options()$digits, ...)
+\method{print}{coxme}(x, rcoef=FALSE, digits = options()$digits, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{x}{
     an object of class \code{coxme}, from the fit of a mixed effects
     survival model.
-}
+  }
+  \item{rcoef}{print the random (penalized) coefficients, as well as
+    the fixed ones.}
   \item{digits}{
-number of significant digits to print
-}
+    number of significant digits to print
+  }
   \item{\dots}{
 optional arguments
 }

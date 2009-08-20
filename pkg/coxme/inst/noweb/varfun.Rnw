@@ -133,7 +133,7 @@ have a small percent of the total.
 The overall layout of the routine is below.  It currently has only one
 optional parameter, which contols the form of nested effects
 <<coxvarFull>>=
-coxvarFull <- function(collapse=FALSE, scale=TRUE) {
+coxvarFull <- function(collapse=FALSE) {
     collapse <- collapse
     # Because of R's lexical scoping, the values of the options
     #  above, at the time the line below is run, are known to the
@@ -181,10 +181,10 @@ initialize <- function(initial, fixed, intercept, G, X,  sparse) {
                 }
         else {
             if (collapse) {
-                <<coxvarFull-init-3a>>
+                <<coxvarFull-init-3b>>
                 }
             else {
-                <<coxvarFull-init-3b>>
+                <<coxvarFull-init-3a>>
                 }
             }
 
@@ -244,6 +244,10 @@ generate= function(newtheta, parms) {
     if (length(newtheta)>0) theta[!parms$fixed] <- exp(newtheta)
 
     if (parms$case==1) return(diag(length(parms$xname)) * theta)
+    <<coxvarFull-generate-2>>
+    <<coxvarFull-generate-3>>
+    <<coxvarFull-generate-4>>
+    }
 @ 
 
 Case 2 is the simplest one of a single grouping variable and
@@ -283,7 +287,7 @@ else {
     vmat <- diag(nlevel)
     indx <- 1:nlevel
     }
-imap <- matrix(match(as.numeric(gtemp)))
+imap <- matrix(match(as.numeric(gtemp), indx))
 levellist <-(levels(gtemp))[indx] 
 @ 
 
@@ -295,13 +299,13 @@ by the wrapup function to create labels.
 <<coxvarFull-init-2>>=
 if (nvar==0) 
     return(list(imap=imap, X=NULL, 
-                theta=theta[!which.fixed]), 
+                theta=theta[!which.fixed], 
                 parms=list(vmat=vmat, theta=theta, levellist=levellist,
-                           fixed=which.fixed, case=2, gname=gname))
+                           fixed=which.fixed, case=2, gname=gname)))
 @	    
 
 The generate function for this case is quite simple.
-<<coxvarFull-generate>>=
+<<coxvarFull-generate-2>>=
 
 if (parms$case==2) return(theta*parms$vmat)
 @ 
@@ -400,7 +404,7 @@ for (i in 1:ngroup) {
 if (nvar==0) 
     return(list(imap=imap, X=NULL, 
                 theta=log(theta[!which.fixed]),
-                parms=list(nlevel=nlevel, varlist=varlist, gname=gname,
+                parms=list(nlevel=nlevel, varlist=varlist, gname=names(G),
                            fixed=which.fixed, levels=levellist, 
                            theta=theta, case=3, collapse=FALSE)))	   
 @ 
@@ -409,12 +413,12 @@ Now all that the generate function needs to do is to
 sum and add the matrices.  
 We want the generate functions to be simple, since they are executed hundreds
 of times.
-<<coxvarFull-generate>>= 
+<<coxvarFull-generate-3>>= 
 if (parms$case==3) {
     temp <- theta[1]* parms$varlist[[1]]
     for (i in 2:length(parms$varlist)) 
         temp <- temp + theta[i]*parms$varlist[[i]]
-    temp
+    return(temp)
     }
 @    
 
@@ -491,7 +495,7 @@ else {
     if (!all(block.sparse)) { # Only a part is sparse
         tsize <- sum(temp@blocksize[1:sum(block.sparse)]) # sparse coefs
         sparse <- 1:tsize
-        dense <- (1 + tsize):ncoef
+        dense <- (1 + tsize):sum(nlevel)
         smat <- (varlist[[ngroup]])[1:sparse, 1:sparse]
         varlist[[ngroup]]
         rmat <- matrix(0, sum(tsize), nlevel[1])
@@ -503,10 +507,10 @@ else {
     }
 
 if (nvar==0) {
-    return(list(F=matrix(as.numeric(G[,ncol(G)])), X=NULL, 
+    return(list(imap=matrix(as.numeric(G[,ncol(G)])), X=NULL, 
                 theta=log(theta[!which.fixed]),
                 parms=list(varlist=varlist, theta=theta, 
-                           fixed=which.fixed, gname=gname,
+                           fixed=which.fixed, gname=names(G),
                            levellist=levellist, case=3, collapse=TRUE)))
     }
 @ 
@@ -597,6 +601,7 @@ name.temp <- outer(xname, xname, paste, sep=":")
 diag(name.temp) <- xname
 name.temp <- name.temp[row(name.temp) >= col(name.temp)]
 tname <- ""
+gname <- names(G)
 for (i in 1:ngroup)
     tname <- c(tname, gname[i], paste(xname, gname[i], sep=':'),
                paste(tname, gname[i], sep='/'))
@@ -620,17 +625,21 @@ if (length(fixed) > 0) {
     }
 
 # Check for legality of the values
-tempn <- length(theta)/ngroup  #parameters per group
+tmat <- diag(nvar+1)  #dummy variance/cov matrix
+tmat <- tmat[row(tmat) > col(tmat)]
+vindx <- which(tmat==1)  #indices of the variance terms within each group
+cindx <- which(tmat==0)  #indices of the correlations
+tempn <- length(tmat)   # number of parameters per level
 for (i in 1:ngroup) {
     offset <- (i-1)*tempn
-    if (any(theta[offset + 1:2] <=0)) 
+    if (any(theta[offset + vindx] <=0)) 
         return(list(error="Variances must be >0"))
-    theta[offset + 1:2] <- log(theta[offset + 1:2])
+    theta[offset + vindx] <- log(theta[offset + vindx] * c(1, xstd))
 
-    temp <- theta[offset + 3:tempn]
+    temp <- theta[offset + cindx]
     if (any(temp<=-1) || any(temp >=1))
         return(list(error="Correlations must be between 0 and 1"))
-    theta[offset + 3:tempn] <- log((1-temp) /(1+temp))                        
+    theta[offset + cindx] <- log((1-temp) /(1+temp))                        
     }
 @ 
 
@@ -652,7 +661,8 @@ for (j in 1:nvar) {
 return(list(theta=theta[!which.fixed], imap=imap, X=xnew, xmap=xmap, 
              parms=list(theta=theta, fixed=which.fixed, 
                         nlevel=nlevel, levellist=levellist,
-                        nvar=nvar, gname=names(G), 
+                        nvar=nvar, gname=names(G),
+                        xscale=xscale, xmean=xmean,
                         xname=dimnames(X)[[2]], case=4, collapse=collapse)))
 @                 
 
@@ -695,15 +705,16 @@ coefficients for the first covariate, the second, etc.
 The top row contains covariances between the intercept and the 
 covariates.
 All of these matrices \emph{have exactly the same form}!
-<<coxvarFull-generate>>=
+<<coxvarFull-generate-4>>=
 if (parms$case==4) {
     newtheta <- parms$theta
     newtheta[!parms$fixed] <- theta
     theta <- exp(newtheta)
     
     ngroup <- length(parms$nlevel)
-    n1 <- sum(parms$nlevel)  #number of intercept coefs
-    n2 <- n1*nvar            #number of slope coefs
+    n1 <- sum(parms$nlevel)          #number of intercept coefs
+    nvar <- ncol(xmap)/ncol(imap)    #number of covariates
+    n2 <-   n1*nvar                  #number of slope coefs
     theta.per.group <- length(theta)/ngroup
     tindx <- seq(1, by=theta.per.group, length=ngroup)
     
@@ -789,8 +800,9 @@ wrapup <- function(theta, b, parms) {
     if (parms$case==3) {
         ngroup <- length(parms$nlevel)
         theta <- vector('list', ngroup)
+        names(theta) <- parms$gname
         for (i in 1:ngroup) 
-            theta[[parms$gname[i]]] <- c('Intercept'=newtheta[i])
+            theta[[parms$gname[i]]] <- c('(Intercept)'=newtheta[i])
 
         if (parms$collapse) {
             names(b) <- parms$levellist[[ngroup]]
@@ -802,11 +814,11 @@ wrapup <- function(theta, b, parms) {
             random <- split(b, rep(1:ngroup, parms$nlevel))
             names(random) <- parms$gname
             }
-        return(list(theta=newtheta, b=random))
+        return(list(theta=theta, b=random))
         }
 
     if (parms$case==1) {
-        theta <- list(c('Shrinkage' = newtheta[1]))
+        theta <- list(c('(Shrinkage)' = newtheta[1]))
         names(theta) <- '1'
         names(b) <- parms$xname
         return(list(theta =theta, b=list('1'=b)))

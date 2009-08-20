@@ -217,8 +217,8 @@ for (i in 1:nrandom) {
         if (!is.matrix(ifun$imap) || nrow(ifun$imap) !=n) 
             stop(paste("In random term ", i, 
                        ": Invalid intercept matrix F", sep=''))
-        temp <- sort(unique(ifun$imap))
-        if (any(temp) != 1:length(temp))
+        temp <- sort(unique(c(ifun$imap)))
+        if (any(temp != 1:length(temp)))
             stop(paste("In random term ", i,
                        ": intercept matrix has an invalid element", sep=''))
 
@@ -226,10 +226,16 @@ for (i in 1:nrandom) {
         ncoef[i,1] <- 1+ max(ifun$imap) - min(ifun$imap)
         }
 
-    if (!is.null(cmat)) {
+    if (length(cmat)>0) {
+        if (is.null(ifun$xmap) || is.null(ifun$X) ||
+            !is.matrix(ifun$xmap) || !is.matrix(ifun$X) ||
+            nrow(ifun$xmap) !=n || nrow(ifun$X) != n ||
+            ncol(ifun$xmap) != ncol(ifun$X))
+            stop(paste("In random term ", i,
+                       "invalid X/xmap pair"))
         if (f2$intercept) xmap <- ifun$xmap - max(ifun$imap)
         else xmap <- ifun$xmap
-        if (any(sort(unique(xmap)) != 1:max(xmap)))
+        if (any(sort(unique(c(xmap))) != 1:max(xmap)))
              stop(paste("In random term ", i,
                        ": xmap matrix has an invalid element", sep=''))
         
@@ -376,6 +382,7 @@ for (i in 1:nrandom) {
     newtheta <- c(newtheta, temp$theta)
     random.coef <- c(random.coef, temp$b)
     }
+
 fit$coefficients <- list(fixed=fcoef, random=newtheta)
 fit$frail <- random.coef
 fit$beta <- NULL
@@ -425,9 +432,9 @@ getGroupNames <- function(x) {
     }
 
 getgroups <- function(x, mf) {
+    if (is.integer(x)) return(NULL)  # a shrinkage effect like (x1+x2 | 1)
     varname <- getGroupNames(x)
-    if (varname=='1') return(NULL)  # a shrinkage effect like (x1+x2 | 1)
-    else indx <- match(varname, names(mf), nomatch=0)
+    indx <- match(varname, names(mf), nomatch=0)
     if (any(indx==0)) stop(paste("Invalid grouping factor", varname[indx==0]))
     else data.frame(lapply(mf[indx], as.factor))
     }
@@ -442,12 +449,15 @@ into multiple columns of a matrix.  (This is how [[lmer]] does it.)
 We will use the [[strata]] function from the standard survival library.
 <<expand.nested>>=
 expand.nested <- function(x) {
+    xname <- names(x)
     x[[1]] <- as.factor(x[[1]])[,drop=T]
     if (length(x) >1) {
         for (i in seq(2, length(x), by=1)) {
             x[[i]] <- strata(x[[i-1]], x[[i]], shortlabel=TRUE, sep='/')
+            xname[i] <- paste(xname[i-1], xname[i], sep='/')
             }
        } 
+    names(x) <- xname
     x
     }
 @     
@@ -464,7 +474,7 @@ is as $k$ indicator variables.
 We do this by imposing our own contrasts. 
 <<get-cmat>>=
 getcmat <- function(x, mf) {
-    if (is.null(x)) return(NULL)
+    if (is.null(x) || x==1) return(NULL)
     Terms <- terms(eval(call("~", x)))
     attr(Terms, 'intercept') <- 0  #ignore any "1+" that is present
 
