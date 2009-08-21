@@ -8,6 +8,7 @@
 #   that aren't in that list are not of interest to us.
 # 
 bdsmatrix.reconcile <- function(varlist, group) {
+    ismat <- function(x) class(x) %in% c('matrix', 'bdsmatrix')
     msize <- length(group)
     #the final size of our matrices
     if(any(duplicated(group))) stop("Group index has duplicates")
@@ -19,7 +20,7 @@ bdsmatrix.reconcile <- function(varlist, group) {
             if(!inherits(varlist, "bdsmatrix"))
                 stop("Invalid function call in a varlist")
             }
-        else if(is.matrix(varlist)) {
+        else if(ismat(varlist)) {
             #
             # Ensure that the variance matrix contain a row/col for each
             #  value in the random effect.  The 'indx' variable will
@@ -63,7 +64,7 @@ bdsmatrix.reconcile <- function(varlist, group) {
     # are there any ordinary matrices?
     for(j in 1:length(varlist)) {
         kmat <- varlist[[j]]
-        if(is.matrix(kmat)) {
+        if(ismat(kmat)) {
             i <- i + 1
             kid <- dimnames(kmat)[[1]]
             if(length(kid) == 0)
