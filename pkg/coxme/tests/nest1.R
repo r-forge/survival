@@ -81,8 +81,3 @@ sfit2 <- coxme(Surv(time, status) ~ x + (1| f1/f2), data=simple, ties='efron',
               varlist=coxvarFull(collapse=FALSE), variance=c(1,2), 
                iter=0, sparse.calc=1)
 aeq(as.matrix(igchol(sfit2$hmat)), as.matrix(iefron))
-
-rm(ta, tb, tc, td,te, tf, tg,th, ti,tk,tx)
-rm(sfit, itrue)
-rm(sfit2, i2, iefron)
-rm(simple)

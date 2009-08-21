@@ -82,7 +82,6 @@ kfun <- function(theta, varlist, vparm, ntheta, ncoef) {
         stop("Incorrect dimensions for generated penalty matrix, term 1")
     if (!inherits(tmat, 'bdsmatrix')) 
         tmat <- bdsmatrix(blocksize=integer(0), blocks=numeric(0), rmat=tmat)
-        
 @ 
 If there is only a single random term, then our work is done.
 Otherwise we have some nitpicky bookkeeping.  Not
@@ -243,7 +242,7 @@ if (is.null(control$sparse.calc)) {
     if ((2*n) > (nevent*(nsparse-itemp))) control$sparse.calc <- 0
     else control$sparse.calc <- 1
     }
-
+browser()
 ifit <- .C('coxfit6a', 
                as.integer(n),
                as.integer(nvar),

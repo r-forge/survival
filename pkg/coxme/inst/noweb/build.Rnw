@@ -149,28 +149,46 @@ nrandom <- length(flist$random)
 if (nrandom ==0) stop("No random effects terms found")
 vparm <- vector('list', nrandom)
 
-if (missing(varlist)) {
+ismat <- function (x) class(x) %in% c('matrix', 'bdsmatrix')
+if (is.null(varlist)) {
     varlist <- vector('list', nrandom)
     for (i in 1:nrandom) varlist[[i]] <- coxvarFull() #default
     }
 else {
-    if (is.list(varlist)) && all(sapply(varlist, is.matrix)) {
-        if (nrandom >1) stop("An unlabeled list of matrices is ambiguous when there are multiple random terms")
-        else varlist <- list(varlist)
+    if (is.function(varlist)) varlist <- eval(varlist)
+    if (class(varlist)=='coxvar') varlist <- list(varlist)
+    else if (ismat(varlist))
+        varlist <- list(coxvarMlist(list(varlist)))
+    else {
+        if (!is.list(varlist)) stop("Invalid varlist argument")
+        if (all(sapply(varlist, ismat))) {
+            # A list of matrices
+            if (nrandom >1) 
+                stop(paste("An unlabeled list of matrices is",
+                           "ambiguous when there are multiple random terms"))
+            else varlist <- coxvarMlist(varlist)
+            }
+        else {  #the user gave me a list, not all matrices
+            for (i in 1:length(varlist)) {
+                if (is.function(varlist[[i]])) 
+                    varlist[[i]] <-eval(varlist[[i]])
+                if (ismat(varlist[[i]]))
+                    varlist[[i]] <- coxvarMlist(list(varlist[[i]]))
+                if (class(varlist[[i]]) != 'coxvar') {
+                    if (is.list(varlist[[i]])) {
+                        if (all(sapply(varlist[[i]], ismat)))
+                            varlist[[i]] <- coxvarMlist(varlist[[i]])
+                        else stop("Invalid varlist element")
+                        }
+                    else stop("Invalid varlist element")
+                    }
+                }
+            }
         }
-    if (inherits(varlist, 'coxvar') || is.function(varlist)) 
-        varlist <- list(varlist)  
-
     while(length(varlist) < nrandom) varlist <- c(varlist, coxvarFull())
-    for (i in 1:length(varlist)) {
-        if (is.function(varlist[[i]])) varlist[[i]] <- eval(varlist[[i]])
-        if ((is.list(varlist[[i]]) && all(sapply(varlist, is.matrix))) ||
-            is.matrix(varlist[[i]])) varlist[[i]] <- coxvarMlist(varlist[[i]])
-        if (!inherits(varlist[[i]], 'coxvar'))
-           stop("Invalid element of the variance list")
-        }
     }
-if (!is.null(names(varlist)) { # put it in the right order
+
+if (!is.null(names(varlist))) { # put it in the right order
     vname <- names(varlist)
     indx <- pmatch(vname, names(random), nomatch=0)
     if (any(indx==0 & vname!=''))
@@ -505,7 +523,8 @@ getcmat <- function(x, mf) {
     varnames <-  attr(Terms, 'term.labels')
     ftemp <- sapply(mf[varnames], is.factor)
     if (any(ftemp)) {
-        clist <- lapply(mf[ftemp], function(x) diag(length(levels(x))))
+        clist <- lapply(mf[varnames[ftemp]], 
+                        function(x) diag(length(levels(x))))
         model.matrix(Terms, mf, contrasts.arg =clist)
         }
     else model.matrix(Terms, mf)

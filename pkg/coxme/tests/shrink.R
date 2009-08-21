@@ -23,7 +23,10 @@ all.equal(fit2$var, fit3$var)
 all.equal(fit2$loglik, fit3$loglik)
 
 fit4 <- coxme(Surv(time, status) ~ age + (1|ph.ecog), lung)
-
+dname <- paste("factor(ph.ecog)", 0:3, sep='')
+dummy <- matrix(diag(4), 4, dimnames=list(dname,dname))
+fit5 <- coxme(Surv(time, status) ~ age + (factor(ph.ecog)|1), lung,
+              varlist=dummy)
 
 #fit4 <- coxme(Surv(time, status) ~ age + (factor(ph.ecog) |1), lung,
 #              varlist=bdsI)

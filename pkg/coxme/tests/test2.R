@@ -50,13 +50,13 @@ fit1 <- coxme(Surv(time, status) ~ rx + (1|litter), data=rats,
               variance=theta, iter=1, sparse=c(10, .1))
 update0 <- solve(fit0$hmat, fit0$u)
 update0[1:50] <- update0[1:50] - mean(update0[1:50])
-aeq(update0, c(fit1$frail, coef(fit1)$fixed))
+aeq(update0, c(unlist(fit1$frail), coef(fit1)$fixed))
 tfit <- coxph(Surv(time, status) ~ factor(litter) + rx,
               data=rats, x=T, iter=0,
-              init=c(fit1$frail, coef(fit1)$fixed))
+              init=c(unlist(fit1$frail), coef(fit1)$fixed))
 dt1 <- coxph.detail(tfit)
 
-aeq(apply(dt1$score,2,sum)- c(fit1$frail, 0)/theta, fit1$u)
+aeq(apply(dt1$score,2,sum)- c(unlist(fit1$frail), 0)/theta, fit1$u)
 h1 <- apply(dt1$imat,1:2,sum) + diag(c(rep(1/theta, 50),0))
 h1[1:50,1:50] <- diag(diag(h1)[1:50])
 aeq(as.matrix(gchol(h1)), as.matrix(fit1$hmat))
@@ -70,13 +70,14 @@ fit2 <- coxme(Surv(time, status) ~ rx + (1|litter), data=rats,
 
 update1 <- solve(fit1$hmat, fit1$u)
 update1[1:50] <- update1[1:50] - mean(update1[1:50])
-aeq(update1, c(fit2$frail, coef(fit2)$fixed) -c(fit1$frail, coef(fit1)$fixed))
+aeq(update1, c(unlist(fit2$frail), coef(fit2)$fixed) -
+    c(unlist(fit1$frail), coef(fit1)$fixed))
 
 #
 # Same computation, using a specified matrix
 #
 fit2b <- coxme(Surv(time, status) ~ rx + (1|litter), data=rats,
-              variance=theta, iter=2, varlist=bdsI)
+              variance=theta, iter=2, varlist=bdsI(1:50))
 all.equal(fit2b$u, fit2$u)
 all.equal(fit2b$variance, fit2$variance)
 all.equal(fit2b$loglik, fit2$loglik)

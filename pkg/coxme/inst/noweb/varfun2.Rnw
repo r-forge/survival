@@ -30,7 +30,7 @@ variance matrix needs to become the first level of the grouping
 variable, the second row the second, etc, during the computations.)
 For this reason I at present only allow terms of the form 
 [[(1|g)]] or [[(x|1)]] ($x$ could be a matrix or list of variables,
-$g$ could be nested), since I don't have a good scheme for naming
+$g$ could be nested), since I don't have a good scheme for naming  %'
 the $b$ vector when there are both covariates and grouping.
 
 Three checks on the matrices are commonly added.  
@@ -55,9 +55,9 @@ coxvarMlist <- function(varlist, rescale=TRUE, pdcheck=TRUE,  positive=TRUE) {
     pdcheck <- pdcheck
     if (!is.logical(positive)) stop("Invalid value for postive argument")
     positive <- positive
-    <<coxvarMlist-initialize>>
+    <<coxvarMlist-init>>
     <<coxvarMlist-generate>>
-    <<covaraMlist-wrapup>>
+    <<coxvarMlist-wrapup>>
     list(initialize=initialize, generate=generate, wrapup=wrapup)
     }
 @ 
@@ -72,40 +72,40 @@ where all the matrices have the same row/col order, the dimnames of
 which will be the order of the coefficients $b$.  It also drops any
 unused rows or cols from the matrices.
 <<coxvarMlist-init>>=
-    initialize <- function(initial, fixed, intercept, G, X, sparse) {
-        ngroup <- ncol(G)
-        if (is.null(X)) nvar <- 0
-        else nvar <- ncol(X)
-        if (ngroup >0 & nvar >0)
-            return(list(error="Mlist cannot have both covariates and grouping"))
+initialize <- function(initial, fixed, intercept, G, X, sparse) {
+    ngroup <- min(length(G), ncol(G))
+    nvar   <- min(length(X), ncol(X))  # a NULL or a nx0 matrix yields 0
+    if (ngroup >0 & nvar >0)
+        return(list(error="Mlist cannot have both covariates and grouping"))
 
-        if (ngroup >0) {
-            n <- nrow(G)
-            G <- expand.nested(G)
-            groups <- G[[ngroup]]  #drop all but the last
-            bname <- levels(groups)
-            tlist <- bdsmatrix.reconcile(varlist, bname)
-            imap <- matrix(match(groups, dimnames(tlist[[1]])[[1]]))
-            xmap <- NULL
-            rname <- names(G)[[ngroup]]
-            }
-        else {
-            n <- nrow(X)
-            bname <- dimnames(X)[[1]]
-            tlist <- bdsmatrix.reconcile(varlist, bname)
-            xmap <- match(dimnames(X)[[1]], bname)
-            xmap <- matrix(rep(xmap, n), nrow=n, byrow=T)
-            imap <- NULL
-            rname <- "X"
-            }
-
-        <<Mlist-initial-value>>
-        <<Mlist-matrix-checks>>
-
-        list(theta=theta[!which.fixed], imap=imap, X=X, xmap=xmap,
-             parms=list(varlist=tlist, theta=theta, fixed=which.fixed,
-                        bname=bname, positive=positive))
+    if (!is.list(varlist)) varlist <- list(varlist)  # a naked matrix
+    if (ngroup >0) {
+        n <- nrow(G)
+        G <- expand.nested(G)
+        groups <- G[[ngroup]]  #drop all but the last
+        bname <- levels(groups)
+        tlist <- bdsmatrix.reconcile(varlist, bname)
+        imap <- matrix(match(groups, dimnames(tlist[[1]])[[1]]))
+        xmap <- NULL
+        rname <- names(G)[[ngroup]]
         }
+    else {
+        n <- nrow(X)
+        bname <- dimnames(X)[[2]]
+        tlist <- bdsmatrix.reconcile(varlist, bname)
+        xmap <- match(dimnames(X)[[2]], bname)
+        xmap <- matrix(rep(xmap, n), nrow=n, byrow=T)
+        imap <- NULL
+        rname <- "(Shrink)"
+        }
+
+    <<Mlist-initial-value>>
+    <<Mlist-matrix-checks>>
+
+    list(theta=theta[!which.fixed], imap=imap, X=X, xmap=xmap,
+         parms=list(varlist=tlist, theta=theta, fixed=which.fixed,
+                    bname=bname, rname=rname, positive=positive))
+    }
 @ 
 
 Processing initial values is very simple: the number of coefficients is
@@ -134,17 +134,16 @@ if (length(fixed) >0) {
         }
     }
 
-if (length(postive)==1) positive <- rep(positive, ntheta)
+if (length(positive)==1) positive <- rep(positive, ntheta)
 if (length(positive) != ntheta)
     return(list(error="Wrong length for positive parameter"))
 if (any(positive & theta <=0))
     return(list(error="Invalid initial value, must be positive"))        
-theta[positive] <- log(theta[positive])
-}    
+theta[positive] <- log(theta[positive])    
 @ 
 
-Checking the matrices for validity is straightforward.  We use non-negative
-definite rather than positive definite because identical twins generate
+Check the matrices for validity.  We use non-negative
+definite (NND) rather than positive definite because identical twins generate
 a NND kinship matrix.
 <<Mlist-matrix-checks>>=
 for (j in 1:ntheta) {
@@ -193,8 +192,8 @@ wrapup <- function(newtheta, b, parms) {
         theta[parms$positive] <- exp(theta[parms$positive])
 
         if (length(theta)>1) 
-            names(theta) <- paste("X", 1:length(theta), sep='.')
-        else names(theta) <- "X"
+            names(theta) <- paste("Vmat", 1:length(theta), sep='.')
+        else names(theta) <- "Vmat"
         theta <- list(theta)
         names(theta) <- parms$rname
         
