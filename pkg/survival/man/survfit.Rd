@@ -16,7 +16,7 @@ survfit(formula, ...)
 }
 \details{
   For details see the documentation for the appropriate method, i.e.,
-\code{?survfit.formula}, \code{?survfit.coxph} or \code{?survfit.survreg}.
+\code{?survfit.formula} or \code{?survfit.coxph}.
 }
 \value{
 An object of class \code{survfit} containing one or more survival curves.
@@ -29,7 +29,7 @@ Handling this case required some non-standard and fairly fragile
 manipulations, and this case is no longer supported.
 }
 \seealso{\code{\link{survfit.formula}},
-         \code{\link{survfit.coxph}}, \code{\link{survfit.survreg}},
+         \code{\link{survfit.coxph}},
 	 \code{\link{survfit.object}}, \code{\link{print.survfit}},
 	 \code{\line{plot.survfit}}, \code{\link{summary.survfit}}}
 
