@@ -34,3 +34,9 @@ the extreme rarity of a user requesting this combination.
 17 Aug 2009: Small bug in survfit.coxph.null pointed out by Frank Harrell.  The
 'n' component would be missing if the input data included strata, i.e., the
 initial model had used x=TRUE.  He also pointed out the fix.
+
+20 Aug 2009: One more fix to predict.coxph.  It needed to use 
+delete.response(Terms) rather than Terms, so as to not look for (unnecessarily) 
+the response variable when the newdata argment is used.  Pointed out by Michael
+Conklin.
+  

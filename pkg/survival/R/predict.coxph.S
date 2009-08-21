@@ -23,7 +23,7 @@ predict.coxph <- function(object, newdata,
     {
     type <-match.arg(type)
     n <- object$n
-    Terms <- object$terms
+    Terms <-  delete.response(object$terms)
     strata <- attr(Terms, 'specials')$strata
     dropx <- NULL
     if (length(strata)) {
