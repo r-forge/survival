@@ -126,43 +126,65 @@ optional interaction.
 Our first action is to check out the [[varlist]] option.  This is 
 complicated by the fact that users can give a partial one, or none,
 allowing the default to be used for other elements.
-Each element of the varlist should be one of the generating functions
-for a [[coxvar]] object.
-If it is not, then the arguments are 
-turned into a call to [[coxvarMlist]], which
-handles lists that contain a mixture of matrices and/or matrix
-generating functions.
-This latter is to maintain backwards compatability 
-with the first coxme code, which allowed only that form.
-Of course one problem with this is that a simple typing mistake will
-lead to an error from within the [[coxvarMlist]] routine, which may
-be more confusing.
+In general the varlist is a named list with one list element per
+random term.  Each element of the list can be:
+\begin{itemize}
+  \item A matrix or list of matrices.  This is useful for genetic
+    data in particular.
+  \item A [[coxvar]] object or a function which generates a covar object.
+\end{itemize}
+We are not backwards compatable with all old-stlye [[coxme]] calls,
+in particular the use of the unevaluated [[bdsI]] function in a list.
+This was mostly used to generate models that can now be directly stated.
+
+The first task is to decide which element of the list goes to 
+which term.  If there is only one random term then [[varlist]] is
+not required to be a list of one element.
+A single list of variance matrices can be ambiguous, for instance if there
+were 2 random terms and one list with two matrices: is this a pair of matrices
+for the first term, or one matrix for each?  We force the user to 
+resolve the ambiguity.
 <<build-control-structures>>=
 nrandom <- length(flist$random)
 if (nrandom ==0) stop("No random effects terms found")
-<<get-cmat>>
-<<get-groups>>
-<<make-vinit>>
-<<newzmat>>
 vparm <- vector('list', nrandom)
-fname <- zname <- thetalist <- vparm
+
 if (missing(varlist)) {
     varlist <- vector('list', nrandom)
     for (i in 1:nrandom) varlist[[i]] <- coxvarFull() #default
     }
 else {
-    if (nrandom==1) { # allow a single non-list
-        if (inherits(varlist, 'coxvar') || !is.list(varlist)) 
-            varlist <- list(varlist)
+    if (is.list(varlist)) && all(sapply(varlist, is.matrix)) {
+        if (nrandom >1) stop("An unlabeled list of matrices is ambiguous when there are multiple random terms")
+        else varlist <- list(varlist)
         }
-    if (length(varlist) != nrandom) stop ("Wrong length for varlist")
+    if (inherits(varlist, 'coxvar') || is.function(varlist)) 
+        varlist <- list(varlist)  
+
+    while(length(varlist) < nrandom) varlist <- c(varlist, coxvarFull())
     for (i in 1:length(varlist)) {
+        if (is.function(varlist[[i]])) varlist[[i]] <- eval(varlist[[i]])
+        if ((is.list(varlist[[i]]) && all(sapply(varlist, is.matrix))) ||
+            is.matrix(varlist[[i]])) varlist[[i]] <- coxvarMlist(varlist[[i]])
         if (!inherits(varlist[[i]], 'coxvar'))
-            varlist[[i]] <- coxvarMlist(varlist[[i]])
+           stop("Invalid element of the variance list")
         }
     }
+if (!is.null(names(varlist)) { # put it in the right order
+    vname <- names(varlist)
+    indx <- pmatch(vname, names(random), nomatch=0)
+    if (any(indx==0 & vname!=''))
+        stop(paste("Varlist element not matched:", vname[indx==0 & vname!='']))
+    if (any(indx>0)) {
+        temp <- vector('list', nrandom)
+        temp[indx] <- varlist[indx>0]
+        temp[-indx]<- varlist[indx==0]
+        varlist <- temp
+        }
+    }
+    
 @ 
-At this point we have a valid [[varlist]] object, with is a list with
+At this point we have a valid [[varlist]] object, which is a list with
 one element per random term, each element is an object of class `coxvar'. %'`
 The current options for these elements are
 \begin{description}
@@ -175,9 +197,6 @@ $\sigma_1^2 A_1 + \sigma_2^2 A_2 + \ldots$ for a set of fixed matrices
 $A_1, A_2, \ldots$.  This is commonly used in genetic studies where $A_1$
 would be the kinship matrix for a set of subjects/families and $A_2$ might
 be the identity-by-descent (IBD) matrix for a particular locus.
-For backwards compatability a naked list of matrices may be given, and they
-are packaged into a call to [[coxvarMlist]]; however this does not allow a user
-to modify certain options.
 \end{description}
 
 Now we proceed through the list one element at a time, and do the necessary
@@ -187,9 +206,14 @@ variance parameters that are \emph{not} fixed, and [[ntheta[i]]] the
 number of values that each random term contributed.
 The final $\theta$ vector will be null if all the parameters are fixed. 
 The [[ncoef]] matrix has a row for each term, containing the number
-of intercepts and slopes for that term.
+of intercepts and slopes for that term.  
+The definition of 4 helper functions is deferred until later.
 
 <<build-control-structures>>=    
+<<get-cmat>>
+<<get-groups>>
+<<make-vinit>>
+<<newzmat>>
 fmat <- zmat <- matrix(0, nrow=n, ncol=0)
 ntheta <- integer(nrandom)
 ncoef  <- matrix(0L, nrandom, 2, dimnames=list(NULL, c("intercept", "slope")))
