@@ -3,8 +3,8 @@ PARTS = main.Rnw \
 	build.Rnw \
 	formula.Rnw \
 	varfun.Rnw  varfun2.Rnw \
-	fit.Rnw \
-	reconcile.Rnw
+	fit.Rnw 
+#	reconcile.Rnw
 
 SFUN =  coxme.R \
 	coxme.fit.R\

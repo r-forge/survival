@@ -475,7 +475,7 @@ else block.sparse <- 0
 if (sum(block.sparse > 1)) { #sparse blocks exist, make them list first
     border <- order(!block.sparse, 1:nlevel)
     G[,1] <- factor(gtemp[,1], levels=levels(G[,1])[border])
-    G <- expand.levels(G)
+    G <- expand.nested(G)
     }
 
 G <- rev(expand.nested(G))
@@ -576,7 +576,7 @@ etc.
 The [[tname]] vector gives names to the elements, in
 order to allow a user to set selected values.
 Fpr the random term [[1 + x1 + x2 | g1/g2]] the names would be
-[[g1, x1:g1, x2:g1, x1/g1, x1:x2/g1, x2/g1]], I don't particularly like it.
+[[g1, x1:g1, x2:g1, x1/g1, x1:x2/g1, x2/g1]], I don't particularly like it. %'
 If you can think of a better one let me know.
 The default values for $\theta$ are 0 for the correlations and .2 for the
 variances.  
@@ -819,6 +819,7 @@ wrapup <- function(theta, b, parms) {
     
     if (parms$case==4) {
         ngroup <- length(parms$nlevel)
+        nvar <- parms$nvar
         names(b) <- rep(unlist(parms$levellist, 1+nvar))
         random <- split(b, rep(rep(1:ngroup, parms$nlevel), 1+nvar))
         names(random) <- parms$gname
@@ -830,7 +831,7 @@ wrapup <- function(theta, b, parms) {
         #  group, containing a matrix.
         theta <- vector('list', ngroup)
         names(theta) <- names(parms$nlevel)
-        tfun <- function(x, n=1+ parms$nvar) {
+        tfun <- function(x, n=1+ nvar) {
             tmat <- matrix(0., n, n)
             tmat[row(tmat) >= col(tmat)] <- x
             tmat + t(tmat) - diag(diag(tmat))

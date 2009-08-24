@@ -12,6 +12,12 @@ aeq <- function(x,y) all.equal(as.vector(x), as.vector(y))
 #   group 2-4 to be sparse.  It will also force the coefficients to be
 #   in 2,3,4,1 order
 
+tdata1 <- data.frame(time  =c(5,4,1,1,2,2,2,2,3, 1:8), 
+                     status=c(0,1,1,0,1,1,1,0,0, rep(1:0,4)),
+                     x1    =c(0,1,2,0,1,1,0,1,0, rep(4:1,2)),
+                     wt    =c(1,2,1,2,3,4,3,2,1, rep(1:2,4)),
+                     x2    =c(1,3,5,2,3,6,4,3,1, rep(1:2,4)),
+                     grp   =c(1,1,2,2,1,1,2,2,1, rep(3,4), rep(4,4)))
 temp1 <-  5*tdata1$time -3  # each subject spends 4 days not at risk
 tdata2 <- data.frame(t1 = c(rep(0, length(temp1)), temp1+4),
 		     t2 = c(temp1, 10*tdata1$time),
@@ -36,11 +42,11 @@ fit1 <- coxme(Surv(t1, t2, status) ~ x1 + x2 +(1|grp), data=tdata2,
 #  ignore the complaint
 fit2 <- coxph(Surv(t1, t2, status) ~ I(grp==2) + I(grp==3) + I(grp==4) +
 	      I(grp==1) + x1 + x2, data=tdata2, method='breslow',
-	      init=c(fit1$frail, fit1$coef$fixed),
+	      init=c(unlist(fit1$frail), fit1$coef$fixed),
 	      iter=0)
 
 lp <- c(cbind(tdata2$x1, tdata2$x2) %*% fit1$coef$fixed + 
-	fit1$frail[c(4,1,2,3)[tdata2$grp]])
+	unlist(fit1$frail)[c(4,1,2,3)[tdata2$grp]])
 aeq(lp, fit1$linear)
 fit3 <- coxph(Surv(t1, t2, status) ~ offset(lp), data=tdata2, method='breslow')
 
@@ -68,7 +74,7 @@ for (i in 1:nd) {
 temp.log <- sum(lp2[tdata2$status==1] -
 		log(denom[match(tdata2$t2[tdata2$status==1], dtimes)]))
 aeq(fit1$loglik[3] + fit1$pen, temp.log)
-aeq(fit1$penalty, sum(fit1$frail^2)/(2*theta))
+aeq(fit1$penalty, sum(unlist(fit1$frail)^2)/(2*theta))
 # The linear predictors will differ by a constant, since fit2 will have
 #   subtracted means from the factor terms.
 aeq(diff(range(fit1$linear-fit2$linear)),0)
@@ -76,7 +82,7 @@ aeq(diff(range(fit1$linear-fit2$linear)),0)
 # Score statistic
 temp.score <- xtemp[tdata2$status==1,] - 
 	      xbar[match(tdata2$t2[tdata2$status==1], dtimes),]
-aeq(colSums(temp.score) - c(fit1$frail,0,0)/theta, fit1$u)
+aeq(colSums(temp.score) - c(unlist(fit1$frail,0,0))/theta, fit1$u)
 
 
 dt <- coxph.detail(fit2, riskmat=T)
