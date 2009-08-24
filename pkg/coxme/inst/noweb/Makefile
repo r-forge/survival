@@ -3,14 +3,16 @@ PARTS = main.Rnw \
 	build.Rnw \
 	formula.Rnw \
 	varfun.Rnw  varfun2.Rnw \
-	fit.Rnw 
+	fit.Rnw \
+	reconcile.Rnw
 
 SFUN =  coxme.R \
 	coxme.fit.R\
 	expand.nested.R \
 	formula.R \
 	coxvarFull.R \
-	coxvarMlist.R
+	coxvarMlist.R 
+#	matrix.reconcile.R
 
 #PARTS = main.Rnw tail
 

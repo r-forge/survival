@@ -27,7 +27,7 @@ dname <- paste("factor(ph.ecog)", 0:3, sep='')
 dummy <- matrix(diag(4), 4, dimnames=list(dname,dname))
 fit5 <- coxme(Surv(time, status) ~ age + (factor(ph.ecog)|1), lung,
               varlist=dummy)
+all.equal(fit4$log, fit5$log)
+all.equal(fit4$coef, fit5$coef, check.attributes=FALSE) #names will differ
 
-#fit4 <- coxme(Surv(time, status) ~ age + (factor(ph.ecog) |1), lung,
-#              varlist=bdsI)
 

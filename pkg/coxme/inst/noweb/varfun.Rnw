@@ -233,7 +233,7 @@ if (theta <=0) return(list(error="Invalid variance value, must be >0"))
 xmap <- matrix(0L, nrow=nrow(X), ncol=ncol(X))
 for (i in 1:ncol(X)) xmap[,i] <- i
 
-list(theta=theta[!which.fixed], imap=NULL, X=X, xmap=xmap,
+list(theta=log(theta[!which.fixed]), imap=NULL, X=X, xmap=xmap,
          parms=list(fixed=which.fixed, theta=theta,
                     xname=xname, case=1))
 @ 
@@ -299,7 +299,7 @@ by the wrapup function to create labels.
 <<coxvarFull-init-2>>=
 if (nvar==0) 
     return(list(imap=imap, X=NULL, 
-                theta=theta[!which.fixed], 
+                theta=log(theta[!which.fixed]), 
                 parms=list(vmat=vmat, theta=theta, levellist=levellist,
                            fixed=which.fixed, case=2, gname=gname)))
 @	    
@@ -503,7 +503,7 @@ else {
         varlist[[ngroup]] <- bdsmatrix(blocksize=smat@blocksize,
                                        blocks=smat@block, rmat=rmat)
         } 
-    for (i in 1:(ngroup-1)) varlist[[i]] <- varlist[[i]] +0*varlist[[ngroup]]
+    varlist <- bdsmatrix.reconcile(varlist)
     }
 
 if (nvar==0) {
@@ -514,14 +514,6 @@ if (nvar==0) {
                            levellist=levellist, case=3, collapse=TRUE)))
     }
 @ 
-
-The very last loop above  helps computational speed, in a somewhat non-obvious
-way.  The [[generate]] routine below will add up the matrices
-on the varlist.  That
-process goes much faster when they all conform exactly.  Because of
-their structure these matrices can be made to conform: adding 0 times
-the ``least sparse'' one (the last) forces
-them to do so at this point rather than waiting till later additions.
 
 The last case is the hardest; we have both grouping factors and
 covariates.
@@ -713,7 +705,7 @@ if (parms$case==4) {
     
     ngroup <- length(parms$nlevel)
     n1 <- sum(parms$nlevel)          #number of intercept coefs
-    nvar <- ncol(xmap)/ncol(imap)    #number of covariates
+    nvar <- parms$nvar               #number of covariates
     n2 <-   n1*nvar                  #number of slope coefs
     theta.per.group <- length(theta)/ngroup
     tindx <- seq(1, by=theta.per.group, length=ngroup)
@@ -826,7 +818,6 @@ wrapup <- function(theta, b, parms) {
         
     
     if (parms$case==4) {
-        browser()
         ngroup <- length(parms$nlevel)
         names(b) <- rep(unlist(parms$levellist, 1+nvar))
         random <- split(b, rep(rep(1:ngroup, parms$nlevel), 1+nvar))

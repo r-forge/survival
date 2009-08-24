@@ -242,7 +242,7 @@ if (is.null(control$sparse.calc)) {
     if ((2*n) > (nevent*(nsparse-itemp))) control$sparse.calc <- 0
     else control$sparse.calc <- 1
     }
-browser()
+
 ifit <- .C('coxfit6a', 
                as.integer(n),
                as.integer(nvar),

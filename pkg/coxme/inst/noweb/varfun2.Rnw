@@ -93,6 +93,8 @@ initialize <- function(initial, fixed, intercept, G, X, sparse) {
         n <- nrow(X)
         bname <- dimnames(X)[[2]]
         tlist <- bdsmatrix.reconcile(varlist, bname)
+        # bdsmatrices are illegal, for now, for covariates
+        tlist <- lapply(tlist, as.matrix)
         xmap <- match(dimnames(X)[[2]], bname)
         xmap <- matrix(rep(xmap, n), nrow=n, byrow=T)
         imap <- NULL
