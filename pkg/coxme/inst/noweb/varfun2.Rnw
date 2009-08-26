@@ -58,7 +58,9 @@ coxvarMlist <- function(varlist, rescale=TRUE, pdcheck=TRUE,  positive=TRUE) {
     <<coxvarMlist-init>>
     <<coxvarMlist-generate>>
     <<coxvarMlist-wrapup>>
-    list(initialize=initialize, generate=generate, wrapup=wrapup)
+    out <- list(initialize=initialize, generate=generate, wrapup=wrapup)
+    class(out) <- 'coxvar'
+    out
     }
 @ 
 
@@ -72,7 +74,7 @@ where all the matrices have the same row/col order, the dimnames of
 which will be the order of the coefficients $b$.  It also drops any
 unused rows or cols from the matrices.
 <<coxvarMlist-init>>=
-initialize <- function(initial, fixed, intercept, G, X, sparse) {
+initialize <- function(vinit, fixed, intercept, G, X, sparse) {
     ngroup <- min(length(G), ncol(G))
     nvar   <- min(length(X), ncol(X))  # a NULL or a nx0 matrix yields 0
     if (ngroup >0 & nvar >0)
@@ -118,11 +120,11 @@ singularity, so we use a range of default initial values.
 <<Mlist-initial-value>>=
 ntheta <- length(varlist)
 theta <- seq(.2, .3, length=ntheta)
-if (length(initial) >0) {
-    if (length(initial) != ntheta)
+if (length(vinit) >0) {
+    if (length(vinit) != ntheta)
         return(list(error="Wrong length for initial values"))
-    indx <- !is.na(initial) & initial !=0  #which to use
-    if (any(indx)) theta[indx] <- initial[indx]
+    indx <- !is.na(vinit) & vinit !=0  #which to use
+    if (any(indx)) theta[indx] <- vinit[indx]
     }
 
 which.fixed <- rep(FALSE, ntheta)

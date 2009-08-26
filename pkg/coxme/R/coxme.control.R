@@ -8,7 +8,7 @@ coxme.control <- function(eps=1e-8,
 			  inner.iter=5,
 			  sparse.calc=NULL,
                           optpar=list(method='BFGS', 
-                                      control=list(reltol=1e-3))) {
+                                      control=list(reltol=1e-5))) {
     if (iter.max <0) stop("Invalid value for iterations")
     if (inner.iter<1) stop("Invalid value for inner iterations")
     if (eps <=0) stop ("Invalid convergence criteria")

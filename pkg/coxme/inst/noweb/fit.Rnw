@@ -72,7 +72,6 @@ If the first term is a simple matrix, we just split off its first
 element.
 <<define-penalty>>=
 kfun <- function(theta, varlist, vparm, ntheta, ncoef) {
-
     nrandom <- length(varlist)
     sindex <- rep(1:nrandom, ntheta) #which thetas to which terms
 
@@ -176,7 +175,7 @@ regular metrix from the remainder.
             }
         indx2 <- indx1 +ncoef[i,2]
         }
-    
+
     bdsmatrix(blocksize=tmat@blocksize, blocks=tmat@blocks, rmat=R)
     }    
 @ 
@@ -312,7 +311,7 @@ logfun <- function(theta, varlist, vparm, kfun, ntheta, ncoef,
               hdet = double(1))
     ilik <- fit$loglik[2] -
              .5*(sum(log(diag(gkmat))) + fit$hdet)
-
+                                                     
     -(1+ ilik - fit0)
     }
 @ 
@@ -386,7 +385,6 @@ coxme.fit <- function(x, y, strata, offset, ifixed, control,
 			imap, zmat, varlist, vparm, theta,
                         ntheta, ncoef, refine.n) {
     time0 <- proc.time()
-
     n <-  nrow(y)
     if (length(x) ==0) nvar <-0
     else nvar <- ncol(as.matrix(x))
@@ -470,7 +468,6 @@ if (length(theta)) {
                    fit0= fit0$loglik[2],
                    iter=control$inner.iter,
                    ofile=ofile)
-  
     mfit <- do.call('optim', c(list(par= theta, fn=logfun, gr=NULL), 
                            control$optpar, logpar))
     theta <- mfit$par
