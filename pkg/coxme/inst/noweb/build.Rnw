@@ -422,6 +422,10 @@ for (i in 1:nrandom) {
     temp <- varlist[[i]]$wrapup(fit$theta[sindex==i], fit$frail[bindex==i], 
                                 vparm[[i]])
     newtheta <- c(newtheta, temp$theta)
+    if (!is.list(temp$b)) {
+        temp$b <- list(temp$b)
+        names(temp$b) <- paste("Random", i, sep='')
+        }
     random.coef <- c(random.coef, temp$b)
     }
 

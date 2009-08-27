@@ -54,6 +54,16 @@ sfit2 <- coxme(Surv(time, status) ~ x + (1| f1/f2),
               variance=c(1,2), iter=0, sparse.calc=1)
 aeq(as.matrix(igchol(sfit2$hmat)), as.matrix(ibreslow))
 
+# Check the collapse option
+sfit2 <- coxme(Surv(time, status) ~ x + (1| f1/f2), 
+               data=simple, ties='breslow',  varlist=coxvarFull(collapse=F),
+              variance=c(1,2))
+sfit3 <- coxme(Surv(time, status) ~ x + (1| f1/f2), 
+               data=simple, ties='breslow',  varlist=coxvarFull(collapse=T),
+              variance=c(1,2))
+aeq(sfit2$log, sfit3$log)
+aeq(fixef(sfit2), fixef(sfit3))
+aeq(unlist(sfit3$frail), sfit2$frail[[1]] + sfit2$frail[[2]][c(1,1,2,2,3,3)])
 
 # Now for the Efron approx
 sfit <- coxme(Surv(time, status) ~ x + (1| f1/f2), data=simple, 

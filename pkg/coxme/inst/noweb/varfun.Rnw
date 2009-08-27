@@ -292,7 +292,7 @@ else {
     nsparse <- 0
     }
 imap <- matrix(match(as.numeric(gtemp), indx))
-levellist <-(levels(gtemp))[indx] 
+levellist <- list((levels(gtemp))[indx]) 
 @ 
 
 Since the variance must be positive, iteration is done on the
@@ -305,7 +305,7 @@ varlist <- list(vmat)
 if (nvar==0) 
     return(list(imap=imap, X=NULL, 
                 theta=log(theta[!which.fixed]), 
-                parms=list(varlist=varlist, theta=theta, levels=levellist,
+                parms=list(varlist=varlist, theta=theta, levellist=levellist,
                            fixed=which.fixed, case=2, gname=gname)))
 @	    
 
@@ -680,13 +680,13 @@ if (intercept)
              parms=list(theta=theta, fixed=which.fixed, 
                         nlevel=nlevel, levellist=levellist,
                         nvar=nvar, gname=names(G), varlist=varlist,
-                        xstd=xstd, xmean=xmean, intercept=intercept,
+                        xstd=xstd, xname=dimnames(X)[[2]], intercept=intercept,
                         xname=dimnames(X)[[2]], case=4, collapse=collapse))
 else list(theta=log(theta[!which.fixed]), imap=NULL, X=xnew, xmap=xmap, 
              parms=list(theta=theta, fixed=which.fixed, 
                         nlevel=nlevel, levellist=levellist,
                         nvar=nvar, gname=names(G), varlist=varlist,
-                        xstd=xstd, xmean=xmean, intercept=intercept,
+                        xstd=xstd, xname=dimnames(X)[[2]], intercept=intercept,
                         xname=dimnames(X)[[2]], case=4, collapse=collapse))
 @                 
 
@@ -785,31 +785,36 @@ if (parms$case==4) {
 
 The wrapup function transforms theta back, adds names, and
 formats the vector of random coefficients $b$.
-For a complicated random effect [[(1+ age |institution/sex)]] it should return
-a two element list for [[theta]] with names 'institution' and
-'institution/sex', each of which contains a matrix with variances on
-the diagonal and correlations off the diagonal.
-(We are echoing the desired form for the printout).
-The random effect has the same form, containing named values of the
-$b$ vector.
-
+For cases 1 and 2 adding names is almost all we need to do.
 <<coxvarFull-wrapup>>=
 wrapup <- function(theta, b, parms) {
-    if (parms$case <4) {
-        newtheta <- parms$theta
-        newtheta[!parms$fixed] <- exp(theta)
-        }
+    newtheta <- parms$theta
+    newtheta[!parms$fixed] <- exp(theta)
     
+    if (parms$case==1) {
+        theta <- list(c('(Shrinkage)' = newtheta[1]))
+        names(theta) <- '1'
+        names(b) <- parms$xname
+        return(list(theta =theta, b=list('1'=b)))
+        }
+        
     if (parms$case==2) {
         names(newtheta) <- 'Intercept'
-        names(b) <- parms$levels
+        names(b) <- parms$levellist[[1]]
         theta <- list(newtheta)
         names(theta) <- parms$gname
         b <- list(b)
         names(b) <- parms$gname
         return(list(theta=theta, b=b))
         }
+@ 
 
+For case 3, we need to distinguish between [[collapse]] equal true or
+false.  For the former, there will be [[ngroup]] random parameters but
+only a single vector of coefficients $b$.
+For the latter there will be one set of $b$ coefficients for each
+level of the random effect.
+<<coxvarFull-wrapup>>=
     if (parms$case==3) {
         ngroup <- length(parms$levellist)
         theta <- vector('list', ngroup)
@@ -829,52 +834,73 @@ wrapup <- function(theta, b, parms) {
             }
         return(list(theta=theta, b=random))
         }
+@ 
 
-    if (parms$case==1) {
-        theta <- list(c('(Shrinkage)' = newtheta[1]))
-        names(theta) <- '1'
-        names(b) <- parms$xname
-        return(list(theta =theta, b=list('1'=b)))
-        }
-        
-    
+The last case is of course the most complicated, it has both covariates
+and groupings.
+For a complicated random effect [[(1+ age |institution/sex)]] it should return
+a two element list for [[theta]] with names 'institution' and
+'institution/sex', each of which contains a $2 \times 2$ 
+matrix with variances on
+the diagonal and correlations off the diagonal.
+(We are echoing the desired form for the printout).
+In the case that intercept is false and nvar=1, e.g. the formula
+[[(age-1 | institution/sex)]], each element of the list is a one-element
+vector rather than a matrix.
+
+The random effect will also be a list of two elments, each a matrix
+with 2 columns containing the coefficients for the intercept and age.
+It may be a matrix of one column.
+
+At the start we rescaled each covariate by dividing it by a normalization
+factor $s$, leading to a solution that involves $b X/s$.
+To transform back we return $(b/s)$, which transforms the variance of
+$b$ by $1/s^2$.
+<<coxvarFull-wrapup>>= 
     if (parms$case==4) {
         intercept <- parms$intercept
         ngroup <- length(parms$nlevel)
         nvar <- parms$nvar
-        names(b) <- rep(unlist(parms$levellist, 1+nvar))
+        
+        # Deal with b
         random <- split(b, rep(rep(1:ngroup, parms$nlevel), intercept +nvar))
         names(random) <- parms$gname
-        for (i in 1:ngroup) {
-            if (intercept) 
-                random[[i]] <- split(random[[i]], 
-                                     rep(c("Intercept", parms$xname),
-                                           each=parms$nlevel[i]))
-            else random[[i]] <- split(random[[i]],
-                                      rep(parms$xname, each=parms$nlevel[i]))
-            }
-
-        # Reformat theta for printing: a list with one element per
-        #  group, containing a matrix or single element
-        parms.per.group <- length(theta)/ngroup
-        if (parms.per.group ==1) {
-            newtheta <- as.list(theta)
-            names(newtheta) <- names(parms$nlevel)
+        if (intercept) {
+            colname <- c("Intercept", parms$xname)
+            rescale <- c(1, 1/parms$xstd)
             }
         else {
-            newtheta <- vector('list', ngroup)
-            names(newtheta) <- names(parms$nlevel)
-            parms.per.group <- length(newtheta)/ngroup
-            tfun <- function(x, n= 1 + nvar) {
-                tmat <- matrix(0., n, n)
-                tmat[row(tmat) >= col(tmat)] <- x
-                tmat + t(tmat) - diag(diag(tmat))
-                }
+            colname <- parms$xname
+            rescale <- 1/parms$xstd
+            }
+        for (i in 1:ngroup) {
+            temp<- matrix(random[[i]], ncol=length(colname),
+                                  dimnames=list(parms$levellist[[i]], colname))
+            random[[i]] <- temp %*% diag(rescale, ncol(temp))
+            }
+        
+        # Deal with theta
+        tfun <- function(x, n= 1 + nvar, scale=rescale) {
+            tmat <- matrix(0., n, n)
+            tmat[row(tmat) >= col(tmat)] <- x
+            diag(tmat) <- diag(tmat) * scale^2
+            dimnames(tmat) <- list(colname, colname)
+            tmat + t(tmat) - diag(diag(tmat))
+            }
+        parms.per.group <- length(theta)/ngroup
+        if (parms.per.group==1) { #nvar=1, intercept=F case
+            theta <- as.list(newtheta/parms$xstd)
+            theta <- lapply(theta, function(x) {names(x)<- parms$xname; x})
+            names(theta) <- parms$gname
+            }
+        else {
+            theta <- vector('list', ngroup)
+            names(theta) <- parms$gname
             for (i in 1:ngroup) 
                 newtheta[[i]] <- tfun(newtheta[1:parms.per.group + 
                                          parms.per.group*(i-1)])
             }
-        return(list(theta=newtheta, b=random))
+        return(list(theta=theta, b=random))
         }
     }
 @ 

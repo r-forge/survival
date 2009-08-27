@@ -108,7 +108,8 @@ initialize <- function(vinit, fixed, intercept, G, X, sparse) {
 
     list(theta=theta[!which.fixed], imap=imap, X=X, xmap=xmap,
          parms=list(varlist=tlist, theta=theta, fixed=which.fixed,
-                    bname=bname, rname=rname, positive=positive))
+                    bname=bname, rname=rname, positive=positive,
+                    vname=names(varlist)))
     }
 @ 
 
@@ -187,21 +188,28 @@ The generate function is a simple sum.
      varmat
      }
 @ 
-Wrapup is also simple. If there are multiple thetas they are
-named as X.1, X.2, etc.
+Wrapup is also simple. The thetas are named Vmat.1, Vmat.2, etc; or using
+the names found on the orginal varlist (if any).
 <<coxvarMlist-wrapup>>= 
 wrapup <- function(newtheta, b, parms) {
         theta <- parms$theta
         theta[!parms$fixed] <- newtheta
         theta[parms$positive] <- exp(theta[parms$positive])
 
-        if (length(theta)>1) 
-            names(theta) <- paste("Vmat", 1:length(theta), sep='.')
-        else names(theta) <- "Vmat"
+        defaultname <- paste("Vmat", 1:length(theta), sep=".")
+        vname <- parms$vname
+        if (length(vname)==0) vname <- defaultname
+        else if (any(vname=='')){
+            indx <- which(vname='')
+            vname[indx] <- defaultname[indx]
+            }
+        names(theta) <- vname
         theta <- list(theta)
         names(theta) <- parms$rname
         
         names(b) <- parms$bname
+        b <- list(b)
+        names(b) <- parms$rname
         list(theta=theta, b=b)
         }
 @ 
