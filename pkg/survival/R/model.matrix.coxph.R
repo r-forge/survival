@@ -1,7 +1,9 @@
-model.matrix.coxph <- function(object, data, contrast.arg=object$contrasts, ...){
+model.matrix.coxph <- function(object, data=NULL, contrast.arg=object$contrasts, ...){
     if (!is.null(object[['x']])) object[['x']] #don't match "xlevels"
     else {
-        data <- model.frame(object, ...)
+        if (is.null(data)) data <- model.frame(object, ...)
+        else data <- model.frame(object, data=data, ...)
+
         Terms <- object$terms
         attr(Terms,"intercept")<- 1  #Cox model always has \Lambda_0
         strats <- attr(Terms, "specials")$strata
@@ -11,7 +13,6 @@ model.matrix.coxph <- function(object, data, contrast.arg=object$contrasts, ...)
             tempc <- untangle.specials(Terms, 'cluster', 1:10)
             ord <- attr(Terms, 'order')[tempc$terms]
             if (any(ord>1)) stop ("Cluster can not be used in an interaction")
-            cluster <- strata(m[,tempc$vars], shortlabel=TRUE) #allow multiples
             dropx <- tempc$terms
             }
         if (length(strats)) {
