@@ -46,7 +46,8 @@ void coxfit6c(double *u,      double *imatb,
 
     dptr = imatr;
     for (i=ns; i<nvar3; i++) {
-	for (j=0; j<nvar3; j++) *dptr++ = c6.imat[i][j];
+	for (j=0; j<=i; j++) *dptr++ = c6.imat[i][j];
+	for (; j<nvar3; j++) *dptr++ = 0;   /* zeros below the diag */
 	}
 
     chinv4(&(c6.imat[ns]), nvar3, c6.nblock, 
@@ -57,7 +58,8 @@ void coxfit6c(double *u,      double *imatb,
 
     dptr = hinvr;
     for (i=ns; i<nvar3; i++) {
-	for (j=0; j<nvar3; j++) *dptr++ = c6.imat[i][j];
+	for (j=0; j<=i; j++) *dptr++ = c6.imat[i][j];
+	for (; j<nvar3; j++) *dptr++ = 0;
 	}
 
     /*
