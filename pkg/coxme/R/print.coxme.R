@@ -1,4 +1,3 @@
-# $Id: print.coxme.s,v 1.6 2003/08/09 21:46:42 therneau Exp $
 print.coxme <- function(x, rcoef=FALSE, digits=options()$digits, ...) {
     cat("Cox mixed-effects model fit by maximum likelihood\n")
     if (!is.null(x$call$data)) 
@@ -41,25 +40,33 @@ print.coxme <- function(x, rcoef=FALSE, digits=options()$digits, ...) {
             "se(coef)", "z", "p"))
         }
     if (rcoef) { # print the random coefs
-        coef <- unlist(x$frail)
+        #next line unlists, trying to give good names to the coefs
+        coef <- unlist(lapply(x$frail, function(y) {
+            if (is.matrix(y)) {
+                z <- c(y)
+                dd <- dimnames(y)
+                names(z) <- c(outer(dd[[1]], dd[[2]], paste,sep=':'))
+                z}
+            else y
+            }))
+                                  
         se <- sqrt(diag(x$var)[1:nfrail])
-        rtmp <- cbind(coef, exp(coef), se, round(coef/se,2),
-               signif(1 - pchisq((coef/ se)^2, 1), 2))
+        rtmp <- cbind(coef, exp(coef), se)
         dimnames(rtmp) <- list(names(coef), c("coef", "exp(coef)",
-            "se(coef)", "z", "p"))
+            "Penalized se"))
         }
-        
-    if (nvar > 0 & rcoef) {
-        cat("Fixed and penalized coefficients \n") 
-        print(rbind(tmp, rtmp))
-        }
-    else if (nvar>0) {
-        cat("Fixed coefficients\n")
-        print(tmp)
+
+    if (nvar>0 && rcoef) {
+        cat("Fixed and penalized coefficients\n")
+        print(rbind(tmp, cbind(rtmp,NA,NA)), na.print='')
         }
     else if (rcoef) {
         cat("Penalized coefficients\n")
         print(rtmp)
+        }
+    else if (nvar>0) {
+        cat("Fixed coefficients\n")
+        print(tmp)
         }
 
     cat("\nRandom effects\n")
@@ -92,12 +99,12 @@ print.coxme <- function(x, rcoef=FALSE, digits=options()$digits, ...) {
     temp3[indx[-length(indx)]] <- names(random)
     xname <- unlist(lapply(random, 
                   function(x) if (is.matrix(x)) dimnames(x)[[1]] else names(x)))
-    temp <- cbind(temp3, xname, format(temp1))
+    temp <- cbind(temp3, xname, ifelse(is.na(temp1), "", format(temp1)))
     if (maxcol == 2)
         temp4 <- c("Group", "Variable", "Std Dev", "Variance")
     else 
         temp4 <- c("Group","Variable", "Std Dev", "Variance", "Corr", 
-                   rep("", maxcol-2))
+                   rep("", maxcol-3))
     dimnames(temp) <- list(rep("", nrow(temp)), temp4)
     print(temp, quote=F)
     invisible(x)

@@ -73,6 +73,12 @@ of variance matrices and a list of target dimnames, it returns a list
 where all the matrices have the same row/col order, the dimnames of
 which will be the order of the coefficients $b$.  It also drops any
 unused rows or cols from the matrices.
+  
+The [[bdsmatrix.reconcile]] routine expects dimnames on all the
+matrices.  If none of the matrices are given a dimname, we add
+them before calling the routine --- but only if they are exactly
+the right dimension.  This allows a user to give an unnamed matrix
+that is just exactly the right length.
 <<coxvarMlist-init>>=
 initialize <- function(vinit, fixed, intercept, G, X, sparse) {
     ngroup <- min(length(G), ncol(G))
@@ -81,11 +87,19 @@ initialize <- function(vinit, fixed, intercept, G, X, sparse) {
         return(list(error="Mlist cannot have both covariates and grouping"))
 
     if (!is.list(varlist)) varlist <- list(varlist)  # a naked matrix
+    noname <- all(sapply(varlist, function(x) is.null(dimnames(x))))
+    namefun <- function(x, names) {
+        if (all(dim(x)== rep(length(names),2))) 
+            dimnames(x) <- list(names, names)
+        x
+        }
     if (ngroup >0) {
         n <- nrow(G)
         G <- expand.nested(G)
         groups <- G[[ngroup]]  #drop all but the last
         bname <- levels(groups)
+        if (noname) varlist <- lapply(varlist, namefun, bname)
+        
         tlist <- bdsmatrix.reconcile(varlist, bname)
         imap <- matrix(match(groups, dimnames(tlist[[1]])[[1]]))
         xmap <- NULL
@@ -94,6 +108,7 @@ initialize <- function(vinit, fixed, intercept, G, X, sparse) {
     else {
         n <- nrow(X)
         bname <- dimnames(X)[[2]]
+        if (noname) varlist <- lapply(varlist, namefun, bname)
         tlist <- bdsmatrix.reconcile(varlist, bname)
         # bdsmatrices are illegal, for now, for covariates
         tlist <- lapply(tlist, as.matrix)

@@ -141,13 +141,17 @@ regular metrix from the remainder.
             j <- ncoef[1,1] - nsparse   #number of intercept columns
             R[1:nrow(temp), 1:j] <- temp[,1:j]
             indx1 <- indx1 +j
+
+            if (ncoef[1,2] >0) { #copy correlation with intercept
+                k <- 1:ncoef[1,2]
+                R[1:ncoef[1,1], indx2+k-nsparse] <- temp[1:ncoef[1,1], j+k]
+                }
             }
         else j <- 0
         
         if (ncoef[1,2] >0) { #has a slope contribution to rmat
             k <- 1:ncoef[1,2]
-            R[1:ncoef[1,1], indx2+k] <- temp[1:ncoef[1,1], j+k]
-            R[indx1+k, indx2+k] <- temp[ncoef[1,1]+k, j+k]
+            R[indx2+k, indx2+k -nsparse] <- temp[ncoef[1,1]+k, j+k]
             indx2 <- indx2 + ncoef[1,2]
             }
         }

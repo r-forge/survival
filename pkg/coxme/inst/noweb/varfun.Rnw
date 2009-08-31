@@ -323,9 +323,13 @@ have to match up precisely with the grouping variables.
 For reasons given below we order the parameters from the last grouping
 variable to the first.
 <<initialize-inits>>=
-gname <-  rev(names(G))
+gname <-  names(G)
 ntheta <- length(gname)
 theta <- rep(.2, ntheta)
+if (ntheta >1) {
+    for (i in 2:ntheta) gname[i] <- paste(gname[i-1], gname[i], sep='/')
+    gname <- rev(gname) 
+    }
 if (length(vinit) >0) {
     temp <- initmatch(gname, vinit)
     if (any(temp==0))
@@ -597,10 +601,11 @@ correlations=$(e^\theta -1)/(e^\theta +1)$.
 In the code below we set the intitial value to .2/std to start, then correct
 it later to .2 when $X$ is rescaled.  This is so that any user inputs are in
 the original data scale, which is what will appear on the printout.
-
+You cannot subtract the mean, as one can with a regular covariate, it will
+be scattered into multiple columns.
 <<coxvarFull-init-4>>=
-xmean <- apply(X,2,mean)
 xstd  <- sqrt(apply(X,2,var))
+xstd  <- rep(1, ncol(X))  #debug line
 if (intercept) theta.temp <- diag(c(.2, .2/xstd))
 else           theta.temp <- diag(.2/xstd, nvar, nvar) #might be 1x1 !
 theta <- rep(theta.temp[row(theta.temp) >= col(theta.temp)], ngroup)
@@ -668,7 +673,7 @@ xoffset <- (intercept)* max(imap)
 k <- 1
 for (j in 1:nvar) {
     for (i in 1:ncol(imap)) { 
-        xnew[,k] <- (X[,j] - xmean[j])/xstd[j]
+        xnew[,k] <- X[,j]/xstd[j]
 	xmap[,k] <- imap[,i] + xoffset
 	k <- k+1
 	xoffset <- xoffset + max(imap)
@@ -873,21 +878,24 @@ $b$ by $1/s^2$.
             colname <- parms$xname
             rescale <- 1/parms$xstd
             }
+
         for (i in 1:ngroup) {
-            temp<- matrix(random[[i]], ncol=length(colname),
-                                  dimnames=list(parms$levellist[[i]], colname))
+            temp<- matrix(random[[i]], ncol=length(colname))
             random[[i]] <- temp %*% diag(rescale, ncol(temp))
+            dimnames(random[[i]]) <- list(parms$levellist[[i]], colname)
             }
         
         # Deal with theta
         tfun <- function(x, n= 1 + nvar, scale=rescale) {
             tmat <- matrix(0., n, n)
             tmat[row(tmat) >= col(tmat)] <- x
+            offdiag <- row(tmat) > col(tmat)
+            tmat[offdiag] <- (tmat[offdiag]-1)/(tmat[offdiag]+1)
             diag(tmat) <- diag(tmat) * scale^2
             dimnames(tmat) <- list(colname, colname)
             tmat + t(tmat) - diag(diag(tmat))
             }
-        parms.per.group <- length(theta)/ngroup
+        parms.per.group <- length(newtheta)/ngroup
         if (parms.per.group==1) { #nvar=1, intercept=F case
             theta <- as.list(newtheta/parms$xstd)
             theta <- lapply(theta, function(x) {names(x)<- parms$xname; x})
@@ -897,7 +905,7 @@ $b$ by $1/s^2$.
             theta <- vector('list', ngroup)
             names(theta) <- parms$gname
             for (i in 1:ngroup) 
-                newtheta[[i]] <- tfun(newtheta[1:parms.per.group + 
+                theta[[i]] <- tfun(newtheta[1:parms.per.group + 
                                          parms.per.group*(i-1)])
             }
         return(list(theta=theta, b=random))

@@ -166,7 +166,7 @@ else {
             if (nrandom >1) 
                 stop(paste("An unlabeled list of matrices is",
                            "ambiguous when there are multiple random terms"))
-            else varlist <- coxvarMlist(varlist)
+            else varlist <- list(coxvarMlist(varlist))
             }
         else {  #the user gave me a list, not all matrices
             for (i in 1:length(varlist)) {
@@ -358,7 +358,7 @@ fit <- coxme.fit(X, Y, strats, offset, init, control, weights=weights,
                  theta, ntheta, ncoef, refine.n)
 @ 
 
-Then we finish up be packaging up the results for a user.
+Then we finish up by packaging up the results for a user.
 The first few lines are the case where a fatal error occured, in which
 case the result contains only the failure line.
 (Is this needed?)
