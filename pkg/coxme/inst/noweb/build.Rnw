@@ -236,6 +236,7 @@ fmat <- zmat <- matrix(0, nrow=n, ncol=0)
 ntheta <- integer(nrandom)
 ncoef  <- matrix(0L, nrandom, 2, dimnames=list(NULL, c("intercept", "slope")))
 theta <-  NULL   #initial values of parameters to iterate over
+
 for (i in 1:nrandom) {
     f2 <- formula2(flist$random[[i]])
     if (f2$intercept & f2$group==1)
@@ -313,7 +314,8 @@ if (missing(vinit)) vinit <- vector('list', nrandom)
 else {
     if (nrandom==1 && is.numeric(vinit)) vinit <- list(vinit)
     if (!is.list(vinit)) stop("Invalid value for `vinit` parameter")
-    if (length(vinit) > nrandom) stop ("Invalid length for vinit")
+    if (length(vinit) > nrandom) 
+        stop (paste("Vinit must be a list of length", nrandom))
     if (!all(sapply(vinit, is.numeric))) 
         stop("Vinit must contain numeric values") 
     
@@ -332,7 +334,8 @@ if (missing(variance)) variance <- vector('list', nrandom)
 else {
     if (nrandom==1 && is.numeric(variance)) variance <- list(variance)
     if (!is.list(variance)) stop("Invalid value for `variance` parameter")
-    if (length(variance) > nrandom) stop ("Invalid length for variance")
+    if (length(variance) > nrandom) 
+        stop (paste("Variance must be a list of length", nrandom))
     if (!all(sapply(variance, is.numeric))) 
         stop("Variance must contain numeric values") 
     

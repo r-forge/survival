@@ -231,11 +231,11 @@ if (is.null(dummy@rmat)) rcol <- 0
 npenal <- ncol(dummy)  #total number of penalized terms
 
 if (ncol(imap)>0) {
-    findex <- matrix(0, nrow=max(imap), ncol=ncol(imap))
+    findex <- matrix(0, nrow=sum(ncoef), ncol=ncol(imap))
     for (i in 1:ncol(imap)) findex[cbind(imap[,i], i)] <- 1
     }
 else findex <- 0  # dummy value
-    
+
 if (is.null(control$sparse.calc)) {
     nevent <- sum(y[,ncol(y)])
     if (length(dummy@blocksize)<=1) nsparse<- 0
@@ -499,7 +499,7 @@ The phrase [[c(ikmat@rmat,0)]] makes sure something is passed when
     ilik <- fit$loglik[2] -
              .5*(sum(log(diag(gkmat))) + fit$hdet)
     iter[2] <- iter[2] + fit$iter[2]
- <<refine>>
+    <<refine>>
 @
               
 \subsection{Finishing up}

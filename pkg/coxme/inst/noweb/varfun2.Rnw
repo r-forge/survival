@@ -87,7 +87,8 @@ initialize <- function(vinit, fixed, intercept, G, X, sparse) {
         return(list(error="Mlist cannot have both covariates and grouping"))
 
     if (!is.list(varlist)) varlist <- list(varlist)  # a naked matrix
-    noname <- all(sapply(varlist, function(x) is.null(dimnames(x))))
+    noname <- all(sapply(varlist, function(x) is.null(dimnames(x)) || 
+                      (is.null(dimnames(x)[[1]]) & is.null(dimnames(x)[[2]]))))
     namefun <- function(x, names) {
         if (all(dim(x)== rep(length(names),2))) 
             dimnames(x) <- list(names, names)
