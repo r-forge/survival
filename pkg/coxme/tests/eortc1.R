@@ -1,7 +1,10 @@
+library(coxme)
+options(na.action='na.exclude', contrasts=c('contr.treatment', 'contr.poly'))
+aeq <- function(x,y, ...) all.equal(as.vector(x), as.vector(y), ...)
+
 # This data set is the result of a simulation, done by
 #   Jose Cortinas at EORTC.
 # It has a random center effect, and a random treatment effect
-load('../data/eortc.Rda')
 
 fit0 <- coxph(Surv(y, uncens)~ trt, eortc)  #Simple fit
 fit1 <- coxme(Surv(y, uncens) ~ trt + (1|center), eortc)

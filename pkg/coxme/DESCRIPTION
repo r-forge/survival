@@ -5,6 +5,7 @@ Package: coxme
 Version: 1.0
 Date: 2009-03-01
 Depends: survival, bdsmatrix, R (>= 2.0.0)
+Suggests: kinship
 LinkingTo: bdsmatrix
 LazyData: Yes
 LazyLoad: Yes

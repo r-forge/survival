@@ -216,7 +216,7 @@ wrapup <- function(newtheta, b, parms) {
         vname <- parms$vname
         if (length(vname)==0) vname <- defaultname
         else if (any(vname=='')){
-            indx <- which(vname='')
+            indx <- which(vname=='')
             vname[indx] <- defaultname[indx]
             }
         names(theta) <- vname

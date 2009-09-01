@@ -1,3 +1,31 @@
+library(coxme)
+options(na.action='na.exclude', contrasts=c('contr.treatment', 'contr.poly'))
+aeq <- function(x,y, ...) all.equal(as.vector(x), as.vector(y), ...)
+
+#
+# Same data set as slope1
+#
+set.seed(56)
+n.subject <- seq(180, by=21, length=9) # number of subjects
+slope <- sort(-.5 + rnorm(9, sd=.5))         # true treament effects
+
+inst <- rep(1:9, n.subject)
+n <- length(inst)
+simdata <- data.frame(id=1:n, inst=inst,
+                      trt= rep(0:1, length=n),
+                      age= runif(n, 40, 70))
+#risk goes up 30%/decade of age
+simdata$hazard <- .8* exp(simdata$trt * rep(slope, n.subject) +
+                          (simdata$age-55) * .03)
+
+rtime <- function(hazard, censor=c(1,2)) {
+    stime <- rexp(length(hazard), rate=hazard)
+    ctime <- runif(length(hazard), censor[1], censor[2])
+    list(time= pmin(stime, ctime), status=1*(stime <=ctime))
+    }
+temp <- rtime(simdata$hazard)
+simdata$time <- temp$time
+simdata$status <- temp$status
 contr.none <- function(n,contrasts=T) {
         if(is.numeric(n) && length(n) == 1.)
                 levs <- 1.:n

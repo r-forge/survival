@@ -749,7 +749,7 @@ if (parms$case==4) {
             xvar <- theta[i+nvar+tindx]  #variance of the slope
             xcor <- (theta[i+tindx]-1)/(theta[i+tindx]+1)  # correlation
             icov <- xcor * sqrt(xvar * ivar)               # covariance
-            rmat[1:n1, 1:n1 +i*n1 -nsparse] <- addup(icov) 
+            rmat[1:n1, 1:n1 +i*n1 -nsparse] <- as.matrix(addup(icov)) 
             }
         irow <- n1
         icol <- n1 - nsparse
@@ -764,7 +764,7 @@ if (parms$case==4) {
     offset1 <- 0
     for (i in 1:nvar) {
         xvar <- theta[offset1 + tindx]  #variance of the slope
-        rmat[1:n1 + irow, 1:n1 + icol] <- addup(xvar)
+        rmat[1:n1 + irow, 1:n1 + icol] <- as.matrix(addup(xvar))
         # covariate-covariate
         if (i<nvar) {
             offset2 <- offset1 + 1 + nvar-1
@@ -773,7 +773,7 @@ if (parms$case==4) {
                 zvar <- theta[offset2 + tindx]-1
                 zcor <- (theta[j+offset2+tindx] -1)/(theta[j+offset2 +tindx]+1)
                 zcov <- sqrt(xvar*zvar) * zcor
-                rmat[1:n1+ irow, 1:n1 + icol] <- addup(zcov)
+                rmat[1:n1+ irow, 1:n1 + icol] <- as.matrix(addup(zcov))
                 offset2 <- offset2 + 1 + nvar -j
                 }
             offset1 <- offset1 + 1 + nvar- i

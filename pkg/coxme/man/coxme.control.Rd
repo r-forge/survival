@@ -11,7 +11,7 @@ Auxillary function which packages the optional parameters of a
 \usage{
 coxme.control(eps = 1e-08, toler.chol = .Machine$double.eps^0.75,
 iter.max = 20, inner.iter = 5, sparse.calc = NULL,
-optpar = list(method = "BFGS", control=list(reltol = 0.001)))
+optpar = list(method = "BFGS", control=list(reltol = 1e-5)))
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{

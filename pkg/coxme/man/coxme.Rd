@@ -74,7 +74,7 @@ refine.n = 0, random, fixed, ...)
 }
 }
 \value{
-An object of class \code{coxme}; see \code{coxme.object} for details.
+An object of class \code{coxme}.
 }
 \references{
 Ripatti, Therneau
@@ -83,8 +83,7 @@ Ripatti, Therneau
 Terry Therneau
 }
 \seealso{
-  \code{\link{coxvarFull}}, \code{\link{coxvarMlist}},
-  \code{\link{coxme.object}}
+  \code{\link{coxvarFull}}, \code{\link{coxvarMlist}}
 }
 \examples{
 \dontrun{# Random treatment effects per institution
