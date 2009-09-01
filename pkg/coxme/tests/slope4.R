@@ -181,7 +181,7 @@ fita <- coxme(Surv(time, status) ~ age + trt + (1+trt | inst), simdata)
  
 # fitb has a hard time, by way of wandering into bad solutions
 # vtemp <- ranef(fita)[[1]][c(1,4,2)]
-#vtemp[3] <- vtemp[3] * sqrt(vtemp[1] * vtemp[2])
+# vtemp[3] <- vtemp[3] * sqrt(vtemp[1] * vtemp[2])
 #fitb <- coxme(Surv(time, status) ~ age + trt + (1|inst/trt), simdata,
 #              vinit=vtemp,
 #              varlist=coxvarMlist(list(mat1,mat2,mat3), pdcheck=F, rescale=F,
@@ -232,12 +232,14 @@ myvar <- function(varlist) {
     class(out) <- 'coxvar'
     out
     }
+
 fitc <- coxme(Surv(time, status) ~ age + trt + (1|inst/trt), simdata,
-              vinit=vtemp, varlist=myvar(list(mat1, mat2, mat3)))
+              varlist=myvar(list(mat1, mat2, mat3)))
 
 aeq(fitc$log, fita$log, tol=1e-5)
 aeq(fixef(fita), fixef(fitc), tol=1e-4)
 
+vtemp <- ranef(fita)[[1]][c(1,4,2)]
 fitc2 <- coxme(Surv(time, status) ~ age + trt + (1|inst/trt), simdata,
               variance=vtemp, varlist=myvar(list(mat1, mat2, mat3)))
 aeq(unlist(fita$frail),  map[1:18, 1:18] %*% unlist(fitc2$frail), tol=1e5)

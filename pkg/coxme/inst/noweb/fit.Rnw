@@ -450,8 +450,12 @@ if (is.null(ifixed) ) ifixed <- rep(0., ncol(x))
 else if (length(ifixed) != ncol(x))
     stop("Wrong lenth for initial parameters of the fixed effects")
                                   
-fit0 <- coxph(y ~ x + offset(offset), weights=weights, method=ties,
-              init=ifixed, iter=0)
+#fit0 <- coxph(y ~ x + offset(offset), weights=weights, method=ties,
+#              init=ifixed, iter=0)
+fit0 <- coxph.fit(x,y, strata=strata, 
+                  offset=offset, init=ifixed, weights=weights,
+                  method=ties, rownames=1:nrow(y), 
+                  control=coxph.control(iter=0))
 @ 
 
 \subsection{Doing the fit}

@@ -34,3 +34,5 @@ $(SFUN) : all.nw
 	echo "# Automatically generated from all.nw using noweb" > $@
 	notangle -R$* all.nw >> $@
 
+clean:
+	rm all.nw all.log all.aux all.toc all.tex all.pdf

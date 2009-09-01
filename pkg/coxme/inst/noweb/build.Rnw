@@ -440,7 +440,7 @@ fit$theta <- NULL
  
 Last fill in a set of miscellaneous members of the structure
 <<finish-up>>=
-fit$n <- nrow(Y)
+fit$n <- c(sum(Y[,ncol(Y)]), nrow(Y))
 fit$terms <- Terms
 fit$assign <- attr(X, 'assign')
 fit$formulaList <- flist

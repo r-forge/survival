@@ -12,24 +12,33 @@ print.coxme <- function(x, rcoef=FALSE, digits=options()$digits, ...) {
     nfrail<- nrow(x$var) - nvar
 
     omit <- x$na.action
+    cat("  events, n = ", x$n[1], ', ', x$n[2], sep='')
     if(length(omit))
-        cat("  n=", x$n, " (", naprint(omit), ")\n", sep = "")
-    else cat("  n=", x$n, "\n")
+        cat(" (", naprint(omit), ")", sep = "")
     temp <- matrix(x$loglik, nrow=1)
-    cat("  Iterations=", x$iter, "\n")
+    cat("\n  Iterations=", x$iter, "\n")
     dimnames(temp) <- list("Log-likelihood", 
                            c("NULL", "Integrated", "Penalized"))
     print(temp)
-    chi <- 2*diff(x$loglik[c(1,3)]) 
-    cat("\n  Penalized loglik: chisq=", format(round(chi,2)), 
-        "on", format(round(x$df[2],2)), "degrees of freedom, p=",
-        format(signif(1- pchisq(chi,x$df[2]),2)),"\n")
-    chi <- 2*diff(x$loglik[1:2]) 
-    cat(" Integrated loglik: chisq=", format(round(chi,2)), 
-        "on", format(round(x$df[1],2)), "degrees of freedom, p=",
-        format(signif(1- pchisq(chi,x$df[1]),2)),"\n\n")
+    cat("\n")
+    chi1 <- 2*diff(x$loglik[c(1,2)]) 
 
-    cat ("Model: ", deparse(x$call$formula), "\n")
+    
+    chi1 <- 2*diff(x$loglik[1:2]) 
+    chi2 <- 2*diff(x$loglik[c(1,3)])
+    temp <- rbind(c(round(chi1,2), round(x$df[1],2),
+                    signif(1- pchisq(chi1,x$df[1]),5),
+                    round(chi1- 2*x$df[1],2),
+                    round(chi1- log(x$n[1])*x$df[1],2)),
+                  c(round(chi2,2), round(x$df[2],2),
+                    signif(1- pchisq(chi2,x$df[2]),5),
+                    round(chi2- 2*x$df[2],2),
+                    round(chi2- log(x$n[1])*x$df[2],2)))
+    dimnames(temp) <- list(c("Integrated loglik", " Penalized loglik"),
+                           c("Chisq", "df", "p", "AIC", "BIC"))
+    print(temp, quote=F)
+
+    cat ("\nModel: ", deparse(x$call$formula), "\n")
 
     if (nvar > 0)  { # Not a ~1 model
         coef <- beta$fixed
