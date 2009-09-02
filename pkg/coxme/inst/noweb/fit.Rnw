@@ -334,17 +334,18 @@ estimate. The arguments in this case are
   \item[loglik] the actual log-likelihoods at the random points
   \item[approx] the Laplace approx at the random points
 \end{description}
-The routine simulates the difference between the true and Laplace approximation 
-integrands.  
+The routine simulates the difference between the true integrand and the
+Laplace approximation of the integrand.  
 
 <<refine>>=
 if (refine.n > 0) {
-    bmat <- matrix(rnorm(length(beta)*refine.n), ncol=refine.n)
+    rbeta <- fit$beta[1:ncol(gkmat)]  #random coefs
+    bmat <- matrix(rnorm(length(rbeta)*refine.n), ncol=refine.n)
     sim.pen <- colSums(bmat^2)/2   #This is b' \Sigma^{-1} b /2 
 
     rfit <- .C(rfile,
                as.integer(refine.n),
-               as.double(beta),
+               as.double(rbeta),
                as.double(gkmat %*% bmat),
                loglik = double(refine.n),
                approx = double(refine.n))

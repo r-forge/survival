@@ -1,3 +1,4 @@
 #!/bin/sh
 (cd R; make clean)
 (cd inst/noweb; make clean)
+rm src/*.o src/coxme.so

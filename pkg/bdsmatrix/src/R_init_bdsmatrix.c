@@ -10,7 +10,7 @@
 void R_init_bdsmatrix(DllInfo *info) {
     R_RegisterCCallable("bdsmatrix","bdsmatrix_prod2", 
 			(DL_FUNC) &bdsmatrix_prod2);
-    R_RegisterCCallable("bdsmatrix","bdsmatric_prod4", 
+    R_RegisterCCallable("bdsmatrix","bdsmatrix_prod4", 
 			(DL_FUNC) &bdsmatrix_prod4);
     R_RegisterCCallable("bdsmatrix","cholesky4", (DL_FUNC) &cholesky4);
     R_RegisterCCallable("bdsmatrix","cholesky5", (DL_FUNC) &cholesky5);
