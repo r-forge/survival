@@ -45,7 +45,7 @@ void coxfit6d(Sint *nrefine,  double *beta,  double *bhat,
     ns     = c6.nsparse;   /* number of factor levels that are sparse */
     nfac   = c6.nfactor;   /* number of factor levels (penalized) */
     nvar2  = nvar + (nfrail - nfac);  /* number of cols of X */
-    nfns   = nfac - ns;     /* number of factor levels that are NOT sparse */
+    nfns   = nfrail - ns;     /* number of penalized that are NOT sparse */
 
     for (ii=0; ii< *nrefine; ii++) {
 	/*
@@ -55,7 +55,6 @@ void coxfit6d(Sint *nrefine,  double *beta,  double *bhat,
 	denom =0;
 	efron_wt =0;
 	newlik =0;
-
 	for (p=0; p<c6.n; p++) {  /* p = person */
 	    if (p==c6.strata[istrat]) {
 		istrat++;
@@ -72,7 +71,7 @@ void coxfit6d(Sint *nrefine,  double *beta,  double *bhat,
 		zbeta = zbeta + bhat[j];
 		}
 	    for (i=0; i<nfns; i++)
-		zbeta += bhat[i+nfac] * c6.x[i][p];
+		zbeta += bhat[i] * c6.x[i][p];
 	    for (i=nfns; i<nvar2; i++)
 		zbeta += beta[i+nfac]* c6.x[i][p];
 	    risk = exp(zbeta) * c6.weights[p];
