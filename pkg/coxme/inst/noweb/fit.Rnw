@@ -428,7 +428,6 @@ orders the entry times.
 	    }
 	else {
 	    sorted <- order(strata, -y[,1], y[,2])
-	    strata <- (as.numeric(strata))[sorted]
 	    newstrat <-  cumsum(table(strata))
 	    }
 	status <- y[,2]
