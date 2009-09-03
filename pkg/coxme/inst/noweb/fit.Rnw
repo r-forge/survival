@@ -352,22 +352,20 @@ if (refine.n > 0) {
     }
 @ 
 
-The second two terms for the calculation are quadratic forms.  The
-first three variables are needed with or without refinement.
+The second two terms for the calculation are quadratic forms.  
 Mathematically, the acual correction is the mean of 
-[[exp(rfit$loglik) - exp[[fit$loglik -penalty + rterm1 - rterm2]].  
-However, many of these will be huge negative numbers and would become
-zeros, completely losing precision.  Even this may be large, so we
-express it as a fraction of the integrated likelhood.
+[[exp(rfit$loglik) - exp[[fit$loglik + rterm1 - rterm2]].  
+However, many of these will be huge negative numbers and the
+exponentials would become exact zeros, leaving no digits of
+precision in the difference.  We first scale (tmean), and finally
+express the result as a fraction of the integrated likelhood.
 <<refine2>>=
-nfrail <- ncol(gkmat)
-fcoef <- fit$beta[1:nfrail]
-penalty <- sum(fcoef * (ikmat %*% fcoef))/2
 if (refine.n > 0) {
+    nfrail <- ncol(gkmat)
     rterm2 <- colSums(bmat^2)/2
-    delta  <- fcoef - gkmat %*% bmat
+    delta  <- fit$beta[1:nfrail] - gkmat %*% bmat
     rterm3 <- rowSums((t(delta) %*% hmat[1:nfrail, 1:nfrail])^2)/2
-    temp <- cbind(rfit$loglik, fit$loglik[2] +rterm2 - (penalty +rterm3))
+    temp <- cbind(rfit$loglik, fit$loglik[2] +rterm2 - rterm3)
     tmean <- mean(temp)
     escale <- exp(tmean-ilik)
     errhat <- exp(temp[,1]-tmean) - exp(temp[,2]-tmean)
@@ -658,17 +656,19 @@ df <- nvar + (nfrail - traceprod(hinv, ikmat))
 And last, put together the output structure.
 <<create-output-list>>=
     idf <- nvar + sum(ntheta)
+    fcoef <- fit$beta[1:nfrail]
+    penalty <- sum(fcoef * (ikmat %*% fcoef))/2
 
     if (nvar > 0) {
 	out <- list(coefficients = fit$beta[-(1:nfrail)]/scale, frail=fcoef, 
 	     theta=theta, penalty=penalty,
-	     loglik=c(fit0$log[1], ilik, fit$log[2]-penalty), var=hinv,
+	     loglik=c(fit0$log[1], ilik, fit$log[2]), variance=hinv,
 	     df=c(idf, df), hmat=hmat, iter=iter, control=control,
 	     u=u, means=means, scale=scale)
 	}
     else out <- list(coefficients=NULL, frail=fcoef, 
                      theta=theta, penalty=penalty,
-	      loglik=c(fit0$log[1], ilik, fit$log[2]-penalty), var=hinv,
+	      loglik=c(fit0$log[1], ilik, fit$log[2]), variance=hinv,
 	      df=c(idf, df), hmat=hmat, iter=iter, control=control,
 	      u=fit3$u, means=means, scale=scale)    
 
