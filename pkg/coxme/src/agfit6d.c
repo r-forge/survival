@@ -6,8 +6,6 @@
 **   for the random effects b-hat.  For each of the trial estimates, it
 **   computes the partial likelihood.  No need for a first derivative, a
 **   variance, or iteration --- so we can be very fast.
-** It then also computes the approximation. For this, we use the fact that
-**   coxfit6.imat still holds the H matrix from the fit.
 **   
 **    Input
 ** beta         : vector of coefficients, random first, then others
@@ -15,13 +13,10 @@
 **
 **    Output
 ** loglik       : vector of partial likelihoods
-** approx       : vector of approximations
 */
 #include "coxmeS.h"
 #include "coxfit6.h"
 #include <math.h>
-#include "bdsmatrix.h"
-#include <stdio.h>
 
 /* the next line is just so that I can use "c6.n" instead of "coxfit6.n", etc*/
 #define c6 coxfit6  
@@ -49,7 +44,7 @@ void agfit6d(Sint *nrefine,  double *beta,  double *bhat,
     ns     = c6.nsparse;   /* number of factor levels that are sparse */
     nfac   = c6.nfactor;   /* number of factor levels (penalized) */
     nvar2  = nvar + (nfrail - nfac);  /* number of cols of X */
-    nfns   = nfac - ns;     /* number of factor levels that are NOT sparse */
+    nfns   = nfrail - nfac;  /* penalized terms that are not factors */
 
     for (ii=0; ii< *nrefine; ii++) {
 	/*
@@ -140,25 +135,6 @@ void agfit6d(Sint *nrefine,  double *beta,  double *bhat,
 	    } /* end  of accumulation loop  */
 
 	loglik[ii] = newlik;
-
-	/*
-	** Now compute the Taylor series approx
-	**  Note that c6.imat & c6.imatb contain the cholesky decomposition
-	**  of hmat
-	*/
-	for (i=0; i<nfrail; i++) {
-	    bhat[i] -= beta[i];     /* create b-beta */
-	    }
-	bdsmatrix_prod4(nvar, c6.nblock, c6.bsize, 
-			c6.imatb, c6.imat[0],
-			nfrail, bhat); 
-	temp =0;
-	for (j=0; j<nfrail; j++) {
-	    temp += bhat[j]*bhat[j]/ 2;
-	    }
-	approx[ii] = temp;
-	    
-	bhat += nfrail;  /* point to the next row */
 	}   /* return for another iteration */
 
     return;

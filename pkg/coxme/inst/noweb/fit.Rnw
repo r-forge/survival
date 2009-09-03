@@ -325,34 +325,55 @@ The third routine is used for iterative refinement of the Laplace
 estimate. The arguments in this case are
 \begin{description}
   \item[rfile] either 'coxfit6d' or 'agfit6d'
-  \item[beta] the final solution vector or random effects $(b, \beta)$
+  \item[beta] the final solution vector $(b, \beta)$, though only $\beta$
+    is used.
   \item[gkmat] the final variance-covariance matrix at the solution
-  \item[bmat] a matrix normal 0/1 random variables with nfrail rows (dimension
+  \item[bmat] matrix of normal 0/1 random variables with nfrail rows (dimension
     of beta and of gkmat) and refin.n columns.  
     Each column of the product [[gkmat %*% bmat]] is a random Gaussian draw
     with correlation [[kmat]].
-  \item[loglik] the actual log-likelihoods at the random points
-  \item[approx] the Laplace approx at the random points
+  \item[loglik] log-likelihoods at the random points
 \end{description}
-The routine simulates the difference between the true integrand and the
-Laplace approximation of the integrand.  
 
+The routine calculates the log-lik for a sucession of Cox models, each
+one using one of the random draws as it's random effect.
+The second part of the calculation is later in the codesince it needs [[hmat]],
+which we haven't constructed yet.  
 <<refine>>=
 if (refine.n > 0) {
-    rbeta <- fit$beta[1:ncol(gkmat)]  #random coefs
-    bmat <- matrix(rnorm(length(rbeta)*refine.n), ncol=refine.n)
-    sim.pen <- colSums(bmat^2)/2   #This is b' \Sigma^{-1} b /2 
+    nfrail <- ncol(gkmat)
+    bmat <- matrix(rnorm(nfrail*refine.n), ncol=refine.n)
 
     rfit <- .C(rfile,
                as.integer(refine.n),
-               as.double(rbeta),
+               as.double(fit$beta),
                as.double(gkmat %*% bmat),
-               loglik = double(refine.n),
-               approx = double(refine.n))
-    errhat <- exp(rfit$loglik- ilik) - 
-                      exp(fit$loglik[2] + sim.pen - (rfit$approx + ilik))
-    ilik = ilik + log(1 + mean(errhat))
-    r.correct <- c(correction=mean(errhat), var=var(errhat)/refine.n)
+               loglik = double(refine.n))
+    }
+@ 
+
+The second two terms for the calculation are quadratic forms.  The
+first three variables are needed with or without refinement.
+Mathematically, the acual correction is the mean of 
+[[exp(rfit$loglik) - exp[[fit$loglik -penalty + rterm1 - rterm2]].  
+However, many of these will be huge negative numbers and would become
+zeros, completely losing precision.  Even this may be large, so we
+express it as a fraction of the integrated likelhood.
+<<refine2>>=
+nfrail <- ncol(gkmat)
+fcoef <- fit$beta[1:nfrail]
+penalty <- sum(fcoef * (ikmat %*% fcoef))/2
+if (refine.n > 0) {
+    rterm2 <- colSums(bmat^2)/2
+    delta  <- fcoef - gkmat %*% bmat
+    rterm3 <- rowSums((t(delta) %*% hmat[1:nfrail, 1:nfrail])^2)/2
+    temp <- cbind(rfit$loglik, fit$loglik[2] +rterm2 - (penalty +rterm3))
+    tmean <- mean(temp)
+    escale <- exp(tmean-ilik)
+    errhat <- exp(temp[,1]-tmean) - exp(temp[,2]-tmean)
+    ilik  <- ilik + log(1+ escale*mean(errhat))
+    r.correct <- escale *c(correction= mean(errhat), 
+                           std =sqrt(var(errhat)/refine.n))
     }
 @ 
 
@@ -421,6 +442,7 @@ orders the entry times.
 	status <- y[,3]
         ofile <-  'agfit6b'
         rfile <-  'agfit6d'
+        coxfitfun<- survival:::agreg.fit
         }
     else {
 	if (length(strata) ==0) {
@@ -434,6 +456,7 @@ orders the entry times.
 	status <- y[,2]
         ofile <- 'coxfit6b' # fitting routine
         rfile <- 'coxfit6d' # refine.n routine
+        coxfitfun <- survival:::coxph.fit
         }
 @ 
 
@@ -450,9 +473,7 @@ if (is.null(ifixed) ) ifixed <- rep(0., ncol(x))
 else if (length(ifixed) != ncol(x))
     stop("Wrong lenth for initial parameters of the fixed effects")
                                   
-#fit0 <- coxph(y ~ x + offset(offset), weights=weights, method=ties,
-#              init=ifixed, iter=0)
-fit0 <- coxph.fit(x,y, strata=strata, 
+fit0 <- coxfitfun(x,y, strata=strata, 
                   offset=offset, init=ifixed, weights=weights,
                   method=ties, rownames=1:nrow(y), 
                   control=coxph.control(iter=0))
@@ -513,6 +534,7 @@ There are 4 tasks left to do
  <<release-memory>>
  <<coxme-rescale>>
  <<coxme-df>>
+ <<refine2>>   
  <<create-output-list>>
 @ 
 
@@ -604,7 +626,8 @@ with $S^2D$ and $L$ with $SLS^{-1}$.
             }
         hmat <- new('gchol.bdsmatrix', Dim=c(nvar3, nvar3),
                     blocksize=ikmat@blocksize, blocks=fit3$h.b,
-                    rmat= rmat1, rank=fit3$hrank)
+                    rmat= rmat1, rank=fit3$hrank,
+                    Dimnames=list(NULL, NULL))
         hinv <- bdsmatrix(blocksize=ikmat@blocksize, blocks=fit3$hi.b,
                           rmat=rmat2)
         }
@@ -634,25 +657,27 @@ df <- nvar + (nfrail - traceprod(hinv, ikmat))
 
 And last, put together the output structure.
 <<create-output-list>>=
-    fcoef <- fit$beta[1:nfrail]
-    penalty <- sum(fcoef * (ikmat %*% fcoef))/2
     idf <- nvar + sum(ntheta)
 
     if (nvar > 0) {
 	out <- list(coefficients = fit$beta[-(1:nfrail)]/scale, frail=fcoef, 
 	     theta=theta, penalty=penalty,
-	     loglik=c(fit0$log[1], ilik, fit$log[2]), var=hinv,
+	     loglik=c(fit0$log[1], ilik, fit$log[2]-penalty), var=hinv,
 	     df=c(idf, df), hmat=hmat, iter=iter, control=control,
 	     u=u, means=means, scale=scale)
 	}
     else out <- list(coefficients=NULL, frail=fcoef, 
                      theta=theta, penalty=penalty,
-	      loglik=c(fit0$log[1], ilik, fit$log[2]), var=hinv,
+	      loglik=c(fit0$log[1], ilik, fit$log[2]-penalty), var=hinv,
 	      df=c(idf, df), hmat=hmat, iter=iter, control=control,
 	      u=fit3$u, means=means, scale=scale)    
 
-    if (refine.n>0) out<- c(out, list(errhat=errhat, refine=r.correct))
-
+    if (refine.n>0) {
+        out$refine <- r.correct
+        #The next line can be turned on for detailed tests in refine.R
+        if (FALSE) out$refine.debug <- list(loglik=rfit$loglik, escale=escale,
+                                           bmat=bmat, errhat=errhat)
+        }
     out
     }
 @ 
