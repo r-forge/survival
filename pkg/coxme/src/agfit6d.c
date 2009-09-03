@@ -22,7 +22,7 @@
 #define c6 coxfit6  
 
 void agfit6d(Sint *nrefine,  double *beta,  double *bhat,
-	      double *loglik, double *approx) {
+	      double *loglik) {
     int i,j,k,p;
     int person;
     int ii, istrat;
@@ -135,6 +135,7 @@ void agfit6d(Sint *nrefine,  double *beta,  double *bhat,
 	    } /* end  of accumulation loop  */
 
 	loglik[ii] = newlik;
+	bhat += nfrail;
 	}   /* return for another iteration */
 
     return;
