@@ -1,6 +1,5 @@
 library(coxme)
 options(na.action='na.exclude', contrasts=c('contr.treatment', 'contr.poly'))
-date()
 aeq <- function(x,y) all.equal(as.vector(x), as.vector(y))
 
 # $Id: test3.s,v 1.4 2003/08/21 21:24:40 therneau Exp $

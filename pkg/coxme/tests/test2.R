@@ -1,6 +1,5 @@
 library(coxme)
 options(na.action='na.exclude')
-date()
 aeq <- function(x,y) all.equal(as.vector(x), as.vector(y))
 
 #

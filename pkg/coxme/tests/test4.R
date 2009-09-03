@@ -1,6 +1,5 @@
 library(coxme)
 options(na.action='na.exclude', contrasts=c('contr.treatment', 'contr.poly'))
-date()
 aeq <- function(x,y) all.equal(as.vector(x), as.vector(y))
 
 #
@@ -82,7 +81,7 @@ aeq(diff(range(fit1$linear-fit2$linear)),0)
 # Score statistic
 temp.score <- xtemp[tdata2$status==1,] - 
 	      xbar[match(tdata2$t2[tdata2$status==1], dtimes),]
-aeq(colSums(temp.score) - c(unlist(fit1$frail,0,0))/theta, fit1$u)
+aeq(colSums(temp.score) - c(unlist(fit1$frail),0,0)/theta, fit1$u)
 
 
 dt <- coxph.detail(fit2, riskmat=T)
@@ -103,6 +102,3 @@ aeq(diag(temp.imat), diag(dt.imat) + c(rep(1/theta,4),0,0))
 aeq(temp.imat[4:6, 3], dt.imat[4:6,3])
 aeq(temp.imat[5:6, 4:6], dt.imat[5:6,4:6])
 
-rm(temp.score, temp.log, dt, nevent, fit1, fit2, fit3)
-rm(lp, lp2, xbar, denom, who, theta)
-rm(temp.risk, temp1, dtimes, nd, xtemp)

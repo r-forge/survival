@@ -1,6 +1,5 @@
 library(coxme)
 options(na.action='na.exclude', contrasts=c('contr.treatment', 'contr.poly'))
-date()
 aeq <- function(x,y) all.equal(as.vector(x), as.vector(y))
 
 #
@@ -44,9 +43,10 @@ aeq(as.matrix(solve(fit1$var, full=F)), h1)
 # And iteration 2
 fit2 <- coxme(Surv(time, status) ~ x1 + x2 + (1|grp), data=tdata0,
               variance=theta, weight=wt, iter=2)
-aeq(fit1$u %*% fit1$var, c(unlist(fit2$frail), coef(fit2)$fixed) - 
-                         c(unlist(fit1$frail), coef(fit1)$fixed))
-
+aeq(solve(fit1$hmat, fit1$u), 
+    c(unlist(fit2$frail), coef(fit2)$fixed) - 
+    c(unlist(fit1$frail), coef(fit1)$fixed))
+aeq(solve(fit1$hmat, fit1$u), fit1$variance %*% fit1$u)
 
 #
 # a copy of tdata0, but with several subjects broken into multiple pieces,

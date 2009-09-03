@@ -1,6 +1,5 @@
 library(coxme)
 options(na.action='na.exclude', contrasts=c('contr.treatment', 'contr.poly'))
-date()
 aeq <- function(x,y) all.equal(as.vector(x), as.vector(y))
 
 # Really simple dataset -- covariate x1 is our old friend from the 
