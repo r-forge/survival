@@ -58,8 +58,7 @@ void coxfit6c(double *u,      double *imatb,
 
     dptr = hinvr;
     for (i=ns; i<nvar3; i++) {
-	for (j=0; j<=i; j++) *dptr++ = c6.imat[i][j];
-	for (; j<nvar3; j++) *dptr++ = 0;
+	for (j=0; j<nvar3; j++) *dptr++ = c6.imat[i][j];
 	}
 
     /*
