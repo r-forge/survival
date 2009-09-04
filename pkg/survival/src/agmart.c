@@ -1,5 +1,5 @@
 /* $Id$
-/*
+*
 ** Compute the martingale residual for a counting process model
 **
 ** Input

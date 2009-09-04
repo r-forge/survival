@@ -1,5 +1,5 @@
 /* $Id$
-/*
+**
 ** Program to mimic a set of nested do loops
 **
 **  Usual calling sequence would be

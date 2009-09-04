@@ -1,5 +1,5 @@
 Title: Survival analysis, including penalised likelihood.
-Maintainer: Thomas Lumley <tlumley@u.washington.edu>
+Maintainer: Terry Therneau <therneau.terry@mayo.edu>
 Priority: recommended
 Package: survival
 Version: 2.35-5

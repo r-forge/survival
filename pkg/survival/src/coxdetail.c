@@ -1,5 +1,5 @@
 /*  $Id$
-/*
+**
 ** Return all of the internal peices of a Cox model
 **
 **  the input parameters are

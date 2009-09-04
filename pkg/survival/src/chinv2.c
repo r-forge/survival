@@ -1,5 +1,5 @@
 /* $Id$
-/*
+**
 ** matrix inversion, given the FDF' cholesky decomposition
 **
 ** input  **matrix, which contains the chol decomp of an n by n

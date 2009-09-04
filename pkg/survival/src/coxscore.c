@@ -1,5 +1,5 @@
 /* $Id$
-/*
+**
 ** Compute the score residuals for a Cox model
 **
 ** Input
