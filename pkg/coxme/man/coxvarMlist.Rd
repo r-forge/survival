@@ -35,13 +35,6 @@ coxvarMlist(varlist, rescale = TRUE, pdcheck = TRUE, positive = TRUE)
 \value{
 a coxme variance family object, used by \code{coxme} in the fitting process.
 }
-\author{
-Terry Therneau
-}
-\seealso{
-\code{\link{coxme}}
-}
-\examples{
-
-}
+\author{Terry Therneau}
+\seealso{\code{\link{coxme}}}
 \keyword{ survival }

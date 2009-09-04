@@ -550,7 +550,7 @@ It then releases all the memory allocated by the initial routine.
 nfrail <- nrow(ikmat)  #total number of penalized terms
 nsparse <- sum(ikmat@blocksize)
 nvar2  <- nvar + (nfrail - nsparse)  # total number of non-sparse coefs
-nvar3  <- nvar + nfrail              # total number of coefficients
+nvar3  <- as.integer(nvar + nfrail)  # total number of coefficients
 btot   <- length(ikmat@blocks)
 
 fit3 <- .C('coxfit6c',
@@ -631,25 +631,33 @@ with $S^2D$ and $L$ with $SLS^{-1}$.
         }
 @             
 
-Now for the degrees of freedom, which is formula 5.16 of Therneau and Grambsch
+Now for the degrees of freedom, using formula 5.16 of Therneau and Grambsch.
 First we have a small utility function to compute the ${\rm trace}(AB)$ where
 $A$ and $B$ are bdsmatrix objects.  
 For ordinary matrices this is the sum of the elementwise product of $A$ and
 $B'$, but we have to account for the fact that bdsmatrix objects only %'
-keep the lower diagonal, so we need the diagonal sum + 2 times the off-diagonal
+keep the lower diagonal of the block portion. 
+We need the diagonal sum + 2 times the off-diagonal
 sum.  
 <<coxme-df>>=
 traceprod <- function(H, P) {
-    #block-diagonal portions match
+    #block-diagonal portions will  match in shape
     nfrail <- nrow(P)  #penalty matrix
-    temp1 <- sum(H@blocks * P@blocks)
+    nsparse <- sum(P@blocksize)
+    if (nsparse >0) {
+        temp1 <- 2@sum(H@blocks * P@blocks) -
+                 sum(diag(H)[1:nsparse] * diag(P)[1:nsparse])
+        }
+    else temp1 <- 0
+    
     if (length(P@rmat) >0) {
         #I only want the penalized part of H
         rd <- dim(P@rmat)
         temp1 <- temp1 + sum(H@rmat[1:rd[1], 1:rd[2]] * P@rmat)
         }
-    2*temp1 - sum(diag(H)[1:nfrail] * diag(P))
+    temp1
     }
+
 df <- nvar + (nfrail - traceprod(hinv, ikmat))
 @ 
 

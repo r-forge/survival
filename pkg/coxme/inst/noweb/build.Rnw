@@ -155,7 +155,7 @@ if (is.null(varlist)) {
     for (i in 1:nrandom) varlist[[i]] <- coxvarFull() #default
     }
 else {
-    if (is.function(varlist)) varlist <- eval(varlist)
+    if (is.function(varlist)) varlist <- varlist()
     if (class(varlist)=='coxvar') varlist <- list(varlist)
     else if (ismat(varlist))
         varlist <- list(coxvarMlist(list(varlist)))
