@@ -83,7 +83,7 @@ In coxph(Surv(time, status) ~ cx1, simdata, iter = 0, x = T) :
 > imat1 <- apply(dt1$imat,1:2, sum)
 > 
 > fit3a <- coxme(Surv(time, status) ~ age + trt + (1|inst) + (trt|inst),
-+                simdata, variance=list(.1,.3), iter=0)
++                simdata, vfixed=list(.1,.3), iter=0)
 > aeq(u1, fit3a$u)
 [1] TRUE
 > pen1 <- diag(c(rep(1/.1,9), rep(1/.3,9), 0,0))
@@ -98,7 +98,7 @@ In coxph(Surv(time, status) ~ cx1, simdata, iter = 0, x = T) :
 > dimnames(mat3) <- list(idlist, idlist)
 > fit3b <-  coxme(Surv(time, status) ~ age + trt + (1|inst/trt), simdata,
 +                varlist=coxvarMlist(list(mat2, mat3), rescale=F, pdcheck=F),
-+                variance=c(.1,.3), iter=0)
++                vfixed=c(.1,.3), iter=0)
 > 
 > group <- strata(simdata$inst, simdata$trt, shortlabel=T, sep='/')
 > cox2 <- coxph(Surv(time, status) ~ group + age + trt, simdata,
@@ -144,13 +144,13 @@ In coxph(Surv(time, status) ~ group + age + trt, simdata, iter = 0,  :
 > 
 > 
 > fit3a.1 <- coxme(Surv(time, status) ~ age + trt + (1|inst) + (trt|inst),
-+                simdata, variance=list(.1,.3), iter=1)
++                simdata, vfixed=list(.1,.3), iter=1)
 > aeq(c(unlist(fit3a.1$frail), fixef(fit3a.1)), step1)
 [1] TRUE
 > 
 > fit3b.1 <-  coxme(Surv(time, status) ~ age + trt + (1|inst/trt), simdata,
 +                varlist=coxvarMlist(list(mat2, mat3), rescale=F, pdcheck=F),
-+                variance=c(.1,.3), iter=1)
++                vfixed=c(.1,.3), iter=1)
 > aeq(c(unlist(fit3b.1$frail), fixef(fit3b.1)), step2)
 [1] TRUE
 > 

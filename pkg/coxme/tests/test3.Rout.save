@@ -42,7 +42,7 @@ Loading required package: bdsmatrix
 > theta=.77
 > zero <- rep(0, nrow(tdata1))
 > fit0 <- coxme(Surv(zero, time, status) ~ x1 + x2 + (1|grp), data=tdata1,
-+               variance=theta, weight=wt, iter=0,
++               vfixed=theta, weight=wt, iter=0,
 +               sparse=c(2, .25), ties='breslow')
 > 
 > tfit <- coxph(Surv(time, status) ~ I(grp==2) + I(grp==3) +I(grp==4) + 
@@ -70,7 +70,7 @@ In coxph(Surv(time, status) ~ I(grp == 2) + I(grp == 3) + I(grp ==  :
 [1] TRUE
 > 
 > fit1 <- coxme(Surv(zero, time, status) ~ x1 + x2 + (1|grp), data=tdata1,
-+               variance=theta, weight=wt, iter=1,
++               vfixed=theta, weight=wt, iter=1,
 +               sparse=c(2, .25), ties='breslow')
 > 
 > temp <- solve(fit0$hmat, fit0$u)
@@ -80,7 +80,7 @@ In coxph(Surv(time, status) ~ I(grp == 2) + I(grp == 3) + I(grp ==  :
 > 
 > # Now test out Breslow/cox
 > fit0 <- coxme(Surv(time, status) ~ x1 + x2 + (1|grp), data=tdata1,
-+               variance=theta, weight=wt, iter=0,
++               vfixed=theta, weight=wt, iter=0,
 +               sparse=c(2, .25), ties='breslow')
 > aeq(apply(dt0$score,2,sum), fit0$u)
 [1] TRUE
@@ -93,7 +93,7 @@ In coxph(Surv(time, status) ~ I(grp == 2) + I(grp == 3) + I(grp ==  :
 > 
 > #Efron/Cox
 > fit0 <- coxme(Surv(time, status) ~ x1 + x2 + (1|grp), data=tdata1,
-+               variance=theta, weight=wt, iter=0,
++               vfixed=theta, weight=wt, iter=0,
 +               sparse=c(2, .25))
 > 
 > tfit <- coxph(Surv(time, status) ~ I(grp==2) + I(grp==3) +I(grp==4) + 
@@ -122,7 +122,7 @@ In coxph(Surv(time, status) ~ I(grp == 2) + I(grp == 3) + I(grp ==  :
 > 
 > # Efron/ag
 > fit0 <- coxme(Surv(zero,time, status) ~ x1 + x2 + (1|grp), data=tdata1,
-+               variance=theta, weight=wt, iter=0,
++               vfixed=theta, weight=wt, iter=0,
 +               sparse=c(2, .25))
 > aeq(apply(dt0$score,2,sum), fit0$u)
 [1] TRUE

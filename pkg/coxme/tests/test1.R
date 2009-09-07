@@ -15,7 +15,7 @@ tdata0 <- data.frame(time  =c(5,4,1,1,2,2,2,2,3),
                      grp   =c(1,1,2,2,1,1,2,2,1))
 theta <- .53
 fit0 <- coxme(Surv(time, status) ~ x1 + x2 + (1|grp), data=tdata0,
-              variance=theta, weight=wt, iter=0)
+              vfixed=theta, weight=wt, iter=0)
 
 tfit <- coxph(Surv(time, status) ~ I(grp==1) + I(grp==2) + x1 + x2,
 	      data=tdata0, x=T, weight=wt, iter=0)
@@ -28,7 +28,7 @@ aeq(as.matrix(solve(fit0$var, full=F)), h0)
 
 # Now iteration 1
 fit1 <- coxme(Surv(time, status) ~ x1 + x2 +(1|grp), data=tdata0,
-              variance=theta, weight=wt, iter=1)
+              vfixed=theta, weight=wt, iter=1)
 aeq(fit0$u %*% fit0$var, c(unlist(fit1$frail), coef(fit1)$fixed))
 tfit <- coxph(Surv(time, status) ~ I(grp==1) + I(grp==2) + x1 + x2,
 	      data=tdata0, x=T, weight=wt, iter=0,
@@ -42,7 +42,7 @@ aeq(as.matrix(solve(fit1$var, full=F)), h1)
 
 # And iteration 2
 fit2 <- coxme(Surv(time, status) ~ x1 + x2 + (1|grp), data=tdata0,
-              variance=theta, weight=wt, iter=2)
+              vfixed=theta, weight=wt, iter=2)
 aeq(solve(fit1$hmat, fit1$u), 
     c(unlist(fit2$frail), coef(fit2)$fixed) - 
     c(unlist(fit1$frail), coef(fit1)$fixed))
@@ -61,7 +61,7 @@ tdata0b <- data.frame(time2  = c(3,4,5, 2,4, 1,1,2, 1,2, .5,2, 2, 1,2,3),
                       x2     = rep(tdata0$x2, rcnt),
                       grp    = rep(tdata0$grp, rcnt))
 fit0 <- coxme(Surv(time1, time2, status) ~ x1 + x2 + (1|grp), data=tdata0b,
-              variance=theta, weight=wt, iter=0)
+              vfixed=theta, weight=wt, iter=0)
 
 tfit <- coxph(Surv(time1, time2, status) ~ I(grp==1) + I(grp==2) + x1 + x2,
 	      data=tdata0b, x=T, weight=wt, iter=0)
@@ -74,7 +74,7 @@ aeq(as.matrix(solve(fit0$var, full=F)), h0)
 
 # Now iteration 1
 fit1 <- coxme(Surv(time1, time2, status) ~ x1 + x2 + (1|grp), data=tdata0b,
-              variance=theta, weight=wt, iter=1)
+              vfixed=theta, weight=wt, iter=1)
 aeq(fit0$u %*% fit0$var, c(unlist(fit1$frail), coef(fit1)$fixed))
 tfit <- coxph(Surv(time1, time2, status) ~ I(grp==1) + I(grp==2) + x1 + x2,
 	      data=tdata0b, x=T, weight=wt, iter=0,
@@ -88,7 +88,7 @@ aeq(as.matrix(solve(fit1$var, full=F)), h1)
 
 # And iteration 2
 fit2 <- coxme(Surv(time1, time2, status) ~ x1 + x2 + (1|grp), data=tdata0b,
-              variance=theta, weight=wt, iter=2)
+              vfixed=theta, weight=wt, iter=2)
 aeq(fit1$u %*% fit1$var, c(unlist(fit2$frail), coef(fit2)$fixed) - 
                          c(unlist(fit1$frail), coef(fit1)$fixed))
 

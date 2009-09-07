@@ -101,7 +101,7 @@ aeq(imat1, t(imap) %*% imat2 %*% imap)
 
 # Now for a fit of the first form of the model
 fit0a <- coxme(Surv(time, status) ~ age + trt + (1 +trt |inst), simdata,
-               iter=0, variance=c(.2, .1, .3))
+               iter=0, vfixed=c(.2, .1, .3))
 
 aeq(fit0a$u, u1)
 
@@ -117,7 +117,7 @@ step1 <- solve(fit0a$hmat, fit0a$u)
 
 # iteration 1
 fit1a <- coxme(Surv(time, status) ~ age + trt + (1 +trt |inst), simdata,
-               iter=1, variance=c(.2, .1, .3))
+               iter=1, vfixed=c(.2, .1, .3))
 aeq(step1, c(unlist(fit1a$frail), fixef(fit1a)))
 
 cox1.1<- coxph(Surv(time, status) ~ tempx + age + trt, simdata,
@@ -130,7 +130,7 @@ step2 <- solve(fit1a$hmat, fit1a$u)
 
 #iteration 2
 fit2a <- coxme(Surv(time, status) ~ age + trt + (1 +trt |inst), simdata,
-               iter=2, variance=c(.2, .1, .3))
+               iter=2, vfixed=c(.2, .1, .3))
 aeq(step1+step2, c(unlist(fit2a$frail), fixef(fit2a)))
 
 
@@ -155,7 +155,7 @@ aeq( t(map) %*% pen1 %*% map, pen2)
 aeq( ipen1, map %*% ipen2 %*% t(map))
 
 fit0b <- coxme(Surv(time, status) ~ age + trt + (1|inst/trt), simdata,
-               iter=0, variance=vfix,
+               iter=0, vfixed=vfix,
               varlist=coxvarMlist(list(mat1,mat2,mat3), pdcheck=F, rescale=F))
                
 aeq(u2, fit0b$u)
@@ -167,7 +167,7 @@ step1b <- solve(fit0b$hmat, fit0b$u)
 
 # Iteration 1
 fit1b <- coxme(Surv(time, status) ~ age + trt + (1|inst/trt), simdata,
-               iter=1, variance=vfix,
+               iter=1, vfixed=vfix,
               varlist=coxvarMlist(list(mat1,mat2,mat3), pdcheck=F, rescale=F))
 aeq(step1b, c(unlist(fit1b$frail), fixef(fit1b)))
 
@@ -241,6 +241,6 @@ aeq(fixef(fita), fixef(fitc), tol=1e-4)
 
 vtemp <- ranef(fita)[[1]][c(1,4,2)]
 fitc2 <- coxme(Surv(time, status) ~ age + trt + (1|inst/trt), simdata,
-              variance=vtemp, varlist=myvar(list(mat1, mat2, mat3)))
+              vfixed=vtemp, varlist=myvar(list(mat1, mat2, mat3)))
 aeq(unlist(fita$frail),  map[1:18, 1:18] %*% unlist(fitc2$frail), tol=1e5)
 aeq(fitc2$log, fita$log, tol=1e-6)

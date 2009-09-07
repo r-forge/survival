@@ -36,7 +36,7 @@ var  <- .3   #sizeable
 
 set.seed(20)
 fit1 <- coxme(Surv(time, status) ~ age + trt + (trt|inst) + strata(inst),
-              variance=.3, simdata, refine.n=nsim)
+              vfixed=.3, simdata, refine.n=nsim)
 
 debug <- fit1$refine.debug  # Optional return item -see end of coxme.fit
 

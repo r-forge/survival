@@ -59,7 +59,7 @@ ifun <- function(beta, efron=T) {
     }
 
 tfit <- coxme(Surv(time, status) ~ x1 + x2 + (1|grp), data=tdata0,
-              variance=.5, weight=wt, iter=0,
+              vfixed=.5, weight=wt, iter=0,
               ties='breslow', sparse.calc=0)
 
 aeq(tfit$loglik[1], lfun(0,F))
@@ -67,7 +67,7 @@ aeq(tfit$u[3], ufun(0,F))
 aeq((solve(tfit$var))[3,3], ifun(0,F))
 
 tfit1 <- coxme(Surv(time, status) ~ x1 + x2 + (1|grp), data=tdata0,
-              variance=.5, weight=wt, iter=0,
+              vfixed=.5, weight=wt, iter=0,
               ties='breslow', sparse.calc=1)
 aeq(tfit$u, tfit1$u)
 all.equal(tfit$var, tfit1$var)
@@ -77,7 +77,7 @@ aeq(tfit$loglik, tfit1$loglik)
 dmat <- diag(2)
 dimnames(dmat) <- list(1:2, 1:2)
 tfit2 <- coxme(Surv(time, status) ~ x1 + x2 + (1|grp), data=tdata0,
-              variance=.5, weight=wt, iter=0,
+              vfixed=.5, weight=wt, iter=0,
               ties='breslow', varlist=dmat)
 aeq(tfit$u, tfit2$u)
 all.equal(as.matrix(tfit$var), as.matrix(tfit2$var))
@@ -85,7 +85,7 @@ aeq(tfit$loglik, tfit2$loglik)
 
 #Now the Efron approx
 tfit <- coxme(Surv(time, status) ~ x1 + x2 + (1|grp), data=tdata0,
-              variance=.5, weight=wt, iter=0,
+              vfixed=.5, weight=wt, iter=0,
               ties='efron')
 
 aeq(tfit$loglik[3], lfun(0,T))
@@ -95,7 +95,7 @@ aeq((solve(tfit$var))[3,3], ifun(0,T))
 
 #An initial value other than 0--
 tfit <- coxme(Surv(time, status) ~ x1 + x2 + (1|grp), data=tdata0,
-              variance=.5, weight=wt, iter=0,
+              vfixed=.5, weight=wt, iter=0,
               ties='breslow', init=c(pi,0), sparse.calc=0)
 
 aeq(tfit$loglik[3], lfun(pi,F))
@@ -103,21 +103,21 @@ aeq(tfit$u[3], ufun(pi,F))
 aeq((solve(tfit$var))[3,3], ifun(pi,F))
 
 tfit1 <- coxme(Surv(time, status) ~ x1 + x2, data=tdata0,
-              random= ~1|grp, variance=.5, weight=wt, iter=0,
+              random= ~1|grp, vfixed=.5, weight=wt, iter=0,
               ties='breslow', init=c(pi,0), sparse.calc=1)
 aeq(tfit$u, tfit1$u)
 all.equal(tfit$var, tfit1$var)
 aeq(tfit$loglik, tfit1$loglik)
 
 tfit <- coxme(Surv(time, status) ~ x1 + x2 + (1|grp), data=tdata0,
-              variance=.5, weight=wt, iter=0,
+              vfixed=.5, weight=wt, iter=0,
               ties='efron', init=c(pi,0), sparse.calc=0)
 aeq(tfit$loglik[3], lfun(pi,T))
 aeq(tfit$u[3], ufun(pi,T))
 aeq((solve(tfit$var))[3,3], ifun(pi,T))
 
 tfit1 <- coxme(Surv(time, status) ~ x1 + x2 + (1|grp), data=tdata0,
-              variance=.5, weight=wt, iter=0,
+              vfixed=.5, weight=wt, iter=0,
               ties='efron', init=c(pi,0), sparse.calc=1)
 aeq(tfit$u, tfit1$u)
 all.equal(tfit$var, tfit1$var)
@@ -126,14 +126,14 @@ aeq(tfit$loglik, tfit1$loglik)
 # Use (start, stop] style input
 dummy <- rep(0, nrow(tdata0))
 tfit <- coxme(Surv(dummy, time, status) ~ x1 + x2 + (1|grp), data=tdata0,
-              variance=.5, weight=wt, iter=0,
+              vfixed=.5, weight=wt, iter=0,
               ties='efron', init=c(pi,0), sparse.calc=0)
 aeq(tfit$loglik[3], lfun(pi,T))
 aeq(tfit$u[3], ufun(pi,T))
 aeq((solve(tfit$var))[3,3], ifun(pi,T))
 
 tfit1 <- coxme(Surv(dummy, time, status) ~ x1 + x2 + (1|grp), data=tdata0,
-              variance=.5, weight=wt, iter=0,
+              vfixed=.5, weight=wt, iter=0,
               ties='efron', init=c(pi,0), sparse.calc=1)
 aeq(tfit$u, tfit1$u)
 all.equal(tfit$var, tfit1$var)
@@ -153,28 +153,28 @@ tdata0b <- data.frame(time2  = c(3,4,5, 2,4, 1,1,2, 1,2, .5,2, 2, 1,2,3),
                       x2     = rep(tdata0$x2, rcnt),
                       grp    = rep(tdata0$grp, rcnt))
 tfit <- coxme(Surv(time1, time2, status) ~ x1 + x2 + (1|grp), data=tdata0b,
-              variance=.5, weight=wt, iter=0,
+              vfixed=.5, weight=wt, iter=0,
               ties='efron', init=c(pi,0), sparse.calc=0)
 aeq(tfit$loglik[3], lfun(pi,T))
 aeq(tfit$u[3], ufun(pi,T))
 aeq((solve(tfit$var))[3,3], ifun(pi,T))
 
 tfit1 <- coxme(Surv(time1, time2, status) ~ x1 + x2 + (1|grp), data=tdata0b,
-              variance=.5, weight=wt, iter=0,
+              vfixed=.5, weight=wt, iter=0,
               ties='efron', init=c(pi,0), sparse.calc=1)
 aeq(tfit$u, tfit1$u)
 all.equal(tfit$var, tfit1$var)
 aeq(tfit$loglik, tfit1$loglik)
 
 tfit <- coxme(Surv(time1, time2, status) ~ x1 + x2 + (1|grp), data=tdata0b,
-              variance=.5, weight=wt, iter=0,
+              vfixed=.5, weight=wt, iter=0,
               ties='breslow', init=c(pi,0), sparse.calc=0)
 aeq(tfit$loglik[3], lfun(pi,F))
 aeq(tfit$u[3], ufun(pi,F))
 aeq((solve(tfit$var))[3,3], ifun(pi,F))
 
 tfit1 <- coxme(Surv(time1, time2, status) ~ x1 + x2 + (1|grp), data=tdata0b,
-              variance=.5, weight=wt, iter=0,
+              vfixed=.5, weight=wt, iter=0,
               ties='breslow', init=c(pi,0), sparse.calc=1)
 aeq(tfit$u, tfit1$u)
 all.equal(tfit$var, tfit1$var)

@@ -23,7 +23,7 @@ theta <- pi/2
 
 # First with no sparse
 fit0 <- coxme(Surv(time, status) ~ rx + (1|litter), data=rats,
-	      variance=theta, iter=0, sparse=c(100, .001))
+	      vfixed=theta, iter=0, sparse=c(100, .001))
 tfit <- coxph(Surv(time, status) ~ factor(litter) + rx,
               data=rats, x=T, iter=0)
 dt0 <- coxph.detail(tfit)
@@ -37,7 +37,7 @@ aeq(diag(fit0$var), diag(solve(h0)))
 
 # then sparse
 fit0 <- coxme(Surv(time, status) ~ rx + (1|litter), data=rats,
-	      variance=theta, iter=0, sparse=c(20, .1))
+	      vfixed=theta, iter=0, sparse=c(20, .1))
 
 h0[1:50,1:50] <- diag(diag(h0)[1:50])
 aeq(as.matrix(gchol(h0)), as.matrix(fit0$hmat))
@@ -46,7 +46,7 @@ aeq(diag(fit0$var), diag(solve(h0)))
 
 # Now iteration 1
 fit1 <- coxme(Surv(time, status) ~ rx + (1|litter), data=rats,
-              variance=theta, iter=1, sparse=c(10, .1))
+              vfixed=theta, iter=1, sparse=c(10, .1))
 update0 <- solve(fit0$hmat, fit0$u)
 update0[1:50] <- update0[1:50] - mean(update0[1:50])
 aeq(update0, c(unlist(fit1$frail), coef(fit1)$fixed))
@@ -65,7 +65,7 @@ aeq(diag(fit1$var), diag(solve(h1)))
 
 # And iteration 2
 fit2 <- coxme(Surv(time, status) ~ rx + (1|litter), data=rats,
-              variance=theta, iter=2)
+              vfixed=theta, iter=2)
 
 update1 <- solve(fit1$hmat, fit1$u)
 update1[1:50] <- update1[1:50] - mean(update1[1:50])
@@ -76,7 +76,7 @@ aeq(update1, c(unlist(fit2$frail), coef(fit2)$fixed) -
 # Same computation, using a specified matrix
 #
 fit2b <- coxme(Surv(time, status) ~ rx + (1|litter), data=rats,
-              variance=theta, iter=2, varlist=bdsI(1:50))
+              vfixed=theta, iter=2, varlist=bdsI(1:50))
 all.equal(fit2b$u, fit2$u)
 all.equal(fit2b$variance, fit2$variance)
 all.equal(fit2b$loglik, fit2$loglik)

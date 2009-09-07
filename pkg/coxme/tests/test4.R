@@ -34,7 +34,7 @@ tdata2 <- data.frame(t1 = c(rep(0, length(temp1)), temp1+4),
 
 theta <- .83
 fit1 <- coxme(Surv(t1, t2, status) ~ x1 + x2 +(1|grp), data=tdata2,
-	      variance=theta, ties='breslow', 
+	      vfixed=theta, ties='breslow', 
               sparse=c(2, .25))
 
 # This fit will complain when it tries to invert the information matrix--

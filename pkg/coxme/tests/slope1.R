@@ -87,7 +87,7 @@ igchol <- function(x) {
 vtemp <- unlist(ranef(fit2))
 names(vtemp) <- names(ranef(fit2))
 fit2a <- coxme(Surv(time, status) ~ age + trt + (1|inst/trt), simdata,
-               iter=0, variance=vtemp)
+               iter=0, vfixed=vtemp)
 temp <- strata(simdata$inst, simdata$trt, sep='/', shortlabel=TRUE)
 cfit <- coxph(Surv(time, status) ~ factor(temp) +factor(inst) +age + trt,
               simdata, iter=0, x=T)
@@ -100,7 +100,7 @@ aeq(imat2, as.matrix(igchol(fit2a$hmat)))
 # For fit3
 vtemp <- as.vector(unlist(ranef(fit3)))  #name not needed
 fit3a <- coxme(Surv(time, status) ~ age + trt + (1|inst) + (trt|inst),
-               simdata, iter=0, variance=as.list(vtemp))
+               simdata, iter=0, vfixed=as.list(vtemp))
 cfit <- coxph(Surv(time, status) ~ factor(inst) * trt + age, simdata,
               iter=0, x=T)
 dt3 <- coxph.detail(cfit)
@@ -112,14 +112,14 @@ imat2 <- apply(dt3$imat, 1:2, sum)[indx,indx] +
 aeq(imat2, as.matrix(igchol(fit3a$hmat)))
 
 fit3b <- coxme(Surv(time, status) ~ age + trt + (trt|inst) +(1|inst),
-               simdata, iter=0, variance=as.list(rev(vtemp)))
+               simdata, iter=0, vfixed=as.list(rev(vtemp)))
 aeq(fit3a$u, fit3b$u)
 aeq(fit3b$imat, fit3b$imat)
 
 #For sfit1
 vtemp <- .0966
 fit <- coxme(Surv(time, status) ~ age + trt + strata(inst) + (trt|inst),
-               simdata, iter=0, variance=vtemp)
+               simdata, iter=0, vfixed=vtemp)
 cfit <- coxph(Surv(time, status) ~ factor(inst):trt + trt+ age+ strata(inst),
               simdata, iter=0, x=T)
 dt3 <- coxph.detail(cfit)

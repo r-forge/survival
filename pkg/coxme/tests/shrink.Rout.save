@@ -32,7 +32,7 @@ Loading required package: bdsmatrix
 +                                                scale=FALSE, theta=2), lung)
 > 
 > fit2 <- coxme(Surv(time, status) ~ age + (factor(ph.ecog) |1), lung,
-+               variance=.5)
++               vfixed=.5)
 > 
 > aeq(fit1$coef, c(coef(fit2)$fixed, unlist(fit2$frail)))
 [1] TRUE
@@ -40,7 +40,7 @@ Loading required package: bdsmatrix
 > all.equal(fit1$var, as.matrix(fit2$var)[indx, indx])
 [1] TRUE
 > 
-> fit3 <- coxme(Surv(time, status) ~ age + (1|ph.ecog), lung, variance=.5)
+> fit3 <- coxme(Surv(time, status) ~ age + (1|ph.ecog), lung, vfixed=.5)
 > all.equal(fit2$var, fit3$var)
 [1] TRUE
 > all.equal(fit2$loglik, fit3$loglik)

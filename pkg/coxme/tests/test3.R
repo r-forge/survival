@@ -22,7 +22,7 @@ tdata1 <- data.frame(time  =c(5,4,1,1,2,2,2,2,3, 1:8),
 theta=.77
 zero <- rep(0, nrow(tdata1))
 fit0 <- coxme(Surv(zero, time, status) ~ x1 + x2 + (1|grp), data=tdata1,
-              variance=theta, weight=wt, iter=0,
+              vfixed=theta, weight=wt, iter=0,
               sparse=c(2, .25), ties='breslow')
 
 tfit <- coxph(Surv(time, status) ~ I(grp==2) + I(grp==3) +I(grp==4) + 
@@ -43,7 +43,7 @@ hinv[2,3] <- hinv[3,2] <- 0
 aeq(hinv, as.matrix(fit0$var))  
 
 fit1 <- coxme(Surv(zero, time, status) ~ x1 + x2 + (1|grp), data=tdata1,
-              variance=theta, weight=wt, iter=1,
+              vfixed=theta, weight=wt, iter=1,
               sparse=c(2, .25), ties='breslow')
 
 temp <- solve(fit0$hmat, fit0$u)
@@ -52,7 +52,7 @@ aeq(temp, c(unlist(fit1$frail), coef(fit1)$fixed))
 
 # Now test out Breslow/cox
 fit0 <- coxme(Surv(time, status) ~ x1 + x2 + (1|grp), data=tdata1,
-              variance=theta, weight=wt, iter=0,
+              vfixed=theta, weight=wt, iter=0,
               sparse=c(2, .25), ties='breslow')
 aeq(apply(dt0$score,2,sum), fit0$u)
 aeq(as.matrix(gchol(h0)), as.matrix(fit0$hmat))
@@ -61,7 +61,7 @@ aeq(hinv, as.matrix(fit0$var))
 
 #Efron/Cox
 fit0 <- coxme(Surv(time, status) ~ x1 + x2 + (1|grp), data=tdata1,
-              variance=theta, weight=wt, iter=0,
+              vfixed=theta, weight=wt, iter=0,
               sparse=c(2, .25))
 
 tfit <- coxph(Surv(time, status) ~ I(grp==2) + I(grp==3) +I(grp==4) + 
@@ -83,7 +83,7 @@ aeq(hinv, as.matrix(fit0$var))
 
 # Efron/ag
 fit0 <- coxme(Surv(zero,time, status) ~ x1 + x2 + (1|grp), data=tdata1,
-              variance=theta, weight=wt, iter=0,
+              vfixed=theta, weight=wt, iter=0,
               sparse=c(2, .25))
 aeq(apply(dt0$score,2,sum), fit0$u)
 aeq(as.matrix(gchol(h0)), as.matrix(fit0$hmat))

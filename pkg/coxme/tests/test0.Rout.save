@@ -79,7 +79,7 @@ Loading required package: bdsmatrix
 +     }
 > 
 > tfit <- coxme(Surv(time, status) ~ x1 + x2 + (1|grp), data=tdata0,
-+               variance=.5, weight=wt, iter=0,
++               vfixed=.5, weight=wt, iter=0,
 +               ties='breslow', sparse.calc=0)
 > 
 > aeq(tfit$loglik[1], lfun(0,F))
@@ -90,7 +90,7 @@ Loading required package: bdsmatrix
 [1] TRUE
 > 
 > tfit1 <- coxme(Surv(time, status) ~ x1 + x2 + (1|grp), data=tdata0,
-+               variance=.5, weight=wt, iter=0,
++               vfixed=.5, weight=wt, iter=0,
 +               ties='breslow', sparse.calc=1)
 > aeq(tfit$u, tfit1$u)
 [1] TRUE
@@ -103,7 +103,7 @@ Loading required package: bdsmatrix
 > dmat <- diag(2)
 > dimnames(dmat) <- list(1:2, 1:2)
 > tfit2 <- coxme(Surv(time, status) ~ x1 + x2 + (1|grp), data=tdata0,
-+               variance=.5, weight=wt, iter=0,
++               vfixed=.5, weight=wt, iter=0,
 +               ties='breslow', varlist=dmat)
 > aeq(tfit$u, tfit2$u)
 [1] TRUE
@@ -114,7 +114,7 @@ Loading required package: bdsmatrix
 > 
 > #Now the Efron approx
 > tfit <- coxme(Surv(time, status) ~ x1 + x2 + (1|grp), data=tdata0,
-+               variance=.5, weight=wt, iter=0,
++               vfixed=.5, weight=wt, iter=0,
 +               ties='efron')
 > 
 > aeq(tfit$loglik[3], lfun(0,T))
@@ -127,7 +127,7 @@ Loading required package: bdsmatrix
 > 
 > #An initial value other than 0--
 > tfit <- coxme(Surv(time, status) ~ x1 + x2 + (1|grp), data=tdata0,
-+               variance=.5, weight=wt, iter=0,
++               vfixed=.5, weight=wt, iter=0,
 +               ties='breslow', init=c(pi,0), sparse.calc=0)
 > 
 > aeq(tfit$loglik[3], lfun(pi,F))
@@ -138,7 +138,7 @@ Loading required package: bdsmatrix
 [1] TRUE
 > 
 > tfit1 <- coxme(Surv(time, status) ~ x1 + x2, data=tdata0,
-+               random= ~1|grp, variance=.5, weight=wt, iter=0,
++               random= ~1|grp, vfixed=.5, weight=wt, iter=0,
 +               ties='breslow', init=c(pi,0), sparse.calc=1)
 Warning message:
 In coxme(Surv(time, status) ~ x1 + x2, data = tdata0, random = ~1 |  :
@@ -151,7 +151,7 @@ In coxme(Surv(time, status) ~ x1 + x2, data = tdata0, random = ~1 |  :
 [1] TRUE
 > 
 > tfit <- coxme(Surv(time, status) ~ x1 + x2 + (1|grp), data=tdata0,
-+               variance=.5, weight=wt, iter=0,
++               vfixed=.5, weight=wt, iter=0,
 +               ties='efron', init=c(pi,0), sparse.calc=0)
 > aeq(tfit$loglik[3], lfun(pi,T))
 [1] TRUE
@@ -161,7 +161,7 @@ In coxme(Surv(time, status) ~ x1 + x2, data = tdata0, random = ~1 |  :
 [1] TRUE
 > 
 > tfit1 <- coxme(Surv(time, status) ~ x1 + x2 + (1|grp), data=tdata0,
-+               variance=.5, weight=wt, iter=0,
++               vfixed=.5, weight=wt, iter=0,
 +               ties='efron', init=c(pi,0), sparse.calc=1)
 > aeq(tfit$u, tfit1$u)
 [1] TRUE
@@ -173,7 +173,7 @@ In coxme(Surv(time, status) ~ x1 + x2, data = tdata0, random = ~1 |  :
 > # Use (start, stop] style input
 > dummy <- rep(0, nrow(tdata0))
 > tfit <- coxme(Surv(dummy, time, status) ~ x1 + x2 + (1|grp), data=tdata0,
-+               variance=.5, weight=wt, iter=0,
++               vfixed=.5, weight=wt, iter=0,
 +               ties='efron', init=c(pi,0), sparse.calc=0)
 > aeq(tfit$loglik[3], lfun(pi,T))
 [1] TRUE
@@ -183,7 +183,7 @@ In coxme(Surv(time, status) ~ x1 + x2, data = tdata0, random = ~1 |  :
 [1] TRUE
 > 
 > tfit1 <- coxme(Surv(dummy, time, status) ~ x1 + x2 + (1|grp), data=tdata0,
-+               variance=.5, weight=wt, iter=0,
++               vfixed=.5, weight=wt, iter=0,
 +               ties='efron', init=c(pi,0), sparse.calc=1)
 > aeq(tfit$u, tfit1$u)
 [1] TRUE
@@ -206,7 +206,7 @@ In coxme(Surv(time, status) ~ x1 + x2, data = tdata0, random = ~1 |  :
 +                       x2     = rep(tdata0$x2, rcnt),
 +                       grp    = rep(tdata0$grp, rcnt))
 > tfit <- coxme(Surv(time1, time2, status) ~ x1 + x2 + (1|grp), data=tdata0b,
-+               variance=.5, weight=wt, iter=0,
++               vfixed=.5, weight=wt, iter=0,
 +               ties='efron', init=c(pi,0), sparse.calc=0)
 > aeq(tfit$loglik[3], lfun(pi,T))
 [1] TRUE
@@ -216,7 +216,7 @@ In coxme(Surv(time, status) ~ x1 + x2, data = tdata0, random = ~1 |  :
 [1] TRUE
 > 
 > tfit1 <- coxme(Surv(time1, time2, status) ~ x1 + x2 + (1|grp), data=tdata0b,
-+               variance=.5, weight=wt, iter=0,
++               vfixed=.5, weight=wt, iter=0,
 +               ties='efron', init=c(pi,0), sparse.calc=1)
 > aeq(tfit$u, tfit1$u)
 [1] TRUE
@@ -226,7 +226,7 @@ In coxme(Surv(time, status) ~ x1 + x2, data = tdata0, random = ~1 |  :
 [1] TRUE
 > 
 > tfit <- coxme(Surv(time1, time2, status) ~ x1 + x2 + (1|grp), data=tdata0b,
-+               variance=.5, weight=wt, iter=0,
++               vfixed=.5, weight=wt, iter=0,
 +               ties='breslow', init=c(pi,0), sparse.calc=0)
 > aeq(tfit$loglik[3], lfun(pi,F))
 [1] TRUE
@@ -236,7 +236,7 @@ In coxme(Surv(time, status) ~ x1 + x2, data = tdata0, random = ~1 |  :
 [1] TRUE
 > 
 > tfit1 <- coxme(Surv(time1, time2, status) ~ x1 + x2 + (1|grp), data=tdata0b,
-+               variance=.5, weight=wt, iter=0,
++               vfixed=.5, weight=wt, iter=0,
 +               ties='breslow', init=c(pi,0), sparse.calc=1)
 > aeq(tfit$u, tfit1$u)
 [1] TRUE
