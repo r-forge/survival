@@ -1,5 +1,5 @@
 Package: bdsmatrix
-Title:  Routines for Block Diagonal Sparse matries
+Title:  Routines for Block Diagonal Symmetric matrices
 Maintainer: Terry Therneau <terry.therneau@mayo.edu>
 Version: 1.0
 Date: 2009-03-05
