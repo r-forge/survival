@@ -11,9 +11,9 @@ Fit a mixed effects Cox model
 \usage{
 coxme(formula, data, weights, subset, na.action, init, control,
 ties = c("efron", "breslow"),
-varlist = NULL, variance, vinit = 0.2,
+varlist, vfixed, vinit,
 sparse = c(50, 0.02),  x = FALSE, y = TRUE,
-refine.n = 0, random, fixed, ...)
+refine.n = 0, random, fixed, variance, ...)
 }
 \arguments{
   \item{formula}{
@@ -37,11 +37,13 @@ refine.n = 0, random, fixed, ...)
     method for handling exact ties in the survival time.
 }
   \item{varlist}{
-    an optional list giving the variance method to be used for each
-    random term.  If no list is given the default method is
-    \code{coxvarFull}. 
+    the variance family to be used for each random term.  If there are
+    multiple terms it will be a list of variance functions.
+    The default is \code{coxvarFull}.
+    Alternatively it can be a list of matrices, in which case the
+    \code{coxvarMlist} function is used.
 }
-  \item{variance}{
+  \item{vfixed}{
     optional named list or vector used to fix the value of one or more
     of the variance terms at a constant.
 }
@@ -64,10 +66,11 @@ refine.n = 0, random, fixed, ...)
     possible error in the log-likelihood of the fitted model due to
     inadequacy of the Laplace approximation.
 }
-  \item{fixed, random}{
-    fixed and random effects formula.  In the preliminary version of \code{coxme}
+  \item{fixed, random, variance}{
+    In the preliminary version of \code{coxme}
     the fixed and random effects were separate arguments.  These arguments
     are included for backwards compatability, but are depreciated.
+    The variance argument is a depreciated alias for vfixed.
 }
   \item{\dots}{
     any other arguments are passed forward to \code{coxme.control}.
