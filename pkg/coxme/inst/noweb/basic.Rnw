@@ -9,6 +9,14 @@ Because the old form had [[fixed]] as its first argument, we also
 need to allow for the case where the user has assumed that the first,
 unnamed argument to the call, which now maps to the [[formula]]
 argument, is the fixed portion.
+
+The other change was that the old [[variance]] argument became [[vfixed]],
+and [[varlist]] became [[variance]]. 
+This set of names makes a lot mores sense for the user.  
+However, we immediately rename `variance' to `varlist'; in writing this
+intertwined code/document it is just too confusing to use the same word
+for both a statisical concept (variance of a random effect) and for
+a program object which can be many things.
 <<process-standard-arguments>>=
 if (!missing(fixed)) {
     if (missing(formula)) {
@@ -26,6 +34,12 @@ if (!missing(random)) {
     # Add parens to the random formula and paste it on
     formula[[j]] <- call('+', formula[[j]], call('(', random[[2]]))  
     }
+
+if (!missing(variance)) {
+    warning("The variance argument of coxme is depreciated")
+    vfixed <- variance
+    }
+
 @
 A formula in S is represented as a list of length 2 or 3, whose first element
 is as.name('~'), then the left hand side, if present, then the right hand side.

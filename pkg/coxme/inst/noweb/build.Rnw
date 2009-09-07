@@ -102,13 +102,14 @@ fixed effects.
     columns.
 \end{itemize}
 The basic flow of the routine is to process the random terms one at a time.
-The [[varlist]] component describes a variance family for each term; and
+The [[varlist]] argument 
+describes a variance family for each term; and
 we do two calls for each.
 The first call is to the \emph{initialize} member of the family, giving it the
 $G$ containing the grouping variables along with covariates
 $C$ and whether or not the left hand side contained an intercept, and
 appropriate portions of the initial values (vinit) or fixed variance
-(variance) specification.
+(vfixed) specification.
 It returns corresponding columns of $F$, $Z$ and a mapping [[zmap]] for
 each column of $Z$,  a vector [[theta]] containing
 the initial values for the non-fixed variance parameters (possibly on
@@ -126,7 +127,7 @@ optional interaction.
 Our first action is to check out the [[varlist]] option.  This is 
 complicated by the fact that users can give a partial one, or none,
 allowing the default to be used for other elements.
-In general the varlist is a named list with one list element per
+In general [[varlist]] is a named list with one list element per
 random term.  Each element of the list can be:
 \begin{itemize}
   \item A matrix or list of matrices.  This is useful for genetic
@@ -139,7 +140,7 @@ This was mostly used to generate models that can now be directly stated.
 
 The first task is to decide which element of the list goes to 
 which term.  If there is only one random term then [[varlist]] is
-not required to be a list of one element.
+not required to be a list of one element, but we immediately make it so.
 A single list of variance matrices can be ambiguous, for instance if there
 were 2 random terms and one list with two matrices: is this a pair of matrices
 for the first term, or one matrix for each?  We force the user to 
@@ -150,7 +151,7 @@ if (nrandom ==0) stop("No random effects terms found")
 vparm <- vector('list', nrandom)
 
 ismat <- function (x) class(x) %in% c('matrix', 'bdsmatrix')
-if (is.null(varlist)) {
+if (missing(varlist) || is.null(varlist)) {
     varlist <- vector('list', nrandom)
     for (i in 1:nrandom) varlist[[i]] <- coxvarFull() #default
     }
@@ -215,6 +216,7 @@ $\sigma_1^2 A_1 + \sigma_2^2 A_2 + \ldots$ for a set of fixed matrices
 $A_1, A_2, \ldots$.  This is commonly used in genetic studies where $A_1$
 would be the kinship matrix for a set of subjects/families and $A_2$ might
 be the identity-by-descent (IBD) matrix for a particular locus.
+\item [other] a user-defined varlist function.
 \end{description}
 
 Now we proceed through the list one element at a time, and do the necessary
@@ -247,7 +249,7 @@ for (i in 1:nrandom) {
 
     cmat <- getcmat(f2$fixed, m)
     groups <- getgroups(f2$group, m)
-    ifun <- vfun$initialize(vinit[[i]], variance[[i]], intercept=f2$intercept, 
+    ifun <- vfun$initialize(vinit[[i]], vfixed[[i]], intercept=f2$intercept, 
                         groups, cmat, sparse)
     if (!is.null(ifun$error)) 
         stop(paste("In random term ", i, ": ", ifun$error, sep=''))
@@ -302,7 +304,7 @@ gaps.
 
 Now to fill in a few blanks from the above discussion.
 First the vector (list) of initial values [[vinit]] or fixed variance
-values [[variance]] given by the user may not be complete.
+values [[vfixed]] given by the user may not be complete.
 We want to expand them out to to lists, and have the same length as 
 [[varlist]].
 In the case of multiple terms, we allow the user to specify a subset of
@@ -310,7 +312,7 @@ them, using the names of the grouping variables.  If names are
 not used (or are not unique) things match in order.
 If there is a single random term we allow a numeric vector.
 <<make-vinit>>=
-if (missing(vinit)) vinit <- vector('list', nrandom)
+if (missing(vinit) || is.null(vinit)) vinit <- vector('list', nrandom)
 else {
     if (nrandom==1 && is.numeric(vinit)) vinit <- list(vinit)
     if (!is.list(vinit)) stop("Invalid value for `vinit` parameter")
@@ -330,23 +332,23 @@ else {
         }
   }
 
-if (missing(variance)) variance <- vector('list', nrandom)
+if (missing(vfixed) || is.null(vfixed)) vfixed <- vector('list', nrandom)
 else {
-    if (nrandom==1 && is.numeric(variance)) variance <- list(variance)
-    if (!is.list(variance)) stop("Invalid value for `variance` parameter")
-    if (length(variance) > nrandom) 
-        stop (paste("Variance must be a list of length", nrandom))
-    if (!all(sapply(variance, is.numeric))) 
-        stop("Variance must contain numeric values") 
+    if (nrandom==1 && is.numeric(vfixed)) vfixed <- list(vfixed)
+    if (!is.list(vfixed)) stop("Invalid value for `vfixed` parameter")
+    if (length(vfixed) > nrandom) 
+        stop (paste("Vfixed must be a list of length", nrandom))
+    if (!all(sapply(vfixed, is.numeric))) 
+        stop("Vfixed must contain numeric values") 
     
-    if (length(variance) < nrandom) 
-        variance <- c(variance, vector('list', nrandom - length(variance)))
+    if (length(vfixed) < nrandom) 
+        vfixed <- c(vfixed, vector('list', nrandom - length(vfixed)))
                    
-    tname <- names(variance)
+    tname <- names(vfixed)
     if (!is.null(tname)) {
         temp <- pmatch(tname, names(flist$random), nomatch=0)
         temp <- c(temp, (1:nrandom)[-temp])
-        variance <- variance[temp]
+        vfixed <- vfixed[temp]
         }
   }
 @ 
@@ -488,7 +490,7 @@ getgroups <- function(x, mf) {
     else data.frame(lapply(mf[indx], as.factor))
     }
 @ 
-A common task for the variance functions is to exand [[school/teacher]]
+A common task for the variance functions is to expand [[school/teacher]]
 type terms into a set of unique levels, i.e., to find all the unique
 combinations of the two variables.  Teacher 1 in school 1 is not the same
 person as teacher 1 in school 2.

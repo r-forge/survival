@@ -57,9 +57,9 @@ The [[coxme]] code starts with a fairly standard argument list.
 coxme <- function(formula,  data, 
 	weights, subset, na.action, init, 
 	control, ties= c("efron", "breslow"),
-	varlist=NULL, variance, vinit=.2, sparse=c(50,.02),
+	varlist, vfixed, vinit, sparse=c(50,.02),
 	x=FALSE, y=TRUE, 
-        refine.n=0, random, fixed, ...) {
+        refine.n=0, random, fixed, variance,  ...) {
 
     time0 <- proc.time()    #debugging line
     ties <- match.arg(ties)
@@ -78,8 +78,10 @@ omitting those that are identical to the [[coxph]] function.
 \item[formula] The formula desribing the fixed and random effects.  This
 will be discussed in detail below.
 \item[varlist] An optional list, with one element per random term, that
-describes the variance structure of the random effects.
-\item[variance] An optional list (vector) of fixed values for selected variance
+describes the variance structure of the random effects.  It need not
+be a list if there is only one random term.
+\item[vfixed] An optional list (or vector) of fixed values for 
+selected variance
 components.  
 \item[vinit] Initial value(s) for the variance components in the iteration.
 \item[sparse] The rule for deciding that the estimation of a term should be
@@ -89,7 +91,7 @@ labels for nested effects.  See the [[strata]] function for more
 information.
 \item[refine.n] The number of Monte Carlo iterations to be done at the final
 iteration, to refine the Laplace approximation of the likelihood.
-\item[random, fixed] These are included for backwards compatability 
+\item[random, fixed, variance] These are included for backwards compatability 
 with the first verion of coxme.  They may be removed at some
 point in the future.
 \end{description}

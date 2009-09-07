@@ -241,10 +241,18 @@ list(theta=log(theta[!which.fixed]), imap=NULL, X=X, xmap=xmap,
                     xname=xname, case=1))
 @ 
 
+The generate function has a separate block for each of the 4 cases.
+To start, however, make sure that the exponential function never leads
+to a variance that is exactly zero or a correlation of 1.  The vale
+36 is close to [[-log(.Machine$double.eps)]], used in the Splus care.exp
+function.  For a coxph model, a variance >10 is usually pretty wild, and
+one less than .0001 is near 0 in behavior (for properly scaled variables).
+
 <<coxvarFull-generate>>=
 generate= function(newtheta, parms) {
     theta <- parms$theta
-    if (length(newtheta)>0) theta[!parms$fixed] <- exp(newtheta)
+    if (length(newtheta)>0) theta[!parms$fixed] <- 
+        exp(pmax(-36, pmin(36, newtheta)))
 
     if (parms$case==1) return(diag(length(parms$xname)) * theta)
     <<coxvarFull-generate-2>>

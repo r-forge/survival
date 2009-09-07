@@ -645,7 +645,7 @@ traceprod <- function(H, P) {
     nfrail <- nrow(P)  #penalty matrix
     nsparse <- sum(P@blocksize)
     if (nsparse >0) {
-        temp1 <- 2@sum(H@blocks * P@blocks) -
+        temp1 <- 2*sum(H@blocks * P@blocks) -
                  sum(diag(H)[1:nsparse] * diag(P)[1:nsparse])
         }
     else temp1 <- 0
