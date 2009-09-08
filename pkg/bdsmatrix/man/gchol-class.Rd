@@ -6,6 +6,7 @@
 \alias{dim,gchol-method}
 \alias{dimnames,gchol-method}
 \alias{show,gchol-method}
+\alias{gchol,matrix-method}
 
 \title{Class "gchol"}
 \description{The result of a generalized Cholesky decomposition A=LDL'
@@ -35,7 +36,10 @@ will return D}
 matrix }
     \item{dimnames}{\code{signature(x = "gchol")}: returns the dimnames}
     \item{show}{\code{signature(object = "gchol")}: By default a triangular
-matrix is printed showing D on the diagonal and L off the diagonal }
+      matrix is printed showing D on the diagonal and L off the diagonal
+    }
+    \item{gchol}{\code{signature(x= "matrix")}: create a generalized
+      Cholesky decompostion of the matrix}
 	 }
 }
 \author{Terry Therneau}
