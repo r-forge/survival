@@ -14,7 +14,7 @@ SFUN =  coxme.R \
 	coxvarMlist.R 
 #	matrix.reconcile.R
 
-#PARTS = main.Rnw tail
+RDIR = ../../R
 
 all.pdf: all.tex
 	pdflatex all
@@ -26,13 +26,16 @@ all.nw: $(PARTS)
 all.tex: all.nw
 	noweave -delay all.nw > all.tex
 
-fun:  $(SFUN)
+RFUN = $(SFUN:%=$(RDIR)/%)
 
-$(SFUN) : all.nw
+fun:  $(RFUN)
+
+$(RFUN) : all.nw
 
 %.R: 
 	echo "# Automatically generated from all.nw using noweb" > $@
-	notangle -R$* all.nw >> $@
+	notangle -R$(*F) all.nw >> $@
 
 clean:
-	rm all.nw all.log all.aux all.toc all.tex all.pdf
+	-rm all.nw all.log all.aux all.toc all.tex all.pdf
+	-rm $(RFUN)
