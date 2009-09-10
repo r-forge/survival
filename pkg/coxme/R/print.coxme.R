@@ -88,17 +88,23 @@ print.coxme <- function(x, rcoef=FALSE, digits=options()$digits, ...) {
                         function(x) if (is.matrix(x)) 1+ncol(x) else 2))
     temp1 <- matrix(NA, nrow=sum(nrow), ncol=maxcol)
     indx <- 0
-    for (i in  random) {
-        if (is.matrix(i)) {
-            k <- ncol(i)
-            temp1[1:k + indx, 1] <- sqrt(diag(i))  #std
-            temp1[1:k + indx, 2] <- diag(i)        #variancw
-            for (j in 1:(k-1)) temp1[j+indx, 1+(j+1):k ] <- i[j, (j+1):k]  #corr
+    for (term in  random) {
+        if (is.matrix(term)) {
+            k <- nrow(term)
+            nc <- ncol(term)  #assume nc > nr (only cases I know so far)
+            for (j in 1:k) {
+                temp1[j+indx, 1] <- sqrt(term[j,j])
+                temp1[j+indx, 2] <- term[j,j]
+                if (nc>j) {
+                    indx2 <- (j+1):nc
+                    temp1[j+indx, 1+ indx2] <- term[j, indx2]
+                    }
+                }
             }
         else {
-            k <- length(i)
-            temp1[1:k + indx,1] <- sqrt(i)
-            temp1[1:k + indx,2] <- i
+            k <- length(term)
+            temp1[1:k + indx,1] <- sqrt(term)
+            temp1[1:k + indx,2] <- term
             }
         indx <- indx + k
         }

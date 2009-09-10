@@ -193,9 +193,9 @@ The generate function is a simple sum.
  generate <- function(newtheta, parms) {
      theta <- parms$theta
      theta[!parms$fixed] <- newtheta
-     if (length(newtheta) >0) theta[parms$positive] <- 
-          exp(pmax(-36, pmax(36, theta[parms$positive])))
-     
+     if (any(parms$positive)) theta[parms$positive] <- 
+          exp(pmax(-36, pmin(36, theta[parms$positive])))
+
      varmat <- parms$varlist[[1]] * theta[1]
      if (length(theta) >1) {
          for (i in 2:length(theta)) {

@@ -2,6 +2,7 @@
 \alias{fixef.coxme}
 \alias{fixed.effects.coxme}
 \title{Extract coxme Fixed Effects}
+\description{Extract the fixed effects portion from a coxme model.}
 \usage{
 \method{fixef}{coxme}(object, \dots)
 }
