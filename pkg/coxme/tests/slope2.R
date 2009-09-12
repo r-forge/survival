@@ -40,7 +40,7 @@ aeq(fixef(fit1), fixef(fit1b))
 # Check fit2
 idlist <- sort(outer(1:9, 0:1, paste, sep='/'))
 fit2 <- coxme(Surv(time, status) ~ age + trt + (1|inst/trt), simdata,
-               varlist=coxvarFull(collapse=TRUE))
+               varlist=coxmeFull(collapse=TRUE))
 
 mat1 <- matrix(diag(18), 18, dimnames=list(idlist, idlist))
 mat2 <-  bdsBlock(idlist, rep(1:9, each=2))
@@ -55,7 +55,7 @@ fit3 <- coxme(Surv(time, status) ~ age + trt + (1|inst) + (trt|inst),simdata)
 mat3 <- diag(rep(0:1, 9))
 dimnames(mat3) <- list(idlist, idlist)
 fit3b <-  coxme(Surv(time, status) ~ age + trt + (1|inst/trt), simdata,
-               varlist=coxvarMlist(list(mat2, mat3), rescale=F, pdcheck=F),
+               varlist=coxmeMlist(list(mat2, mat3), rescale=F, pdcheck=F),
                vinit=c(.2, .2))
 
 aeq(fit3$log, fit3b$log)

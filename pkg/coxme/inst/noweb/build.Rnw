@@ -132,7 +132,8 @@ random term.  Each element of the list can be:
 \begin{itemize}
   \item A matrix or list of matrices.  This is useful for genetic
     data in particular.
-  \item A [[coxvar]] object or a function which generates a covar object.
+  \item A function which generates a coxme variance family object (of class
+    [[coxmevar]], or the result of a call to such a function.
 \end{itemize}
 We are not backwards compatable with all old-stlye [[coxme]] calls,
 in particular the use of the unevaluated [[bdsI]] function in a list.
@@ -153,13 +154,13 @@ vparm <- vector('list', nrandom)
 ismat <- function (x) class(x) %in% c('matrix', 'bdsmatrix')
 if (missing(varlist) || is.null(varlist)) {
     varlist <- vector('list', nrandom)
-    for (i in 1:nrandom) varlist[[i]] <- coxvarFull() #default
+    for (i in 1:nrandom) varlist[[i]] <- coxmeFull() #default
     }
 else {
     if (is.function(varlist)) varlist <- varlist()
-    if (class(varlist)=='coxvar') varlist <- list(varlist)
+    if (class(varlist)=='coxmevar') varlist <- list(varlist)
     else if (ismat(varlist))
-        varlist <- list(coxvarMlist(list(varlist)))
+        varlist <- list(coxmeMlist(list(varlist)))
     else {
         if (!is.list(varlist)) stop("Invalid varlist argument")
         if (all(sapply(varlist, ismat))) {
@@ -167,18 +168,18 @@ else {
             if (nrandom >1) 
                 stop(paste("An unlabeled list of matrices is",
                            "ambiguous when there are multiple random terms"))
-            else varlist <- list(coxvarMlist(varlist))
+            else varlist <- list(coxmeMlist(varlist))
             }
         else {  #the user gave me a list, not all matrices
             for (i in 1:length(varlist)) {
                 if (is.function(varlist[[i]])) 
                     varlist[[i]] <-eval(varlist[[i]])
                 if (ismat(varlist[[i]]))
-                    varlist[[i]] <- coxvarMlist(list(varlist[[i]]))
-                if (class(varlist[[i]]) != 'coxvar') {
+                    varlist[[i]] <- coxmeMlist(list(varlist[[i]]))
+                if (class(varlist[[i]]) != 'coxmevar') {
                     if (is.list(varlist[[i]])) {
                         if (all(sapply(varlist[[i]], ismat)))
-                            varlist[[i]] <- coxvarMlist(varlist[[i]])
+                            varlist[[i]] <- coxmeMlist(varlist[[i]])
                         else stop("Invalid varlist element")
                         }
                     else stop("Invalid varlist element")
@@ -186,7 +187,7 @@ else {
                 }
             }
         }
-    while(length(varlist) < nrandom) varlist <- c(varlist, coxvarFull())
+    while(length(varlist) < nrandom) varlist <- c(varlist, coxmeFull())
     }
 
 if (!is.null(names(varlist))) { # put it in the right order
@@ -204,14 +205,14 @@ if (!is.null(names(varlist))) { # put it in the right order
     
 @ 
 At this point we have a valid [[varlist]] object, which is a list with
-one element per random term, each element is an object of class `coxvar'. %'`
+one element per random term, each element is an object of class `coxmevar'. %'`
 The current options for these elements are
 \begin{description}
-\item [coxvarFull] All variance/covariance terms between random elements are
+\item [coxmeFull] All variance/covariance terms between random elements are
 present.  For instance the term [[(1+age | group)]] specifies a random
 intercept and slope.  The variance structure will have 3 parameters: the variance of the intercepts, the
 variance of the slopes, and their covariance.
-\item [coxvarMlist]  The variance is assumed to be of the form
+\item [coxmeMlist]  The variance is assumed to be of the form
 $\sigma_1^2 A_1 + \sigma_2^2 A_2 + \ldots$ for a set of fixed matrices
 $A_1, A_2, \ldots$.  This is commonly used in genetic studies where $A_1$
 would be the kinship matrix for a set of subjects/families and $A_2$ might
@@ -469,7 +470,7 @@ fit
 To create the columns for $F$ there are 3 steps.
 First we get the variables from the data frame, treating each of them
 as a factor.  This is then submitted to the
-appropriate coxvar family function, which
+appropriate coxme variance family function, which
 creates the integer matrix of codes that are actually used.
 
 We extract the list of variable names for the nesting portion,
@@ -523,6 +524,13 @@ For a random effect this constraint is automatically enforced by the
 penalized optimization, so the proper coding of a factor with $k$ levels
 is as $k$ indicator variables.
 We do this by imposing our own contrasts. 
+
+Update. I've realized that factors are more of a problem than I
+thought.  The current solution is not to allow factors on the
+covariates.  The issue is that the downstream routine has to know
+when to use a common variance for two columns of cmat, and when not to,
+and (even harder) that the correlation between an intercept and a factor
+is not clear.
 <<get-cmat>>=
 getcmat <- function(x, mf) {
     if (is.null(x) || x==1) return(NULL)
@@ -532,6 +540,7 @@ getcmat <- function(x, mf) {
     varnames <-  attr(Terms, 'term.labels')
     ftemp <- sapply(mf[varnames], is.factor)
     if (any(ftemp)) {
+        stop("Factors are not valid as a covariate within a random effect")
         clist <- lapply(mf[varnames[ftemp]], 
                         function(x) diag(length(levels(x))))
         model.matrix(Terms, mf, contrasts.arg =clist)

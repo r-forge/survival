@@ -39,9 +39,9 @@ refine.n = 0, random, fixed, variance, ...)
   \item{varlist}{
     the variance family to be used for each random term.  If there are
     multiple terms it will be a list of variance functions.
-    The default is \code{coxvarFull}.
+    The default is \code{coxmeFull}.
     Alternatively it can be a list of matrices, in which case the
-    \code{coxvarMlist} function is used.
+    \code{coxmeMlist} function is used.
 }
   \item{vfixed}{
     optional named list or vector used to fix the value of one or more
@@ -86,7 +86,7 @@ Ripatti, Therneau
 Terry Therneau
 }
 \seealso{
-  \code{\link{coxvarFull}}, \code{\link{coxvarMlist}}
+  \code{\link{coxmeFull}}, \code{\link{coxmeMlist}}
 }
 \examples{
 \dontrun{# Random treatment effects per institution

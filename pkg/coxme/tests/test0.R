@@ -73,7 +73,7 @@ aeq(tfit$u, tfit1$u)
 all.equal(tfit$var, tfit1$var)
 aeq(tfit$loglik, tfit1$loglik)
 
-# Do the matrix form, using coxvarMlist
+# Do the matrix form, using coxmeMlist
 dmat <- diag(2)
 dimnames(dmat) <- list(1:2, 1:2)
 tfit2 <- coxme(Surv(time, status) ~ x1 + x2 + (1|grp), data=tdata0,

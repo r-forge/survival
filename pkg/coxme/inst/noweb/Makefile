@@ -10,8 +10,8 @@ SFUN =  coxme.R \
 	coxme.fit.R\
 	expand.nested.R \
 	formula.R \
-	coxvarFull.R \
-	coxvarMlist.R 
+	coxmeFull.R \
+	coxmeMlist.R 
 #	matrix.reconcile.R
 
 RDIR = ../../R

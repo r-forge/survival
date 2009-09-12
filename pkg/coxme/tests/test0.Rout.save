@@ -99,7 +99,7 @@ Loading required package: bdsmatrix
 > aeq(tfit$loglik, tfit1$loglik)
 [1] TRUE
 > 
-> # Do the matrix form, using coxvarMlist
+> # Do the matrix form, using coxmeMlist
 > dmat <- diag(2)
 > dimnames(dmat) <- list(1:2, 1:2)
 > tfit2 <- coxme(Surv(time, status) ~ x1 + x2 + (1|grp), data=tdata0,

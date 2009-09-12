@@ -11,7 +11,7 @@ ecog3 <- 1*(lung$ph.ecog==3)
 fit1 <- coxph(Surv(time, status) ~ age + ridge(ecog0, ecog1, ecog2, ecog3,
                                                scale=FALSE, theta=2), lung)
 
-fit2 <- coxme(Surv(time, status) ~ age + (factor(ph.ecog) |1), lung,
+fit2 <- coxme(Surv(time, status) ~ age + (ecog0+ecog1+ecog2+ecog3 |1), lung,
               vfixed=.5)
 
 aeq(fit1$coef, c(coef(fit2)$fixed, unlist(fit2$frail)))
@@ -23,9 +23,9 @@ all.equal(fit2$var, fit3$var)
 all.equal(fit2$loglik, fit3$loglik)
 
 fit4 <- coxme(Surv(time, status) ~ age + (1|ph.ecog), lung)
-dname <- paste("factor(ph.ecog)", 0:3, sep='')
+dname <- paste("ecog", 0:3, sep='')
 dummy <- matrix(diag(4), 4, dimnames=list(dname,dname))
-fit5 <- coxme(Surv(time, status) ~ age + (factor(ph.ecog)|1), lung,
+fit5 <- coxme(Surv(time, status) ~ age + (ecog0+ecog1+ecog2+ecog3 |1), lung,
               varlist=dummy)
 all.equal(fit4$log, fit5$log)
 all.equal(fit4$coef, fit5$coef, check.attributes=FALSE) #names will differ

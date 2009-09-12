@@ -1,13 +1,13 @@
-\name{coxvarMlist}
+\name{coxmeMlist}
 \Rdversion{1.1}
-\alias{coxvarMlist}
+\alias{coxmeMlist}
 \title{Coxme variance function}
 \description{
   This variance function accepts a list of matrices, which define a
   correlation structure for a coxme fit.
 }
 \usage{
-coxvarMlist(varlist, rescale = TRUE, pdcheck = TRUE, positive = TRUE)
+coxmeMlist(varlist, rescale = TRUE, pdcheck = TRUE, positive = TRUE)
 }
 \arguments{
   \item{varlist}{a list containing one or more matrix or bdsmatrix objects.}

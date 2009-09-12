@@ -682,7 +682,7 @@ And last, put together the output structure.
     if (refine.n>0) {
         out$refine <- r.correct
         #The next line can be turned on for detailed tests in refine.R
-        if (TRUE) out$refine.debug <- list(loglik=rfit$loglik, escale=escale,
+        if (FALSE) out$refine.debug <- list(loglik=rfit$loglik, escale=escale,
                                            bmat=bmat, errhat=errhat)
         }
     out

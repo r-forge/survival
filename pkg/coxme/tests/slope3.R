@@ -69,7 +69,7 @@ mat2 <-  bdsBlock(idlist, rep(1:9, each=2))
 mat3 <- diag(rep(0:1, 9))
 dimnames(mat3) <- list(idlist, idlist)
 fit3b <-  coxme(Surv(time, status) ~ age + trt + (1|inst/trt), simdata,
-               varlist=coxvarMlist(list(mat2, mat3), rescale=F, pdcheck=F),
+               varlist=coxmeMlist(list(mat2, mat3), rescale=F, pdcheck=F),
                vfixed=c(.1,.3), iter=0)
 
 group <- strata(simdata$inst, simdata$trt, shortlabel=T, sep='/')
@@ -110,6 +110,6 @@ fit3a.1 <- coxme(Surv(time, status) ~ age + trt + (1|inst) + (trt|inst),
 aeq(c(unlist(fit3a.1$frail), fixef(fit3a.1)), step1)
 
 fit3b.1 <-  coxme(Surv(time, status) ~ age + trt + (1|inst/trt), simdata,
-               varlist=coxvarMlist(list(mat2, mat3), rescale=F, pdcheck=F),
+               varlist=coxmeMlist(list(mat2, mat3), rescale=F, pdcheck=F),
                vfixed=c(.1,.3), iter=1)
 aeq(c(unlist(fit3b.1$frail), fixef(fit3b.1)), step2)

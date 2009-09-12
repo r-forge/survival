@@ -20,7 +20,7 @@ igchol <- function(x) {
 simple <- data.frame(time=c(9:3,1,1), status=c(rep(0,7),1,1),
                      f1=rep(1:3,3), f2=c(rep(1,6), rep(2,3)), x=1:9)
 sfit <- coxme(Surv(time, status) ~ x + (1| f1/f2), data=simple, ties='breslow',
-               vfixed=c(1,2), varlist=list(coxvarFull(collapse=F)), iter=0)
+               vfixed=c(1,2), varlist=list(coxmeFull(collapse=F)), iter=0)
 
 ta <- 2/9
 tb <- -1/9
@@ -50,16 +50,16 @@ aeq(as.matrix(igchol(sfit$hmat)), as.matrix(ibreslow))
 
 
 sfit2 <- coxme(Surv(time, status) ~ x + (1| f1/f2), 
-               data=simple, ties='breslow',  varlist=coxvarFull(collapse=F),
+               data=simple, ties='breslow',  varlist=coxmeFull(collapse=F),
               vfixed=c(1,2), iter=0, sparse.calc=1)
 aeq(as.matrix(igchol(sfit2$hmat)), as.matrix(ibreslow))
 
 # Check the collapse option
 sfit2 <- coxme(Surv(time, status) ~ x + (1| f1/f2), 
-               data=simple, ties='breslow',  varlist=coxvarFull(collapse=F),
+               data=simple, ties='breslow',  varlist=coxmeFull(collapse=F),
               vfixed=c(1,2))
 sfit3 <- coxme(Surv(time, status) ~ x + (1| f1/f2), 
-               data=simple, ties='breslow',  varlist=coxvarFull(collapse=T),
+               data=simple, ties='breslow',  varlist=coxmeFull(collapse=T),
               vfixed=c(1,2))
 aeq(sfit2$log, sfit3$log)
 aeq(fixef(sfit2), fixef(sfit3))
@@ -67,7 +67,7 @@ aeq(unlist(sfit3$frail), sfit2$frail[[1]] + sfit2$frail[[2]][c(1,1,2,2,3,3)])
 
 # Now for the Efron approx
 sfit <- coxme(Surv(time, status) ~ x + (1| f1/f2), data=simple, 
-              ties='efron', varlist=coxvarFull(collapse=FALSE),
+              ties='efron', varlist=coxmeFull(collapse=FALSE),
               vfixed=c(1,2), iter=0)
 
 # the matrix for the first death, where each of the last 2 obs has weight
@@ -88,6 +88,6 @@ diag(iefron) <- diag(iefron) +  rep(c(1,1/2,0), c(6,3,1)) #add penalty
 aeq(as.matrix(igchol(sfit$hmat)), as.matrix(iefron))
 
 sfit2 <- coxme(Surv(time, status) ~ x + (1| f1/f2), data=simple, ties='efron', 
-              varlist=coxvarFull(collapse=FALSE), vfixed=c(1,2), 
+              varlist=coxmeFull(collapse=FALSE), vfixed=c(1,2), 
                iter=0, sparse.calc=1)
 aeq(as.matrix(igchol(sfit2$hmat)), as.matrix(iefron))

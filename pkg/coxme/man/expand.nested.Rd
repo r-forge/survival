@@ -29,7 +29,7 @@ expand.nested(x)
 }
 \value{an updated data frame}
 \author{Terry Therneau}
-\seealso{\code{\link{coxme}}, \code{\link{coxvarMlist}}
+\seealso{\code{\link{coxme}}, \code{\link{coxmeMlist}}
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.

@@ -1,5 +1,5 @@
     
-\subsection{coxvarMlist}
+\subsection{coxmeMlist}
 In a mixed-effects model the random effects $b$ are assumed to
 follow a Gaussian distribution
 $$
@@ -12,11 +12,11 @@ For instance, `independent', `compound symmetry', or `autoregressive'.
 This basic approach does not work for genetic studies, since the
 correlation is based on family structure and cannot be inferred from
 a simple keyword.
-The [[coxvarMlist]] variance specification accepts a list of
+The [[coxmeMlist]] variance specification accepts a list of
 fixed matrices $A_1$, $A_2$, ... and fits the variance
 structure $\Sigma = \sigma_1^2 A_1 + \sigma_2^2 A_2 + \ldots$.
 The individual matrices are often in a block-diagonal sparse 
-representation due to size.
+repclresentation due to size.
 (The motivating study for this structure had 26050 subjects with a
 random intercept per subject, so that $A$ was 26050 by 26050.)
 
@@ -46,8 +46,8 @@ error in forming them.
 \end{enumerate}
 I have had problems where each of these had to be relaxed.
 
-<<coxvarMlist>>=
-coxvarMlist <- function(varlist, rescale=TRUE, pdcheck=TRUE,  positive=TRUE) {
+<<coxmeMlist>>=
+coxmeMlist <- function(varlist, rescale=TRUE, pdcheck=TRUE,  positive=TRUE) {
     # Because of environments, the init function will inherit the
     #  four variables below 
     varlist <- varlist
@@ -55,11 +55,11 @@ coxvarMlist <- function(varlist, rescale=TRUE, pdcheck=TRUE,  positive=TRUE) {
     pdcheck <- pdcheck
     if (!is.logical(positive)) stop("Invalid value for postive argument")
     positive <- positive
-    <<coxvarMlist-init>>
-    <<coxvarMlist-generate>>
-    <<coxvarMlist-wrapup>>
+    <<coxmeMlist-init>>
+    <<coxmeMlist-generate>>
+    <<coxmeMlist-wrapup>>
     out <- list(initialize=initialize, generate=generate, wrapup=wrapup)
-    class(out) <- 'coxvar'
+    class(out) <- 'coxmevar'
     out
     }
 @ 
@@ -79,7 +79,7 @@ matrices.  If none of the matrices are given a dimname, we add
 them before calling the routine --- but only if they are exactly
 the right dimension.  This allows a user to give an unnamed matrix
 that is just exactly the right length.
-<<coxvarMlist-init>>=
+<<coxmeMlist-init>>=
 initialize <- function(vinit, fixed, intercept, G, X, sparse) {
     ngroup <- min(length(G), ncol(G))
     nvar   <- min(length(X), ncol(X))  # a NULL or a nx0 matrix yields 0
@@ -189,7 +189,7 @@ for (j in 1:ntheta) {
 @ 
 
 The generate function is a simple sum.
-<<coxvarMlist-generate>>=
+<<coxmeMlist-generate>>=
  generate <- function(newtheta, parms) {
      theta <- parms$theta
      theta[!parms$fixed] <- newtheta
@@ -207,7 +207,7 @@ The generate function is a simple sum.
 @ 
 Wrapup is also simple. The thetas are named Vmat.1, Vmat.2, etc; or using
 the names found on the orginal varlist (if any).
-<<coxvarMlist-wrapup>>= 
+<<coxmeMlist-wrapup>>= 
 wrapup <- function(newtheta, b, parms) {
         theta <- parms$theta
         theta[!parms$fixed] <- newtheta

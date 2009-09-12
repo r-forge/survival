@@ -156,7 +156,7 @@ aeq( ipen1, map %*% ipen2 %*% t(map))
 
 fit0b <- coxme(Surv(time, status) ~ age + trt + (1|inst/trt), simdata,
                iter=0, vfixed=vfix,
-              varlist=coxvarMlist(list(mat1,mat2,mat3), pdcheck=F, rescale=F))
+              varlist=coxmeMlist(list(mat1,mat2,mat3), pdcheck=F, rescale=F))
                
 aeq(u2, fit0b$u)
 aeq(imat2 + ipen2, igchol(fit0b$hmat))
@@ -168,7 +168,7 @@ step1b <- solve(fit0b$hmat, fit0b$u)
 # Iteration 1
 fit1b <- coxme(Surv(time, status) ~ age + trt + (1|inst/trt), simdata,
                iter=1, vfixed=vfix,
-              varlist=coxvarMlist(list(mat1,mat2,mat3), pdcheck=F, rescale=F))
+              varlist=coxmeMlist(list(mat1,mat2,mat3), pdcheck=F, rescale=F))
 aeq(step1b, c(unlist(fit1b$frail), fixef(fit1b)))
 
 
@@ -184,7 +184,7 @@ fita <- coxme(Surv(time, status) ~ age + trt + (1+trt | inst), simdata)
 # vtemp[3] <- vtemp[3] * sqrt(vtemp[1] * vtemp[2])
 #fitb <- coxme(Surv(time, status) ~ age + trt + (1|inst/trt), simdata,
 #              vinit=vtemp,
-#              varlist=coxvarMlist(list(mat1,mat2,mat3), pdcheck=F, rescale=F,
+#              varlist=coxmeMlist(list(mat1,mat2,mat3), pdcheck=F, rescale=F,
 #                                  positive=F))
 
 # So create our own variance function, which expects v1, v2, cor
@@ -229,7 +229,7 @@ myvar <- function(varlist) {
         list(theta=tmat, b=b)
         }
     out <- list(initialize=init, generate=generate, wrapup=wrapup)
-    class(out) <- 'coxvar'
+    class(out) <- 'coxmevar'
     out
     }
 

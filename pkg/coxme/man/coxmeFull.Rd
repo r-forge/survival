@@ -1,6 +1,6 @@
-\name{coxvarFull}
+\name{coxmeFull}
 \Rdversion{1.1}
-\alias{coxvarFull}
+\alias{coxmeFull}
 \title{Variance family function for coxme fits.
 }
 \description{
@@ -8,7 +8,7 @@
   mixed effects survival model fit with \code{coxme}.
 }
 \usage{
-coxvarFull(collapse = FALSE)
+coxmeFull(collapse = FALSE)
 }
 \arguments{
   \item{collapse}{

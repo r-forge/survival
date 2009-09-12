@@ -10,7 +10,7 @@ simple <- data.frame(time2=c(9:3,1,1,6), status=c(rep(0,7),1,1,0),
                      f1=c(rep(1:3,3),2), f2=c(rep(1,6), rep(2,3),2), x=1:10,
 		     time1=c(rep(0,9), 4))
 sfit <- coxme(Surv(time1, time2, status) ~ x + (1| f1/f2), data=simple, 
-              ties='breslow', varlist=coxvarFull(collapse=FALSE),
+              ties='breslow', varlist=coxmeFull(collapse=FALSE),
               vfixed=c(1,2), iter=0)
 
 ta <- 2/9
@@ -46,14 +46,14 @@ aeq(as.matrix(igchol(sfit$hmat)), as.matrix(ibreslow))
 
 
 sfit2 <- coxme(Surv(time1, time2, status) ~ x + (1| f1/f2), data=simple, 
-               ties='breslow',  varlist=coxvarFull(collapse=FALSE),
+               ties='breslow',  varlist=coxmeFull(collapse=FALSE),
               vfixed=c(1,2), iter=0, sparse.calc=1)
 aeq(as.matrix(igchol(sfit2$hmat)), as.matrix(ibreslow))
 
 
 # Now for the Efron approx
 sfit <- coxme(Surv(time1, time2, status) ~ x + (1| f1/f2), data=simple, 
-              ties='efron', varlist=coxvarFull(collapse=FALSE),
+              ties='efron', varlist=coxmeFull(collapse=FALSE),
               vfixed=c(1,2), iter=0)
 
 # the matrix for the first death, where each of the last 2 obs has weight
@@ -74,7 +74,7 @@ diag(iefron) <- diag(iefron) +  rep(c(1,1/2,0), c(6,3,1)) #add penalty
 aeq(as.matrix(igchol(sfit$hmat)), as.matrix(iefron))
 
 sfit2 <- coxme(Surv(time1, time2, status) ~ x + (1| f1/f2), data=simple, 
-               ties='efron', varlist=coxvarFull(collapse=FALSE),
+               ties='efron', varlist=coxmeFull(collapse=FALSE),
               vfixed=c(1,2), iter=0, sparse.calc=1)
 aeq(as.matrix(igchol(sfit2$hmat)), as.matrix(iefron))
 

@@ -124,7 +124,7 @@ cases, one can pretend the Hessian is sparse, i.e.,
 all of the terms in the block diagonal portion that are outside the
 blocks are considered zero.
 
-\subsection{coxvarFull}
+\subsection{coxmeFull}
 This is the default routine, which assumes a simple nested structure
 for the variance.
 Sparsity is assumed only for random intercepts, for those groups which
@@ -132,17 +132,17 @@ have a small percent of the total.
 
 The overall layout of the routine is below.  It currently has only one
 optional parameter, which contols the form of nested effects
-<<coxvarFull>>=
-coxvarFull <- function(collapse=FALSE) {
+<<coxmeFull>>=
+coxmeFull <- function(collapse=FALSE) {
     collapse <- collapse
     # Because of R's lexical scoping, the values of the options
     #  above, at the time the line below is run, are known to the
     #  initialize function
-    <<coxvarFull-init>>
-    <<coxvarFull-generate>>
-    <<coxvarFull-wrapup>>
+    <<coxmeFull-init>>
+    <<coxmeFull-generate>>
+    <<coxmeFull-wrapup>>
     out <- list(initialize=initialize, generate=generate, wrapup=wrapup)
-    oldClass(out) <- 'coxvar'
+    oldClass(out) <- 'coxmevar'
     out
     }
 @ 
@@ -160,7 +160,7 @@ failed with an error.
 
 The [[initialize]] and [[generate]] routines each start by
 defining a few variables, and then treating the five cases one by one.
-<<coxvarFull-init>>= 
+<<coxmeFull-init>>= 
 initialize <- function(vinit, fixed, intercept, G, X,  sparse) {
     ngroup <- min(length(G), ncol(G))
     nvar   <- min(length(X), ncol(X))  # a NULL or a nx0 matrix yields 0
@@ -170,7 +170,7 @@ initialize <- function(vinit, fixed, intercept, G, X,  sparse) {
         if (intercept)
             return(list(error=("Invalid null random term (1|1)")))
         else {
-            <<coxvarFull-init-1>>
+            <<coxmeFull-init-1>>
             }
         }
     else {
@@ -180,20 +180,20 @@ initialize <- function(vinit, fixed, intercept, G, X,  sparse) {
 
         # Deal with intercepts
         if (ngroup ==1) {
-            <<coxvarFull-init-2>>
+            <<coxmeFull-init-2>>
                 }
         else {
             if (collapse) {
-                <<coxvarFull-init-3b>>
+                <<coxmeFull-init-3b>>
                 }
             else {
-                <<coxvarFull-init-3a>>
+                <<coxmeFull-init-3a>>
                 }
             }
 
         #Deal with slopes
         if (nvar > 0) {
-            <<coxvarFull-init-4>>
+            <<coxmeFull-init-4>>
             }
         }
     }
@@ -211,7 +211,7 @@ them, named (if at all) with the first covariate.
 As a default starting value we have std(b *X) = .2.
 The variance matrix will be a diagonal, non-sparse, so after checking
 initial values there is almost nothing left to do.
-<<coxvarFull-init-1>>=
+<<coxmeFull-init-1>>=
 xname <- dimnames(X)[[2]]
 if (length(vinit) >0) {
   temp <- initmatch(xname[1], vinit)
@@ -248,16 +248,16 @@ to a variance that is exactly zero or a correlation of 1.  The vale
 function.  For a coxph model, a variance >10 is usually pretty wild, and
 one less than .0001 is near 0 in behavior (for properly scaled variables).
 
-<<coxvarFull-generate>>=
+<<coxmeFull-generate>>=
 generate= function(newtheta, parms) {
     theta <- parms$theta
     if (length(newtheta)>0) theta[!parms$fixed] <- 
         exp(pmax(-36, pmin(36, newtheta)))
 
     if (parms$case==1) return(diag(length(parms$xname)) * theta)
-    <<coxvarFull-generate-2>>
-    <<coxvarFull-generate-3>>
-    <<coxvarFull-generate-4>>
+    <<coxmeFull-generate-2>>
+    <<coxmeFull-generate-3>>
+    <<coxmeFull-generate-4>>
     }
 @ 
 
@@ -278,7 +278,7 @@ Several times in the code we make use of the fact that matrices are
 stored in column major order.  Thus a sequence of indices
 [[i, i+ ncol(R)+1, i+ 2*(ncol(R)+1), ...]] will walk down a diagonal
 of the matrix, starting at element $i$.
-<<coxvarFull-init-2>>=
+<<coxmeFull-init-2>>=
 gtemp <- as.factor(G[[1]])[,drop=TRUE] #drop unused levels
 nlevel <- length(levels(gtemp))
 gfrac <- table(gtemp)/ length(gtemp)
@@ -308,7 +308,7 @@ log value.
 The [[levellist]] and [[gname]] parts of the paramter list will be used
 by the wrapup function to create labels.
 
-<<coxvarFull-init-2>>=
+<<coxmeFull-init-2>>=
 varlist <- list(vmat)
 if (nvar==0) 
     return(list(imap=imap, X=NULL, 
@@ -318,7 +318,7 @@ if (nvar==0)
 @	    
 
 The generate function for this case is quite simple.
-<<coxvarFull-generate-2>>=
+<<coxmeFull-generate-2>>=
 
 if (parms$case==2) return(theta*parms$varlist[[1]])
 @ 
@@ -378,7 +378,7 @@ it has the largest number of levels.
 This is done by reversing the parameters.
 Note that the [[expand.nested]] routine
 has already remomved any unused levels.
-<<coxvarFull-init-3a>>=
+<<coxmeFull-init-3a>>=
 G <- rev(expand.nested(G))  #the last shall be first
 imap <- matrix(0L, nrow=nrow(G), ncol=ngroup)
 imap[,1] <- as.numeric(G[,1])
@@ -404,7 +404,7 @@ The final variance matrix is diagonal with with rep(theta, nlevel)
 down the diagonal.  Create a set of ngroup matrices all the same shape,
 each with 1's the right place on the diagonal, so that their sum is %'
 what we need.
-<<coxvarFull-init-3a>>=
+<<coxmeFull-init-3a>>=
 if (nsparse==0) tmat <- diag(sum(nlevel))
 else tmat <- bdsmatrix(blocksize=rep(1L, nsparse), blocks=rep(1., nsparse),
                    rmat=matrix(0., nrow=sum(nlevel), ncol=sum(nlevel)-nsparse))
@@ -429,7 +429,7 @@ Now all that the generate function needs to do is to
 sum and add the matrices.  
 We want the generate functions to be simple, since they are executed hundreds
 of times.
-<<coxvarFull-generate-3>>= 
+<<coxmeFull-generate-3>>= 
 if (parms$case==3) {
     temp <- theta[1]* parms$varlist[[1]]
     for (i in 2:length(parms$varlist)) 
@@ -482,7 +482,7 @@ sparse we keep only one of them in the block portion, e.g., a
 dense matrix.  For creating the matrices we need the number of unique
 coefficients = number of levels of the last element of the expanded $G$.
 So all this computation works on that unique subset.
-<<coxvarFull-init-3b>>=
+<<coxmeFull-init-3b>>=
 gtemp <- expand.nested(G)
 n <- nrow(G)
 
@@ -611,7 +611,7 @@ it later to .2 when $X$ is rescaled.  This is so that any user inputs are in
 the original data scale, which is what will appear on the printout.
 You cannot subtract the mean, as one can with a regular covariate, it will
 be scattered into multiple columns.
-<<coxvarFull-init-4>>=
+<<coxmeFull-init-4>>=
 xstd  <- sqrt(apply(X,2,var))
 xstd  <- rep(1, ncol(X))  #debug line
 if (intercept) theta.temp <- diag(c(.2, .2/xstd))
@@ -674,7 +674,7 @@ the fitted result is unaffected by such scaling (as long as we rescale the
 results back), and it improves the numerical stability.
 If there is no intercept in the random effects formula then [[xmap]] should
 start a 1, otherwise the X coefficients come after the intercept.
-<<coxvarFull-init-4>>=
+<<coxmeFull-init-4>>=
 xnew <- matrix(0., nrow=nrow(X), ncol=nvar*ncol(imap))
 xmap <- matrix(0L, nrow=nrow(X), ncol=ncol(xnew))
 xoffset <- (intercept)* max(imap)
@@ -720,7 +720,7 @@ If there are multiple grouping variables the $\theta$ vector consists of
 blocks, one per grouping variable; all are processed at once.  
 First all the intercepts at once, then the interceps* first covariate slope
 term, intercepts * second covariate, etc.
-<<coxvarFull-generate-4>>=
+<<coxmeFull-generate-4>>=
 if (parms$case==4) {
     ngroup <- length(parms$nlevel)
     n1 <- sum(parms$nlevel)          #number of intercept coefs
@@ -799,7 +799,7 @@ if (parms$case==4) {
 The wrapup function transforms theta back, adds names, and
 formats the vector of random coefficients $b$.
 For cases 1 and 2 adding names is almost all we need to do.
-<<coxvarFull-wrapup>>=
+<<coxmeFull-wrapup>>=
 wrapup <- function(theta, b, parms) {
     newtheta <- parms$theta
     newtheta[!parms$fixed] <- exp(theta)
@@ -827,7 +827,7 @@ false.  For the former, there will be [[ngroup]] random parameters but
 only a single vector of coefficients $b$.
 For the latter there will be one set of $b$ coefficients for each
 level of the random effect.
-<<coxvarFull-wrapup>>=
+<<coxmeFull-wrapup>>=
     if (parms$case==3) {
         ngroup <- length(parms$levellist)
         theta <- vector('list', ngroup)
@@ -869,7 +869,7 @@ At the start we rescaled each covariate by dividing it by a normalization
 factor $s$, leading to a solution that involves $b X/s$.
 To transform back we return $(b/s)$, which transforms the variance of
 $b$ by $1/s^2$.
-<<coxvarFull-wrapup>>= 
+<<coxmeFull-wrapup>>= 
     if (parms$case==4) {
         intercept <- parms$intercept
         ngroup <- length(parms$nlevel)
