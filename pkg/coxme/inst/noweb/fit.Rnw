@@ -412,8 +412,8 @@ coxme.fit <- function(x, y, strata, offset, ifixed, control,
     if (length(x) ==0) nvar <-0
     else nvar <- ncol(as.matrix(x))
     
-    if (missing(offset) || is.null(offset)) offset <- rep(0.0,n)
-    if (missing(weights)|| is.null(weights))weights<- rep(1.0,n)
+    if (missing(offset) || is.null(offset)) offset <- rep(0.0, n)
+    if (missing(weights)|| is.null(weights))weights<- rep(1.0, n)
     else {
 	if (any(weights<=0)) stop("Invalid weights, must be >0")
 	}
