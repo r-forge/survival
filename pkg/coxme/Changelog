@@ -1,0 +1,10 @@
+15 Oct 09
+  Change the default starting value of variances from .2 to .1.  The final
+answer will be closer to .1 the majority of the time, and I had a data set
+where .2 led to wrong iteration.  This area needs more investigation.
+  Fix error in the fitting routine; if there were 3 or more crossed terms
+the indexing was wrong, leading to no penalty for terms after the second.
+  Allow for NULL as an initial value.  This occured for a model with 3 terms
+(x1|grp) + (x2|grp) + (x3|grp), and I wanted to give values for x2 and x3
+only.  You can't use names since they all are the same, instead I now use
+vfixed=list(NULL, .1, .1).

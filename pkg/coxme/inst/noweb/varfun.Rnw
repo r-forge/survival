@@ -208,7 +208,7 @@ regression.
 
 First deal with initial values.  There should be either 0 or 1 of
 them, named (if at all) with the first covariate. 
-As a default starting value we have std(b *X) = .2.
+As a default starting value we have std(b *X) = .1.
 The variance matrix will be a diagonal, non-sparse, so after checking
 initial values there is almost nothing left to do.
 <<coxmeFull-init-1>>=
@@ -220,7 +220,7 @@ if (length(vinit) >0) {
                               'of initial values not matched')))
   else theta <- vinit
   }
-else theta <- .2 / mean(sqrt(apply(X,2,var)))
+else theta <- .1 / mean(sqrt(apply(X,2,var)))
   
 if (length(fixed) >0) {
     temp <- initmatch(xname[1], fixed)
@@ -333,7 +333,7 @@ variable to the first.
 <<initialize-inits>>=
 gname <-  names(G)
 ntheta <- length(gname)
-theta <- rep(.2, ntheta)
+theta <- rep(.1, ntheta)
 if (ntheta >1) {
     for (i in 2:ntheta) gname[i] <- paste(gname[i-1], gname[i], sep='/')
     gname <- rev(gname) 
@@ -444,7 +444,7 @@ representation.
 I hypothesise that this is due to a smaller number of nuisance
 variables. 
 
-Update: I'm leaving the code in (it does work), but have since realized that
+Update: I'm leaving the code in (it does work), but have since realized that %'
 it was all based on a misunderstanding.  When computed correctly the
 collapse=TRUE and collapse=FALSE lead to identical iteration paths.
 The observation that led to doing a collapse option was in the prior code,
@@ -602,20 +602,20 @@ order to allow a user to set selected values.
 Fpr the random term [[1 + x1 + x2 | g1/g2]] the names would be
 [[g1, x1:g1, x2:g1, x1/g1, x1:x2/g1, x2/g1]], I don't particularly like it. %'
 If you can think of a better one let me know.
-The default values for $\theta$ are 0 for the correlations and .2 for the
+The default values for $\theta$ are 0 for the correlations and .1 for the
 variances.  
 For computation they are transformed with variances=$e^\theta$ and
 correlations=$(e^\theta -1)/(e^\theta +1)$.
-In the code below we set the intitial value to .2/std to start, then correct
-it later to .2 when $X$ is rescaled.  This is so that any user inputs are in
+In the code below we set the intitial value to .1/std to start, then correct
+it later to .1 when $X$ is rescaled.  This is so that any user inputs are in
 the original data scale, which is what will appear on the printout.
 You cannot subtract the mean, as one can with a regular covariate, it will
 be scattered into multiple columns.
 <<coxmeFull-init-4>>=
 xstd  <- sqrt(apply(X,2,var))
 xstd  <- rep(1, ncol(X))  #debug line
-if (intercept) theta.temp <- diag(c(.2, .2/xstd))
-else           theta.temp <- diag(.2/xstd, nvar, nvar) #might be 1x1 !
+if (intercept) theta.temp <- diag(c(.1, .1/xstd))
+else           theta.temp <- diag(.1/xstd, nvar, nvar) #might be 1x1 !
 theta <- rep(theta.temp[row(theta.temp) >= col(theta.temp)], ngroup)
 
 xname <- dimnames(X)[[2]]

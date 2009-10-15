@@ -121,7 +121,15 @@ then march through the matrix.
 We need to first process the non-sparse rows of the first variance
 matrix [[tmat]]; if that contains a substantial number of sparse
 columns then it is important to subset \emph{before} creating a
-regular metrix from the remainder.
+regular metrix from the remainder; the construction
+[[(as.matrix(tmat))[k,k]]] would create a temporary matrix of possible
+vast proportions.  
+At this point in time all of the intercepts map before any covariates
+so we can keep separate indices for the intercept-rows-so-far [[indx1]] and
+covariate-rows-so-far [[indx2]], with the second one starting after the
+end of all the intercepts.  
+What we are doing is in essence a diagonal bind of matrices, pasting
+blocks down the diagonal, but S has no [[dbind]] function.
 <<define-penalty>>=    
     if (nrandom ==1) return(tmat)
 
@@ -177,9 +185,8 @@ regular metrix from the remainder.
             k <- 1:ncoef[i,2]
             R[indx2+k, indx2+k -nsparse] <- temp
             }
-        indx2 <- indx1 +ncoef[i,2]
+        indx2 <- indx2 +ncoef[i,2]
         }
-
     bdsmatrix(blocksize=tmat@blocksize, blocks=tmat@blocks, rmat=R)
     }    
 @ 
