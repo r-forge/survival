@@ -10,10 +10,10 @@ as.date(x, order = "mdy", ...)
 }
 \arguments{
   \item{x}{input data vector.}
-  \item{order}{if x is character, defines the order in which the terms
-    are assumed to appear in a xx/xx/xx date.  The default is
+  \item{order}{if \code{x} is character, defines the order in which the
+    terms are assumed to appear in a xx/xx/xx date.  The default is
     month/day/year; any permutation of mdy is legal.}
-  \item{...}{if x is character, then any other arguments from
+  \item{...}{if \code{x} is character, then any other arguments from
     \code{mdy.date()} can be used as well.}
 }
 \value{
@@ -23,8 +23,8 @@ as.date(x, order = "mdy", ...)
 \details{
   If \code{x} is numeric, then \code{floor(x)} is returned, e.g.,
   \code{as.date(35)} is the same as \code{as.date(35.2)} and gives
-  \code{Feb 2, 1960}.  If \code{x} is character, the program attempts
-  to parse it.
+  February 5, 1960 (\samp{5Feb60}).  If \code{x} is character, the
+  program attempts to parse it.
 }
 \seealso{
   \code{\link{mdy.date}},

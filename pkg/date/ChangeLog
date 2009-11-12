@@ -1,0 +1,187 @@
+2009-10-20  Kurt Hornik  <Kurt.Hornik@wu.ac.at>
+
+	* DESCRIPTION (Version): New version is 1.2-29.
+
+	* R/date.R (date.mdy): Fix nuisance spotted by David Bronaugh
+	<bronaugh@uvic.ca>.
+
+2009-09-10  Kurt Hornik  <Kurt.Hornik@wu.ac.at>
+
+	* DESCRIPTION (Version): New version is 1.2-28.
+
+	* inst/CITATION: Improve.
+
+2009-02-05  Kurt Hornik  <Kurt.Hornik@wu-wien.ac.at>
+
+	* DESCRIPTION (Version): New version is 1.2-27.
+
+	* inst/CITATION: Improve.
+
+2007-12-24  Kurt Hornik  <Kurt.Hornik@wu-wien.ac.at>
+
+	* DESCRIPTION (Version): New version is 1.2-26.
+
+	* R/date.R (summary.date): Add ... so that na.rm can be used,
+	Suggested by Steven McKinney <smckinney@bccrc.ca>.
+
+2007-07-12  Kurt Hornik  <Kurt.Hornik@wu-wien.ac.at>
+
+	* DESCRIPTION (Version): New version is 1.2-25.
+	(License): Clarify.
+
+2007-02-01  Kurt Hornik  <Kurt.Hornik@wu-wien.ac.at>
+
+	* inst/CITATION: Get date/year and version from the package
+	metadata.
+
+2006-12-19  Kurt Hornik  <Kurt.Hornik@wu-wien.ac.at>
+
+	* DESCRIPTION (Version): New version is 1.2-23.
+
+	* R/date.R (as.character.date): Add missing ... argument.
+
+2006-09-29  Kurt Hornik  <Kurt.Hornik@wu-wien.ac.at>
+
+	* DESCRIPTION (Version): New version is 1.2-22.
+
+	* R/date.R: Fix invalid escapes.
+
+2006-09-09  Kurt Hornik  <Kurt.Hornik@wu-wien.ac.at>
+
+	* DESCRIPTION (Version): New version is 1.2-21.
+	(Depends): Added.
+
+2006-08-05  Kurt Hornik  <Kurt.Hornik@wu-wien.ac.at>
+
+	* DESCRIPTION (Version): New version is 1.2-20.
+
+	* man/as.date.Rd: Fix inconsistency spotted by Antony Unwin
+	<unwin@math.uni-augsburg.de>.
+
+2006-06-26  Kurt Hornik  <Kurt.Hornik@wu-wien.ac.at>
+
+	* DESCRIPTION (Version): New version is 1.2-19.
+
+	* inst/CITATION: New file.
+
+2004-06-09  Kurt Hornik  <Kurt.Hornik@wu-wien.ac.at>
+
+	* DESCRIPTION (Version): New version is 1.2-18.
+	(License): Change to GPL as permitted by Terry Therneau.
+
+2004-01-31  Kurt Hornik  <Kurt.Hornik@wu-wien.ac.at>
+
+	* DESCRIPTION (Version): New version is 1.2-17.
+	
+	* INDEX: Removed.
+	* TITLE: Removed.
+
+2003-08-06  Kurt Hornik  <Kurt.Hornik@wu-wien.ac.at>
+
+	* DESCRIPTION (Version): New version is 1.2-16.
+
+	* man/date.object.Rd: Remove usage for as.data() as this is
+	documented (correctly) in 'as.date.Rd', and hence also the now
+	unnecessary \synopsis.
+
+2003-07-29  Kurt Hornik  <Kurt.Hornik@wu-wien.ac.at>
+
+	* DESCRIPTION (Version): New version is 1.2-15.
+
+	* R/date.R (print.date): print.atomic() is gone from R 1.8.0.
+	Also, replace code repeated from as.character.date() by a call to
+	it.
+
+2003-07-28  Kurt Hornik  <Kurt.Hornik@wu-wien.ac.at>
+
+	* DESCRIPTION (Version): New version is 1.2-14.
+
+	* R/date.R (as.vector.date): Prototype has 'mode' and not 'type'
+	as the second argument.
+
+2003-04-23  Kurt Hornik  <Kurt.Hornik@wu-wien.ac.at>
+
+	* DESCRIPTION (Version): New version is 1.2-13.
+	(Author, Maintainer): Update KH email address.
+
+2002-03-31  Kurt Hornik  <Kurt.Hornik@wu-wien.ac.at>
+
+	* DESCRIPTION (Version): New version is 1.2-12.
+
+	* INDEX: Rebuilt.
+
+	* R/date.R (date.ddmmmyy, date.mmddyy, date.mmddyyyy): Be
+	defensive about R 1.5.0 character NAs.
+
+2001-11-27  Kurt Hornik  <Kurt.Hornik@ci.tuwien.ac.at>
+
+	* DESCRIPTION (Version): New version is 1.2-11.
+
+	* R/date.R: .Alias() is gone in R 1.4.0, hence remove.
+
+2001-08-16  Kurt Hornik  <Kurt.Hornik@ci.tuwien.ac.at>
+
+	* DESCRIPTION (Version): New version is 1.2-10.
+
+	* R/date.R: Add missing `...' to print.date().
+
+2001-07-14  Kurt Hornik  <Kurt.Hornik@ci.tuwien.ac.at>
+
+	* DESCRIPTION (Version): New version is 1.2-9.
+
+	* man/date.ddmmmyy.Rd: Fix unbalanced braces.
+
+2001-06-02  Kurt Hornik  <Kurt.Hornik@ci.tuwien.ac.at>
+
+	* DESCRIPTION (Version): New version is 1.2-8.
+
+	* man/date.object.Rd: Codoc fixes.
+
+2001-03-24  Kurt Hornik  <Kurt.Hornik@ci.tuwien.ac.at>
+
+	* DESCRIPTION (Version): New version is 1.2-7.
+
+	* R/date.R: Add `PACKAGE' argument to FF calls.
+
+2001-02-25  Kurt Hornik  <Kurt.Hornik@ci.tuwien.ac.at>
+
+	* DESCRIPTION (Version): New version is 1.2-6.
+
+	* R/date.R: Fix problem in mdy.date() reported by Alex McMillan
+	<mcmillan@cc.ucsf.edu>.
+
+2000-12-24  Kurt Hornik  <Kurt.Hornik@ci.tuwien.ac.at>
+
+	* DESCRIPTION (Version): New version is 1.2-5.
+	(Maintainer): New entry.
+
+Sun Jun 18 12:09:05 2000  Kurt Hornik  <Kurt.Hornik@ci.tuwien.ac.at>
+
+	* DESCRIPTION (Version): New version is 1.2-4.
+
+	* man/*.Rd: Add keyword `chron'.
+
+	* man/is.date.Rd: Rename to `date.object.Rd'.  Add \alias entries
+	for methods for objects of class "date".
+
+Sat May  6 09:30:34 2000  Kurt Hornik  <Kurt.Hornik@ci.tuwien.ac.at>
+
+	* DESCRIPTION (Version): New version in 1.2-3.
+
+	* R/date.R: Improved plot.date() (following suggestions by Uwe
+	Ligges <ligges@statistik.uni-dortmund.de>).
+
+Sun May  2 01:32:48 1999  Kurt Hornik  <Kurt.Hornik@ci.tuwien.ac.at>
+
+	* DESCRIPTION (Version): New version is 1.2-2.
+
+	* R/date.R: New functions [[.date() and as.vector.date().
+
+Sun Apr 25 12:08:41 1999  Kurt Hornik  <Kurt.Hornik@ci.tuwien.ac.at>
+
+	* DESCRIPTION (Version): New version is 1.2-1.
+
+Nov 12, 2009, Terry Therneau
+	* Fix bug in as.date("10/3/00"), which would return NA instead of 
+	10/3/1900.
+	

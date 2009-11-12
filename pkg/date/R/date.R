@@ -22,10 +22,10 @@ as.date <- function(x, order = "mdy", ...) {
                    month =integer(nn),
                    day = integer(nn),
                    year = integer(nn),
-                   PACKAGE = "survival")
+                   PACKAGE = "date")
 	month <- ifelse(temp$month < 1 | temp$month > 12, NA, temp$month)
 	day   <- ifelse(temp$day == 0, NA, temp$day)
-	year  <- ifelse(temp$year == 0, NA, temp$year)
+	year  <- ifelse(temp$year < 0, NA, temp$year)
 	temp <- mdy.date(month, day, year, ...)
     }
     else if (is.numeric(x)) {
@@ -171,7 +171,7 @@ print.date <- function(x, quote, prefix, ...) {
 }
 
 summary.date <- function(object, ...) {
-    y <- as.character(range(object))
+    y <- as.character(range(object, ...))
     names(y) <- c("First ", "Last  ")
     y
 }
@@ -242,7 +242,7 @@ mdy.date <- function(month, day, year, nineteen = TRUE, fillday = FALSE,
 date.mdy <- function(sdate, weekday = FALSE) {
     ##  Return the month, day, and year given a julian date
     attr(sdate, "class") <- NULL        # Stop any propogation of methods
-    sdate <- sdate + 2436935            # From SAS to Num Recipies base
+    sdate <- floor(sdate + 2436935)     # From SAS to Num Recipies base
                                         # point 
     wday <- as.integer((sdate + 1) %% 7 +1)
     temp <- ((sdate - 1867216) -.25) / 36524.25
@@ -268,18 +268,18 @@ date.ddmmmyy <- function(sdate) {
     tyr <- ifelse(floor(temp$year/100) == 19,
                   temp$year-1900, temp$year)
     month <- month.abb[temp$month]
-    ifelse(is.na(sdate), "NA",
+    ifelse(is.na(sdate), as.character(NA),
            paste(temp$day, month, tyr, sep = ""))
 }
 date.mmddyy <- function(sdate, sep = "/") {
     temp <- date.mdy(sdate)
     tyr <- ifelse(floor(temp$year / 100) == 19,
                   temp$year - 1900, temp$year)
-    ifelse(is.na(sdate), "NA",
+    ifelse(is.na(sdate), as.character(NA),
            paste(temp$month, temp$day, tyr, sep = sep))
 }
 date.mmddyyyy <- function(sdate, sep = "/") {
     temp <- date.mdy(sdate)
-    ifelse(is.na(sdate), "NA",
+    ifelse(is.na(sdate), as.character(NA),
            paste(temp$month, temp$day, temp$year, sep = sep))
 }
