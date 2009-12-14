@@ -4,7 +4,7 @@
 #
 frailty.gamma <- function(x, sparse=(nclass >5), theta, df, eps= 1e-5, 
 			  method=c("em", "aic", "df", "fixed"), ...) {
-    nclass <- length(unique(x))
+    nclass <- length(unique(x[!is.na(x)]))
     if (sparse)	x <-as.numeric(as.factor(x))
     else{
 	x <- as.factor(x)

@@ -97,7 +97,7 @@ survfitCI <- function(X, Y, weights,
 		
 	# compute the Greenwood error
 	if (se.fit) {
-	    greenwood <- newjump /(kfit$n.risk*(1-newjump))
+	    greenwood <- newjump /(kfit$n.risk*(kfit$n.risk-newjump))
 	    kfit$std.err <- sqrt(apply(greenwood, 2, cumsum))
 	    }
         }

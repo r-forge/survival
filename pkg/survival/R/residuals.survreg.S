@@ -31,7 +31,7 @@ residuals.survreg <- function(object, type=c('response', 'deviance',
     if (type=='response' || type=='deviance') need.x <-FALSE
     else need.x <- TRUE
 
-    if (type=='ldshape' || type=='ldcase') need.strata <- TRUE
+    if (type!= 'response') need.strata <- TRUE
     else need.strata <- FALSE
     
     need.y <- TRUE

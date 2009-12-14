@@ -4,7 +4,7 @@
 #
 frailty.t <- function(x, sparse=(nclass>5), theta, df, eps= 1e-5,  tdf=5,
 			  method=c("aic", "df", "fixed"), ...) {
-    nclass <- length(unique(x))
+    nclass <- length(unique(x[!is.na(x)]))
     if (sparse){
 	x <-as.numeric(as.factor(x))
 	if (is.R()) class(x) <- "coxph.penalty"

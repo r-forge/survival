@@ -6,6 +6,10 @@ plot.survfit<- function(x, conf.int,  mark.time=TRUE,
 			xmax, ymin=0,
 			fun, xlab="", ylab="", xaxs='S', ...) {
 
+    dotnames <- names(list(...))
+    if (any(dotnames=='type'))
+        stop("The graphical argument 'type' is not allowed")
+    
     if (is.logical(log)) {
 	logy <- log
 	logx <- FALSE
