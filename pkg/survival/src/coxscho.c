@@ -1,5 +1,4 @@
 /* $Id$
-/*
 ** Return the Schoenfeld residuals.
 **
 **  the input parameters are
