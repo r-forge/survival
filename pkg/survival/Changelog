@@ -62,3 +62,15 @@ the obvious fix the mathematics of the update was fine.
 28 Oct 09: The basehaz function would reorder the labels of the strata
 factor.  Not a bug really, but a "why do this?"  Unintended consequence of
 a character -> factor conversion.
+
+11 Nov 09: The 'type' argument does not make sense for plot.survfit.  (If 
+type='p', should one plot the tops of the step function, the bottoms, or
+both?).  Make it explicitly disallowed in response to an R-help query,
+rather than the confusing error message that currently arose.
+
+14 Dec 09: Fix bug in frailty.xxx, if there is a missing value in the levels
+it gets counted by "length(unique(x))" (frailty is called before NA
+removal.)  SurvfitCI had an incorrect CI with case weights, and
+survreg a call to resid instead of residuals.survreg, before the class
+was attached.  
+
