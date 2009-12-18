@@ -24,7 +24,7 @@ frailty.gaussian <- function(x, sparse=(nclass >5), theta, df,
     if (method !='fixed' && !missing(theta)) 
 	    stop("Method is not 'fixed', but have a theta argument")
 
-    nclass <- length(unqiue(x[!is.na(x)]))
+    nclass <- length(unique(x[!is.na(x)]))
     if (sparse){
 	x <-as.numeric(as.factor(x))
 	if (is.R()) class(x) <- "coxph.penalty"
