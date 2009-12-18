@@ -57,6 +57,6 @@ for (i in 1:nrow(db1)) {
                     weight=twt)
     ijack[i,] <- c(coef(tfit), log(tfit$scale)) 
     }
-ijack <- (rep(c(fit1$coef, log(fit1$scale)), each=nrow(jack)) - ijack)/eps
+ijack <- (rep(c(fit1$coef, log(fit1$scale)), each=nrow(db1)) - ijack)/eps
 all.equal(db1, ijack, tol=eps*2)
 
