@@ -45,12 +45,8 @@ fit1 <- survreg(Surv(stop-start, event) ~  rx + size + number +
                 factor(enum) + strata(enum), data=bladder2)
 
 db1 <- resid(fit1, type='dfbeta', collapse=bladder2$id)
-jack <- ijack <- db1  # a matrix of the same size
+ijack <- db1  # a matrix of the same size
 for (i in 1:nrow(db1)) {
-    tfit <- survreg(Surv(stop-start, event) ~ rx + size + number + 
-                    factor(enum) + strata(enum), data=bladder2, 
-                     subset=(id != i))
-    jack[i,] <- c(coef(tfit), log(tfit$scale))
     twt <- rep(1., nrow(bladder2))
     twt[bladder2$id==i] <- 1-eps
     tfit <- survreg(Surv(stop-start, event) ~ rx + size + number + 
@@ -59,8 +55,5 @@ for (i in 1:nrow(db1)) {
     ijack[i,] <- c(coef(tfit), log(tfit$scale)) 
     }
 ijack <- (rep(c(fit1$coef, log(fit1$scale)), each=nrow(jack)) - ijack)/eps
-jack <-  rep(c(fit1$coef, log(fit1$scale)), each=nrow(jack)) - jack
-all.equal(db1, ijack)
- 
-plot(jack, db1)
-zz <- cor(jack, db)
+all.equal(db1, ijack, tol=eps*2)
+
