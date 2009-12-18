@@ -31,6 +31,3 @@ convert.  For the survival library only selected objects are documented in
 this way; whenever I find need for a major revision.  
 An underlying motivation is to leave code that is well enough explained that
 someone else can take it over.
-
-\include{predict.coxph.Rnw}
-\end{document}

@@ -49,7 +49,7 @@ coefficients, variance, tests, etc.
 The raw linear predictor $X\beta$ however would change, increasing by
 a value of $3\beta$.  
 The relative predictor 
-$$ \eta_i = $X_i\beta - (1/n)\sum_j X_j\beta$$
+$$ \eta_i = X_i\beta - (1/n)\sum_j X_j\beta$$
 will stay the same.
 The second reason for doing this is that the Cox model is a 
 relative risks model rather than an absolute risks model,

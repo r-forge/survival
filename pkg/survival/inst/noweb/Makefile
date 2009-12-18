@@ -24,7 +24,7 @@ fun:  $(RFUN)
 $(SFUN) : all.nw
 
 %.S: 
-	echo "# Automatically generated from all.nw using noweb" > $@
+	echo "# Automatically generated from inst/noweb/all.nw" > $@
 	notangle -R$(*F) all.nw >> $@
 
 clean:

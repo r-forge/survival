@@ -74,3 +74,8 @@ removal.)  SurvfitCI had an incorrect CI with case weights, and
 survreg a call to resid instead of residuals.survreg, before the class
 was attached.  
 
+15 Dec 09: Two users pointed out a bug that crept into survreg() with a
+cluster statement, when a t(x)%*%x was replaced with crossprod.  A trivial
+fix, but in response I added another test that more formally checks the
+dfbeta residuals and found a major oversight for the case of multiple
+strata.  
