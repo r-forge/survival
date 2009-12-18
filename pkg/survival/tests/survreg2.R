@@ -1,3 +1,6 @@
+library(survival)
+options(na.action=na.exclude, contrasts=c('contr.treatment', 'contr.poly'))
+
 # Verify stratified fits in a simple way, but combining two data
 #  sets and doing a single fit
 #
