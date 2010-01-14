@@ -1,0 +1,309 @@
+\documentclass{article}
+\usepackage{noweb}
+\usepackage[pdftex]{graphicx}
+%\usepackage{times}
+\addtolength{\textwidth}{1in}
+\addtolength{\oddsidemargin}{-.5in}
+\setlength{\evensidemargin}{\oddsidemargin}
+
+\noweboptions{breakcode}
+\title{A \emph{noweb} processor for R}
+\author{Terry Therneau}
+
+\begin{document}
+\maketitle
+\section{Introduction}
+ The {\tt{}coxme} function for mixed effects analyses based on a Cox
+proportional hazards model is one of the later additions to the
+{\tt{}survival} library in S.
+It is easily the most complex bit of code in the package from all points
+of view: mathematical, algorithmic, and S code wise.
+As such, it seems like a natural candidate for documentation and 
+maintainance using the literal programming model.  
+\begin{quotation}
+Let us change or traditional attitude to the construction of programs.
+Instead of imagining that our main task is to instruct a \emph{computer}
+what to do, let us concentrate rather on explaining to \emph{humans}
+what we want the computer to do.  (Donald E. Knuth, 1984).
+\end{quotation}
+
+The .Rnw files for the source code of \emph{coxme} are not suitable for
+processing with Sweave; it's goal is to insert the results of R code %'
+execution into 
+a document, mine is to act as the repository and documentation for the
+code itself.  These are completely different and need different tools.
+Luckily, however, the noweb format of ESS (.Rnw or .Snw files) works 
+perfectly for creating the source files needed for either goal.
+To process the files I use the \emph{noweb} system of Ramsey.
+The \emph{notangle} routine extracts R source files from the merged .nw
+file, and the \emph{noweave} routine creates lovely pdf files via
+latex.
+
+One problem is that the noweb package will not be found on a typical user
+machine.  To make the code more self contained, I have written a simple
+noweb parser in R.  One still needs the \emph{noweb.sty} file of Latex
+macros from the base noweb distribution, but is otherwise self contained.
+This file itself is the source for the R noweb parser, with the
+following files:
+<<*>>=
+<<nwread>>
+<<nwparse>>
+<<nwloop>>
+<<nwkillamp>>
+<<notangle>>
+<<noweave>>
+@ 
+
+\section{Parsing}
+The [[noweb]] package is based on unix pipelines.
+The first step on all the pipelines is to read in a source file and
+tag the sections.  In [[noweb]] this is done with the [[markup]] 
+program, which adds a tag to the front of every input line to identify
+it.
+A noweb file consists of chunks: text chunks are signaled by a line with
+@ as the first character followed by a newline or a space, and
+code chunks by the [[<<identifier>>=]] string alone on a line, where
+\emph{identifier} is the name of the code chunk.
+The first line of the program is assumed to be a text chunk if not 
+preceeded by an ampersand line.
+We parse this into a simple S object, a list containing [[nwtext]] and
+[[nwcode]] objects.  All tabs are turned into blanks to facilitate later
+processing. The codestart vector gives the start of all code objects, and
+the textstart one the start of all text objects.
+A text object that has words on the same line as the @ is treated differently
+than one that does not, for breaking lines.  
+Comments on the @ line don't count as a new text line,   %'
+but were used by earlier versions of noweb to aid in cross-indexing.
+I do not support this historical use --- such comments are tossed away.
+
+Although the documentation states that a code chunk must be on its
+own line, the noweb distribution that I have will try to interpret any set of
+paired angle brackets on one line as a starter unless the starting pair
+is preceded by an ampersand thus [[@<<]], in which case it strips off the
+@.  
+This has no effect on S code, but this program itself has to add an
+ampersand to two grep patterns below in order for the noweb program to
+create a correct [[noweb.R]] file.
+I also have to recognize this usage so that my bootstrapped noweb.R can
+correctly process this file.
+
+
+<<nwread>>=
+nwread <- function(file) {
+    program <- tab.to.blank(readLines(file))
+    codestart <- which(grepl('^ *@<<[^>]*>>=', program))
+    textstart <- which(grepl('^@$|^@ ', program))
+    program <- nw.killamp(program)
+    if (min(codestart, textstart) > 1) textstart <- c(1, textstart)
+    
+    temp <- rbind( c(codestart, textstart),
+                   c(rep(2, length(codestart)), rep(1, length(textstart))))
+    temp <- temp[,order(temp[1,])]
+    endline <- c(temp[1,-1], length(program)) -1
+
+    output <- vector('list', ncol(temp))  #number of code chunks
+    oname <- rep('', ncol(temp))
+    for (i in 1:ncol(temp)) {
+        if (temp[2,i]==1) { # text
+            blankline <- sub('^@ *','', program[temp[1,i]])
+            if (blankline=='' || substring(blankline,1,1)=='%') {
+                # The line is blank
+                if (temp[1,i]==endline[i])
+                    text <- vector('character',0)  #Nothing there!
+                else text <- program[(temp[1,i]+1):endline[i]]
+                attr(text, 'blankline') <- TRUE
+                }
+            else {
+                text <- blankline
+                if (temp[1,i] > endline[i])
+                    text <- c(text, program[(temp[1,i]+1):endline[i]])
+                attr(text, 'blankline') <- FALSE
+                }
+            class(text) <- 'nwtext'
+            output[[i]] <- text
+            }
+        
+        else {  #code
+            cname <-  sub('>>=.*$', '', sub('<<', '', program[temp[1,i]]))
+            if (temp[1,i] == endline[i]) code <- vector('character', 0)
+            else code <- program[(temp[1,i]+1):endline[i]]
+            oname[i] <- cname
+            output[[i]] <- nwparse(code)
+            }
+        }
+    
+    names(output) <- oname
+
+    for (i in which(oname!= '')) {  # all the code chunks
+        if (any(is.na(match(output[[i]]$xref, oname)))) {
+            indx <- which(is.na(match(output[[i]]$xref, oname)))
+            stop(paste("Code referenced but not found:",
+                       paste((output[[i]]$xref)[indx], collapse=', ')))
+            }
+        }
+    
+    temp <- nwloop(output)
+    if (length(temp)) 
+        stop(paste("Code structure has circular references: ",
+                   paste(temp, collapse=" --> ")))
+
+    class(output) <- 'noweb'
+    output
+    }
+@ 
+The [[nwparse]] routine looks for references to other code within the
+lines of a code chunk.  
+These are sequences of the form [[<<identifier>>]].
+<<nwparse>>=
+nwparse <- function(lines) {
+    # Look for references to other code
+    indx <- which(grepl('@<<[^>]*>>', lines))
+    if (length(indx)) {
+        xref <- sub('>>.*$', '', sub('[ \t]*<<', '', lines[indx]))
+        indent <- sub('<<.*', '', lines[indx])
+        out <- list(lines=lines, xref=xref, indent=indent)
+        }
+    else out <- list(lines=lines, xref=NULL)
+    
+    class(out) <- 'nwcode'
+    out
+    }
+@ 
+                
+The code will fail when expanding a structure with a closed loop of
+references.  This finds such loops.  The return value gives the shortest
+loop found.
+I only report one because the same loop will appear multiple times, once for
+each starting point that can enter it.
+<<nwloop>>=
+nwloop <- function(code) {   
+    xref <- lapply(code, function(x) 
+                   if (class(x)=='nwcode') unique(x$xref) else NULL)
+
+    nwchase <- function(chain) {
+        xtemp <- xref[[chain[1]]]  #routines called by the head of the chain
+        if (length(xtemp) ==0) return(NULL)
+        
+        for (i in 1:length(xtemp)) {
+            if (!is.na(match(xtemp[i], chain))) return(c(rev(chain), xtemp[i]))
+            temp <- nwchase(c(xtemp[i], chain))
+            if (!is.null(temp)) return(temp)
+            }
+        NULL
+        }
+    
+
+    cnames <- names(code)
+    temp <- lapply(cnames[cnames!=''], nwchase)
+    templen <- sapply(temp,length)
+    if (any(templen) > 0) 
+        temp[[min(which(templen==min(templen[templen>0])))]]
+    else NULL
+    }
+@ 
+
+
+The extra ampersand rule.  If we see the characters @<< and those
+characters are not inside a [[[[]]]] pair, then remove the @ sign.
+If someone were to split square brackets across lines they can 
+fool this function.
+<<nwkillamp>>=
+nwkillamp <- function(program) {
+    suspectlines <- which(grepl('@<<[~>]>>', program))
+
+    # This is slower than Hades, but I expect to see only 0-3
+    #   lines in the suspectlines set
+    for (i in suspectlines) {
+        line <- strsplit(program[i], split='')
+        nl <- length(line)
+        state <- 0  # 0=ordirnay text, 1=inside a [[
+        cstate <- integer(nl)  # 1= an ampersand to be removed
+        for (j in 1:nl) {
+            if (state==0) {
+                if ((i+1 <nl) && line[i]=='@' && line[i+1]=='<' && 
+                    line[i+2]=='<') cstate[i]=1
+                if (i<nl line[i]=='[' && line[i+1]=='[') state <-1
+                }
+            else {
+                if (i<nl && line[i]==']' && line[i+1]==']') state<-0
+                }
+            }
+        if (any(cstate)) program[i] <- paste(line[cstate==0], collapse='')
+        }
+    program
+    }
+@
+
+\section{Notangle}
+The primary reason for writing noweb in R is the notangle function, which
+extracts and writes out a named R file from the noweb source.
+This allows the [[coxme]] package to be built on machines that do not have the
+standalone noweb package installed.
+The primary work is the recursion that occurs when one code fragment
+references another, and maintaining the relative indentation of the point
+at which it is called.
+
+If no target is given, the default is to extract the target named `*' %'`
+if it exists, in keeping with the standalone noweb code.  If there is no
+such target I extract the first code chunk.
+
+<<notangle>>=
+notangle <- function(noweb, target='*', file.) {
+    cname <- names(noweb)
+    indx <- match(target, cname)
+    if (is.na(indx)) {
+        if (missing(target) && any(cname != '')) 
+            target <- (cname[cname!=''])[1]
+        else stop(paste("Code chunk", target, "not found in source file"))
+        }
+    program <- nwextract(noweb, target, prefix="")
+    class(program) <- 'notangle'
+    program
+    }
+
+print.notangle <- function(x, file., ...) {
+    if (missing(file.)) cat(x, sep='\n')
+    else cat(x, sep='\n', file=file.)
+    invisible(x)
+    }
+
+nwextract<- function(code, target, prefix='') {
+    ctemp <- code[[target]]
+    if (is.null(ctemp)) stop("Program logic flaw 1")
+    
+    if (length(ctemp$xref) ==0) paste(prefix, ctemp$lines)
+    else {
+        temp <- vector('list', length(ctemp$xref))
+        for (i in 1:length(ctemp$xref))
+            temp[[i]] <- nwextract(code, ctemp$xref[i], ctemp$indent[i])
+        newlines <- vector('character', length=length(ctemp$lines) +
+                           length(unlist(temp)) - length(temp))
+
+        k1 <- k2 <- 0  #k1= last inclusion line, k2=output counter
+        for (i in 1:length(ctemp$xindex)) {
+            j <- ctemp$xindex[i]
+            if (j> (k1+1)) {
+                indx <- seq(k1+1, j-1)
+                newlines[k2 + 1:length(indx)] <- ctemp$lines[indx]
+                k2 <- k2 + length(indx)
+                }
+            newlines[k2 + 1:length(temp[[i]])] <- temp[[i]]
+            k2 <- k2 + length(temp[[i]])
+            k1 <- j
+            }
+        if (length(lines) > k1) {
+            indx <- seq(k1+1, length(lines))
+            newlines[k2+ 1:length(indx)] <- ctemp$lines[indx]
+            }
+        paste(prefix, newlines)
+        }
+    }
+@ 
+
+\section{Noweave}
+The noweave processor is more challenging, largley because of the need
+to add indexing.  Like noweb, we take care to make the result of noweave
+have exactly the same number of lines as the input source code, so that
+Latex error messages give correct line numbers.
+
+\end{document}

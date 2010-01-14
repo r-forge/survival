@@ -121,8 +121,8 @@ then march through the matrix.
 We need to first process the non-sparse rows of the first variance
 matrix [[tmat]]; if that contains a substantial number of sparse
 columns then it is important to subset \emph{before} creating a
-regular metrix from the remainder; the construction
-[[(as.matrix(tmat))[k,k]]] would create a temporary matrix of possible
+regular matrix from the remainder; the construction
+[[(as.matrix(tmat))[k,k]]] would create a temporary matrix of possibly
 vast proportions.  
 At this point in time all of the intercepts map before any covariates
 so we can keep separate indices for the intercept-rows-so-far [[indx1]] and
