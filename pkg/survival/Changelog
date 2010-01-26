@@ -92,3 +92,5 @@ small case weights. Let L(w) be the loglik for a data set where everyone is
 given a weight of w, then L(w)= wL(1) - d log(w) where d=number of deaths in
 the data.  
 
+26 Jan 10: At the request of Alex Bokov, added the xmax, xscale, and fun
+arguments to points.survfit.
