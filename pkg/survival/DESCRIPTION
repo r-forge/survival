@@ -2,12 +2,12 @@ Title: Survival analysis, including penalised likelihood.
 Maintainer: Terry Therneau <therneau.terry@mayo.edu>
 Priority: recommended
 Package: survival
-Version: 2.35-8
+Version: 2.35-9
 Date: 2009-08-20
 Depends: stats, utils, graphics, splines, R (>= 2.0.0)
 LazyData: Yes
 LazyLoad: Yes
-Author: Terry Therneau, original R port by Thomas Lumley
+Author: Terry Therneau, original Splus->R port by Thomas Lumley
 Description: survival analysis: descriptive statistics, two-sample
   tests, parametric accelerated failure models, Cox model. Delayed entry
   (truncation) allowed for all models; interval censoring for parametric

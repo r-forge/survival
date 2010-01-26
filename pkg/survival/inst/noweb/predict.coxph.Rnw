@@ -49,24 +49,36 @@ coefficients, variance, tests, etc.
 The raw linear predictor $X\beta$ however would change, increasing by
 a value of $3\beta$.  
 The relative predictor 
-$$ \eta_i = X_i\beta - (1/n)\sum_j X_j\beta$$
+\begin{equation}
+  \eta_i = X_i\beta - (1/n)\sum_j X_j\beta
+  \label{eq:eta}
+\end{equation}
 will stay the same.
 The second reason for doing this is that the Cox model is a 
 relative risks model rather than an absolute risks model,
 and thus relative predictions are almost certainly what the 
 user was thinking of.
 
-When the fit was for a stratified Cox model, results need to
-be normalized \emph{by stratum}.
-This reasons are again both practical and statistical.  If the
-normalization is global, then the results of predict will change
-under variable recoding for any model with a strata by covariate
-interaction.  Statistically, the relative risks are only defined
-within strata so a ``global'' relative risk is undefined.        %''``
+When the fit was for a stratified Cox model more care is needed.
+For instance assume that we had a fit that was stratified by sex with
+covaritate $x$, and a second data set were created where for the
+females $x$ is replaced
+by $x+3$.  The Cox model results will be unchanged for the two
+models, but the `normalized' values of $eta_i$ from equation
+\ref{eq:eta} will not be the same.
+This reflects a more fundamental issue that the for a stratified
+Cox model relative risks are well defined only \emph{within} a
+stratum, i.e. for subject pairs that share a common baseline
+hazard.
+The example above is artificial, but the problem arises naturally
+whenever the model includes a strata by covariate interaction.
+So for a stratified Cox model the predictions must be forced to
+sum to zero within each stratum.
 Unfortunately, this important issue was not realized until Oct 2009
-when a puzzling query was sent to the author.
-(What does SAS do?)
-If there is a new data set, the normalization constants are the 
+when a puzzling query was sent to the author involving the results
+from such an interaction.
+(Question: What does SAS do?)
+
 
 The first task of the routine is to reconsruct necessary data elements
 that were not saved as a part of the [[coxph]] fit.  

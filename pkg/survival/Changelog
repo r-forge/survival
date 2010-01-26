@@ -52,12 +52,13 @@ i.e., X <- X[,1].  In particular, some downstream libraries depend on
 the assign attribute. 
   For predict.coxph remove an earlier edit so that a single variable model
 + type='terms' returns a matrix, not a vector.  This is expected by the 
-termplot() function.
+termplot() function.  It led to a whole lot of changes in the test suite
+results, though, due to more "matrix" printouts.
 
 1 Oct 09: Fix a bug pointed out by Ben Domingue.  There was one if-then-else
 path into step-halving in the frailty.controldf routine that would refer to
 a non-existent variable.  A very rarely followed path, obviously, and with
-the obvious fix the mathematics of the update was fine.
+the obvious fix. The mathematics of the update was fine.
 
 28 Oct 09: The basehaz function would reorder the labels of the strata
 factor.  Not a bug really, but a "why do this?"  Unintended consequence of
@@ -79,3 +80,15 @@ cluster statement, when a t(x)%*%x was replaced with crossprod.  A trivial
 fix, but in response I added another test that more formally checks the
 dfbeta residuals and found a major oversight for the case of multiple
 strata.  
+
+25 Jan 10: Fix bug in summary.ratetable pointed out by Heinze Tuechler.  Added
+a call to the function to the test suite as well.
+
+26 Jan 10: Fix bug pointed out by Thomas Lumley -- with case weights <1 a Cox 
+model with (start, stop) input would inappropriately decide it needed to do 
+step halving to find a solution, eventually failing to converge.  It was
+treating a loglik >0 as an indication of failure, but such values arise for
+small case weights. Let L(w) be the loglik for a data set where everyone is
+given a weight of w, then L(w)= wL(1) - d log(w) where d=number of deaths in
+the data.  
+
