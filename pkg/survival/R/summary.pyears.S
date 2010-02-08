@@ -14,7 +14,7 @@ summary.pyears <- function(object, ...) {
     else {
         cat (   "Total number of person-years tabulated:", 
              format(sum(object$data$pyears)),
-             "\nTotal number pf person-years off table:",
+             "\nTotal number of person-years off table:",
              format(object$offtable), "\n")
         }
     if (!is.null(object$summary)) {
