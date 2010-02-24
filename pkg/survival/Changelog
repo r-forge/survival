@@ -94,3 +94,13 @@ the data.
 
 26 Jan 10: At the request of Alex Bokov, added the xmax, xscale, and fun
 arguments to points.survfit.
+
+8 Feb 10: Bug pointed out by Heinz Tuechler -- if a subscript was dropped from
+a rate table the 'type' attribute got dropped, e.g. survexp.usr[,1,,].
+
+24 Feb 2010: Serious bug pointed out by Kevin Buhr.  In Surv(time1, time2,stat)
+if there were i) missing values in time1 and/or time2, ii) illegal value
+sets with time1 >=time2, and iii) all the instances of ii do not preceed all
+the instances of i, then the wrong observation (not the illegal) will be 
+thrown out.  Repaired, and a new test added.
+  Minor updates to 3 test files: survreg2, testci, ratetable.

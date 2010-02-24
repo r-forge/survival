@@ -54,9 +54,9 @@ Surv <- function(time, time2, event,
 	if (length(event)!=nn) stop ("Start and event are different lengths")
         if (!is.numeric(time))  stop("Start time is not numeric")
 	if (!is.numeric(time2)) stop("Stop time is not numeric")
-	who3 <- !(is.na(time) | is.na(time2))
-	if (any (time[who3]>= time2[who3])) {
-	    time[time[who3]>= time2[who3]] <- NA
+	temp <- (time >= time2)
+	if (any(temp & !is.na(temp))) {
+	    time[temp] <- NA
 	    warning("Stop time must be > start time, NA created")
 	    }
 	if (is.logical(event)) status <- as.numeric(event)
@@ -103,7 +103,7 @@ Surv <- function(time, time2, event,
 	    else time2 <- 1  #dummy value, time2 is never used
 	    }
 
-	temp <- (time[status==3] > time2[status==3])
+	temp <- (status==3 & time>time2)
 	if (any(temp & !is.na(temp))) {
 	    time[temp] <- NA
 	    warning("Invalid interval: start > stop, NA created")

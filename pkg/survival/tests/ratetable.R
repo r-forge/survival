@@ -59,5 +59,5 @@ is.ratetable(temp, verbose=T)
 
 
 # Print and summary
-print(survexp.us)
+print(survexp.us[1:30,,c('1953', '1985')] )
 summary(survexp.usr)
