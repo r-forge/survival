@@ -12,50 +12,11 @@ points.survfit <- function(x, xscale, xmax, fun, ...) {
 	nstrat <- length(x$strata)
 	stemp <- rep(1:nstrat, x$strata)
 	}
-    if (!missing(xmax) && any(x$time>xmax)) {
-	# prune back the survival curves
-	# I need to replace x's over the limit with xmax, and y's over the
-	#  limit with either the prior y value or firsty
-	keepx <- keepy <- NULL  # lines to keep
-	yzero <- NULL           # if all points on a curve are < xmax
-	tempn <- table(stemp)
-	offset <- cumsum(c(0, tempn))
-	for (i in 1:nstrat) {
-	    ttime <-stime[stemp==i]
-	    if (all(ttime <= xmax)) {
-		keepx <- c(keepx, 1:tempn[i] + offset[i])
-		keepy <- c(keepy, 1:tempn[i] + offset[i])
-		}
-	    else {
-		bad <- min((1:tempn[i])[ttime>xmax])
-		if (bad==1)  {
-		    keepy <- c(keepy, 1+offset[i])
-		    yzero <- c(yzero, 1+offset[i])
-		    }
-		else  keepy<- c(keepy, c(1:(bad-1), bad-1) + offset[i])
-		keepx <- c(keepx, (1:bad)+offset[i])
-		stime[bad+offset[i]] <- xmax
-		x$n.event[bad+offset[i]] <- 1   #don't plot a tick mark
-		}
-	    }
-
-	# ok, now actually prune it
-	stime <- stime[keepx]
-	stemp <- stemp[keepx]
-	x$n.event <- x$n.event[keepx]
-	if (is.matrix(ssurv)) {
-	    if (length(yzero)) ssurv[yzero,] <- firsty
-	    ssurv <- ssurv[keepy,,drop=FALSE]
-	    }
-	else {
-	    if (length(yzero)) ssurv[yzero] <- firsty
-	    ssurv <- ssurv[keepy]
-	    }
+    if (!missing(xmax) && any(stime>xmax)) {
+	stime[stime>xmax] <- NA # simple way to stop it from plotting
 	}
 
     stime <- stime/xscale
-
-
 
     if (!missing(fun)) {
         if (is.character(fun)) {
