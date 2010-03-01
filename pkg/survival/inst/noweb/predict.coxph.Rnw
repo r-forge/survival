@@ -25,20 +25,6 @@ The arguments are
     no use of it however.
 \end{description}
 
-<<predict.coxph>>=
-predict.coxph <- function(object, newdata, 
-                       type=c("lp", "risk", "expected", "terms"),
-                       se.fit=FALSE, na.action=na.pass,
-                       terms=names(object$assign), collapse, ...) {
-    type <-match.arg(type)
-    n <- object$n
-    <<pc-getdata>>
-    <<pc-lp>>
-    <<pc-expect>>
-    <<pc-terms>>
-    }
-@ 
-
 For all of the options what is returned is a \emph{relative} prediction
 which compares each observation to the average for the data set.
 Partly this is practical.  Say for instance that a treatment covariate
@@ -77,15 +63,9 @@ sum to zero within each stratum.
 Unfortunately, this important issue was not realized until Oct 2009
 when a puzzling query was sent to the author involving the results
 from such an interaction.
-(Question: What does SAS do?)
-
 
 The first task of the routine is to reconsruct necessary data elements
 that were not saved as a part of the [[coxph]] fit.  
-For reasons of numerical stability the mean of each covariate was
-subtracted from the data during the fit, and those means are retained
-as a part of the [[coxph]] object; however, this is not sufficient if
-the model was stratified. 
 We will need the following components: 
 \begin{itemize}
   \item the new data matrix, if any 
@@ -100,6 +80,228 @@ We will need the following components:
   \item if the model has an offset, we'll need it whenever we need X.
 \end{itemize}
 
-First, pull in the orignal model via it's [[terms]] decomposition and find
-out if there was a strata in the original model.  Drop any cluster terms
-from the model as we don't want or need those.
+<<predict.coxph>>=
+predict.coxph <- function(object, newdata, 
+		       type=c("lp", "risk", "expected", "terms"),
+		       se.fit=FALSE, na.action=na.pass,
+		       terms=names(object$assign), collapse, ...) {
+    <<pcoxph-init>>
+    <<pcoxph-expected>>
+    <<pcoxph-getdata>>
+    <<pcoxph-simple>>
+    <<pcoxph-terms>>
+    <<pcoxph-finish>>
+    }
+@ 
+
+We start of course with basic argument checking, and
+then fetch the model frame. 
+<<pcoxph-init>>=
+if (!inherits(object, 'coxph'))
+    stop("Primary argument much be a coxph object")
+
+type <-match.arg(type)
+n <- object$n
+Terms <-  object$terms
+
+#Do I have strata or a cluster statment?
+strata <- attr(Terms, 'specials')$strata
+dropx <- NULL
+if (length(strata)) {
+    temp <- untangle.specials(Terms, 'strata', 1)
+    dropx <- temp$terms
+    }
+if (length(attr(Terms, 'specials')$cluster)) {
+    temp <- untangle.specials(Terms, 'cluster', 1)
+    dropx <- c(dropx, temp$terms)
+    }
+if (length(dropx)) Terms2 <- Terms[-dropx]
+else  Terms2 <- Terms
+
+offset <- attr(Terms, "offset")
+resp <- attr(Terms, "variables")[attr(Terms, "response")]
+@ 
+
+Predictions of type='expected are a special case.  If there is
+no newdata argument then I don't need $X$ at all, and if there is newdata
+the [[survfit.coxph]] routine will deal with it.  
+Deal with this case first.  The default behavior for [[coxph]] is to
+save a copy of the response vector, we will have to fetch a new copy
+only if the user explicitly set [[y=FALSE]] in their call.
+
+When there is a newdata argument we need to first get the survival
+curves from the original fit.
+<<pcoxph-expected>>=
+if (type='expected') {
+    if (missing(newdata)) {
+        y <- object[['y']]
+        if (is.null(y) {  #rare case
+            mf <- model.frame(object)
+            y <-  model.extract(mf, 'response')
+            }
+        pred <- y[,ncol(y)] - object$residuals
+        }
+    else {
+        sfit <- survfit(object) # get predicted survival curves
+        }
+    se   <- sqrt(pred)
+    }
+@ 
+
+Now actually grab the data.
+The first question is -- do I need to grab it at all?
+This can be a time consuming process if the data set is large,
+so there is a lot of if-else logic wrt what I actually need.
+
+Start with the harder case: we have strata.  Here
+the model frame will need to be retrieved, the mean of
+each covariate subtracted out \emph{per} strata, and then
+the $X$ matrix formed using the modified data. 
+Since neither the reponse or any clusters will be used in
+further computation, we can 
+subtract means from every numeric variable in the frame and not
+worry about hurting anything.
+
+<<pcoxph-getdata>>=
+else if (length(strata)) {
+    if (missing(newdata)) mf <- model.frame(object)
+    else mf <- model.frame(Terms, data=newdata, xlev=object$xlevels,
+                           na.action=na.action)
+    mf <- model.frame(object)
+    strata <- mf[stemp$var]
+        
+    nvar <- sapply(mf, is.numeric)
+    means <- rowsums(mf[,nvar], strata, reorder=TRUE)/
+         as.vector(table(strata))
+    mf[,nvar] <- mf[,nvar] - means[match(strata, sort(unique(strata))),]
+    x <- model.matrix(Terms2, mf, contrasts.arg=object$contrasts)
+    }
+@ 
+
+If there are no strata, then we can simply retrieve the $X$ matrix
+and subtract the saved mean vector from each column.
+<<pcoxph-getdata>>=
+else if (type=='terms' || (se.fit && (type=='lp' || type=='risk'))) {
+    if (missing(newdata)) {
+        na.action.used <- object$na.action
+         x <- model.matrix(object)
+        }
+    else {
+        mf <- model.frame(Terms2, data=newdata, xlev=object$xlevels,
+                             na.action=na.action)
+        x <- model.matrix(delete.response(Terms2), mf,
+                              contr=object$contrasts)[,-1,drop=FALSE]
+        if (length(offset)) offset<- model.offset(mf)
+        else offset <- 0
+        na.action.used <- attr(m, 'na.action')
+        }
+    
+    x <- sweep(x, 2, object$means)
+    }
+@ 
+
+Finally, the computatin.  First is the simple case of 
+either a linear predictor or risk = exp(linear
+predictor).
+<<pcoxph-simple>>=
+if (is.null(object$coefficients))
+    coef<-numeric(0)
+else {
+    # Replace any NA coefs with 0, to stop NA in the linear predictor
+    coef <- ifelse(is.na(object$coefficients), 0, object$coefficients)
+    }
+    
+if (type=='lp' || type=='risk') {
+    if (missing(newdata)) {
+        pred <- object$linear.predictors
+        names(pred) <- names(object$residuals)
+        }
+    else   pred <- x %*% coef  + offset
+    if (se.fit) se <- sqrt(diag(x %*% object$var %*% t(x)))
+
+    if (type=='risk') {
+        pred <- exp(pred)
+        if (se.fit) se <- se * sqrt(pred)
+        }
+    }
+@ 
+
+The harder case of terms
+
+<<pcoxph-terms>>= 
+    else {  # type = terms, which is different for R and S.  In S, the
+	# function Build.terms does all the work --- R doesn't have it.
+	if (is.R()) {
+	    asgn <- object$assign
+	    nterms<-length(terms)
+	    pred<-matrix(ncol=nterms,nrow=NROW(x))
+	    if (is.character(terms))
+		    termnames<-terms
+	    else
+		    termnames<-names(object$assign)[terms]
+	    dimnames(pred)<-list(rownames(x),termnames)
+	    if (se.fit){
+		se<-matrix(ncol=nterms,nrow=NROW(x))
+		dimnames(se)<-list(rownames(x),termnames)
+		R<-object$var
+		ip <- real(NROW(x))
+		}
+	    for (i in 1:nterms){
+		ii<-asgn[[terms[i] ]]
+		pred[,i]<-x[,ii,drop=FALSE]%*%(coef[ii])
+		if (se.fit){
+		    for(j in (1:NROW(x))){
+			xi<-x[j,ii,drop=FALSE]
+			vci<-R[ii,ii]
+			se[j,i]<-sqrt(sum(xi%*% vci %*%t( xi)))
+			}
+		    }
+		}
+	    }
+	else {  #terms for Splus
+	    attr(x, "constant") <- rep(0, ncol(x))
+	    asgn <- object$assign
+	    terms <- match.arg(Terms2, labels.lm(object))
+	    asgn <- asgn[terms]
+	    if (se.fit) {
+		temp <- Build.terms(x, coef, object$var, asgn, FALSE)
+		pred <- temp$fit
+		se   <- temp$se.fit
+		}
+	    else pred<- Build.terms(x, coef, NULL, asgn, FALSE)
+	    }
+	} 
+@ 
+
+To finish up we need to first expand out any missings in the result
+based on the na.action, and optionally collapse the results within
+a subject.
+What should we do about the standard errors when collapse is specified?
+We assume that the individual pieces are
+independent and thus var(sum) = sum(variances).  
+The statistical justification of this is shakey, an alternative would be
+to refuse to return se values for collapsed data.
+Prediction of type='terms' is expected to always return a matrix, or
+the R termplot() function gets unhappy.  
+<<pcoxph-finish>>=
+if (!is.null(na.action.used)) {
+    pred <- naresid(na.action.used, pred)
+    if (is.matrix(pred)) n <- nrow(pred)
+    else               n <- length(pred)
+    if(se.fit) se <- naresid(na.action.used, se)
+    }
+
+if (!missing(collapse)) {
+    if (length(collapse) != n) stop("Collapse vector is the wrong length")
+    pred <- rowsum(pred, collapse)  # in R, rowsum is a matrix, always
+    if (se.fit) se <- sqrt(rowsum(se^2, collapse))
+    if (type != 'terms') {
+        pred <- drop(pred)
+        if (se.fit) se <- drop(se)
+        }
+    }
+
+if (se.fit) list(fit=pred, se.fit=se)
+else pred
+
+@
