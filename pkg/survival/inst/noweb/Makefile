@@ -26,6 +26,9 @@ $(SFUN) : all.nw
 %.S: 
 	echo "# Automatically generated from inst/noweb/all.nw" > $@
 	notangle -R$(*F) all.nw >> $@
+%.R: 
+	echo "# Automatically generated from inst/noweb/all.nw" > $@
+	notangle -R$(*F) all.nw >> $@
 
 clean:
 	-rm all.nw all.log all.aux all.toc all.tex all.pdf

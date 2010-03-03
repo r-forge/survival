@@ -17,7 +17,7 @@ The arguments are
   \item[se.fit] Whether or not to return standard errors of the predictions.
   \item[na.action] What to do with missing values \emph{if} there is new
     data. 
-  \item[term] The terms that are desired.  This option is almost never used,
+  \item[terms] The terms that are desired.  This option is almost never used,
     so rarely in fact that it's hard to justify keeping it.
   \item[collapse] An optional vector of subject identifiers, over which to
     sum or `collapse' the results
@@ -50,7 +50,7 @@ For instance assume that we had a fit that was stratified by sex with
 covaritate $x$, and a second data set were created where for the
 females $x$ is replaced
 by $x+3$.  The Cox model results will be unchanged for the two
-models, but the `normalized' values of $eta_i$ from equation
+models, but the `normalized' values of $eta_i$ from equation          %`
 \ref{eq:eta} will not be the same.
 This reflects a more fundamental issue that the for a stratified
 Cox model relative risks are well defined only \emph{within} a
@@ -69,7 +69,7 @@ that were not saved as a part of the [[coxph]] fit.
 We will need the following components: 
 \begin{itemize}
   \item the new data matrix, if any 
-  \item for type=`expected' residuals we need baseline hazard
+  \item for type=`expected' residuals we need baseline hazard            %`
     for the original model (one per strata).  If there is no new data
     this can be obtained indirectly from the residuals and the original y.
     If there is new data a call to survfit is required.
@@ -77,7 +77,7 @@ We will need the following components:
     model
   \item for any call asking for standard errors, the X matrix (either new or 
     old)
-  \item if the model has an offset, we'll need it whenever we need X.
+  \item if the model has an offset, we'll need it whenever we need X.   %'  
 \end{itemize}
 
 <<predict.coxph>>=
@@ -94,8 +94,10 @@ predict.coxph <- function(object, newdata,
     }
 @ 
 
-We start of course with basic argument checking, and
-then fetch the model frame. 
+We start of course with basic argument checking.
+Then retrieve the model parameters: does it have a strata
+statement, offset, etc.  
+The [[Terms2]] object is a model statement without strata or cluster terms.
 <<pcoxph-init>>=
 if (!inherits(object, 'coxph'))
     stop("Primary argument much be a coxph object")
@@ -104,12 +106,22 @@ type <-match.arg(type)
 n <- object$n
 Terms <-  object$terms
 
+if (!missing(terms)) {
+    if (is.numeric(terms)) {
+        if (any(terms != floor(terms) | 
+                terms > length(object$assign) |
+                terms <1)) stop("Invalid terms argument")
+        }
+    else if (any(is.na(match(terms, names(object$assign)))))
+       stop("a name given in the terms argument not found in the model")
+    }
+
 #Do I have strata or a cluster statment?
 strata <- attr(Terms, 'specials')$strata
 dropx <- NULL
 if (length(strata)) {
-    temp <- untangle.specials(Terms, 'strata', 1)
-    dropx <- temp$terms
+    stemp <- untangle.specials(Terms, 'strata', 1)
+    dropx <- stemp$terms
     }
 if (length(attr(Terms, 'specials')$cluster)) {
     temp <- untangle.specials(Terms, 'cluster', 1)
@@ -123,35 +135,101 @@ resp <- attr(Terms, "variables")[attr(Terms, "response")]
 @ 
 
 Predictions of type='expected are a special case.  If there is
-no newdata argument then I don't need $X$ at all, and if there is newdata
-the [[survfit.coxph]] routine will deal with it.  
+no newdata argument then I don't need $X$ at all.
 Deal with this case first.  The default behavior for [[coxph]] is to
 save a copy of the response vector, we will have to fetch a new copy
 only if the user explicitly set [[y=FALSE]] in their call.
 
-When there is a newdata argument we need to first get the survival
-curves from the original fit.
 <<pcoxph-expected>>=
-if (type='expected') {
+if (type=='expected') {
     if (missing(newdata)) {
         y <- object[['y']]
-        if (is.null(y) {  #rare case
+        if (is.null(y)) {  #rare case
             mf <- model.frame(object)
             y <-  model.extract(mf, 'response')
             }
         pred <- y[,ncol(y)] - object$residuals
         }
     else {
-        sfit <- survfit(object) # get predicted survival curves
+        <<pcoxph-expected2>>
         }
-    se   <- sqrt(pred)
     }
 @ 
 
-Now actually grab the data.
+When there is a newdata argument things are more complex.
+If the survexp.coxph routine handled strata we could just call it, 
+but it does not as yet.  We need to
+\begin{enumerate}
+  \item get the baseline curve(s) from the original model
+  \item compute the risk score for each subject in the new data set
+  \item look each subject up, at their survival time, on the new curve
+    and multiply that value by exp(risk score).
+\end{enumerate}
+One important point is that the issues we raised above about centering
+and strata do not come up.  Since the baseline curves implicitly
+treat strata separately, we can use whatever centering we choose and
+get the same answer.  The centering retained in the means component is
+handy and sufficient to prevent overflow of the exp function.
+
+Standard error for predicted curves are difficult --- we would have to
+call survfit.coxph once for each possible covariate set, or repeat
+it's logic here. Hence we refuse to give them.                        %'
+
+<<pcoxph-expected2>>=
+if (se.fit) {
+    warning("Standard errors for type='expected' + newdata are not supported")
+    se.fit <- FALSE
+    }
+sfit <- survfit(object, newdata, se.fit=FALSE, conf.type='none') 
+mf <- model.frame(Terms, data=newdata, na.action=na.pass,
+                      xlev=object$xlevels)
+y <- model.extract(mf, 'response')
+if (attr(y, 'type') != attr(object$y, 'type'))
+    stop("New data has a different survival type than the model")
+x <- model.matrix(delete.response(Terms2), mf,
+                  contr=object$contrasts)[,-1,drop=FALSE]
+indx <- !(is.na(object$coefficients))
+xbeta <- as.vector(x[,indx] %*% object$coefficients[indx])
+if (strata) {
+    newstrat <- mf[stemp$var]  #strata for the new subjects
+    if (any(is.na(match(stemp, names(sfit$strata))))) 
+        stop("New data has a strata not found in the original model")
+
+    # Do one strata at a time
+    pred <- double(nrow(y))
+    for (is in 1:length(sfit$strata)) {
+        temp <- sfit[i]
+        indx <- which(newstrat == names(sfit$strata)[i])
+        if (attr(y, 'type')=='counting') {
+            haz1 <- approx(c(0, temp$time), c(0, -log(temp$surv)),
+                               y[indx,1], method='constant', rule=2, f=1)$y
+            haz2 <- approx(c(0, temp$time), c(0, -log(temp$surv)),
+                               y[indx,2], method='constant', rule=2, f=1)$y
+            pred[indx] <- (haz2-haz1)*exp(xbeta)
+            }
+        else pred[indx]<-approx(c(0, temp$time), c(0, -log(temp$surv)),
+                                y[indx,1], method='constant', rule=2, f=1)$y *
+                                    exp(xbeta)
+        }
+    }
+else {
+    if (attr(y, 'type')=='counting') {
+        haz1 <- approx(c(0, temp$time), c(0, -log(temp$surv)),
+                           y[,1], method='constant', rule=2, f=1)$y
+        haz2 <- approx(c(0, temp$time), c(0, -log(temp$surv)),
+                           y[,2], method='constant', rule=2, f=1)$y
+        pred <- (haz2-haz1)*exp(xbeta)
+        }
+    else pred <-approx(c(0, temp$time), c(0, -log(temp$surv)),
+                       y[,1], method='constant', rule=2, f=1)$y *
+                           exp(xbeta)
+    }
+@ 
+
+Now for the other methods.  Start by grabbing the data.
 The first question is -- do I need to grab it at all?
 This can be a time consuming process if the data set is large,
-so there is a lot of if-else logic wrt what I actually need.
+so there some if-else logic wrt what I actually need.
 
 Start with the harder case: we have strata.  Here
 the model frame will need to be retrieved, the mean of
@@ -160,7 +238,7 @@ the $X$ matrix formed using the modified data.
 Since neither the reponse or any clusters will be used in
 further computation, we can 
 subtract means from every numeric variable in the frame and not
-worry about hurting anything.
+worry about hurting these others.
 
 <<pcoxph-getdata>>=
 else if (length(strata)) {
@@ -226,51 +304,49 @@ if (type=='lp' || type=='risk') {
     }
 @ 
 
-The harder case of terms
+The type=terms residuals are a bit more work.  
+In Splus this code used the Build.terms function, which was essentially
+the code from predict.lm extracted out as a separate function.  
+As of March 2010 (today) a check of the Splus function and the R code
+for predict.lm revealed no important differences.  
+A lot of the bookkeeping in both is to work around any possible NA
+coefficients resulting from a singularity.
+The basic formula is to
+\begin{enumerate}
+  \item If the model has an intercept, then sweep the column means
+    out of the X matrix.  We've already done this.
+  \item For each term separately, get the list of coefficients that
+    belong to that term; call this list [[tt]].
+  \item Subset $X$, $\beta$ and $V$ (the variance matrix) to that
+    subset, then the linear predictor is $X\beta$ with variance
+    matrix $X V X'$.  The standard errors are the square root of 
+    the diagonal of this latter matrix.  This can be computed,
+    as colSums((X %*% V) * X)).
+\end{enumerate}
+Note that the [[assign]] component of a coxph object is the same
+as that found in Splus, which is what the first part of predict.lm
+in R rebuilds as its [[asgn]] variable.
 
 <<pcoxph-terms>>= 
-    else {  # type = terms, which is different for R and S.  In S, the
-	# function Build.terms does all the work --- R doesn't have it.
-	if (is.R()) {
-	    asgn <- object$assign
-	    nterms<-length(terms)
-	    pred<-matrix(ncol=nterms,nrow=NROW(x))
-	    if (is.character(terms))
-		    termnames<-terms
-	    else
-		    termnames<-names(object$assign)[terms]
-	    dimnames(pred)<-list(rownames(x),termnames)
-	    if (se.fit){
-		se<-matrix(ncol=nterms,nrow=NROW(x))
-		dimnames(se)<-list(rownames(x),termnames)
-		R<-object$var
-		ip <- real(NROW(x))
-		}
-	    for (i in 1:nterms){
-		ii<-asgn[[terms[i] ]]
-		pred[,i]<-x[,ii,drop=FALSE]%*%(coef[ii])
-		if (se.fit){
-		    for(j in (1:NROW(x))){
-			xi<-x[j,ii,drop=FALSE]
-			vci<-R[ii,ii]
-			se[j,i]<-sqrt(sum(xi%*% vci %*%t( xi)))
-			}
-		    }
-		}
-	    }
-	else {  #terms for Splus
-	    attr(x, "constant") <- rep(0, ncol(x))
-	    asgn <- object$assign
-	    terms <- match.arg(Terms2, labels.lm(object))
-	    asgn <- asgn[terms]
-	    if (se.fit) {
-		temp <- Build.terms(x, coef, object$var, asgn, FALSE)
-		pred <- temp$fit
-		se   <- temp$se.fit
-		}
-	    else pred<- Build.terms(x, coef, NULL, asgn, FALSE)
-	    }
-	} 
+else { 
+    asgn <- object$assign
+    nterms<-length(asgn)
+    pred<-matrix(ncol=nterms,nrow=NROW(x))
+    dimnames(pred) <- list(rownames(X), names(asgn))
+    if (se.fit) se <- pred
+    
+    for (i in 1:nterms) {
+        tt <- asgn[[i]]
+        tt <- tt[!is.na(object$coefficients[tt])]
+        pred[,i] <- x[,tt] %*% object$coefficient[tt]
+        if (se.fit)
+            se[,i] <- colSums((X[,tt] %*% object$variance) *X[,tt])
+        }
+    pred <- pred[,terms, drop=F]
+    if (se.fit) se <- se[,terms, drop=F]
+    
+    attr(pred, 'constant') <- sum(object$coefficients*object$means, na.rm=T)
+    }
 @ 
 
 To finish up we need to first expand out any missings in the result
@@ -280,7 +356,9 @@ What should we do about the standard errors when collapse is specified?
 We assume that the individual pieces are
 independent and thus var(sum) = sum(variances).  
 The statistical justification of this is shakey, an alternative would be
-to refuse to return se values for collapsed data.
+to refuse to return se values for collapsed data, but this seems unkind
+to the user.
+
 Prediction of type='terms' is expected to always return a matrix, or
 the R termplot() function gets unhappy.  
 <<pcoxph-finish>>=
