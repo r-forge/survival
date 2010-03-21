@@ -4,6 +4,7 @@ useDynLib(bdsmatrix)
 
 export('bdsmatrix', 'gchol', 'bdsmatrix.reconcile', 'bdsmatrix.ibd',
 	'listbdsmatrix', 'bdsBlock', 'bdsI')
+export('kinship', 'makekinship', 'makefamid', 'kindepth', 'familycheck')
 exportClasses('bdsmatrix', 'gchol', 'gchol.bdsmatrix')
 exportMethods('Math', 'Math2', 'Ops', 
               '%*%', 'gchol', 'min', 'max', 'range', 'any',

@@ -1,15 +1,14 @@
 Package: bdsmatrix
 Title:  Routines for Block Diagonal Symmetric matrices
 Maintainer: Terry Therneau <terry.therneau@mayo.edu>
-Version: 1.0
+Version: 1.0.1
 Date: 2009-03-05
 Depends: methods, R (>= 2.0.0)
 LazyData: Yes
 LazyLoad: Yes
 Author: Terry Therneau
 Maintainer: Terry Therneau <therneau@mayo.edu>
-Description: This is a special case of sparse matrices, used by coxme and
-  kinship  
+Description: This is a special case of sparse matrices, used by coxme 
 License: GPL2
 URL: http://r-forge.r-project.org
 Collate: bdsmatrix.R gchol.R gchol.bdsmatrix.R
