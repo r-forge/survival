@@ -116,10 +116,11 @@ if (!missing(terms)) {
        stop("a name given in the terms argument not found in the model")
     }
 
-#Do I have strata or a cluster statment?
-strata <- attr(Terms, 'specials')$strata
+#Do I have strata or a cluster statment?  Don't conflict names with the strata()
+#  function
+strat <- attr(Terms, 'specials')$strata
 dropx <- NULL
-if (length(strata)) {
+if (length(strat)) {
     stemp <- untangle.specials(Terms, 'strata', 1)
     dropx <- stemp$terms
     }
@@ -158,7 +159,7 @@ if (type=='expected') {
 
 When there is a newdata argument things are more complex.
 If the survexp.coxph routine handled strata we could just call it, 
-but it does not as yet.  We need to
+but that routine does not do so as yet.  We need to
 \begin{enumerate}
   \item get the baseline curve(s) from the original model
   \item compute the risk score for each subject in the new data set
@@ -169,7 +170,7 @@ One important point is that the issues we raised above about centering
 and strata do not come up.  Since the baseline curves implicitly
 treat strata separately, we can use whatever centering we choose and
 get the same answer.  The centering retained in the means component is
-handy and sufficient to prevent overflow of the exp function.
+handy and is sufficient to prevent overflow of the exp function.
 
 Standard error for predicted curves are difficult --- we would have to
 call survfit.coxph once for each possible covariate set, or repeat
@@ -190,9 +191,10 @@ x <- model.matrix(delete.response(Terms2), mf,
                   contr=object$contrasts)[,-1,drop=FALSE]
 indx <- !(is.na(object$coefficients))
 xbeta <- as.vector(x[,indx] %*% object$coefficients[indx])
-if (strata) {
-    newstrat <- mf[stemp$var]  #strata for the new subjects
-    if (any(is.na(match(stemp, names(sfit$strata))))) 
+if (length(strat)) {
+    if (length(stemp$vars)==1) newstrat <- mf[[stemp$vars]]
+    else newstrat <- strata(mf[,stemp$vars], shortlabel=TRUE)
+    if (any(is.na(match(newstrat, names(sfit$strata))))) 
         stop("New data has a strata not found in the original model")
 
     # Do one strata at a time
@@ -235,24 +237,35 @@ Start with the harder case: we have strata.  Here
 the model frame will need to be retrieved, the mean of
 each covariate subtracted out \emph{per} strata, and then
 the $X$ matrix formed using the modified data. 
-Since neither the reponse or any clusters will be used in
+Since any cluster() terms will be used in
 further computation, we can 
-subtract means from every numeric variable in the frame and not
-worry about hurting these others.
+subtract means from every numeric variable without worry.  Trying
+to subtract a mean from the response generates an error,
+``can't subtract Surv objects'', so avoid it.
+The strata.keep variable name is to avoid a name conflict with the
+strata() function. Remember that a user might have 2 strata() 
+in a single model, and if so we need to combine them.
 
 <<pcoxph-getdata>>=
-else if (length(strata)) {
-    if (missing(newdata)) mf <- model.frame(object)
-    else mf <- model.frame(Terms, data=newdata, xlev=object$xlevels,
+else if (length(strat)) {
+    if (missing(newdata)) {
+        mf <- model.frame(object)
+        na.action.used <- object$na.action
+        }
+    else {
+        mf <- model.frame(Terms, data=newdata, xlev=object$xlevels,
                            na.action=na.action)
+        na.action.used <- attr(mf, 'na.action')
+        }
     mf <- model.frame(object)
-    strata <- mf[stemp$var]
+    if (length(stemp$vars)==1) strata.keep <- mf[[stemp$vars]]
+    else strata.keep <- strata(mf[,stemp$vars], shortlabel=TRUE)
         
-    nvar <- sapply(mf, is.numeric)
-    means <- rowsums(mf[,nvar], strata, reorder=TRUE)/
-         as.vector(table(strata))
-    mf[,nvar] <- mf[,nvar] - means[match(strata, sort(unique(strata))),]
-    x <- model.matrix(Terms2, mf, contrasts.arg=object$contrasts)
+    varn <- sapply(mf, is.numeric) & !sapply(mf, is.Surv) #numeric variables
+    means <- rowsum(mf[,varn], strata.keep, reorder=TRUE)/
+         as.vector(table(strata.keep))
+    mf[,varn] <- mf[,varn] - means[match(strata.keep, row.names(means)),]
+    x <- model.matrix(Terms2, mf, contrasts.arg=object$contrasts)[,-1, drop=FALSE]
     }
 @ 
 
@@ -278,9 +291,8 @@ else if (type=='terms' || (se.fit && (type=='lp' || type=='risk'))) {
     }
 @ 
 
-Finally, the computatin.  First is the simple case of 
-either a linear predictor or risk = exp(linear
-predictor).
+Finally, the computation.  First is the simple case of 
+either a linear predictor or risk = exp(linear predictor).
 <<pcoxph-simple>>=
 if (is.null(object$coefficients))
     coef<-numeric(0)
@@ -290,11 +302,7 @@ else {
     }
     
 if (type=='lp' || type=='risk') {
-    if (missing(newdata)) {
-        pred <- object$linear.predictors
-        names(pred) <- names(object$residuals)
-        }
-    else   pred <- x %*% coef  + offset
+     pred <- x %*% coef  + offset
     if (se.fit) se <- sqrt(diag(x %*% object$var %*% t(x)))
 
     if (type=='risk') {

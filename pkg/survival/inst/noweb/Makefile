@@ -19,9 +19,15 @@ all.tex: all.nw
 
 RFUN = $(SFUN:%=$(RDIR)/%)
 
-fun:  $(RFUN)
+lfun: $(SFUN)
 
-$(SFUN) : all.nw
+fun:  all.nw $(RFUN) 
+
+test: $(RFUN)
+	echo $(RFUN)
+
+$(SFUN): all.nw
+$(RFUN): all.nw
 
 %.S: 
 	echo "# Automatically generated from inst/noweb/all.nw" > $@
