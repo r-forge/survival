@@ -129,7 +129,7 @@ survfitKM <- function(x, y, casewt=rep(1,length(x)),
 	    if (error.int==1) # Greenwood
 		    varhaz[[i]] <- cumsum(nevent/(trisk*(trisk-nevent)))
 	    else {
-		if (method==2) varhaz[[i]] <- cumsum(nevent/(trisk^2))
+		if (method <3) varhaz[[i]] <- cumsum(nevent/(trisk^2))
 		else 	       varhaz[[i]] <- cumsum(nevent* tsum$sum2)
 		}
 	    }

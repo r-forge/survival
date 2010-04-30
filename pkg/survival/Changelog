@@ -90,7 +90,7 @@ step halving to find a solution, eventually failing to converge.  It was
 treating a loglik >0 as an indication of failure, but such values arise for
 small case weights. Let L(w) be the loglik for a data set where everyone is
 given a weight of w, then L(w)= wL(1) - d log(w) where d=number of deaths in
-the data.  
+the data.  For small enough w positivity of L(w) is certain.
 
 26 Jan 10: At the request of Alex Bokov, added the xmax, xscale, and fun
 arguments to points.survfit.
@@ -104,3 +104,7 @@ sets with time1 >=time2, and iii) all the instances of ii do not preceed all
 the instances of i, then the wrong observation (not the illegal) will be 
 thrown out.  Repaired, and a new test added.
   Minor updates to 3 test files: survreg2, testci, ratetable.
+
+7 April 2010: Minor bug pointed out by Fredrik Lundgren.  In survfit if the
+method was KM (default) and error = Tsiatis an error message results.  Simple
+fix: code went down the wrong branch.
