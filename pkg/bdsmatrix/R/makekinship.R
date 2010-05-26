@@ -18,7 +18,8 @@ makekinship <- function(famid, id, father.id, mother.id, unrelated=0) {
     if (length(father.id) != n) stop("Mismatched lengths: famid and father.id")
     if (any(is.na(famid)))  stop("One or more subjects with missing family id")
     if (any(is.na(id)))     stop("One or more subjects with a missing id")
-    if (any(famid <0))      stop("Invalid family id, must be >0")
+    if (is.numeric(famid) && any(famid <0))     
+        stop("Invalid family id, numeric values must be >0")
     if (any(duplicated(id))) stop("Subject id values must be distinct")
 
     famlist <- sort(unique(famid))  #same order as the counts table
