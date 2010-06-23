@@ -52,6 +52,7 @@ following files:
 <<nwkillamp>>
 <<notangle>>
 <<noweave>>
+<<tab.to.blank>>
 @ 
 
 \section{Parsing}
@@ -68,8 +69,8 @@ The first line of the program is assumed to be a text chunk if not
 preceeded by an ampersand line.
 We parse this into a simple S object, a list containing [[nwtext]] and
 [[nwcode]] objects.  All tabs are turned into blanks to facilitate later
-processing. The codestart vector gives the start of all code objects, and
-the textstart one the start of all text objects.
+processing.
+
 A text object that has words on the same line as the @ is treated differently
 than one that does not, for breaking lines.  
 Comments on the @ line don't count as a new text line,   %'
@@ -87,21 +88,42 @@ create a correct [[noweb.R]] file.
 I also have to recognize this usage so that my bootstrapped noweb.R can
 correctly process this file.
 
+The code first finds that start of all code chunks and text chunks and
+creates a matrix [[temp]] whose first row is the starting line of the
+chunk, and second is the type of chunk: 1=text and 2=code.
+The endline variable contains the last line of each chunk.
+It then walks through one chunk at a time.
 
+For a text chunk, it decides if the very first line was a blank
+line.  If not, then the output is a character vector containing
+all the lines.  If it is, then the blank line is suppressed
+from the character vector, but a [[blankline]] attribute is
+added to remind us that it once was there.  This is used to
+create the Latex output in such a way that the line numbers
+in the .tex file exactly match those in the .Rnw file, while
+not introducing extra paragraph breaks.
+Code chunks have a name extracted and
+the remainder is passed through the [[nwparse]] function.
+The code chunk names are used as names for the components of
+the [[noweb]] object.
+
+Finally two checks are run: make sure that any code chunk that
+is referenced has been defined somewhere, and that there are
+not any loops.
 <<nwread>>=
 nwread <- function(file) {
     program <- tab.to.blank(readLines(file))
     codestart <- which(grepl('^ *@<<[^>]*>>=', program))
     textstart <- which(grepl('^@$|^@ ', program))
-    program <- nw.killamp(program)
+    program <- nwkillat(program)
     if (min(codestart, textstart) > 1) textstart <- c(1, textstart)
     
     temp <- rbind( c(codestart, textstart),
                    c(rep(2, length(codestart)), rep(1, length(textstart))))
     temp <- temp[,order(temp[1,])]
-    endline <- c(temp[1,-1], length(program)) -1
+    endline <- c(temp[1,-1] -1, length(program))
 
-    output <- vector('list', ncol(temp))  #number of code chunks
+    output <- vector('list', ncol(temp))  #number of chunks
     oname <- rep('', ncol(temp))
     for (i in 1:ncol(temp)) {
         if (temp[2,i]==1) { # text
@@ -115,7 +137,7 @@ nwread <- function(file) {
                 }
             else {
                 text <- blankline
-                if (temp[1,i] > endline[i])
+                if (temp[1,i] < endline[i])
                     text <- c(text, program[(temp[1,i]+1):endline[i]])
                 attr(text, 'blankline') <- FALSE
                 }
@@ -154,6 +176,9 @@ nwread <- function(file) {
 The [[nwparse]] routine looks for references to other code within the
 lines of a code chunk.  
 These are sequences of the form [[<<identifier>>]].
+The resulting structure has the lines, a list of line numbers that are
+pointers to other code [[xindex]], the name of the other code chunk,
+and the relative indentation.
 <<nwparse>>=
 nwparse <- function(lines) {
     # Look for references to other code
@@ -161,7 +186,7 @@ nwparse <- function(lines) {
     if (length(indx)) {
         xref <- sub('>>.*$', '', sub('[ \t]*<<', '', lines[indx]))
         indent <- sub('<<.*', '', lines[indx])
-        out <- list(lines=lines, xref=xref, indent=indent)
+        out <- list(lines=lines, xref=xref, indent=indent, xindex=indx)
         }
     else out <- list(lines=lines, xref=NULL)
     
@@ -203,12 +228,12 @@ nwloop <- function(code) {
 @ 
 
 
-The extra ampersand rule.  If we see the characters @<< and those
+The extra at sign rule:  if we see the characters @<< and those
 characters are not inside a [[[[]]]] pair, then remove the @ sign.
 If someone were to split square brackets across lines they can 
 fool this function.
 <<nwkillamp>>=
-nwkillamp <- function(program) {
+nwkillat <- function(program) {
     suspectlines <- which(grepl('@<<[~>]>>', program))
 
     # This is slower than Hades, but I expect to see only 0-3
@@ -222,7 +247,7 @@ nwkillamp <- function(program) {
             if (state==0) {
                 if ((i+1 <nl) && line[i]=='@' && line[i+1]=='<' && 
                     line[i+2]=='<') cstate[i]=1
-                if (i<nl line[i]=='[' && line[i+1]=='[') state <-1
+                if (i<nl && line[i]=='[' && line[i+1]=='[') state <-1
                 }
             else {
                 if (i<nl && line[i]==']' && line[i+1]==']') state<-0
@@ -267,6 +292,10 @@ print.notangle <- function(x, file., ...) {
     invisible(x)
     }
 
+Here is the actual workhorse function.
+It extracts a named code chunk, recursively inserting other
+named ones when they are referenced.  A named chunk is inserted
+with the same relative indentation as the reference had.
 nwextract<- function(code, target, prefix='') {
     ctemp <- code[[target]]
     if (is.null(ctemp)) stop("Program logic flaw 1")
@@ -300,10 +329,24 @@ nwextract<- function(code, target, prefix='') {
     }
 @ 
 
+Convert tabs to blanks. 
+<<tab.to.blank>>=
+tab.to.blank <- function(x) {
+    temp <- strsplit(x, '')
+    blanks <- c("       ", "      ", "     ", "    ", "   ", "  ", " ", "")
+    unlist(lapply(temp, function(x) paste(ifelse(x!='\t', x,
+                                                 rep(blanks,length=length(x))),
+                                          collapse='')))
+    }
+
+@ 
+
+
 \section{Noweave}
 The noweave processor is more challenging, largley because of the need
 to add indexing.  Like noweb, we take care to make the result of noweave
 have exactly the same number of lines as the input source code, so that
 Latex error messages give correct line numbers.
-
+<<noweave>>=
+@ 
 \end{document}
