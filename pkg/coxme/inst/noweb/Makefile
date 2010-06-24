@@ -30,12 +30,20 @@ RFUN = $(SFUN:%=$(RDIR)/%)
 
 fun:  $(RFUN)
 
-$(RFUN) : all.nw
+$(RFUN) : all.nw 
+$(SFUN) : all.nw
 
 %.R: 
 	echo "# Automatically generated from all.nw using noweb" > $@
-	notangle -R$(*F) all.nw >> $@
+	echo "source('noweb.R'); print(notangle(nwread('all.nw'), target='$(*F)'), file='zz')" | R --vanilla --slave
+	cat zz >> $@
+	rm zz
+#	notangle -R$(*F) all.nw >> $@
+
 
 clean:
 	-rm all.nw all.log all.aux all.toc all.tex all.pdf
 	-rm $(RFUN)
+
+noweb.R: noweb.Rnw
+	notangle noweb.Rnw > noweb.R
