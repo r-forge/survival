@@ -1,10 +1,24 @@
 15 Oct 09
-  Change the default starting value of variances from .2 to .1.  The final
-answer will be closer to .1 the majority of the time, and I had a data set
-where .2 led to wrong iteration.  This area needs more investigation.
+  Change the default starting value of variances from .2 to .1. A std of
+sqrt(.2)= .45 is actually quite big (50% variance in risk due to the 
+random effect); sqrt(.1) = .31 seems more reasonable.  Motivated by a data
+set where .2 led to the wrong solution. This area needs more investigation.
+A std of .2 seems better yet, but on the log(var) scale a plot of the loglik
+often has a convex "dish" near zero, leading to lots of iterations for optim.
   Fix error in the fitting routine; if there were 3 or more crossed terms
 the indexing was wrong, leading to no penalty for terms after the second.
   Allow for NULL as an initial value.  This occured for a model with 3 terms
 (x1|grp) + (x2|grp) + (x3|grp), and I wanted to give values for x2 and x3
 only.  You can't use names since they all are the same, instead I now use
 vfixed=list(NULL, .1, .1).
+
+10 Nov 09
+  Fix to coxmeMlist to match the above - missed changing one of the .2s to
+a .1.  Update the slope1.Rout.save file; the prior change modified
+some of the final printed results' tail end digits.
+
+21 June 10
+  Finish debugging the noweb.R code, which duplicates (part of) the
+functionality of the Unix noweb software.  This allows my Makefile to work
+automatically when that software is not present.  
+	
