@@ -150,6 +150,7 @@ risk <- exp(x%*% coef + offset - mean(offset))
 
 if (individual) {
     if (missing(newdata)) stop("The newdata argument must be present")
+    if (!is.data.frame(newdata)) stop("Newdata must be a data frame")
     temp <- untangle.specials(Terms, 'cluster')
     if (length(temp$vars)) Terms2 <- Terms[-temp$terms]
     else Terms2 <- Terms
@@ -157,7 +158,10 @@ if (individual) {
     
     temp <- untangle.specials(Terms2, 'strata')
     if (length(temp$vars) >0) {
-        strata2 <- factor(mf2[temp$vars], levels=levels(strata))
+        strata2 <- strata(mf2[temp$vars], shortlabel=TRUE)
+        strata2 <- factor(strata2, levels=levels(strata))
+        if (any(is.na(strata2)))
+            stop("New data set has strata levels not found in the original")
         Terms2 <- Terms2[-temp$terms]
         }
     else strata2 <- rep(0, nrow(mf2))
@@ -169,7 +173,7 @@ if (individual) {
     if (length(offset2) >0) offset2 <- offset2 - mean(offset)
     else offset2 <- 0
 		
-    y2 <- model.extract(m2, 'response')
+    y2 <- model.extract(mf2, 'response')
     if (attr(y2,'type') != type)
         stop("Survival type of newdata does not match the fitted model")
     }
@@ -179,6 +183,23 @@ else {
         offset2 <- 0
         }
     else {
+@
+For backwards compatabliity: I allow someone to give an ordinary vector
+instead of a data frame, when only one curve is required.  In this case
+I also need to verify that the element have a name.  If not we attach the
+variable names from the model, and assume that it's the right order.  %'
+(Documentation of this ability has been suppressed, however.)
+<<survfit.coxph-setup>>= 
+        if (!is.data.frame(newdata)) {
+            if (is.list(newdata)) newdata <- data.frame(newdata)
+            else if (is.numeric(newdata) && 
+                     length(newdata)==length(object$coefficients)) {
+                if (is.null(names(newdata)))
+                    names(newdata) <- names(object$coefficients)
+                newdata <- data.frame(as.list(newdata))
+                }
+            else stop("Invalid newdata object")
+            }
         Terms2 <- delete.response(Terms)
         temp <- untangle.specials(Terms2, 'cluster')
         if (length(temp$vars)) Terms2 <- Terms2[-temp$terms]
@@ -193,7 +214,7 @@ else {
         else offset2 <- 0
         }
     }
-newrisk <- exp(c(x2 %*% coef) + offset2 - mean(offset))
+newrisk <- exp(c(x2 %*% coef) + offset2)
 @ 
 
 Now, we're ready to do the main compuation.                             %'
@@ -284,7 +305,8 @@ if (!individual) {
                      nrow=ncol(x)))
     hazard <- unlist(lapply(survlist, function(x) x$hazard))
 
-    if (survtype==1) surv <- unlist(lapply(survlist, function(x) x$surv))
+    if (survtype==1) 
+        surv <-cumprod(unlist(lapply(survlist, function(x) x$surv)))
     else surv <- exp(-cumhaz)
                                     
     if (is.matrix(x2) && nrow(x2) >1) {  #more than 1 row in newdata
@@ -292,7 +314,7 @@ if (!individual) {
         temp <- cumsum(varhaz)
         varh <- matrix(0., nrow=length(temp), ncol=ncol(x2))
         for (i in 1:nrow(x2)) {
-            dt <- outer(cumhaz, x2[,i], '*') - xbar
+            dt <- outer(cumhaz, x2[i,], '*') - xbar
             varh[,i] <- (temp + rowSums((dt %*% object$var)* dt)) *
                 newrisk[i]^2
             }
@@ -306,7 +328,7 @@ if (!individual) {
 @
 In the lines just above: I have a matrix [[dt]] with one row per death
 time and one column per variable.  For each row $d_i$ separately we
-want the quadratice form $d_i V d_i'$.  The first matrix product can
+want the quadratice form $d_i V d_i'$.  The first matrix product can     %'
 be done for all rows at once: found in the inner parenthesis.
 Ordinary (not matrix) multiplication followed by rowsums does the rest
 in one fell swoop.
@@ -316,9 +338,9 @@ in one fell swoop.
                    time=unlist(lapply(survlist, function(x) x$time)),
                    n.risk= unlist(lapply(survlist, function(x) x$n.risk)),
                    n.event=nevent,
-                   n.cencor=unlist(lapply(survlist, function(x) x$n.censor)),
+                   n.censor=unlist(lapply(survlist, function(x) x$n.censor)),
                    surv=surv,
-                   type='type')
+                   type=type)
     if (length(survlist) >1) {
         result$strata <- unlist(lapply(survlist, function(x) length(x$n.risk)))
         names(result$strata) <- ustrata
@@ -339,26 +361,27 @@ subject was present, for this row of the new data.
 <<survfit.coxph-compute>>=
 else {
     ntarget <- nrow(x2)
-    surv <- vector('list', npart)
-    n.event <- n.risk <- n.censor <- varh <-  time <- haz
-    stemp <- match(newstrata, ustrata)
+    surv <- vector('list', ntarget)
+    n.event <- n.risk <- n.censor <- varh <-  time <- surv
+    stemp <- match(strata2, ustrata)
     for (i in 1:ntarget) {
         slist <- survlist[[stemp[i]]]
-        indx <- which(slist$time > newy[i,1] & slist$time <= newy[i,2])
-        time[[i]] <- slist$time[indx] - newy[i,1]
-        if (survtype==1) surv[i] <- slist$surv[indx]^newrisk[i]
-        else             surv[i] <- slist$hazard[indx]*newrisk[i]
+        indx <- which(slist$time > y2[i,1] & slist$time <= y2[i,2])
+        time[[i]] <- slist$time[indx] - y2[i,1]
+        if (survtype==1) surv[[i]] <- slist$surv[indx]^newrisk[i]
+        else             surv[[i]] <- slist$hazard[indx]*newrisk[i]
         n.event[[i]] <- slist$n.event[indx]
         n.risk[[i]]  <- slist$n.risk[indx]
-        n.censor[[i]]<- slist$n.censor[[indx]]
-        dt <-  outer(cumhaz, x2[,i]) - xbar
-        varh[[i]] <- (cumsum(varhaz) + rowSums((dt %*% object$var)* dt)) * 
-            newrisk^2
+        n.censor[[i]]<- slist$n.censor[indx]
+        dt <-  outer(slist$cumhaz[indx], x2[i,]) - slist$xbar[indx,,drop=F]
+        varh[[i]] <- (cumsum(slist$varhaz[indx]) + 
+                      rowSums((dt %*% object$var)* dt)) * newrisk[i]^2
         }
     varh <- unlist(varh)
     
-    if (survtype==1) surv <- cumprod(unlist(surv))
-    else surv <- exp(-cumsum(ulist(haz)))
+    if (survtype==1) surv <- cumprod(unlist(surv))  #increments
+    else surv <- exp(-cumsum(unlist(surv)))         #hazards
+
     result <- list(n=table(strata)[stemp[1]],
                    time=cumsum(unlist(time)),
                    n.risk = unlist(n.risk),
@@ -400,7 +423,7 @@ The final curve is $\prod_t  z(t)^{r_c}$ where $r_c$ is the risk score
 for the target subject.
 
 The Efron estimate can be viewed as a modified Breslow estimate under the
-assumption that tied deaths are not really tied -- we just don't know the
+assumption that tied deaths are not really tied -- we just don't know the  %'
 order.  So if there are 3 subjects who die at some time $t$ we will have
 three psuedo-terms for $t$, $t+\epsilon$, and $t+  2\epsilon$.  All 3 subjects
 are present for the denominator of the first term, 2/3 of each for the second,
@@ -426,11 +449,13 @@ There are two algorithms for (start, stop] data.
 \end{itemize}
 We compute the extended number still at risk --- all whose stop time
 is $\ge$ each unique death time --- in the vector [[xin]].  From
-this we have to subtract all those who haven't actually entered yet
+this we have to subtract all those who haven't actually entered yet       %'
 found in [[xout]].  Remember that (3,20] enters at time 3+.
 The total at risk at any time is the difference between them.  
 Output is only for the
 stop times; a call to approx is used to reconcile the two time sets.
+The [[irisk]] vector is for the printout, it is a sum of weighted counts
+rather than weighted risk scores.
 <<agsurv>>=
 agsurv <- function(y, x, wt, risk, survtype, vartype) {
     nvar <- ncol(as.matrix(x))
@@ -444,6 +469,7 @@ agsurv <- function(y, x, wt, risk, survtype, vartype) {
     wrisk <- wt*risk
     rcumsum <- function(x) rev(cumsum(rev(x))) # sum from last to first
     nrisk <- rcumsum(rowsum(wrisk, dtime))
+    irisk <- rcumsum(rowsum(wt, dtime))
     if (ncol(y) ==2) {
         temp2  <- rowsum(wrisk*x, dtime)
         xsum   <- apply(temp2, 2, rcumsum)
@@ -455,6 +481,7 @@ agsurv <- function(y, x, wt, risk, survtype, vartype) {
                         rule=2, f=1)$y   
         esum <- rcumsum(rowsum(wrisk, y[,1]))  #not yet entered
         nrisk <- nrisk - c(esum,0)[indx]
+        irisk <- irisk - c(rcumsum(rowsum(wt, y[,1])),0)[indx]
         xout   <- apply(rowsum(wrisk*x, y[,1]), 2, rcumsum) #not yet entered
         xin  <- apply(rowsum(wrisk*x, dtime), 2, rcumsum) # dtime or alive
         xsum  <- xin - (rbind(xout,0))[indx,,drop=F]
@@ -508,11 +535,11 @@ efficiently compute the partial sums.
                    (xsum/nrisk)*haz,
                    nevent * tsum$xbar)
 
-    result <- list(time=time, n.event=nevent, n.risk=nrisk, n.censor=ncens,
-                   hazard=haz,
+    result <- list(time=time, n.event=nevent, n.risk=irisk, n.censor=ncens,
+                   hazard=haz, 
                    cumhaz=cumsum(haz), varhaz=varhaz, ndeath=ndeath, 
                    xbar=apply(matrix(xbar, ncol=nvar),2, cumsum))
-    if (survtype==1) result$surv <- cumprod(km$inc)
+    if (survtype==1) result$surv <- km$inc
     result
     }
 @ 
