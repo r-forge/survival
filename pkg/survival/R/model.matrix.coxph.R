@@ -1,10 +1,15 @@
-model.matrix.coxph <- function(object, data=NULL, contrast.arg=object$contrasts, ...){
+# The mf argument is mostly for internal calls, when the model frame
+#  has already been constructed.  
+model.matrix.coxph <- function(object, data=NULL,contrast.arg=object$contrasts,
+                               mf, ...){
     if (!is.null(object[['x']])) object[['x']] #don't match "xlevels"
     else {
-        if (is.null(data)) data <- model.frame(object, ...)
-        else data <- model.frame(object, data=data, ...)
-
         Terms <- object$terms
+        if (missing(mf)) {
+            if (is.null(data)) mf <- model.frame(object, ...)
+            else mf <- model.frame(Terms, data, ...)
+            }
+
         attr(Terms,"intercept")<- 1  #Cox model always has \Lambda_0
         strats <- attr(Terms, "specials")$strata
         cluster<- attr(Terms, "specials")$cluster
@@ -25,11 +30,11 @@ model.matrix.coxph <- function(object, data=NULL, contrast.arg=object$contrasts,
             #   model matrix (so factors generate correct columns), then
             #   remove it.
             newTerms <- Terms[-dropx]
-            X <- model.matrix(newTerms, data, contrasts=contrast.arg)
+            X <- model.matrix(newTerms, mf, contrasts=contrast.arg)
             }
         else {
             newTerms <- Terms
-            X <- model.matrix(Terms, data, contrasts=contrast.arg)
+            X <- model.matrix(Terms, mf, contrasts=contrast.arg)
             }
 
         # Save attributes that are removed by subscripting, then
