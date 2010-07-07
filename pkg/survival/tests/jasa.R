@@ -67,7 +67,7 @@ fit <- coxph(Surv(start, stop, event) ~ age*strata(ss) + age2, tdata)
 #fit <- coxph(Surv(rep(start,2), rep(stop,2), rep(event,2)) ~
 #			rep(age,2)*strata(ss) + I(rep(age,2)^2*ss) )
 all.equal(fit$coef[1], fit3$coef)
-s5 <- survfit(fit, c(fit3$means, 0,0))
+s5 <- survfit(fit, data.frame(age=fit3$means, age2=0, ss=0))
 all.equal(s5$surv[1:(s5$strata[1])],  s3$surv)
 detach("jasa1")
 
