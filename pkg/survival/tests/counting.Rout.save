@@ -1,6 +1,6 @@
 
-R version 2.7.1 (2008-06-23)
-Copyright (C) 2008 The R Foundation for Statistical Computing
+R version 2.11.1 (2010-05-31)
+Copyright (C) 2010 The R Foundation for Statistical Computing
 ISBN 3-900051-07-0
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
@@ -43,8 +43,8 @@ Loading required package: splines
 > fitc  <- coxph(Surv(time, status) ~ offset(fit$coef*x), test1)
 > fitd  <- coxph(Surv(start, stop, status) ~ offset(fit$coef*x), test1b)
 > 
-> aeq(fit$coef, fit0$coef)
-[1] "Mean relative difference: 1"
+> aeq(fit0b$coef, fit0$coef)
+[1] TRUE
 > 
 > aeq(resid(fit0), resid(fit0b, collapse=test1b$id))
 [1] TRUE

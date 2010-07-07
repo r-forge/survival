@@ -1,6 +1,6 @@
 
-R version 2.9.0 (2009-04-17)
-Copyright (C) 2009 The R Foundation for Statistical Computing
+R version 2.11.1 (2010-05-31)
+Copyright (C) 2010 The R Foundation for Statistical Computing
 ISBN 3-900051-07-0
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
@@ -15,10 +15,10 @@ Type 'demo()' for some demos, 'help()' for on-line help, or
 'help.start()' for an HTML browser interface to help.
 Type 'q()' to quit R.
 
-> options(na.action=na.exclude) # preserve missings
-> options(contrasts=c('contr.treatment', 'contr.poly')) #ensure constrast type
 > library(survival)
 Loading required package: splines
+> options(na.action=na.exclude) # preserve missings
+> options(contrasts=c('contr.treatment', 'contr.poly')) #ensure constrast type
 > 
 > #
 > # Tests from the appendix of Therneau and Grambsch
@@ -96,8 +96,10 @@ Loading required package: splines
 [1] TRUE
 > aeq(truth0$score, resid(fit0, 'score')) 
 [1] TRUE
-> sfit <- survfit(fit0, list(x=0))
+> sfit <- survfit(fit0, list(x=0), censor=FALSE)
 > aeq(sfit$std.err^2, truth0$var)
+[1] TRUE
+> aeq(sfit$surv, truth0$surv)
 [1] TRUE
 > 
 > fit <- coxph(Surv(start, stop, event) ~x, test2, eps=1e-8, method='breslow')
@@ -113,8 +115,8 @@ Loading required package: splines
 > aeq(truth$score, resid(fit, 'score'))
 [1] TRUE
 > 
-> sfit <- survfit(fit, list(x=0))
-> aeq(sfit$std.err^2, truth$var) # sfit skips time 8 (no events there)
+> sfit <- survfit(fit, list(x=0), censor=FALSE)
+> aeq(sfit$std.err^2, truth$var) 
 [1] TRUE
 > aeq(-log(sfit$surv), (cumsum(truth$haz)))
 [1] TRUE

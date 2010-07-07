@@ -37,16 +37,16 @@ data <- data.frame(start=c(0,183), stop=c(183,3*365), event=c(1,1),
 summary(survfit(sfit.1, data, individual=T))
 
 # These should all give the same answer
-j.age <- jasa$age -48
+j.age <- jasa$age/365.25 -48
 fit1 <- coxph(Surv(futime, fustat) ~ j.age, data=jasa)
 fit2 <- coxph(Surv(futime, fustat) ~ j.age, jasa, init=fit1$coef, iter=0)
 fit3 <- coxph(Surv(start, stop, event) ~ age, jasa1)
 fit4 <- coxph(Surv(start, stop, event) ~ offset((age-fit3$means)*fit1$coef),
               jasa1)
-s1 <- survfit(fit1, fit3$means)
-s2 <- survfit(fit2, fit3$means)
-s3 <- survfit(fit3)
-s4 <- survfit(fit4)
+s1 <- survfit(fit1, fit3$means, censor=FALSE)
+s2 <- survfit(fit2, fit3$means, censor=FALSE)
+s3 <- survfit(fit3, censor=FALSE)
+s4 <- survfit(fit4, censor=FALSE)
 
 all.equal(s1$surv, s2$surv)
 all.equal(s1$surv, s3$surv)

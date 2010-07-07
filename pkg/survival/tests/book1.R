@@ -59,7 +59,7 @@ aeq(truth0$mart, fit0$resid[c(2:6,1)])
 aeq(truth0$scho, resid(fit0, 'schoen'))
 aeq(truth0$score, resid(fit0, 'score')[c(3:7,1)])
 sfit <- survfit(fit0, list(x=0))
-aeq(sfit$std.err^2, c(7/180, 2/9, 11/9))
+aeq(sfit$std.err^2, c(7/180, 2/9, 2/9, 11/9))
 aeq(resid(fit0, 'score'), c(5/24, NA, 5/12, -1/12, 7/24, -1/24, 5/24))
 
 fit1 <- coxph(Surv(time, status) ~x, test1, iter=1, method='breslow')
