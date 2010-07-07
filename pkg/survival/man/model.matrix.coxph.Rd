@@ -8,7 +8,8 @@ Model.matrix method for coxph models
 Reconstruct the model matrix for a cox model.
 }
 \usage{
-\method{model.matrix}{coxph}(object, data, contrast.arg = object$contrasts, ...)
+\method{model.matrix}{coxph}(object, data, contrast.arg =
+object$contrasts, mf, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -16,6 +17,8 @@ Reconstruct the model matrix for a cox model.
   \item{data}{optional, a data frame from which to obtain the data}
   \item{contrast.arg}{optional, a contrasts object describing how
     factors should be coded}
+  \item{mf}{an optional model frame.  Used interally when programs have
+    already obtained a model frame.}
   \item{\dots}{other possible argument to \code{model.frame}}
 }
 \details{

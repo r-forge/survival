@@ -12,7 +12,7 @@ hazards model.
         se.fit=TRUE, conf.int=.95,
         individual=FALSE, 
         type,vartype,
-        conf.type=c("log","log-log","plain","none"),...)
+        conf.type=c("log","log-log","plain","none"), censor, ...)
 }
 \arguments{
   \item{formula}{
@@ -64,6 +64,8 @@ hazards model.
     cumulative hazard or log(survival). The last option bases
     intervals on the log hazard or log(-log(survival)). 
   }
+  \item{censor}{if FALSE time points at which there are no events (only
+  censoring) are not included in the result.}  
   \item{\dots}{for future methods}
 }
 \value{
@@ -74,7 +76,10 @@ details. Methods defined for survfit objects are
 \code{lines}, and \code{points}. 
 }
 \details{
-See \code{\link{survfit}} for more Details.
+  See \code{\link{survfit}} for more Details.
+
+  The censor argument was not available to the user in earlier versions
+  of the code, and was fixed at FALSE.
   
 The estimates used are the Kalbfleisch-Prentice 
 (Kalbfleisch and Prentice, 1980, p.86) and the Tsiatis/Link/Breslow, 
