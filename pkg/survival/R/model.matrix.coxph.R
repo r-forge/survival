@@ -7,7 +7,7 @@ model.matrix.coxph <- function(object, data=NULL,contrast.arg=object$contrasts,
         Terms <- object$terms
         if (missing(mf)) {
             if (is.null(data)) mf <- model.frame(object, ...)
-            else mf <- model.frame(Terms, data, ...)
+            else mf <- model.frame(object, data, ...)
             }
 
         attr(Terms,"intercept")<- 1  #Cox model always has \Lambda_0

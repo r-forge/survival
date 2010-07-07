@@ -164,7 +164,9 @@ summary.survfit <- function(object, times, censored=FALSE,
 	n.risk <-  unlist(n.risk)
 	n.event <- unlist(n.event)
 	if (!is.null(fit$n.enter))  n.enter <- unlist(n.enter)
+        else n.enter <- NULL
 	if (!is.null(fit$n.censor)) n.censor<- unlist(n.censor)
+        else n.censor <- NULL
 	indx1 <- unlist(indx1)
 	surv <- (rbind(1.,surv))[indx1,,drop=FALSE]
 	if (!is.null(std.err)) std.err <- rbind(0.,std.err)[indx1,,drop=FALSE]
@@ -182,16 +184,11 @@ summary.survfit <- function(object, times, censored=FALSE,
     # Final part of the routine: paste the material together into
     #  the correct output structure
     #
-    if (fit$type == 'right' || inherits(fit, 'survfit.cox')) 
-	    temp <- list(surv=surv, time=times/scale, n.risk=n.risk, n.event=n.event,
+    temp <- list(surv=surv, time=times/scale, n.risk=n.risk, n.event=n.event,
 			 conf.int=fit$conf.int, type=fit$type, table=table)
     
-    if (fit$type == 'counting')
-	    temp <- list(surv=surv, time=times/scale, n.risk=n.risk, n.event=n.event,
-			 conf.int=fit$conf.int, n.enter=n.enter,
-			 n.censor=n.censor, type=fit$type, 
-			 table=table)
-
+    if (!is.null(n.censor)) temp$n.censor <- n.censor
+    if (!is.null(n.enter))  temp$n.enter <- n.enter
     if (!is.null(fit$start.time)) temp$start.time <- fit$start.time
 
     if (ncol(surv)==1) {
