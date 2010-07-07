@@ -28,6 +28,8 @@ what we want the computer to do.  (Donald E. Knuth, 1984).
 This is the definition of a coding style called \emph{literate programming}.
 I first made use of it in the \emph{coxme} library and have become a full
 convert.  For the survival library only selected objects are documented in
-this way; whenever I find need for a major revision.  
+this way; whenever I find need for a major revision I ``convert'' the 
+source.
 An underlying motivation is to leave code that is well enough explained that
 someone else can take it over.
+

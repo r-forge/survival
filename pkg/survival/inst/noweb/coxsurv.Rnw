@@ -208,7 +208,6 @@ variable names from the model, and assume that it's the right order.  %'
         mf2 <- model.frame(Terms2, newdata, xlev=object$xlevels)
         x2 <- model.matrix(Terms2, mf2)[,-1, drop=FALSE]  #no itercept
         x2 <- scale(x2, center=object$means, scale=FALSE)
-
         offset2 <- model.offset(mf2)
         if (length(offset2) >0) offset2 <- offset2 - mean(offset)
         else offset2 <- 0
@@ -312,7 +311,7 @@ if (!individual) {
     if (is.matrix(x2) && nrow(x2) >1) {  #more than 1 row in newdata
         surv <- outer(surv, newrisk, '^')
         temp <- cumsum(varhaz)
-        varh <- matrix(0., nrow=length(temp), ncol=ncol(x2))
+        varh <- matrix(0., nrow=length(temp), ncol=nrow(x2))
         for (i in 1:nrow(x2)) {
             dt <- outer(cumhaz, x2[i,], '*') - xbar
             varh[,i] <- (temp + rowSums((dt %*% object$var)* dt)) *
@@ -356,18 +355,39 @@ The [[n]] component is the number of observations in the strata --- but this
 subject might visit several.  We report the first one they were in for
 printout.
 The [[time]] component will be cumulative on this subject's scale.     %'
+Counting this is a bit trickier than I first thought.  Say that the
+subject's first interval goes from 1 to 10, with observed time points in
+that interval at 2, 5, and 7, and a second interval from 10 to 20  with
+observed time points in the data of 15 and 18.  On the subject's time
+scale things happen at days 1, 4, 6, 14 and 17.  The deltas saved below
+are 2-1, 5-2, 7-5, 3+ 14-10, 17-14.  Note the 3+ part, kept 
+in the [[timeforward]] variable.
+Why all this ``adding up'' nuisance?  If the subject spent time in two
+strata, the second one might be on an internal time scale of `time since
+entering the strata'.  The two intervals in newdata could be 0--10 followed
+by 0--20.  Time for the subject can't go backwards though: the change
+between internal/external time scales is a bit like following someone who
+was stepping back and forth over the international date line.
+
 In the code the [[indx]] variable points to the set of times that the
-subject was present, for this row of the new data.
+subject was present, for this row of the new data.  Note the $>$ on 
+one end and $\le$ on the other.  If someone's interval 1 was 0--10 and
+interval 2 was 10--20, and there happened to be a jump in the baseline
+survival curve at exactly time 10, we can't let them count the jump twice.
 <<survfit.coxph-compute>>=
 else {
-    ntarget <- nrow(x2)
+    ntarget <- nrow(x2)  #number of different time intervals
     surv <- vector('list', ntarget)
     n.event <- n.risk <- n.censor <- varh <-  time <- surv
     stemp <- match(strata2, ustrata)
+    timeforward <- 0
     for (i in 1:ntarget) {
         slist <- survlist[[stemp[i]]]
         indx <- which(slist$time > y2[i,1] & slist$time <= y2[i,2])
-        time[[i]] <- slist$time[indx] - y2[i,1]
+        time[[i]] <- diff(c(y2[i,1], slist$time[indx])) #time increments
+        time[[i]][1] <- time[[i]][1] + timeforward
+        timeforward <- y2[i,2] - max(slist$time[indx])
+                          
         if (survtype==1) surv[[i]] <- slist$surv[indx]^newrisk[i]
         else             surv[[i]] <- slist$hazard[indx]*newrisk[i]
         n.event[[i]] <- slist$n.event[indx]

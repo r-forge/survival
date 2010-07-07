@@ -1,11 +1,7 @@
  Some portions of the survival package have been written using the literate
 programming paradym.  These are contained here, and have a .Rnw suffix.
 Long term, the plan is to have all of the code source here to maximize
-the documentation, and through it the reliability of the package.  At
-this time the number of files here is very small, so I have broken one of
-the rules of archiving, "put only the oringinal source under version
-control"; the .R files that result from these source documents are also
-kept in ../../R.  
+the documentation, and through it the reliability of the package. 
 
 These files are NOT intended for processing by Sweave.  The function of Sweave
 is to execute R fragments, interspersing code and results.  The purpose of
@@ -15,15 +11,14 @@ code from scattered fragments.  The latter is one of the main advantages
 of the noweb system: you can organise the presentation for optimal explanation
 rather than in exectuion order.
 
+The functions found in noweb.R are an R implementation of the notangle
+command, and allow this code to auto-compile on CRAN, for those without
+a noweb installation.  The .Rnw source to this is kept in the coxme package,
+look there for further information and comments.
+
 The result file all.pdf is documentation for understanding the code, 
 not how to use the survival functions for data analysis.  For those who
-maintain the code it should be a big help, for everyone else I'd expect
+maintain the code it will be a big help, for everyone else I'd expect
 it to be boring.
-
-It would be nice if Rtangle could be used to extract the code since that would
-make the library self contained for compilation purposes.  Que sera sera.
-
-The .Rnw suffix causes emacs work perfectly for either a noweb or Sweave 
-target, however, which is very nice.
 
 	Terry Therneau
