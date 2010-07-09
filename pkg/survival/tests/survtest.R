@@ -46,7 +46,7 @@ aeq(fit3$surv[fit3$n.event>0], c(.5, 1/3, 4/15, 1/5, 3/20, 9/100))
 #  Verify that both surv AND n.risk are right between time points.
 #
 fit <- survfit(Surv(time, status) ~1, test1)
-temp <- summary(fit, time=c(.5,1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5), extend=TRUE)
+temp <- summary(fit, time=c(.5,1, 1.5, 6, 7.5, 8, 8.9, 9, 10), extend=TRUE)
 
 aeq(temp$n.risk, c(6,6,4,4,2,2,1,1,0))
 aeq(temp$surv, c(1, fit$surv[c(1,1,2,2,3,3,4,4)]))
