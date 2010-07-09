@@ -10,8 +10,8 @@ test1 <- data.frame(time=  c(9, 3,1,1,6,6,8),
                     x=     c(0, 2,1,1,1,0,0),
                     z= factor(c('a', 'a', 'b', 'b', 'c', 'c', 'a')))
 
-fit1 <- coxph(Surv(time, status) ~ z, test1)
-fit2 <- coxph(Surv(time, status) ~z, test1, x=T)
+fit1 <- coxph(Surv(time, status) ~ z, test1, iter=1)
+fit2 <- coxph(Surv(time, status) ~z, test1, x=T, iter=1)
 all.equal(model.matrix(fit1), fit2$x)
 
 test2 <- data.frame(time=  c(9, 3,1,1,6,6,8),
