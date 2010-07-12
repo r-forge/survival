@@ -115,7 +115,7 @@ aml$x=Nonmaintained 12       11     7.31      1.86      3.40
 > 
 > # Risk weights-- use a null Cox model
 > tfit <- coxph(Surv(aml$time, aml$status) ~ offset(log(1:23)))
-> sfit <- survfit(tfit, type='aalen')
+> sfit <- survfit(tfit, type='aalen', censor=FALSE)
 > 
 > # Now compute it by hand.  The survfit program will produce a curve
 > #   corresponding to the mean offset.  This is a change on 7/2010,
@@ -135,7 +135,7 @@ aml$x=Nonmaintained 12       11     7.31      1.86      3.40
 > 
 > # And the Efron result
 > summary(survfit(tfit))
-Call: survfit.coxph.null(formula = tfit)
+Call: survfit(formula = tfit)
 
  time n.risk n.event survival std.err lower 95% CI upper 95% CI
     5     23       2    0.932  0.0461       0.8463        1.000

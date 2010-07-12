@@ -28,7 +28,7 @@ aeq(temp$std.err^2, 2*temp2$std.err^2)
 
 # Risk weights-- use a null Cox model
 tfit <- coxph(Surv(aml$time, aml$status) ~ offset(log(1:23)))
-sfit <- survfit(tfit, type='aalen')
+sfit <- survfit(tfit, type='aalen', censor=FALSE)
 
 # Now compute it by hand.  The survfit program will produce a curve
 #   corresponding to the mean offset.  This is a change on 7/2010,

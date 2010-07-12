@@ -1,4 +1,4 @@
-# Automatically generated from inst/noweb/all.nw
+# Automatically generated from all.nw using noweb
 # $Id$
 #
 #  Residuals for survreg objects

@@ -102,10 +102,6 @@ if (type != 'right' && type != 'counting')
     stop("Cannot handle \"", type, "\" type survival data")
 
 x  <- model.matrix.coxph(object, mf=mf)
-if (is.null(x) || ncol(x)==0) { # a model with ~1 on the right hand side
-    stop("Survival curves are not implimented for a NULL Cox model")
-    }
-
 wt <- model.weights(mf)
 if (is.null(wt)) wt <- rep(1.0, n)
 offset <- model.offset(mf)
@@ -141,10 +137,23 @@ If a variable is deemed redundant the [[coxph]] routine will have set its
 coefficient to NA as a marker. 
 We want to ignore that coefficient: treating it as a zero has the 
 desired effect.
+The other special case is a null model, having either ~1 or only an offset
+on the right hand side.  In that case we create a dummy covariate to
+allow the rest of the code to work without special if/else.
 
 <<survfit.coxph-setup>>=
-x <- scale(x, center=object$means, scale=FALSE)    
-coef <- ifelse(is.na(object$coefficients), 0, object$coefficients)
+if (is.null(x) || ncol(x)==0) { # a model with ~1 on the right hand side
+    # Give it a dummy x so the rest of the code goes through
+    #  (This case is really rare)
+    x <- matrix(0., nrow=n)
+    coef <- 0.0
+    varmat <- matrix(0.0,1,1)
+    }
+else {
+    varmat <- object$var
+    x <- scale(x, center=object$means, scale=FALSE)    
+    coef <- ifelse(is.na(object$coefficients), 0, object$coefficients)
+    }
 risk <- exp(x%*% coef + offset - mean(offset))
 
 if (individual) {
@@ -166,7 +175,8 @@ if (individual) {
     else strata2 <- rep(0, nrow(mf2))
     
     x2 <- model.matrix(Terms2, mf2)[,-1, drop=FALSE]  #no itercept
-    x2 <- scale(x2, center=object$means, scale=FALSE)
+    if (length(x2)==0) x2 <- matrix(0.0, nrow=nrow(mf2), col=1)
+    else x2 <- scale(x2, center=object$means, scale=FALSE)
 
     offset2 <- model.offset(mf2)
     if (length(offset2) >0) offset2 <- offset2 - mean(offset)
@@ -178,7 +188,7 @@ if (individual) {
     }
 else {
     if (missing(newdata)) {
-        x2 <- matrix(0.0, nrow=1, ncol=length(object$means))
+        x2 <- matrix(0.0, nrow=1, ncol=ncol(x))
         offset2 <- 0
         }
     else {
@@ -313,14 +323,14 @@ if (!individual) {
         varh <- matrix(0., nrow=length(varhaz), ncol=nrow(x2))
         for (i in 1:nrow(x2)) {
             dt <- outer(cumhaz, x2[i,], '*') - xbar
-            varh[,i] <- (varhaz + rowSums((dt %*% object$var)* dt)) *
+            varh[,i] <- (varhaz + rowSums((dt %*% varmat)* dt)) *
                 newrisk[i]^2
             }
         }
     else {
         surv <- surv^newrisk
         dt <-  outer(cumhaz, c(x2)) - xbar
-        varh <- (varhaz + rowSums((dt %*% object$var)* dt)) * 
+        varh <- (varhaz + rowSums((dt %*% varmat)* dt)) * 
             newrisk^2
         }
 @
@@ -394,7 +404,7 @@ else {
         n.censor[[i]]<- slist$n.censor[indx]
         dt <-  outer(slist$cumhaz[indx], x2[i,]) - slist$xbar[indx,,drop=F]
         varh1[[i]] <- slist$varhaz[indx] *newrisk[i]^2
-        varh2[[i]] <- rowSums((dt %*% object$var)* dt) * newrisk[i]^2
+        varh2[[i]] <- rowSums((dt %*% varmat)* dt) * newrisk[i]^2
         }
     varh <- cumsum(unlist(varh1)) + unlist(varh2)
     
