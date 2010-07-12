@@ -62,17 +62,16 @@ if (missing(type)) {
     survtype <- match(object$method, temp1)
         }
 else {
-    temp1 <- c("kalbfleisch-prentice", "aalen", "fleming-harrington")
+    temp1 <- c("kalbfleisch-prentice", "aalen", "efron")
     survtype <- match(match.arg(type, temp1), temp1)
-    if (is.na(survtype)) stop("Invalid argument to 'method'")
     }
 if (missing(vartype)) {
     vartype <- survtype
     }
 else {
-    temp2 <- c("greenwood", "tsiatis", "efron")
-    vartype <- match(match.arg(type, temp2), temp2)
-    if (is.na(vartype)) stop("Invalid variance type specified")
+    temp2 <- c("greenwood", "tsiatis", "efron", "aalen")
+    vartype <- match(match.arg(vartype, temp2), temp2)
+    if (vartype=="tsiatis") vartype<- "aalen"
     }
 
 if (!se.fit) conf.type <- 'none'
@@ -246,9 +245,10 @@ This is memory efficient, the number
 of curves is usually small enough that the "for" loop is no great
 cost, and it's easier to see what's going on than C code.               
 
-First, compute the baseline survival curves for each strata.
+First, compute the baseline survival curves for each strata.  If the strata
+was a factor we want to leave it in the same order, otherwise sort it.
 <<survfit.coxph-compute>>=
-ustrata <- unique(strata)
+ustrata <- levels(as.factor(strata))
 nstrata <- length(ustrata)
 survlist <- vector('list', nstrata)
 if (se.fit) varhaz <- vector('list', nstrata)
@@ -297,7 +297,7 @@ when prediction is far from the mean.
 <<survfit.coxph-compute>>=
 if (!individual) {
     cumhaz <- unlist(lapply(survlist, function(x) x$cumhaz))
-    varhaz <- unlist(lapply(survlist, function(x) x$varhaz))
+    varhaz <- unlist(lapply(survlist, function(x) cumsum(x$varhaz)))
     nevent <- unlist(lapply(survlist, function(x) x$n.event)) #weighted
     ndeath <- unlist(lapply(survlist, function(x) x$ndeath))  #unweighted
     xbar   <- t(matrix(unlist(lapply(survlist, function(x) t(x$xbar))),
@@ -305,23 +305,22 @@ if (!individual) {
     hazard <- unlist(lapply(survlist, function(x) x$hazard))
 
     if (survtype==1) 
-        surv <-cumprod(unlist(lapply(survlist, function(x) x$surv)))
+        surv <-unlist(lapply(survlist, function(x) cumprod(x$surv)))
     else surv <- exp(-cumhaz)
                                     
     if (is.matrix(x2) && nrow(x2) >1) {  #more than 1 row in newdata
         surv <- outer(surv, newrisk, '^')
-        temp <- cumsum(varhaz)
-        varh <- matrix(0., nrow=length(temp), ncol=nrow(x2))
+        varh <- matrix(0., nrow=length(varhaz), ncol=nrow(x2))
         for (i in 1:nrow(x2)) {
             dt <- outer(cumhaz, x2[i,], '*') - xbar
-            varh[,i] <- (temp + rowSums((dt %*% object$var)* dt)) *
+            varh[,i] <- (varhaz + rowSums((dt %*% object$var)* dt)) *
                 newrisk[i]^2
             }
         }
     else {
         surv <- surv^newrisk
         dt <-  outer(cumhaz, c(x2)) - xbar
-        varh <- (cumsum(varhaz) + rowSums((dt %*% object$var)* dt)) * 
+        varh <- (varhaz + rowSums((dt %*% object$var)* dt)) * 
             newrisk^2
         }
 @
@@ -340,7 +339,7 @@ in one fell swoop.
                    n.censor=unlist(lapply(survlist, function(x) x$n.censor)),
                    surv=surv,
                    type=type)
-    if (length(survlist) >1) {
+if (nstrata >1) {
         result$strata <- unlist(lapply(survlist, function(x) length(x$n.risk)))
         names(result$strata) <- ustrata
         }
@@ -378,7 +377,7 @@ survival curve at exactly time 10, we can't let them count the jump twice.
 else {
     ntarget <- nrow(x2)  #number of different time intervals
     surv <- vector('list', ntarget)
-    n.event <- n.risk <- n.censor <- varh <-  time <- surv
+    n.event <- n.risk <- n.censor <- varh1 <- varh2 <-  time <- surv
     stemp <- match(strata2, ustrata)
     timeforward <- 0
     for (i in 1:ntarget) {
@@ -394,15 +393,15 @@ else {
         n.risk[[i]]  <- slist$n.risk[indx]
         n.censor[[i]]<- slist$n.censor[indx]
         dt <-  outer(slist$cumhaz[indx], x2[i,]) - slist$xbar[indx,,drop=F]
-        varh[[i]] <- (cumsum(slist$varhaz[indx]) + 
-                      rowSums((dt %*% object$var)* dt)) * newrisk[i]^2
+        varh1[[i]] <- slist$varhaz[indx] *newrisk[i]^2
+        varh2[[i]] <- rowSums((dt %*% object$var)* dt) * newrisk[i]^2
         }
-    varh <- unlist(varh)
+    varh <- cumsum(unlist(varh1)) + unlist(varh2)
     
     if (survtype==1) surv <- cumprod(unlist(surv))  #increments
     else surv <- exp(-cumsum(unlist(surv)))         #hazards
 
-    result <- list(n=table(strata)[stemp[1]],
+    result <- list(n=as.vector(table(strata)[stemp[1]]),
                    time=cumsum(unlist(time)),
                    n.risk = unlist(n.risk),
                    n.event= unlist(n.event),
@@ -517,10 +516,11 @@ efficiently compute the partial sums.
     dtimes <- which(nevent >0)
     ntime  <- length(time)	
     if (survtype ==1) {
+        indx <- (which(status==1))[order(dtime[status==1])] #deaths
         km <- .C('agsurv4',
              as.integer(ndeath),
-             as.double(risk[dtimes]),
-             as.double(wt[dtimes]),
+             as.double(risk[indx]),
+             as.double(wt[indx]),
              as.integer(ntime),
              as.double(nrisk),
              inc = double(ntime))
@@ -547,7 +547,7 @@ efficiently compute the partial sums.
 		     nevent* tsum$sum1)
     varhaz <- switch(vartype,
                      nevent/(nrisk * 
-                               ifelse(nevent>=nrisk, nrisk, nevent-nrisk)),
+                               ifelse(nevent>=nrisk, nrisk, nrisk-nevent)),
                      nevent/nrisk^2,
                      nevent* tsum$sum2)
     xbar <- switch(vartype,
@@ -585,7 +585,6 @@ void agsurv4(Sint   *ndeath,   double *risk,    double *wt,
 	if (ndeath[i] ==0) km[i] =1;
 	else if (ndeath[i] ==1) { /* not a tied death */
 	    km[i] = pow(1- wt[j]*risk[j]/denom[i], 1/risk[j]);
-	    j++;
 	    }
 	else { /* biscection solution */
 	    guess = .5;
@@ -684,7 +683,7 @@ remove all the time points from the output at which there
 was only censoring activity.  This action is mostly for
 backwards compatability with older releases that never
 returned censoring times.
-Secon, add 
+Second, add 
 in the variance and the confidence intervals to the result.
 The code is nearly identical to that in survfitKM.
 <<survfit.coxph-finish>>=
@@ -694,7 +693,7 @@ if (!censor) {
                               else x}
     keep <- (result$n.event > 0)
     if (nstrata >1) {
-        temp <- rep(levels(ustrata), each=result$strata)
+        temp <- rep(ustrata, each=result$strata)
         result$strata <- c(table(temp[keep]))
         }
     result <- lapply(result, kfun, keep)
