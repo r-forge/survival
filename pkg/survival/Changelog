@@ -69,9 +69,9 @@ type='p', should one plot the tops of the step function, the bottoms, or
 both?).  Make it explicitly disallowed in response to an R-help query,
 rather than the confusing error message that currently arose.
 
-14 Dec 09: Fix bug in frailty.xxx, if there is a missing value in the levels
+14 Dec 09: 1.Fix bug in frailty.xxx, if there is a missing value in the levels
 it gets counted by "length(unique(x))" (frailty is called before NA
-removal.)  SurvfitCI had an incorrect CI with case weights, and
+removal.)  2.SurvfitCI had an incorrect CI with case weights, and 3. in
 survreg a call to resid instead of residuals.survreg, before the class
 was attached.  
 
@@ -108,3 +108,27 @@ thrown out.  Repaired, and a new test added.
 7 April 2010: Minor bug pointed out by Fredrik Lundgren.  In survfit if the
 method was KM (default) and error = Tsiatis an error message results.  Simple
 fix: code went down the wrong branch.
+
+24 May 2010: Fix an annoyance in summary.survfit.  When the survival data 
+had an event or censor at time 0 and summary is called with a times argument,
+then my constructed call to approx() would have duplicate x values.  The answer
+was always right, but approx has begun to print a bothersome warning message.  
+A small change to the constructed argument vector avoids it.
+
+21 May 2010: Fix bug in summary.survfit.  For a survival curve from a Cox model
+with start,stop data, the 'times' argument would generate an error.
+
+11 July 2010: A rewrite of the majority of the survfit.coxph code.  The primary
+benefits are 1: finally tracked down and eliminated the bug for standard errors
+of case weights + Cox survival + Efron method; 2: the individual=TRUE and FALSE
+options now use the same underlying code for curves, before there were some
+options valid only for one or the other; 3: code was rewritten using noweb 
+with a considerable increase in documentation; 4: during the verification
+process some errors were found in the test suite and corrected, e.g., a 
+typo in my book led to failure of an all.equal test in book4.R.  Similar
+to the rewrite for survfit several years ago, the new code has far less use
+of .C to help transparency.
+
+  Also added the noweb.R processing function from the coxme package, so that
+the noweb code can be extracted "on the fly" during installation using
+commands in the configure and cleanup scripts.  
