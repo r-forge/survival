@@ -34,6 +34,14 @@ survfit.formula <- function(formula, data, weights, subset,
     id    <- model.extract(m, 'id')
 
     if (!is.Surv(Y)) stop("y must be a Surv object")
+
+    # Round the survival times to 16 digits.  Otherwise unique() and
+    #  table() can give a different list of unique times, and both are
+    #  used in the subseqent routines.  A test case with times of
+    #  sqrt(2)^2 and 2 revealed this issue.
+    Y[,1] <- as.numeric(as.character(Y[,1]))
+    if (ncol(Y)==3) Y[,2] <- as.numeric(as.character(Y[,2]))
+
     if (length(etype) >0)
          temp <- survfitCI(X, Y, weights=casewt, etype=etype, id=id,  ...)
     else if (attr(Y, 'type') != 'right' && attr(Y, 'type') != 'counting')

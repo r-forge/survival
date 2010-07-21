@@ -132,3 +132,9 @@ of .C to help transparency.
   Also added the noweb.R processing function from the coxme package, so that
 the noweb code can be extracted "on the fly" during installation using
 commands in the configure and cleanup scripts.  
+
+21 July 2010: Fix a problem pointed out by a user: calling survfit with almost
+tied times, e.g., c(2, sqrt(2)^2), could lead to an inconsistent result.  Some
+parts of the code saw these as 2 unique values per the unique() function, some
+as a single value using the results of table().  We now pre-round the input
+times with as.numeric(as.character(y)).
