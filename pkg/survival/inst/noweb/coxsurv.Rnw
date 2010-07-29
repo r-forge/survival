@@ -45,7 +45,7 @@ The third line [[as.name('survfit')]] causes the printout to say
 `survfit' instead of `survfit.coxph'.                              %'
 
 The setup for the routine is fairly pedestrian.
-If the newdata argument is missing we used [[object$means]] as the
+If the newdata argument is missing we use [[object$means]] as the
 default value.  This choice has lots of statistical shortcomings,
 particularly in a stratified model, but is common in other
 packages and a historic option here.
@@ -80,7 +80,11 @@ else conf.type <- match.arg(conf.type)
 
 I need to retrieve a copy of the original data. 
 This includes the survival times, model matrix, 
-case weights and strata.
+case weights and strata.  
+The code below currently could be made faster for the case that a user
+had save x, y, etc in the model object --- then model.frame does not
+actually need to be called.  This is very rare, except for the case of
+the cph function from the rms package, and is on my ``someday'' list.
 The ``failed to reconstruct'' error messages are to avoid nonsense results
 when someone changes the data set under our feet.  For instance
 \begin{verbatim}
@@ -88,7 +92,7 @@ when someone changes the data set under our feet.  For instance
   lung <- lung[1:100,]
   survfit(fit)
 \end{verbatim}
-The check for [[type]] of the same flavor; since [[coxph]] can only deal
+Also check for [[type]] of the same flavor; since [[coxph]] can only deal
 with these two types, any other must signal a change in the data.
 <<survfit.coxph-setup>>=
 mf <- model.frame(object)

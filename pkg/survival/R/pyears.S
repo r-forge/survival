@@ -125,7 +125,7 @@ pyears <- function(formula, data,
             }
         else {
             rfac <- 1*(atts$type ==1)
-            us.special <- (atts$type==3)
+            us.special <- (atts$type==4)
             }
 	if (any(us.special)) {  #special handling for US pop tables
 	    # Now, the 'entry' date on a US rate table is the number of days 
@@ -154,7 +154,8 @@ pyears <- function(formula, data,
             if (exists("as.Date")) {  # true for modern version of R
                 bdate <- as.Date('1960/1/1') + (R[,cols[2]] - R[,cols[1]])
                 byear <- format(bdate, "%Y")
-                offset <- julian(bdate, origin=paste(byear, '01/01', sep='/'))
+                offset <- bdate - as.Date(paste(byear, "01/01", sep='/'), 
+                                          origin="1960/01/01")
                 }
             else if (exists('month.day.year')) { # Splus, usually
                 bdate <- R[,cols[2]] - R[,cols[1]]
