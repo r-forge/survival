@@ -36,7 +36,7 @@ print.coxme <- function(x, rcoef=FALSE, digits=options()$digits, ...) {
                     round(chi2- log(x$n[1])*x$df[2],2)))
     dimnames(temp) <- list(c("Integrated loglik", " Penalized loglik"),
                            c("Chisq", "df", "p", "AIC", "BIC"))
-    print(temp, quote=F)
+    print(temp, quote=F, digits=digits)
 
     cat ("\nModel: ", deparse(x$call$formula), "\n")
 
@@ -67,15 +67,15 @@ print.coxme <- function(x, rcoef=FALSE, digits=options()$digits, ...) {
 
     if (nvar>0 && rcoef) {
         cat("Fixed and penalized coefficients\n")
-        print(rbind(tmp, cbind(rtmp,NA,NA)), na.print='')
+        print(rbind(tmp, cbind(rtmp,NA,NA)), na.print='', digits=digits)
         }
     else if (rcoef) {
         cat("Penalized coefficients\n")
-        print(rtmp)
+        print(rtmp, digits=digits)
         }
     else if (nvar>0) {
         cat("Fixed coefficients\n")
-        print(tmp)
+        print(tmp, digits=digits)
         }
 
     cat("\nRandom effects\n")
@@ -121,6 +121,6 @@ print.coxme <- function(x, rcoef=FALSE, digits=options()$digits, ...) {
         temp4 <- c("Group","Variable", "Std Dev", "Variance", "Corr", 
                    rep("", maxcol-3))
     dimnames(temp) <- list(rep("", nrow(temp)), temp4)
-    print(temp, quote=F)
+    print(temp, quote=F, digits=digits)
     invisible(x)
     }

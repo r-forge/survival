@@ -1,4 +1,3 @@
-% -*- mode: Noweb; noweb-code-mode: c-mode -*-
 \section{Computation in C code}
 The underlying C code for the routine is separated into 4
 sections: setup the data, compute the solution for a
@@ -34,7 +33,9 @@ variables
   used for random slopes.  The first column of xmap applies to the first
   column of X, etc.  If xmap has fewer columns than X (the usual case),
   then the remaining columns of X map to coefficients maxmap+1, maxmap+2 etc
-\item[nmap] the maximum coefficient referenced in imap or xmap
+\item[nmap] the maximum coefficient referenced in imap or xmap, i.e., the
+  total number of mapped coefficients.  These coefficients are first in the
+  vector of all coefficients.
 \item[strata] sizes of the strata, cumulative
 \item[sort] sort order for the observations, last to first within strata.
   For (start,stop) data this is a two column matrix, whose second column gives
@@ -74,40 +75,64 @@ SEXP coxfit7a(SEXP y,      SEXP covar,   SEXP imap,   SEXP xmap,   SEXP nmap,
     int *iptr;
 
     n          = NROW(y);
-    c6.n       = n
-    c6.nvar    = NCOL(covar)
+    c6.n       = n;
+    c6.nvar    = NCOL(covar);
+    c6.nimap   = NCOL(imap);
+    c6.nxmap   = NCOL(xmap);
+    c6.nmap    = asInteger(nmap);
     c6.method  = asInteger(method);
     c6.tolerch = asREAL(tolerch);
     c6.eps     = asREAL(eps);
     c6.nblock  = LENGTH(bsize);
-    c6.offset  = REAL(PROTECT(offset)); 
-    c6.weights = REAL(PROTECT(weights));
-    c7.strata  = REAL(PROTECT(strata)); 
+    
     nsparse =0;  	/* number of random effects coefficients */
     fsize  =0;          /* memory size of the block diagonal matrices */
-    if (c6.nblock >0)  { /* no sparse terms is a possibility*/
-	dprt = REAL(bsize)
-	for (i=0; i<c6.nblock; i++)
-	    nsparse += dptr[i];
 
-	c6.bsize = (int *) Calloc(c6.nblock + 2*nsparse, int);
-	c6.bstart= c6.bsize + c6.nblock;
-	c6.bstop  = c6.bstart + nsparse;
-	k=0; 
-	for (i=0; i<c6.nblock; i++) {
-	    c6.bsize[i] = dptr[i];
-	    fsize   += (dptr[i] * (1+dptr[i])) /2;
-	    for (j=0; j<c6.bsize[i]; j++) {
-		c6.bstart[k+j] =k;
-		c6.bstop[k+j] = k + c6.bsize[i];
-		}
-	    k += c6.bsize[i];
+    <<c7a-allocate-sparse>>
+@ 
+
+The next task is to allocate the sparse matrices;
+[[imat]] contains the information matrix and [[cmat]] working sums
+for its computation.  
+For both of these the first columns are
+for the penalized terms and have the same matrix form as the
+input penalty matrix --- the form of the penalty is how the
+parent routine ``tells'' this one what sparsity is appropriate for
+the data. 
+The non-penalized terms, which form the remainder of the matrix, are
+added onto the [[rmat]] portion of the penalty.
+
+The code below creates the helper vectors [[bstart]] and [[bstop]], which
+contain for each row the starting and ending rows of the block
+containing it, counts up the blocks, and computes the total size of the
+sparse portion as [[c6.tblock]].  
+Note that the actual penalty matrix is not yet present since that changes
+with each iteration and so in an argument to [[coxfit7c]], but we need its
+size for the other matrices.
+<<c7a-allocate-sparse>>=
+c6.nsparse =0;  /* number of random effects coefficients */
+c6.tblock =0;
+if (c6.nblock >0)  { /* no sparse terms is a possibility*/
+    dprt = REAL(bsize);   /* pointer to the block portion */
+    for (i=0; i<c6.nblock; i++)
+	c6.nsparse += dptr[i];
+
+    c6.bsize = (int *) Calloc(c6.nblock + 2*c6.nsparse, int);
+    c6.bstart= c6.bsize + c6.nblock;
+    c6.bstop  = c6.bstart + nsparse;
+    for (i=0; i<c6.nblock; i++) {
+	c6.bsize[i] = dptr[i];
+        c6.tblock   += (bsize[i] * (1+bsize[i])) /2;
+ 	for (j=0; j<c6.bsize[i]; j++) {
+	    c6.bstart[k+j] =k;
+	    c6.bstop[k+j] = k + c6.bsize[i];
 	    }
-	c6.tblock = fsize;
+	k += c6.bsize[i];
 	}
-    else c6.tblock  =  0; 
-    c6.nsparse = nsparse;
-    c6.nfrail =  nsparse + asInteger(rsize);
+    }
+
+c6.nsparse = nsparse;
+c6.nfrail =  nsparse + asInteger(rsize);
 
     c6.nfx = *fcol;
     if (c6.nfx >0) {  /* there are factor variables: save fcol matrix */

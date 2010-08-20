@@ -12,8 +12,10 @@ fixed.effects <- function(object, ...) {
     UseMethod("fixef")
     }
 
-fixef.coxme <- function(object, ...)
+fixef.coxme <- function(object, ...) {
     object$coefficients$fixed
+    }
 
-ranef.coxme <- function(object, ...)
+ranef.coxme <- function(object, ...){
     object$coefficients$random
+    }

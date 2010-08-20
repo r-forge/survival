@@ -133,7 +133,7 @@ random term.  Each element of the list can be:
   \item A matrix or list of matrices.  This is useful for genetic
     data in particular.
   \item A function which generates a coxme variance family object (of class
-    [[coxmevar]], or the result of a call to such a function.
+    [[coxmevar]]), or the result of a call to such a function.
 \end{itemize}
 We are not backwards compatable with all old-stlye [[coxme]] calls,
 in particular the use of the unevaluated [[bdsI]] function in a list.
@@ -376,10 +376,14 @@ if (is.character(fit)) {
     }
 @ 
 
-Now add labels to the fixed coefficients and to the frailty terms.
+Now add labels to the fixed and random coefficients.
 The [[coefficients]] portion of the returned object conttains the
 values for $\hat \beta$ (fixed) and for the variances $\hat \theta$.
 The [[frail]] component contains the values for $\hat b$.
+(Why not call the returned variable [[b]]?  First because single letter
+components can cause unexpected grief later, [[fit$b]] might end up
+fetching something else that starts with a `b'.  Second because the
+original coxme function used this.)
 <<finish-up>>=
 fcoef <- fit$coefficients
 nvar <- length(fcoef)
