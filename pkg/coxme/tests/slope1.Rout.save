@@ -1,6 +1,6 @@
 
-R version 2.9.0 (2009-04-17)
-Copyright (C) 2009 The R Foundation for Statistical Computing
+R version 2.11.1 (2010-05-31)
+Copyright (C) 2010 The R Foundation for Statistical Computing
 ISBN 3-900051-07-0
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
@@ -59,164 +59,164 @@ Loading required package: bdsmatrix
 > 
 > fit0 <- coxph(Surv(time, status) ~ age + trt, simdata)
 > fit1 <- coxme(Surv(time, status) ~ age + trt + (1|inst), simdata)
-> print(fit1, rcoef=TRUE)
+> print(fit1, rcoef=TRUE, digits=5)
 Cox mixed-effects model fit by maximum likelihood
   Data: simdata
   events, n = 1504, 2376
-  Iterations= 5 28 
+  Iterations= 8 43 
                     NULL Integrated Penalized
-Log-likelihood -10892.32  -10826.57 -10822.02
+Log-likelihood -10892.32  -10826.57 -10822.06
 
-                   Chisq   df p   AIC    BIC
-Integrated loglik 131.50 3.00 0 125.5 109.55
- Penalized loglik 140.61 7.41 0 125.8  86.42
+                   Chisq   df p    AIC    BIC
+Integrated loglik 131.50 3.00 0 125.50 109.55
+ Penalized loglik 140.54 7.38 0 125.77  86.52
 
 Model:  Surv(time, status) ~ age + trt + (1 | inst) 
 Fixed and penalized coefficients
-              coef exp(coef)    se(coef)     z       p
-age     0.02994814 1.0304011 0.003022897  9.91 0.0e+00
-trt    -0.24972461 0.7790153 0.051899843 -4.81 1.5e-06
-inst.1 -0.12340995 0.8839012 0.078765930              
-inst.2 -0.00768660 0.9923429 0.075814087              
-inst.3 -0.04397800 0.9569750 0.074542786              
-inst.4 -0.12127349 0.8857917 0.073410348              
-inst.5  0.03235271 1.0328817 0.071051724              
-inst.6  0.09169978 1.0960357 0.070172255              
-inst.7 -0.01707994 0.9830651 0.069194962              
-inst.8  0.02449549 1.0247980 0.068160628              
-inst.9  0.16487999 1.1792516 0.066877069              
+             coef exp(coef)  se(coef)     z       p
+age     0.0299477   1.03040 0.0030229  9.91 0.0e+00
+trt    -0.2497686   0.77898 0.0518992 -4.81 1.5e-06
+inst.1 -0.1226963   0.88453 0.0784390              
+inst.2 -0.0076908   0.99234 0.0755207              
+inst.3 -0.0437951   0.95715 0.0742550              
+inst.4 -0.1207170   0.88628 0.0731239              
+inst.5  0.0321539   1.03268 0.0707905              
+inst.6  0.0912491   1.09554 0.0699193              
+inst.7 -0.0170631   0.98308 0.0689399              
+inst.8  0.0243421   1.02464 0.0679127              
+inst.9  0.1642172   1.17847 0.0666414              
 
 Random effects
  Group Variable  Std Dev    Variance  
- inst  Intercept 0.11411655 0.01302259
+ inst  Intercept 0.11329001 0.01283463
 > fit2 <- coxme(Surv(time, status) ~ age + trt + (1|inst/trt), simdata)
-> print(fit2, rcoef=TRUE)
+> print(fit2, rcoef=TRUE, digits=5)
 Cox mixed-effects model fit by maximum likelihood
   Data: simdata
   events, n = 1504, 2376
-  Iterations= 15 78 
+  Iterations= 14 73 
                     NULL Integrated Penalized
 Log-likelihood -10892.32  -10814.83 -10802.44
 
                    Chisq   df p    AIC    BIC
-Integrated loglik 154.98  4.0 0 146.98 125.71
- Penalized loglik 179.77 14.2 0 151.37  75.88
+Integrated loglik 154.98  4.0 0 146.98 125.72
+ Penalized loglik 179.77 14.2 0 151.37  75.90
 
 Model:  Surv(time, status) ~ age + trt + (1 | inst/trt) 
 Fixed and penalized coefficients
-                      coef exp(coef)    se(coef)     z      p
-age           0.0309016690 1.0313841 0.003035530 10.18 0.0000
-trt          -0.3034538269 0.7382640 0.108591362 -2.79 0.0052
-inst/trt.1/0 -0.0372432879 0.9634417 0.122275467             
-inst/trt.1/1 -0.2616611449 0.7697718 0.130576152             
-inst/trt.2/0  0.0940191065 1.0985807 0.116757205             
-inst/trt.2/1 -0.1246900755 0.8827705 0.125130571             
-inst/trt.3/0  0.1114802648 1.1179317 0.115213683             
-inst/trt.3/1 -0.2197110918 0.8027507 0.122632951             
-inst/trt.4/0 -0.1231074438 0.8841687 0.114350486             
-inst/trt.4/1 -0.1543242607 0.8569941 0.120276168             
-inst/trt.5/0  0.0434537068 1.0444116 0.110499028             
-inst/trt.5/1  0.0272378959 1.0276122 0.115488858             
-inst/trt.6/0  0.1540495772 1.1665487 0.108392663             
-inst/trt.6/1  0.0415917948 1.0424689 0.114685100             
-inst/trt.7/0 -0.0354370631 0.9651835 0.108869466             
-inst/trt.7/1 -0.0007648831 0.9992354 0.111449427             
-inst/trt.8/0 -0.1499616326 0.8607410 0.108078337             
-inst/trt.8/1  0.2272891906 1.2551928 0.108914070             
-inst/trt.9/0 -0.0572532278 0.9443549 0.105627712             
-inst/trt.9/1  0.4650325748 1.5920660 0.106855713             
-inst.1       -0.0023253739 0.9976773 0.017642240             
-inst.2       -0.0002386096 0.9997614 0.017637636             
-inst.3       -0.0008419987 0.9991584 0.017635968             
-inst.4       -0.0021583235 0.9978440 0.017634684             
-inst.5        0.0005499564 1.0005501 0.017631299             
-inst.6        0.0015220227 1.0015232 0.017630202             
-inst.7       -0.0002816387 0.9997184 0.017629136             
-inst.8        0.0006015819 1.0006018 0.017627881             
-inst.9        0.0031723834 1.0031774 0.017626240             
+                    coef exp(coef)  se(coef)     z      p
+age           0.03090186   1.03138 0.0030355 10.18 0.0000
+trt          -0.30346766   0.73825 0.1086656 -2.79 0.0052
+inst/trt.1/0 -0.03794080   0.96277 0.1220928             
+inst/trt.1/1 -0.26243842   0.76917 0.1304507             
+inst/trt.2/0  0.09397098   1.09853 0.1165404             
+inst/trt.2/1 -0.12483464   0.88264 0.1249758             
+inst/trt.3/0  0.11125260   1.11768 0.1149837             
+inst/trt.3/1 -0.22007522   0.80246 0.1224606             
+inst/trt.4/0 -0.12384299   0.88352 0.1141136             
+inst/trt.4/1 -0.15503800   0.85638 0.1200827             
+inst/trt.5/0  0.04362422   1.04459 0.1102365             
+inst/trt.5/1  0.02740847   1.02779 0.1152658             
+inst/trt.6/0  0.15457578   1.16716 0.1081136             
+inst/trt.6/1  0.04206874   1.04297 0.1144580             
+inst/trt.7/0 -0.03556164   0.96506 0.1085928             
+inst/trt.7/1 -0.00086425   0.99914 0.1111935             
+inst/trt.8/0 -0.14983867   0.86085 0.1077974             
+inst/trt.8/1  0.22755307   1.25552 0.1086373             
+inst/trt.9/0 -0.05623949   0.94531 0.1053288             
+inst/trt.9/1  0.46622025   1.59396 0.1065641             
+inst.1       -0.00138986   0.99861 0.0136439             
+inst.2       -0.00014281   0.99986 0.0136417             
+inst.3       -0.00050352   0.99950 0.0136410             
+inst.4       -0.00129039   0.99871 0.0136404             
+inst.5        0.00032867   1.00033 0.0136388             
+inst.6        0.00090988   1.00091 0.0136383             
+inst.7       -0.00016854   0.99983 0.0136378             
+inst.8        0.00035959   1.00036 0.0136372             
+inst.9        0.00189699   1.00190 0.0136365             
 
 Random effects
  Group    Variable    Std Dev      Variance    
- inst/trt (Intercept) 0.2009613020 0.0403854449
- inst     (Intercept) 0.0177252618 0.0003141849
+ inst/trt (Intercept) 0.2011420168 0.0404581109
+ inst     (Intercept) 0.0136821251 0.0001872005
 > 
 > fit3 <- coxme(Surv(time, status) ~ age + trt + (1|inst) + (trt|inst),simdata)
-> print(fit3, rcoef=TRUE)
+> print(fit3, rcoef=TRUE, digits=5)
 Cox mixed-effects model fit by maximum likelihood
   Data: simdata
   events, n = 1504, 2376
-  Iterations= 7 39 
+  Iterations= 24 124 
                     NULL Integrated Penalized
-Log-likelihood -10892.32  -10812.97 -10803.33
+Log-likelihood -10892.32  -10812.96 -10803.31
 
-                   Chisq    df p    AIC    BIC
-Integrated loglik 158.72  4.00 0 150.72 129.45
- Penalized loglik 177.98 10.68 0 156.62  99.85
+                   Chisq   df p    AIC    BIC
+Integrated loglik 158.72  4.0 0 150.72 129.46
+ Penalized loglik 178.03 10.8 0 156.42  99.01
 
 Model:  Surv(time, status) ~ age + trt + (1 | inst) + (trt | inst) 
 Fixed and penalized coefficients
-                   coef exp(coef)    se(coef)     z      p
-age         0.030723249 1.0312001 0.003030259 10.14 0.0000
-trt        -0.305917820 0.7364471 0.108007777 -2.83 0.0046
-inst.1     -0.019583853 0.9806067 0.053974071             
-inst.2      0.020838296 1.0210569 0.053491954             
-inst.3      0.022453840 1.0227078 0.053296534             
-inst.4     -0.040362461 0.9604413 0.052394333             
-inst.5      0.016105371 1.0162358 0.052153185             
-inst.6      0.052100022 1.0534811 0.052068050             
-inst.7     -0.009664679 0.9903819 0.051550101             
-inst.8     -0.040316689 0.9604852 0.050961577             
-inst.9     -0.001569847 0.9984314 0.050663347             
-inst.1:trt -0.298988518 0.7415679 0.161528403             
-inst.2:trt -0.157652725 0.8541464 0.153957252             
-inst.3:trt -0.269280325 0.7639291 0.151639927             
-inst.4:trt -0.139948512 0.8694030 0.148824042             
-inst.5:trt  0.024833452 1.0251444 0.142916385             
-inst.6:trt  0.010610764 1.0106673 0.141949651             
-inst.7:trt  0.015126796 1.0152418 0.138967038             
-inst.8:trt  0.294922782 1.3430226 0.135982118             
-inst.9:trt  0.520376286 1.6826607 0.133554803             
+                 coef exp(coef)  se(coef)     z      p
+age         0.0307259   1.03120 0.0030304 10.14 0.0000
+trt        -0.3057177   0.73659 0.1069835 -2.86 0.0043
+inst.1     -0.0214910   0.97874 0.0562759             
+inst.2      0.0224168   1.02267 0.0557174             
+inst.3      0.0240594   1.02435 0.0554974             
+inst.4     -0.0436475   0.95729 0.0545119             
+inst.5      0.0173391   1.01749 0.0542193             
+inst.6      0.0560745   1.05768 0.0541101             
+inst.7     -0.0104013   0.98965 0.0535580             
+inst.8     -0.0430259   0.95789 0.0529160             
+inst.9     -0.0013240   0.99868 0.0525694             
+inst.1:trt -0.2959888   0.74380 0.1608653             
+inst.2:trt -0.1583794   0.85353 0.1533801             
+inst.3:trt -0.2695922   0.76369 0.1510714             
+inst.4:trt -0.1368556   0.87210 0.1482969             
+inst.5:trt  0.0234543   1.02373 0.1424319             
+inst.6:trt  0.0069065   1.00693 0.1414569             
+inst.7:trt  0.0154853   1.01561 0.1384999             
+inst.8:trt  0.2963071   1.34488 0.1355357             
+inst.9:trt  0.5186628   1.67978 0.1331088             
 
 Random effects
  Group Variable  Std Dev     Variance   
- inst  Intercept 0.059646767 0.003557737
- inst  trt       0.282094798 0.079577475
+ inst  Intercept 0.062784773 0.003941928
+ inst  trt       0.278570804 0.077601693
 > 
 > fit4 <- coxme(Surv(time, status) ~ age + trt + (1 +trt |inst), simdata)
 > 
 > sfit0 <- coxph(Surv(time, status) ~ age + trt + strata(inst), simdata)
 > sfit1 <- coxme(Surv(time, status) ~ age + trt + (trt|inst) + strata(inst),
 +                simdata)
-> print(sfit1, rcoef=TRUE)
+> print(sfit1, rcoef=TRUE, digits=5)
 Cox mixed-effects model fit by maximum likelihood
   Data: simdata
   events, n = 1504, 2376
-  Iterations= 7 38 
+  Iterations= 9 48 
                     NULL Integrated Penalized
-Log-likelihood -7636.963    -7564.2   -7557.1
+Log-likelihood -7636.963    -7564.2 -7557.105
 
                    Chisq  df p    AIC    BIC
 Integrated loglik 145.53 3.0 0 139.53 123.58
- Penalized loglik 159.73 8.3 0 143.12  98.99
+ Penalized loglik 159.72 8.3 0 143.12  98.99
 
 Model:  Surv(time, status) ~ age + trt + (trt | inst) + strata(inst) 
 Fixed and penalized coefficients
-                  coef exp(coef)    se(coef)     z      p
-age         0.03096584 1.0314503 0.003047179 10.16 0.0000
-trt        -0.31040028 0.7331534 0.116616742 -2.66 0.0078
-inst.1:trt -0.23581210 0.7899291 0.190742472             
-inst.2:trt -0.23588997 0.7898676 0.179204360             
-inst.3:trt -0.34258453 0.7099331 0.176437915             
-inst.4:trt -0.03708907 0.9635903 0.174778874             
-inst.5:trt -0.01856659 0.9816047 0.166031814             
-inst.6:trt -0.09182265 0.9122669 0.163519310             
-inst.7:trt  0.03377703 1.0343539 0.162381052             
-inst.8:trt  0.39199029 1.4799233 0.159365532             
-inst.9:trt  0.53599761 1.7091525 0.155115030             
+                coef exp(coef)  se(coef)     z      p
+age         0.030966   1.03145 0.0030472 10.16 0.0000
+trt        -0.310383   0.73317 0.1165573 -2.66 0.0077
+inst.1:trt -0.235730   0.78999 0.1906797             
+inst.2:trt -0.235825   0.78992 0.1791461             
+inst.3:trt -0.342491   0.71000 0.1763804             
+inst.4:trt -0.037091   0.96359 0.1747224             
+inst.5:trt -0.018576   0.98160 0.1659773             
+inst.6:trt -0.091815   0.91227 0.1634652             
+inst.7:trt  0.033755   1.03433 0.1623272             
+inst.8:trt  0.391892   1.47978 0.1593120             
+inst.9:trt  0.535881   1.70895 0.1550619             
 
 Random effects
  Group Variable Std Dev    Variance  
- inst  trt      0.31059624 0.09647003
+ inst  trt      0.31039655 0.09634602
 > 
 > #Comparison plot
 > y <- cbind(slope, NA, coef0[2,], fixef(sfit1)[2] + unlist(sfit1$frail),

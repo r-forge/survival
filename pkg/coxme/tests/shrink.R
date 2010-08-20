@@ -22,11 +22,14 @@ fit3 <- coxme(Surv(time, status) ~ age + (1|ph.ecog), lung, vfixed=.5)
 all.equal(fit2$var, fit3$var)
 all.equal(fit2$loglik, fit3$loglik)
 
-fit4 <- coxme(Surv(time, status) ~ age + (1|ph.ecog), lung)
+# Because of internal scaling, the default intial values for these two
+#  forms will be different.  By setting an initial value we get identical
+#  iteration paths.
+fit4 <- coxme(Surv(time, status) ~ age + (1|ph.ecog), lung, vinit=.1)
 dname <- paste("ecog", 0:3, sep='')
 dummy <- matrix(diag(4), 4, dimnames=list(dname,dname))
 fit5 <- coxme(Surv(time, status) ~ age + (ecog0+ecog1+ecog2+ecog3 |1), lung,
-              varlist=dummy)
+              varlist=dummy, vinit=.1)
 all.equal(fit4$log, fit5$log)
 all.equal(fit4$coef, fit5$coef, check.attributes=FALSE) #names will differ
 
