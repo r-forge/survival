@@ -24,10 +24,18 @@ automatically when that software is not present.
 	
 18 Aug 10
   Correct the 'digits' option to print.coxme (it was being ignored).
-  Remove scaling from coxmeFull.R (varfun.Rnw), it interferred with the computations
-for the refine.n option.
+  Remove scaling from coxmeFull.R (varfun.Rnw), it interferred with the
+computations for the refine.n option.
   Add multiple starting estimates to the code.  That is, the standard variance 
-routines now pass back a vector of starting values for each variance parameter, and
-the combination with the best LL is used as the starting point for optim.  I had been
-tweaking the default starting estimate when encountering different data sets, and
-finally realised that no one value would always work.  
+routines now pass back a vector of starting values for each variance parameter,
+and the combination with the best LL is used as the starting point for optim.  
+I had been tweaking the default starting estimate when encountering different 
+data sets, and finally realised that no one value would always work.  
+
+22 Aug 10
+  Fix bug in the refine.n code: when there were random slopes the coxfit6d.c 
+routine incorrectly computed the linear predictor.  Added a new test refine2.R.
+Small change in the R code wrt centering the calculation (simpler to understand
+but no numeric impact).  Add more verbiage to varfun.Rnw.
+
+

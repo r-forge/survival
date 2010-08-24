@@ -341,7 +341,7 @@ else {
         stop (paste("Vfixed must be a list of length", nrandom))
     if (!all(sapply(vfixed,  function(x) (is.null(x) || is.numeric(x))))) 
         stop("Vfixed must contain numeric values") 
-    
+
     if (length(vfixed) < nrandom) 
         vfixed <- c(vfixed, vector('list', nrandom - length(vfixed)))
                    
@@ -530,11 +530,12 @@ is as $k$ indicator variables.
 We do this by imposing our own contrasts. 
 
 Update. I've realized that factors are more of a problem than I   %'
-thought.  The current solution is not to allow factors on the
-covariates.  The issue is that the downstream routine has to know
-when to use a common variance for two columns of cmat, and when not to,
+thought.  The issue is that the downstream routine has to know
+when to use a common variance for two columns of cmat, and when not to.
+This means that it has to look at the 
 and (even harder) that the correlation between an intercept and a factor
-is not clear.
+is not clear.  The variance function will examine the [[assign]] attribute
+of the model matrix to know which terms go together.
 <<get-cmat>>=
 getcmat <- function(x, mf) {
     if (is.null(x) || x==1) return(NULL)
@@ -544,7 +545,6 @@ getcmat <- function(x, mf) {
     varnames <-  attr(Terms, 'term.labels')
     ftemp <- sapply(mf[varnames], is.factor)
     if (any(ftemp)) {
-        stop("Factors are not valid as a covariate within a random effect")
         clist <- lapply(mf[varnames[ftemp]], 
                         function(x) diag(length(levels(x))))
         model.matrix(Terms, mf, contrasts.arg =clist)

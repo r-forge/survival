@@ -11,7 +11,7 @@
 
 \noweboptions{breakcode}
 \title{The \emph{coxme} function in S}
-\author{Terry Therneau}
+\author{Terry Therneau // Mayo Clinic}
 
 \begin{document}
 \maketitle

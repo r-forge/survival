@@ -364,11 +364,14 @@ if (refine.n > 0) {
 
 The second two terms for the calculation are quadratic forms.  
 Mathematically, the actual correction is the mean of 
-[[exp(rfit$loglik) - exp[[fit$loglik + rterm1 - rterm2]].  
+[[exp(rfit$loglik) - exp[[fit$loglik + rterm2 - rterm3]].  
 However, many of these will be huge negative numbers and the
 exponentials would become exact zeros, leaving no digits of
-precision in the difference.  We first scale (tmean), and finally
-express the result as a fraction of the integrated likelihood.
+precision in the difference. 
+The Laplace approximation to the integrated log-likelihood is
+based on the assumption that mean of the first term is 
+[[exp(ilik)]], so that is a natural centering value, i.e.,
+[[exp(rfit$loglik - ilik)]] should give numbers centered around 1.
 <<refine2>>=
 if (refine.n > 0) {
     nfrail <- ncol(gkmat)
@@ -376,11 +379,9 @@ if (refine.n > 0) {
     delta  <- fit$beta[1:nfrail] - gkmat %*% bmat
     rterm3 <- rowSums((t(delta) %*% hmat[1:nfrail, 1:nfrail])^2)/2
     temp <- cbind(rfit$loglik, fit$loglik[2] +rterm2 - rterm3)
-    tmean <- mean(temp)
-    escale <- exp(tmean-ilik)
-    errhat <- exp(temp[,1]-tmean) - exp(temp[,2]-tmean)
-    ilik  <- ilik + log(1+ escale*mean(errhat))
-    r.correct <- escale *c(correction= mean(errhat), 
+    errhat <- exp(temp[,1]- ilik) - exp(temp[,2]- ilik)
+    ilik  <- ilik + log(1+ mean(errhat))
+    r.correct <- c(correction= mean(errhat), 
                            std =sqrt(var(errhat)/refine.n))
     }
 @ 
@@ -729,8 +730,8 @@ And last, put together the output structure.
     if (refine.n>0) {
         out$refine <- r.correct
         #The next line can be turned on for detailed tests in refine.R
-        if (FALSE) out$refine.debug <- list(loglik=rfit$loglik, escale=escale,
-                                           bmat=bmat, errhat=errhat)
+        if (FALSE) out$refine.debug <-list(loglik=rfit$loglik, bmat=bmat,
+                                           errhat=errhat, gkmat=gkmat)
         }
     out
     }
