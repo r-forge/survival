@@ -1,12 +1,14 @@
 PARTS = main.Rnw \
 	residuals.survreg.Rnw \
-	coxsurv.Rnw
-#	predict.coxph.Rnw \
+	coxsurv.Rnw \
+	survexp.Rnw \
+	predict.coxph.Rnw 
 
 SFUN =  residuals.survreg.S\
 	survfit.coxph.R \
-	agsurv.R
-	 # predict.coxph.S \
+	agsurv.R\
+	survexp.R \
+	predict.coxph.S 
 
 CFUN =  agsurv4.c agsurv5.c
 
@@ -59,5 +61,4 @@ test: $(RFUN)
 clean:
 	-rm all.nw all.log all.aux all.toc all.tex 
 	-rm $(RFUN)
-	-rm $(SFUN)
 	-rm $(CFUN2)
