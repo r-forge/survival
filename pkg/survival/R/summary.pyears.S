@@ -15,7 +15,7 @@ summary.pyears <- function(object, ...) {
         cat (   "Total number of person-years tabulated:", 
              format(sum(object$data$pyears)),
              "\nTotal number of person-years off table:",
-             format(object$offtable), "\n")
+             format(object$offtable), "")
         }
     if (!is.null(object$summary)) {
         cat("Matches to the chosen rate table:\n  ", 
