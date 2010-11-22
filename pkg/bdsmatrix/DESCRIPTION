@@ -1,8 +1,8 @@
 Package: bdsmatrix
 Title:  Routines for Block Diagonal Symmetric matrices
 Maintainer: Terry Therneau <terry.therneau@mayo.edu>
-Version: 1.0.1
-Date: 2009-03-05
+Version: 1.1
+Date: 2010-11-22
 Depends: methods, R (>= 2.0.0)
 LazyData: Yes
 LazyLoad: Yes
@@ -17,3 +17,4 @@ Collate: bdsmatrix.R gchol.R gchol.bdsmatrix.R
  listbdsmatrix.R  multiply.bdsmatrix.R 
  solve.bdsmatrix.R solve.gchol.R solve.gchol.bdsmatrix.R 
  familycheck.R kindepth.R kinship.R makefamid.R makekinship.R
+
