@@ -1,5 +1,6 @@
 PARTS = main.Rnw \
 	coxsurv.Rnw \
+	coxsurv2.Rnw \
 	predict.coxph.Rnw \
 	survexp.Rnw \
 	residuals.survreg.Rnw 
@@ -9,16 +10,16 @@ SFUN =  residuals.survreg.S\
 	survfit.coxph.fit.R\
 	agsurv.R\
 	survexp.R \
-	predict.coxph.S 
+	predict.coxph.R 
 
 CFUN =  agsurv4.c agsurv5.c
-RDIR = ../../R
+RDIR = ../R
 RFUN = $(SFUN:%=$(RDIR)/%)
-CFUN2= $(CFUN:%=../../src/%)
-DOCDIR= ../doc
+CFUN2= $(CFUN:%=../src/%)
+DOCDIR= ../inst/doc
 
 all:  $(DOCDIR)/sourcecode.pdf fun
-	
+
 $(DOCDIR)/sourcecode.pdf: all.pdf
 	cp all.pdf $(DOCDIR)
 
