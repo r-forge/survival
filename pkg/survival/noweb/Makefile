@@ -1,16 +1,18 @@
 PARTS = main.Rnw \
 	coxsurv.Rnw \
 	coxsurv2.Rnw \
+	pyears.Rnw \
 	predict.coxph.Rnw \
 	survexp.Rnw \
 	residuals.survreg.Rnw 
 
-SFUN =  residuals.survreg.S\
+SFUN =  agsurv.R \
+	predict.coxph.R \
+	pyears.R \
+	residuals.survreg.S\
 	survfit.coxph.R \
 	survfitcoxph.fit.R\
-	agsurv.R\
-	survexp.R \
-	predict.coxph.R 
+	survexp.R 
 
 CFUN =  agsurv4.c agsurv5.c
 RDIR = ../R
@@ -18,10 +20,12 @@ RFUN = $(SFUN:%=$(RDIR)/%)
 CFUN2= $(CFUN:%=../src/%)
 DOCDIR= ../inst/doc
 
-all:  $(DOCDIR)/sourcecode.pdf fun
+all:  doc fun
+
+doc: $(DOCDIR)/sourcecode.pdf
 
 $(DOCDIR)/sourcecode.pdf: all.pdf
-	cp all.pdf $(DOCDIR)
+	cp all.pdf $(DOCDIR)/.
 
 all.pdf: all.tex
 	latex all   #twice to get the table of contents right
@@ -39,7 +43,7 @@ $(CFUN): all.nw
 $(CFUN2): all.nw
 $(RFUN): all.nw
 
-.PHONY: fun clean
+.PHONY: fun clean doc
 fun: $(RFUN) $(CFUN2)
 
 test: $(RFUN)
