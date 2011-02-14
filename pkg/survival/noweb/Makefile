@@ -25,7 +25,7 @@ all:  doc fun
 doc: $(DOCDIR)/sourcecode.pdf
 
 $(DOCDIR)/sourcecode.pdf: all.pdf
-	cp all.pdf $(DOCDIR)/.
+	cp all.pdf $(DOCDIR)/sourcecode.pdf
 
 all.pdf: all.tex
 	latex all   #twice to get the table of contents right
