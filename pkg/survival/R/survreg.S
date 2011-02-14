@@ -1,7 +1,3 @@
-#
-# $Id$
-#  The newest version of survreg, that accepts penalties and strata
-#
 if (!is.R()) setOldClass(c('survreg.penal', 'survreg'))
 
 survreg <- function(formula, data, weights, subset, na.action,
