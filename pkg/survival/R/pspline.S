@@ -2,7 +2,8 @@
 # the p-spline function for a Cox model
 #
 pspline <- function(x, df=4, theta, nterm=2.5*df, degree=3, eps=0.1, 
-		    method, Boundary.knots=range(x), ...) {
+		    method, Boundary.knots=range(x), 
+                    intercept=FALSE, penalty=TRUE, ...) {
     if (!missing(theta)) {
 	method <- 'fixed'
 	if (theta <=0 || theta >=1) stop("Invalid value for theta")
@@ -20,29 +21,74 @@ pspline <- function(x, df=4, theta, nterm=2.5*df, degree=3, eps=0.1,
         if (df > nterm) stop("`nterm' too small for df=",df)
     }
 
-    
     xname <- deparse(substitute(x))
     keepx <- !is.na(x)
-    if (!all(keepx)) x <- x[keepx]
+    if (!all(keepx)) x <- x[keepx] #this is done before any reference to 
+                                   # Boundary.knots, so the default works
     nterm <- round(nterm)
     if (nterm < 3) stop("Too few basis functions")
+    
+    if (!missing(Boundary.knots)) {
+        if (!is.numeric(Boundary.knots) || length(Boundary.knots !=2) ||
+            Boundary.knots[1] >= Boundary.knots[2])
+            stop("Invalid values for Boundary.knots")
+            
+        # Check for data values outside the knot range
+        outl <- (x < Boundary.knots[1])
+        outr<- (x > Boundary.knots[2])
+        outside <- outl | outr
+    }
+    else outside <- FALSE
+
+    # Set up the evenly spaced knots
     dx <- (Boundary.knots[2] - Boundary.knots[1])/nterm
     knots <- c(Boundary.knots[1] + dx*((-degree):(nterm-1)), 
                Boundary.knots[2]+ dx*(0:degree))
-    
-    newx <- spline.des(knots, x, degree+1, outer.ok=TRUE)$design
+
+    # Set up the basis.  Inside the boundary knots we use spline.des.
+    # Outside of them we use  f(edge) + (x-edge)* f'(edge)
+    if (any(outside)) {
+        newx <- matrix(0., length(x), nterm + degree)
+        if (any(outl)) {
+            tt <- spline.des(knots, Boundary.knots[c(1,1)], degree+1, 0:1)
+            newx[outl,] <- cbind(1, x[outl] - Boundary.knots[1]) %*% tt$design
+        }
+        if (any(outr)) {
+            tt <- spline.des(knots, Boundary.knots[c(2,2)], degree+1, 0:1)
+            newx[outr,] <- cbind(1, x[outr] - Boundary.knots[2]) %*% tt$design
+        }
+        if (any(inside <- !outside)) 
+            newx[inside,] <-  spline.des(knots, x[inside], degree+1)$design
+    }
+    else newx <- spline.des(knots, x, degree+1, outer.ok=TRUE)$design
+
+    # put missings back in so that the number of rows is right
     if (!all(keepx)) {
 	temp <- matrix(NA, length(keepx), ncol(newx))
 	temp[keepx,] <- newx
         newx <- temp
         }
-    newx <- newx[,-1]              #redundant coefficient with lambda_0
-    nvar <- 1 + ncol(newx)   #should be nterm + degree
+
+    nvar <- ncol(newx)   #should be nterm + degree
     dmat <- diag(nvar)
     dmat <- apply(dmat, 2, diff, 1, 2) 
     dmat <- t(dmat) %*% dmat
-    dmat <- dmat[-1,-1]                  # rows corresponding to the 0 coef
-    xnames <-paste('ps(', xname, ')', 2:nvar, sep='')
+
+    if (intercept) xnames <-paste('ps(', xname, ')', 1:nvar, sep='')
+    else {
+        newx <- newx[,-1]
+        dmat <- dmat[-1,-1]                  # rows corresponding to the 0 coef
+        xnames <-paste('ps(', xname, ')', 1+ 2:nvar, sep='')
+    }
+
+    if (!penalty) {
+        attributes(newx) <- c(attributes(newx), list(intercept=intercept,
+                                          knots=knots,
+                                          Boundary.knots=Boundary.knots))
+        if (is.R()) class(newx) <- "pspline"
+        else        oldClass(newx) <- "pspline"
+        return(newx)
+    }
 
     pfun <- function(coef, theta, n, dmat) {
 	if (theta >=1) list(penalty= 100*(1-theta), flag=TRUE)
@@ -134,8 +180,9 @@ pspline <- function(x, df=4, theta, nterm=2.5*df, degree=3, eps=0.1,
 		     cfun = frailty.controlaic)
 	}
     
-    attributes(newx) <- c(attributes(newx), temp, 
-                          list(Boundary.knots=Boundary.knots))
+    attributes(newx) <- c(attributes(newx), temp,
+                          list(intercept=intercept, knots=knots,
+                          Boundary.knots=Boundary.knots))
     if (is.R()) class(newx) <- c("pspline", 'coxph.penalty')
     else        oldClass(newx) <- 'coxph.penalty'
     newx
@@ -147,4 +194,29 @@ makepredictcall.pspline <- function(var, call) {
     newcall["Boundary.knots"] <- attributes(var)["Boundary.knots"]
     newcall
 }
+    
+predict.pspline <- function(object, newx, ...) {
+    if (missing(newx)) return(object)
+    a <- c(list(x=newx, penalty=FALSE), 
+           attributes(object)[c("intercept, Boundary.knots")])
+    do.call("pspline", a)
+}
+
+# Given a pspline basis, recover x
+psplineinverse <- function(x) {
+    if (!inherits(x, "pspline")) 
+        stop("Argment must be the result of a call to pspline")
+    intercept <- attr(x, "intercept")
+    knots <- attr(x, "knots")
+    nknot <- length(knots)
+    if (!intercept) {
+        indx <- 1:(ncol(x)+1) + (nknot- (ncol(x) +1))/2
+        as.vector(cbind(1-rowSums(x), x) %*% knots[indx])
+    }
+    else {
+        indx <- 1:ncol(x) + (nknot - ncol(x))/2
+        as.vector(x %*% knots)
+    }
+}
+
     

@@ -1,23 +1,14 @@
-# $Id$
 #
-# Version with no C code, using approx() to do the subscript
-#  calculations
+# Almost identical to summary.survfit.  The big differences
+#  are no call to the survmean function (irrelevant), and
+#  there is no censoring, extend, or rmean argument.
+# Because survexp objects do not contain n.event or n.censor, 
+#  subsetting is easier.
 
-summary.survfit <- function(object, times, censored=FALSE, 
-			    scale=1, extend=FALSE, 
-                            rmean=getOption('survfit.rmean'),
-                            ...) {
+summary.survexp <- function(object, times, scale=1, ...) {
     fit <- object
-    if (!inherits(fit, 'survfit'))
+    if (!inherits(fit, 'survexp'))
 	    stop("Invalid data")
-
-    # The print.rmean option is depreciated, still paid
-    #   attention to in print.survfit, but ignored here
-    if (is.null(rmean)) rmean <- "none"
-
-    temp <- survmean(fit, scale=scale, rmean)  
-    table <- temp$matrix  #for inclusion in the output list
-    rmean.endtime <- temp$end.time
 
     # The fit$surv object is sometimes a vector and sometimes a matrix.
     #  Make a copy of it that is always a matrix, to simplify the number of
@@ -45,70 +36,30 @@ summary.survfit <- function(object, times, censored=FALSE,
         }
 
     if (missing(times)) {
-	# just pick off the appropriate rows of the output
-	if (censored) {
-	    # No subscripting at all
-	    times <- fit$time
-	    n.risk<- fit$n.risk
-	    n.event <- fit$n.event
-	    n.enter <- fit$n.enter    #may be NULL
-	    n.censor  <- fit$n.censor #may be NULL
-	    strata <- factor(stemp, labels=strata.names)
-	    }
-	else {
-	    # select off rows with at least one event
-	    who <- (fit$n.event > 0)
-	    times <- fit$time[who]
-	    n.risk <- fit$n.risk[who]
-	    n.event <- fit$n.event[who]
-	    n.enter <- fit$n.enter[who]  #may be NULL
-	    n.censor <- fit$n.censor[who]#may be NULL
-	    surv <- surv[who,,drop=FALSE]
-	    if (!is.null(std.err)) std.err <- std.err[who,,drop=FALSE]
-	    if (!is.null(fit$lower)) {
-		lower <- lower[who,,drop=FALSE]
-		upper <- upper[who,,drop=FALSE]
-	        }
-	    strata <- (factor(stemp, labels=strata.names))[who, drop=TRUE]
-	    }
-        }
-
+        times <- fit$time
+        n.risk<- fit$n.risk
+        strata <- factor(stemp, labels=strata.names)
+    }
     else {  
 	#this case is harder, since it involves "in between" points
 	times <- sort(times)   #just in case the user didn't
 
-	# The one line function below might be opaque (even to me) --
-	# For n.event, we want to know the number since the last chosen
-	#  printout time point.  Start with the curve of cumulative
-	#  events at c(0, stime) (the input time points), which is
-	#  the cumsum below; pluck off the values corresponding to our
-	#  time points, the [x] below; then get the difference since the
-	#  last chosen time point (or from 0, for the first chosen point).
-	cfun <- function(x, data) diff(c(0, cumsum(c(0,data))[x]))
-
-	# Now to work
 	# The basic idea is to process the curves one at a time,
 	#   adding the results for that curve onto a list, so the
-	#   number of events will be n.enter[[1]], n.enter[[2]], etc.
+	#   survival surv[[1], surv[[2]], etc.
 	# For the survival, stderr, and confidence limits it suffices
 	#   to create a single list 'indx1' containing a subscripting vector
-	indx1 <- n.risk <- n.event <- newtimes <- vector('list', nstrat)
-	n.enter <- vector('list', nstrat)
-	n.censor<- vector('list', nstrat)
+	indx1 <- n.risk <- newtimes <- vector('list', nstrat)
 	n <- length(stemp)
 	for (i in 1:nstrat) {
 	    who <- (1:n)[stemp==i]  # the rows of the object for this strata
 	    stime <- fit$time[who]
 
 	    # First, toss any printing times that are outside our range
-	    if (is.null(fit$start.time)) mintime <- min(stime, 0)
-	    else                         mintime <- fit$start.time
+	    mintime <- min(stime, 0)
 	    ptimes <- times[times >= mintime]
-
-	    if (!extend) {
-		maxtime <- max(stime)
-		ptimes <- ptimes[ptimes <= maxtime]
-		}
+            maxtime <- max(stime)
+            ptimes <- ptimes[ptimes <= maxtime]
 
 	    newtimes[[i]] <- ptimes
 
@@ -132,21 +83,6 @@ summary.survfit <- function(object, times, censored=FALSE,
             #  line just above?  When temp1 has zeros, the first expression
             #  gives a vector that is shorter than temp1, and the ifelse
             #  doesn't work right due to mismatched lengths.  
-	    n.event[[i]] <- cfun(temp1+1, fit$n.event[who])
-
-	    if (!is.null(fit$n.censor)) {
-		    n.censor[[i]] <- cfun(temp1+1, fit$n.censor[who])
-		    j <- who[ntime]  #last time point in the data
-		    last.n <- fit$n.risk[j] - (fit$n.event[j]+ fit$n.censor[j])
-		    }
-	    else {
-		# this is for the older survfit objects, which don't contain
-		#  n.censor.  In this case, we don't know how many of the
-		#  people at the last time are censored then & how many go
-		#  on further.  Assume we lose them all.  Note normally
-		#  extend=FALSE, so this number isn't printed anyway.
-		last.n <- 0
-		}
 
 	    # Compute the number at risk.  If stime = 1,10, 20 and ptime=3,10,
 	    #   12, then temp1 = 2,2,3: the nrisk looking ahead
@@ -161,9 +97,6 @@ summary.survfit <- function(object, times, censored=FALSE,
 	# Now create the output list
 	times  <- unlist(newtimes)
 	n.risk <-  unlist(n.risk)
-	n.event <- unlist(n.event)
-	n.enter <- unlist(n.enter)   #may be NULL
-	n.censor<- unlist(n.censor)  #may be NULL
 
 	indx1 <- unlist(indx1)
 	surv <- (rbind(1.,surv))[indx1,,drop=FALSE]
@@ -182,12 +115,7 @@ summary.survfit <- function(object, times, censored=FALSE,
     # Final part of the routine: paste the material together into
     #  the correct output structure
     #
-
-    temp <- list(surv=surv, time=times/scale, n.risk=n.risk, n.event=n.event,
-			 conf.int=fit$conf.int, type=fit$type, table=table)
-    if (!is.null(n.censor)) temp$n.censor <- n.censor
-    if (!is.null(n.enter))  temp$n.enter <- n.enter
-    if (!is.null(fit$start.time)) temp$start.time <- fit$start.time
+    temp <- list(surv=surv, time=times/scale, n.risk=n.risk)
 
     if (ncol(surv)==1) {
 	# Make surve & etc vectors again
@@ -210,14 +138,11 @@ summary.survfit <- function(object, times, censored=FALSE,
 	temp$strata <- strata
 	}
     
-    if (length(rmean.endtime)>0  && !is.na(rmean.endtime)) 
-        temp$rmean.endtime <- rmean.endtime
-
+    temp$method <- fit$method
     temp$call <- fit$call
     if (!is.null(fit$na.action)) temp$na.action <- fit$na.action
   
-    if (is.R()) class(temp) <- 'summary.survfit'
-    else        oldClass(temp) <- 'summary.survfit'
+    class(temp) <- "summary.survexp"
     temp
     }
 
