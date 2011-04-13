@@ -1,4 +1,3 @@
-# $Id$
 #  A version that does more work in S, less in C
 survfitKM <- function(x, y, casewt=rep(1,length(x)),
 		       type=c('kaplan-meier', 'fleming-harrington', 'fh2'),

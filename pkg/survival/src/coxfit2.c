@@ -1,4 +1,3 @@
-/*  $Id$ */
 /*
 ** here is a cox regression program, written in c
 **     uses Efron's approximation for ties

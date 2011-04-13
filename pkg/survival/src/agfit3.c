@@ -1,4 +1,3 @@
-/* $Id$ */
 /*
 ** Anderson-Gill formulation of the Cox Model, using smart subsets
 **

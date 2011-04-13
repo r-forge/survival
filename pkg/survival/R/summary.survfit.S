@@ -1,4 +1,3 @@
-# $Id$
 #
 # Version with no C code, using approx() to do the subscript
 #  calculations

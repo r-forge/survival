@@ -1,6 +1,4 @@
 #
-# $Id$
-#
 # Compute the current incidence curve for a data set
 #   called from survfit.formula
 survfitCI <- function(X, Y, weights, 
