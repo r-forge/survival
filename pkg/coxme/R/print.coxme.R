@@ -15,17 +15,18 @@ print.coxme <- function(x, rcoef=FALSE, digits=options()$digits, ...) {
     cat("  events, n = ", x$n[1], ', ', x$n[2], sep='')
     if(length(omit))
         cat(" (", naprint(omit), ")", sep = "")
-    temp <- matrix(x$loglik, nrow=1)
+    loglik <- x$loglik + c(0,0, x$penalty)
+    temp <- matrix(loglik, nrow=1)
     cat("\n  Iterations=", x$iter, "\n")
     dimnames(temp) <- list("Log-likelihood", 
-                           c("NULL", "Integrated", "Penalized"))
+                           c("NULL", "Integrated", "Fitted"))
     print(temp)
     cat("\n")
     chi1 <- 2*diff(x$loglik[c(1,2)]) 
 
     
-    chi1 <- 2*diff(x$loglik[1:2]) 
-    chi2 <- 2*diff(x$loglik[c(1,3)])
+    chi1 <- 2*diff(loglik[1:2]) 
+    chi2 <- 2*diff(loglik[c(1,3)])
     temp <- rbind(c(round(chi1,2), round(x$df[1],2),
                     signif(1- pchisq(chi1,x$df[1]),5),
                     round(chi1- 2*x$df[1],2),
@@ -36,7 +37,7 @@ print.coxme <- function(x, rcoef=FALSE, digits=options()$digits, ...) {
                     round(chi2- log(x$n[1])*x$df[2],2)))
     dimnames(temp) <- list(c("Integrated loglik", " Penalized loglik"),
                            c("Chisq", "df", "p", "AIC", "BIC"))
-    print(temp, quote=F, digits=digits)
+    print(temp, quote=F)
 
     cat ("\nModel: ", deparse(x$call$formula), "\n")
 
@@ -67,15 +68,15 @@ print.coxme <- function(x, rcoef=FALSE, digits=options()$digits, ...) {
 
     if (nvar>0 && rcoef) {
         cat("Fixed and penalized coefficients\n")
-        print(rbind(tmp, cbind(rtmp,NA,NA)), na.print='', digits=digits)
+        print(rbind(tmp, cbind(rtmp,NA,NA)), na.print='')
         }
     else if (rcoef) {
         cat("Penalized coefficients\n")
-        print(rtmp, digits=digits)
+        print(rtmp)
         }
     else if (nvar>0) {
         cat("Fixed coefficients\n")
-        print(tmp, digits=digits)
+        print(tmp)
         }
 
     cat("\nRandom effects\n")
@@ -121,6 +122,6 @@ print.coxme <- function(x, rcoef=FALSE, digits=options()$digits, ...) {
         temp4 <- c("Group","Variable", "Std Dev", "Variance", "Corr", 
                    rep("", maxcol-3))
     dimnames(temp) <- list(rep("", nrow(temp)), temp4)
-    print(temp, quote=F, digits=digits)
+    print(temp, quote=F)
     invisible(x)
     }
