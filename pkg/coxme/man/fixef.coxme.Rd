@@ -1,11 +1,9 @@
 \name{fixef.coxme}
 \alias{fixef.coxme}
-\alias{fixed.effects.coxme}
 \title{Extract coxme Fixed Effects}
 \description{Extract the fixed effects portion from a coxme model.}
 \usage{
 \method{fixef}{coxme}(object, \dots)
-\method{fixed.effects}{coxme}(object, \dots)
 }
 \arguments{
  \item{object}{an object inheriting from class \code{coxme}, representing
@@ -17,8 +15,9 @@
 \value{the vector of coefficients for the fixed effects}
 
 \author{Terry Therneau}
-\seealso{\code{\link{coxme}}, \code{\link{ranef.coxme}}}
-
+\seealso{\code{\link{coxme}}, \code{\link{ranef.coxme}},
+  \code{\link{fixed.effects}}
+}
 \examples{
 rat1 <- coxme(Surv(time, status) ~ rx + (1|litter), rats)
 fixed.effects(rat1)

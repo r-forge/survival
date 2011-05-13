@@ -203,6 +203,16 @@ if (!is.null(names(varlist))) { # put it in the right order
         }
     }
     
+sapply(varlist, function(x) {
+       fname <- c("initialize", "generate", "wrapup")
+       indx <- match(fname, names(x))
+       if (any(is.na(x)))
+           stop(paste("Member not found in variance function:",
+                      fname(is.na(indx))))
+       if (length(x) !=3 || any(!sapply(x, is.function)))
+           stop("Varlist objects must consist of exaclty three functions")
+   })
+
 @ 
 At this point we have a valid [[varlist]] object, which is a list with
 one element per random term, each element is an object of class `coxmevar'. %'`
