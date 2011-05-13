@@ -46,19 +46,6 @@ temp <- rtime(simdata$hazard)
 simdata$time <- temp$time
 simdata$status <- temp$status
 
-# The next section of code uses coxph to compute parts of the model, namely
-#  the first and second derivative matrices.  Because inst is coded without
-#  a reference level (9 indicators for 9 institutions) coxph will complain 
-#  about a singular matrix that it can't invert but pay it no mind, we actually
-#  want the un-inverted matrix from coxph.detail, for which coxph is just a
-#  preliminary.  Given these, we can write the penalty matrices out by
-#  hand and compute the Newton-Raphson step that coxme should be doing
-#    (Cox first deriv + penalty first deriv) * inverse(Cox information + penalty)
-#  and verify it.
-#
-# This is an important test, since it indirectly also makes sure that all the
-#  setup prior to the first iteration was correct in coxme.
-
 contr.none <- function(n,contrasts=T) {
         if(is.numeric(n) && length(n) == 1.)
                 levs <- 1.:n
@@ -125,13 +112,13 @@ pen1[cbind(1:9, 10:18)] <- .1*sqrt(.2* .3)
 pen1[cbind(10:18, 1:9)] <- .1*sqrt(.2* .3)
 ipen1 <- solve(gchol(pen1)) #generalized inverse
 
-aeq(imat1 + ipen1, igchol(fit0a$hmat))   # (Cox information + penalty) is correct
-step1 <- solve(fit0a$hmat, fit0a$u)     # predicted first NR step
+aeq(imat1 + ipen1, igchol(fit0a$hmat))
+step1 <- solve(fit0a$hmat, fit0a$u)
 
 # iteration 1
 fit1a <- coxme(Surv(time, status) ~ age + trt + (1 +trt |inst), simdata,
                iter=1, vfixed=c(.2, .1, .3))
-aeq(step1, c(unlist(fit1a$frail), fixef(fit1a))) #compare with actual NR step
+aeq(step1, c(unlist(fit1a$frail), fixef(fit1a)))
 
 cox1.1<- coxph(Surv(time, status) ~ tempx + age + trt, simdata,
              iter=0, x=T, init=step1)
@@ -249,9 +236,6 @@ myvar <- function(varlist) {
 fitc <- coxme(Surv(time, status) ~ age + trt + (1|inst/trt), simdata,
               varlist=myvar(list(mat1, mat2, mat3)))
 
-# In order for these to be exact, I would need to force the same starting
-#  estimates.  The penalized LL and df are especially sensitive to slight
-#  changes in the solution path.
 aeq(fitc$log, fita$log, tol=1e-5)
 aeq(fixef(fita), fixef(fitc), tol=1e-4)
 

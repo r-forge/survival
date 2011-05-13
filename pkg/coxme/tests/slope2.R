@@ -29,14 +29,10 @@ temp <- rtime(simdata$hazard)
 simdata$time <- temp$time
 simdata$status <- temp$status
 
-# The default starting estimates used by the two variance functions
-#  are not always the same.  Thus these tests are guarrenteed to
-#  match only if we supply starting estimates.
-
 #Check fit1
-fit1 <- coxme(Surv(time, status) ~ age + trt + (1|inst), simdata, vinit=.02)
+fit1 <- coxme(Surv(time, status) ~ age + trt + (1|inst), simdata)
 fit1b <- coxme(Surv(time, status) ~ age + trt + (1|inst), simdata,
-               varlist=diag(9), vinit=.02)
+               varlist=diag(9))
 aeq(fit1$log, fit1b$log)
 aeq(as.matrix(fit1$var), as.matrix(fit1b$var))
 aeq(fixef(fit1), fixef(fit1b))
@@ -53,27 +49,17 @@ mat2 <-  bdsBlock(idlist, rep(1:9, each=2))
 fit2b <- coxme(Surv(time, status) ~ age + trt + (1|inst/trt), simdata,
                varlist=list(mat1, mat2), vinit=c(.1, .1))
 aeq(fit2$log, fit2b$log)
-#aeq(as.matrix(fit2$var), as.matrix(fit2b$var))
+aeq(as.matrix(fit2$var), as.matrix(fit2b$var))
 aeq(fixef(fit2), fixef(fit2b))
-aeq(fit2b$frail, fit2$frail)
 
 # Check fit3
-<<<<<<< .mine
 fit3 <- coxme(Surv(time, status) ~ age + trt + (1|inst) + (trt|inst),simdata,
               vinit=list(.1, .2))
-=======
-fit3 <- coxme(Surv(time, status) ~ age + trt + (1|inst) + (trt|inst),simdata,
-              vinit=list(.1, .1))
->>>>>>> .r11492
 mat3 <- diag(rep(0:1, 9))
 dimnames(mat3) <- list(idlist, idlist)
 fit3b <-  coxme(Surv(time, status) ~ age + trt + (1|inst/trt), simdata,
                varlist=coxmeMlist(list(mat2, mat3), rescale=F, pdcheck=F),
-<<<<<<< .mine
                vinit=c(.1, .2))
-=======
-               vinit=c(.1, .1))
->>>>>>> .r11492
 
 aeq(fit3$log, fit3b$log)
 aeq(fixef(fit3), fixef(fit3b))

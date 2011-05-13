@@ -39,19 +39,19 @@ for (i in 1:9) {
 
 fit0 <- coxph(Surv(time, status) ~ age + trt, simdata)
 fit1 <- coxme(Surv(time, status) ~ age + trt + (1|inst), simdata)
-print(fit1, rcoef=TRUE, digits=5)
+print(fit1, rcoef=TRUE)
 fit2 <- coxme(Surv(time, status) ~ age + trt + (1|inst/trt), simdata)
-print(fit2, rcoef=TRUE, digits=5)
+print(fit2, rcoef=TRUE)
 
 fit3 <- coxme(Surv(time, status) ~ age + trt + (1|inst) + (trt|inst),simdata)
-print(fit3, rcoef=TRUE, digits=5)
+print(fit3, rcoef=TRUE)
 
 fit4 <- coxme(Surv(time, status) ~ age + trt + (1 +trt |inst), simdata)
 
 sfit0 <- coxph(Surv(time, status) ~ age + trt + strata(inst), simdata)
 sfit1 <- coxme(Surv(time, status) ~ age + trt + (trt|inst) + strata(inst),
                simdata)
-print(sfit1, rcoef=TRUE, digits=5)
+print(sfit1, rcoef=TRUE)
 
 #Comparison plot
 y <- cbind(slope, NA, coef0[2,], fixef(sfit1)[2] + unlist(sfit1$frail),
