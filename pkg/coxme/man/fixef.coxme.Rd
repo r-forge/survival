@@ -5,8 +5,8 @@
 \description{Extract the fixed effects portion from a coxme model.}
 \usage{
 \method{fixef}{coxme}(object, \dots)
+\method{fixed.effects}{coxme}(object, \dots)
 }
-\alias{fixed.effects.coxme}
 \arguments{
  \item{object}{an object inheriting from class \code{coxme}, representing
    the result of a mixed effects Cox model.
@@ -17,7 +17,7 @@
 \value{the vector of coefficients for the fixed effects}
 
 \author{Terry Therneau}
-\seealso{\code{\link{coxme}}, \code{\link{random.effects.coxme}}}
+\seealso{\code{\link{coxme}}, \code{\link{ranef.coxme}}}
 
 \examples{
 rat1 <- coxme(Surv(time, status) ~ rx + (1|litter), rats)

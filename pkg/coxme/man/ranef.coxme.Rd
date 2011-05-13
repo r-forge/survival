@@ -1,10 +1,11 @@
 \name{ranef.coxme}
+\alias{ranef.coxme}
+\alias{random.effects.coxme}
 \title{Extract coxme Random Effects}
 \usage{
 \method{ranef}{coxme}(object, \dots)
+\method{random.effects}{coxme}(object, \dots)
 }
-\alias{ranef.coxme}
-\alias{random.effects.coxme}
 \arguments{
  \item{object}{an object inheriting from class \code{coxme}, representing
    a fitted Cox mixed-effects survival model.}
@@ -21,8 +22,7 @@
 }
 \author{Terry Therneau}
 \seealso{
-  \code{\link{coxme}}, \code{\link{fixed.effects.coxme}}
-  \code{\link{random.effects}}
+  \code{\link{coxme}}, \code{\link{fixef.coxme}}
 }
 
 \examples{
