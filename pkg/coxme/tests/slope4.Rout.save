@@ -1,7 +1,13 @@
 
+<<<<<<< .mine
+R version 2.13.0 (2011-04-13)
+Copyright (C) 2011 The R Foundation for Statistical Computing
+=======
 R version 2.11.1 (2010-05-31)
 Copyright (C) 2010 The R Foundation for Statistical Computing
+>>>>>>> .r11492
 ISBN 3-900051-07-0
+Platform: x86_64-unknown-linux-gnu (64-bit)
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
@@ -38,6 +44,7 @@ Type 'q()' to quit R.
 Loading required package: survival
 Loading required package: splines
 Loading required package: bdsmatrix
+Loading required package: nlme
 > options(na.action='na.exclude', contrasts=c('contr.treatment', 'contr.poly'))
 > aeq <- function(x,y, ...) all.equal(as.vector(x), as.vector(y), ...)
 > 
@@ -105,9 +112,6 @@ Loading required package: bdsmatrix
 +     }
 > cox1<- coxph(Surv(time, status) ~ tempx + age + trt, simdata,
 +              iter=0, x=T)
-Warning message:
-In coxph(Surv(time, status) ~ tempx + age + trt, simdata, iter = 0,  :
-  X matrix deemed to be singular; variable 9 20
 > dt1 <- coxph.detail(cox1)
 > u1 <- apply(dt1$score, 2, sum)
 > imat1 <- apply(dt1$imat, 1:2, sum)
@@ -115,9 +119,6 @@ In coxph(Surv(time, status) ~ tempx + age + trt, simdata, iter = 0,  :
 > group <- strata(simdata$inst, simdata$trt, shortlabel=T, sep='/')
 > cox2 <- coxph(Surv(time, status) ~ group + age + trt, simdata,
 +               iter=0, x=T)
-Warning message:
-In coxph(Surv(time, status) ~ group + age + trt, simdata, iter = 0,  :
-  X matrix deemed to be singular; variable 18 20
 > dt2 <- coxph.detail(cox2)
 > u2 <- apply(dt2$score, 2, sum)
 > imat2 <- apply(dt2$imat, 1:2, sum)
@@ -168,9 +169,6 @@ In coxph(Surv(time, status) ~ group + age + trt, simdata, iter = 0,  :
 > 
 > cox1.1<- coxph(Surv(time, status) ~ tempx + age + trt, simdata,
 +              iter=0, x=T, init=step1)
-Warning message:
-In coxph(Surv(time, status) ~ tempx + age + trt, simdata, iter = 0,  :
-  X matrix deemed to be singular; variable 9 20
 > 
 > dt1.1 <- coxph.detail(cox1.1)
 > aeq(apply(dt1.1$score, 2, sum) - step1 %*% ipen1, fit1a$u)

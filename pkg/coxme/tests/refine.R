@@ -35,6 +35,7 @@ nsim <- 100
 var  <- .3   #sizeable
 
 set.seed(20)
+coxme.refine.debugswitch <- TRUE  
 fit1 <- coxme(Surv(time, status) ~ age + trt + (trt|inst) + strata(inst),
               vfixed=.3, simdata, refine.n=nsim)
 
@@ -47,7 +48,7 @@ if (!is.null(debug)) all.equal(bmat, debug$bmat)
 
 clog <- double(nsim)
 Xmat <- scale(as.matrix(simdata[,c('age', 'trt')]), fit1$means, FALSE)
-bmat <- bmat * sqrt(.3)  #the actual bmat used or fits, var=.3
+bmat <- bmat * sqrt(.3)  #the actual bmat used for fits, var=.3
 
 # Part 1, loglik for a set of nearby Cox models
 fix.lp <- Xmat %*% fixef(fit1)

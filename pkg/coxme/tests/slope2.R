@@ -42,6 +42,8 @@ aeq(as.matrix(fit1$var), as.matrix(fit1b$var))
 aeq(fixef(fit1), fixef(fit1b))
 
 # Check fit2
+#  To get the same iteration path you need to force the same
+#  starting estimates
 idlist <- sort(outer(1:9, 0:1, paste, sep='/'))
 fit2 <- coxme(Surv(time, status) ~ age + trt + (1|inst/trt), simdata,
                varlist=coxmeFull(collapse=TRUE), vinit=c(.1, .1))
@@ -56,13 +58,22 @@ aeq(fixef(fit2), fixef(fit2b))
 aeq(fit2b$frail, fit2$frail)
 
 # Check fit3
+<<<<<<< .mine
+fit3 <- coxme(Surv(time, status) ~ age + trt + (1|inst) + (trt|inst),simdata,
+              vinit=list(.1, .2))
+=======
 fit3 <- coxme(Surv(time, status) ~ age + trt + (1|inst) + (trt|inst),simdata,
               vinit=list(.1, .1))
+>>>>>>> .r11492
 mat3 <- diag(rep(0:1, 9))
 dimnames(mat3) <- list(idlist, idlist)
 fit3b <-  coxme(Surv(time, status) ~ age + trt + (1|inst/trt), simdata,
                varlist=coxmeMlist(list(mat2, mat3), rescale=F, pdcheck=F),
+<<<<<<< .mine
+               vinit=c(.1, .2))
+=======
                vinit=c(.1, .1))
+>>>>>>> .r11492
 
 aeq(fit3$log, fit3b$log)
 aeq(fixef(fit3), fixef(fit3b))
@@ -79,4 +90,4 @@ map[19,19] <- 1
 map[20,20] <- 1
 
 aeq(c(unlist(fit3$frail)), c(map[1:18,1:18] %*% unlist(fit3b$frail)))
-aeq(as.matrix(fit3$var), map %*% as.matrix(fit3b$var) %*% t(map), tol=1e-7)
+aeq(as.matrix(fit3$var), map %*% as.matrix(fit3b$var) %*% t(map))
