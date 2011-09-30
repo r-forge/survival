@@ -1,4 +1,3 @@
-# $Id$
 agreg.fit <- function(x, y, strata, offset, init, control,
 			weights, method, rownames)
     {
