@@ -29,8 +29,8 @@ setMethod('gchol', signature(x='matrix'),
 	d <- dim(x)
 	if (d[1] != d[2]) 
 		stop("Cholesky decomposition requires a square matrix")
-	if (!is.logical(all.equal(as.vector(x), as.vector(t(x)))))
-		stop("Cholesky decomposition requires a symmetric matrix")
+#	if (!is.logical(all.equal(as.vector(x), as.vector(t(x)))))
+#		stop("Cholesky decomposition requires a symmetric matrix")
 	temp <- .C("gchol", as.integer(d[1]),
 		   x =   as.double(x),
 		   rank= as.double(tolerance))
