@@ -16,5 +16,4 @@ Collate: bdsmatrix.R gchol.R gchol.bdsmatrix.R
  bdsmatrix.ibd.R bdsmatrix.reconcile.R diag.bdsmatrix.R
  listbdsmatrix.R  multiply.bdsmatrix.R 
  solve.bdsmatrix.R solve.gchol.R solve.gchol.bdsmatrix.R 
-
-
+ backsolve.R
