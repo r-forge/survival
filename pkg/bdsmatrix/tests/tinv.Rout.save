@@ -1,7 +1,8 @@
 
-R version 2.9.0 (2009-04-17)
-Copyright (C) 2009 The R Foundation for Statistical Computing
+R version 2.14.0 (2011-10-31)
+Copyright (C) 2011 The R Foundation for Statistical Computing
 ISBN 3-900051-07-0
+Platform: x86_64-unknown-linux-gnu (64-bit)
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
@@ -16,6 +17,13 @@ Type 'demo()' for some demos, 'help()' for on-line help, or
 Type 'q()' to quit R.
 
 > library(bdsmatrix)
+
+Attaching package: 'bdsmatrix'
+
+The following object(s) are masked from 'package:base':
+
+    backsolve
+
 > aeq <- function(x,y) all.equal(as.vector(x), as.vector(y))
 > 
 > tmat <- bdsmatrix(c(3,2,2,4), 
@@ -39,6 +47,21 @@ Type 'q()' to quit R.
 > aeq(inv1, as.matrix(inv2))
 [1] TRUE
 > 
+> # Full matrix tests
+> inv3 <- solve(smat)
+> inv4 <- solve(tmat)
+> inv5 <- solve(gchol(smat), full=T)
+> aeq(inv3, inv4)
+[1] TRUE
+> aeq(inv3, inv5)
+[1] TRUE
+> 
+> # The following test is false by design: when called with a bdsmatrix
+> #  object that has an rmat portion, the true inverse is dense.  But
+> #  coxme only needs the trace for one calcluation; solve(gchol(tmat))
+> #  cheats and only returns the block diagonal portion of the inverse.
+> #inv6 <- solve(gchol(tmat), full=T)
+> #aeq(inv3, inv6)
 > 
 > #
 > # Now test the solution to a partial solve

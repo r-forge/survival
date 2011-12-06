@@ -3,7 +3,6 @@
 */
 #include "bdsS.h"
 #include "bdsmatrix.h"
-#include <stdio.h>
 
 SEXP gcback(SEXP sr,   SEXP  sx,    SEXP supper, SEXP sk) {
     int i,j;
@@ -76,12 +75,6 @@ SEXP gcback2(SEXP sblocksize,   SEXP  sblocks,    SEXP srmat,
     flag = 1+upper;   /* for chsolve4, 2=lower and 1=upper */
     rmat = dmatrix(REAL(srmat), nr, nr);
     
-    fprintf(stderr, "flag=%d, nr=%d, nc=%d, nblock=%d\n",
-	    flag, nr, nc, LENGTH(sblocksize));
-    fprintf(stderr, "blocksize= %d %d %d %d\n",
-	    blocksize[0], blocksize[1], blocksize[2], blocksize[3]);
-    fprintf(stderr, "rmat= %f %f %f %f\n",
-	    rmat[0][0], rmat[0][1], rmat[1][0], rmat[1][1]);
     for (i=0; i<nc; i++) {
 	    chsolve4(rmat, nr, LENGTH(sblocksize), blocksize,
 		     blocks, y, flag);  
