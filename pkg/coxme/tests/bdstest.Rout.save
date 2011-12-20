@@ -16,6 +16,9 @@ Type 'demo()' for some demos, 'help()' for on-line help, or
 'help.start()' for an HTML browser interface to help.
 Type 'q()' to quit R.
 
+> #
+> # Test out conversions between bdsmatrix and Matrix objects
+> #
 > library(coxme)
 Loading required package: survival
 Loading required package: splines
@@ -40,43 +43,29 @@ The following object(s) are masked from 'package:base':
 Warning message:
 replacing previous import 'diag' when loading 'Matrix' 
 > aeq <- function(x,y) all.equal(as.vector(x), as.vector(y))
-> #
-> # Variable shrinkage
-> #
-> ecog0 <- 1*(lung$ph.ecog==0)
-> ecog1 <- 1*(lung$ph.ecog==1)
-> ecog2 <- 1*(lung$ph.ecog==2)
-> ecog3 <- 1*(lung$ph.ecog==3)
 > 
-> fit1 <- coxph(Surv(time, status) ~ age + ridge(ecog0, ecog1, ecog2, ecog3,
-+                                                scale=FALSE, theta=2), lung)
+> tmat <- bdsmatrix(c(3,2,2,4), 
++ 	      c(22,1,2,21,3,20,19,4,18,17,5,16,15,6,7, 8,14,9,10,13,11,12),
++ 	      matrix(c(1,0,1,1,0,0,1,1,0,1,0,10,0,
++                        0,1,1,0,1,1,0,1,1,0,1,0,10), ncol=2))
+> dimnames(tmat) <- list(NULL, letters[1:13])
 > 
-> fit2 <- coxme(Surv(time, status) ~ age + (ecog0+ecog1+ecog2+ecog3 |1), lung,
-+               vfixed=.5)
+> smat <- as.matrix(tmat)
+> cmat <- as(tmat, 'dsCMatrix')
+> cmat2 <- as(forceSymmetric(smat), 'dsCMatrix')
 > 
-> aeq(fit1$coef, c(fixef(fit2), unlist(ranef(fit2))))
+> aeq(as.matrix(smat), as.matrix(cmat))
 [1] TRUE
-> indx <- c(5,1,2,3,4) #in coxme, shrinkage variables are first
-> all.equal(fit1$var, as.matrix(fit2$var)[indx, indx])
+> aeq(as.matrix(tmat), as.matrix(cmat2))
 [1] TRUE
 > 
-> fit3 <- coxme(Surv(time, status) ~ age + (1|ph.ecog), lung, vfixed=.5)
-> all.equal(fit2$var, fit3$var)
-[1] TRUE
-> all.equal(fit2$loglik, fit3$loglik)
+> tmat2 <- as(cmat, 'bdsmatrix')
+> aeq(smat, as.matrix(tmat2))
 [1] TRUE
 > 
-> fit4 <- coxme(Surv(time, status) ~ age + (1|ph.ecog), lung)
-> dname <- paste("ecog", 0:3, sep='')
-> dummy <- matrix(diag(4), 4, dimnames=list(dname,dname))
-> fit5 <- coxme(Surv(time, status) ~ age + (ecog0+ecog1+ecog2+ecog3 |1), lung,
-+               varlist=dummy)
-> all.equal(fit4$log, fit5$log)
+> # The above makes a 13 by 13, not a very elegant nor complete test
+> #  This one is more strict
+> tmat3 <- as(cmat[1:11, 1:11], 'bdsmatrix')
+> all.equal(tmat3, tmat[1:11, 1:11])
 [1] TRUE
-> aeq(fixef(fit4), fixef(fit5))
-[1] TRUE
-> all.equal(ranef(fit4), ranef(fit5), check.attributes=FALSE) #names will differ
-[1] TRUE
-> 
-> 
 > 

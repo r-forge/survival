@@ -1,0 +1,723 @@
+\documentclass{article}[111pt]
+\usepackage[pdftex]{graphicx}
+\usepackage{Sweave}
+\usepackage{amsmath}
+\addtolength{\textwidth}{1in}
+\addtolength{\oddsidemargin}{-.5in}
+\setlength{\evensidemargin}{\oddsidemargin}
+
+\SweaveOpts{keep.source=TRUE, fig=FALSE}
+%\VignetteIndexEntry{Coxme and the Laplace Approximation}
+%\VignetteDepends{coxme}
+%\VignetteDepends{kinship2}
+
+% Ross Ihaka suggestions
+\DefineVerbatimEnvironment{Sinput}{Verbatim} {xleftmargin=2em}
+\DefineVerbatimEnvironment{Soutput}{Verbatim}{xleftmargin=2em}
+\DefineVerbatimEnvironment{Scode}{Verbatim}{xleftmargin=2em}
+\fvset{listparameters={\setlength{\topsep}{0pt}}}
+\renewenvironment{Schunk}{\vspace{\topsep}}{\vspace{\topsep}}
+
+\SweaveOpts{width=6,height=5}
+\setkeys{Gin}{width=\textwidth}
+\newcommand{\myfig}[1]{\resizebox{\textwidth}{!}
+                        {\includegraphics{#1.pdf}}}
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\bhat}{\hat b}
+\newcommand{\betahat}{\hat \beta}
+\title{Coxme and the Laplace Approximation}
+\author{Terry Therneau \\Mayo Clinic}
+
+\begin{document}
+\maketitle
+<<echo=FALSE>>=
+options(continue="  ", width=60)
+options(SweaveHooks=list(fig=function() par(mar=c(5.1, 4.1, .3, 1.1))))
+@ 
+
+\section{Laplace approximation}
+The likelihood from a coxme fit has three terms: the null, integrated
+and penalized partial likelihoods.  By convention all three of these
+refer to the \emph{log} of the relevant likelihood.  To avoid
+confusion below we will use PL for the Cox partial likelihood and LPL 
+for its log.
+Similarly LPPL is the penalized log-partial likelihood, which is
+LPL minus a penalty term,
+IPL and LIPL are the integrated partial likelihood and its
+logarithm.
+For any given variance matrix $A(\theta)$ of the random effects, the integrated
+partial likelihood is based on a Laplace approximation.
+A key step in the derivation is the replacement of the penalized partial
+log-likelihood $LPPL$ with a second order Taylor series about its value
+at the maximum of the function
+\begin{align*}
+  LPPL(\beta, b, \theta) &= LPL(\beta, b) - (1/2) b'A^{-1}(\theta)b \\
+  &\approx LPPL(\hat\beta(\theta), \bhat(\theta)) - 
+     (1/2) (\beta- \hat\beta(\theta),
+  b- \bhat(\theta))' H (\beta- \hat\beta(\theta), b-\bhat(\theta))
+  \end{align*}
+where the Hessian $H$ is -1 times the matrix of second derivatives of the LPPL, 
+evaluated 
+at $(\hat \beta(\theta), \bhat(\theta))$.
+When $\theta$ and hence $A(\theta)$ are fixed, the relevant values
+of $\beta$ and $b$ that maximize the LPPL are easily computed
+using essentially the same methods as an ordinary Cox model.
+
+For the ML estimate we are only interested in the values at $\hat \beta$
+so the last term collapses to
+$(0,b- \bhat)' H (0, b- \bhat) = (b- \bhat)' H_{bb}(b- \bhat)$, where
+$H_{bb}$ is the portion of the Hessian corresponding to the random effects.
+
+Then the integrated partial likelihood IPL is
+\begin{align}
+ IPL(\theta, \hat\beta(\theta)) &=  (2\pi)^{-p/2}|A(\theta)|^{-1/2}  
+       \int PL(\hat\beta, b) 
+ e^{b'A^{-1}(\theta)b/2} db \label{eq:ipl}\\
+            &= (2\pi)^{-p/2}|A(\theta)|^{-1/2} \int e^{LPPL(\hat\beta, b)} db 
+                   \nonumber \\
+            &\approx (2\pi)^{-p/2}|A(\theta)|^{-1/2} \int e^{LPPL(\hat\beta, \bhat) -
+                   (b- \bhat)' H_{bb}(b-\bhat)/2} db \nonumber\\
+      &= |A(\theta)|^{-1/2} PPL(\hat\beta(\theta), \bhat(\theta)) |H_{bb}|^{-1/2}
+                \left[(2\pi)^{-p/2} |H_{bb}|^{1/2} 
+                        \int e^{ -(b- \bhat(\theta))' H_{bb}(b-\bhat(\theta))/2} db \right] 
+                   \nonumber\\
+     &= |A|^{-1/2} |H_{bb}|^{-1/2} PPL(\hat\beta(\theta), \bhat(\theta)) 
+		   \label{eq:laplace}
+\end{align}
+The last step recognizes that the term in brackets is the integral of a 
+multivariate Gaussian density and so is equal to 1.  Then
+$\log(IPL) = LPPL -(1/2)(\log|H_{bb}| + \log|A|)$.   
+This is the ``integrated partial
+likelihood'' of the printout.
+We are going to get tired of typing the normalization constant for the
+density, henceforth we will use
+ $ n(A) =  (2\pi)^{-p/2}|A(\theta)|^{-1/2}$
+as shorthand for the normalization constant of a Gaussian with $p$ random
+effects and variance $A(\theta)$.
+Likewise we'll use $\hat \beta$ for $\hat\beta(\theta)$ and 
+$\hat b$ for $\hat b(\theta)$.
+
+\section{Computation}
+The central computational strategy for \code{coxme} is an outer and
+an inner loop.  The outer loop searches over the parameters $\theta$
+of the variance matrix for a maximum of the IPL.
+For each trial value of $\theta$ in this search
+\begin{enumerate}
+  \item Calculate $A(\theta)$ and $A^{-1}(\theta)$
+  \item Solve the penalized Cox model $LPL(\beta, b) - (1/2) b'A^{-1}b$ to
+    get the solution vector $(\hat\beta, \bhat)$, where $PL$ is the usual
+    Cox partial log-likelihood.  The iterative Newton-Raphson solution
+    to this problem is the inner loop.
+  \item Use the Laplace approximation to compute the log IPL, using the
+    results of step 2.
+\end{enumerate}
+
+A necessary component of the solution in step 2 is calculation of
+$H$ and its generalized Cholesky decomposition $H=LDL'$, where $D$ is   %'
+diagonal and $L$ is lower triangular with $L_{ii}=1$.
+The determinant $|H|$ of the Hessian is the product of the diagonal
+elements $D$.
+The Laplace approximation in step 3 is particularly convenient 
+for this problem since all the components are already in hand.
+
+
+\section{Refining the approximation}
+\subsection{Random treatment effects}
+The key question is whether the Laplace method is a
+sufficiently good approximation.
+It is known not to suffice for certain non-linear models,
+but for a Cox model we will see below that it often works very well.
+
+First look at a simple simulated data set with random institution and treatment
+within institution effects.
+<<>>=
+library(coxme)
+set.seed(1953)  # an auspicious birth year :-)
+mkdata <- function(n, beta=c(.4, .1), sitehaz=c(.5,1.5, 2,1)) {
+    nsite <- length(sitehaz)
+    site <- rep(1:nsite, each=n)
+    trt1 <- rep(0:1, length=n*nsite)
+    hazard <- sitehaz[site] + beta[1]*trt1 + beta[2]*trt1 * (site-mean(site))
+    stime <- rexp(n*nsite, exp(hazard))
+    q80 <- quantile(stime, .8)
+    data.frame(site=site,
+               trt = trt1,
+               futime= pmin(stime, q80),
+               status= ifelse(stime>q80, 0, 1),
+               hazard=hazard
+               )
+}
+trdata <- mkdata(150)  #150 enrolled per site
+fit1 <- coxme(Surv(futime, status) ~ trt + (1| site/trt), trdata)
+print(fit1)
+
+# Show the true and estimated per-site intercepts
+true <- c(.5, 1.5, 2, 1) - mean(c(.5, 1.5, 2, 1))
+bcoef <- ranef(fit1)[[2]]
+temp <- rbind(true, bcoef)
+dimnames(temp) <- list(c("True", "Estimated"), paste("Site",1:4))
+round(temp,2)
+@ 
+The  true site hazards have standard deviation 
+\code{sqrt(var(c(.5, 1.5, 2, 1)))} =
+.65, the estimate from the fit is \Sexpr{round(sqrt(VarCorr(fit1)[[2]]),2)}.
+In this case the fit has reconstructed the per site intercepts reasonably well.
+
+Figure \ref{fquad} is a  plot of the profile likelihood for the four institution
+effects.  We vary $b$ for each institution while holding all of the other
+coefficients and the variance fixed.  This shows four ``slices'' through the
+12 dimensional PPL as a function of $b$.
+The approximation is not perfect --- each PPL function is rotated just a
+little from its quadratic approximation as we move away from the maximum.
+But remember that we are computing an average of exp(LPPL), 
+so any part of the curves
+more than 20 units below the max will hardly matter,
+at least for this small number of dimensions.
+
+Code to draw the figure is below.
+A coxph model with only an offset term is a convenient way to compute
+the partial likelihood for a fixed model.
+
+
+<<fig1, fig=TRUE, echo=TRUE, include=FALSE>>=
+xx <- seq(-1, 1, length=101) #vary b from -1 to 1
+profile <- matrix(0, nrow=101, ncol=8) #to store curves
+bcoef <- unlist(ranef(fit1))
+indx <- -1 + trdata$trt + 2*trdata$site  #random treatment effect index
+Ainv <- diag(1/rep(unlist(VarCorr(fit1)), c(8,4)))
+for (i in 1:4) {
+    tcoef <- bcoef
+    for (j in 1:101) {
+        tcoef[i+8] <- xx[j]  #reset single coef
+        eta <- fixef(fit1)*trdata$trt + tcoef[trdata$site+8] +
+            tcoef[indx]
+        tfit <- coxph(Surv(futime, status) ~ offset(eta), data= trdata)
+        
+        profile[j,i] <- tfit$loglik - .5*tcoef%*% Ainv %*% tcoef
+        profile[j, i+4] <- fit1$loglik[3] - 
+            .5*sum(((tcoef-bcoef) %*% fit1$hmat[1:12, 1:12])^2)
+    }
+}
+matplot(xx, profile-fit1$loglik[3], type='l', lty=c(1,1,1,1,2,2,2,2), col=1:4,
+        ylim=c(-40,0),
+        xlab="b", ylab="LPPL - max")
+@
+
+\begin{figure}[tb]
+\myfig{laplace-fig1}
+  \caption{The solid lines are profiles of $PPL(\hat\beta, b)$, dashed lines
+    are the Taylor series approximation.}
+  \label{fquad}
+\end{figure}
+
+One returned component of coxme is \code{hmat}, which contains the
+generalized Cholesky decomposition $LDL'$ of $H$,
+based on the bdsmatrix library.
+To take advantage of sparse matrices, the coxme code orders the coefficients as
+$(b, \beta)$, so we want the upper left portion of $H$ in our code.
+A product \verb!x %*% fit$hmat! returns $y = xLD^{1/2}$, then
+$yy' = xHx'$ = \verb!sum(y^2)!.
+
+One way to test the Laplace approximation
+is to directly assess the integral of equation \eqref{eq:ipl} 
+via Monte Carlo: draw a large
+number of samples $b$ from a multivariate Gaussian with variance $A$,
+assess the
+value of $PL(\hat\beta,b)$ for each, and take the mean of the result.
+The accuracy of the
+solution is the standard deviation of the mean, estimated as
+the standard deviation of the values divided by the number of samples.
+
+First, note that random effects are coded using a full contrast matrix.
+The institution by treatment effects generate 8 random terms $b_1$ to $b_8$
+and the four per-institution intercepts $b_9$ to $b_{12}$.
+Unlike fixed effects where one of the 4 intercepts would be eliminated 
+due to redundancy
+(exactly how this is done depends on the contrasts option),
+the random effects induce two sum constraints  $\sum_1^8  b_i=0$ and
+$\sum_9^{12} b_i=0$.
+The variance matrix $A(\theta)$ is diagonal for this problem, so it is easy to
+generate sets of candidate $b$ vectors.
+To avoid round off in the exponential function we rearrange the
+integral slightly
+\begin{equation*}
+   LIPL(\beta)= C + \log\left[ n(A) \int e^{LPL(\hat\beta, b)-C}  
+     e^{b'A^{-1}b/2} db \right]                         
+\end{equation*}
+where $C$ is a constant near the center of the LPL values.  This makes the argument
+of the exponential closer to zero.
+A convenient value for $C$ is the LIPL as printed from the coxme fit
+further above, i.e., 
+the Laplace approximation.  
+The right hand term is then our computed correction
+to the approximation value.
+
+<<>>=
+bstd <- sqrt(unlist(VarCorr(fit1)))  #se of the random effects
+nsim <- 100
+bsim <- matrix(rnorm(12*nsim), ncol=12)
+bsim[,1:8] <- bsim[,1:8]*bstd[1]
+bsim[,9:12] <- bsim[,9:12]*bstd[2]
+pl <- double(nsim)
+indx <- -1 + trdata$trt + 2*trdata$site  #random treatment effect index
+for (i in 1:nsim) {
+    eta <- fixef(fit1) * trdata$trt + bsim[i, indx] +
+            bsim[i,trdata$site+8] 
+    tfit <- coxph(Surv(futime, status) ~ offset(eta), data= trdata)
+    pl[i] <- tfit$loglik[1] 
+}
+temp <- exp(pl-fit1$loglik[2])  #the simulated corrections
+mtemp <- mean(temp)             #estimated integral
+stemp <- sqrt(var(temp)/nsim)   #std of the estimate
+c(correction= log(mtemp), std=stemp/mtemp) #convert to log scale
+@ 
+Our correction to the log(IPL) is substantial, implying that the
+Laplace approximation is not very good: for reliable chi-squared tests
+we would like it to be accurate within +-0.05 or less. 
+The std of our simulation is large enough to be worrisome though, and in
+fact we should be concerned.  Further examination shows that the mean 
+computed above is completely
+dominated by a single large value.
+Given this, the simulation result is essentially worthless.
+<<>>=
+print(quantile(temp, 0:10/10), digits=3)
+@ 
+
+\subsection{Control sampling}
+The obvious but inelegant way to increase the precision of the simulation is to
+use a larger number of simulation samples.
+A more fruitful approach is to use variance reduction methods.
+Control sampling is based on the simple equation
+\begin{equation*}
+  C = B + (C-B)
+  \end{equation*}
+In this case $C$ is the desired integral, the right hand side of
+equation \eqref{eq:ipl}, $B$ is the Laplace approximation to the
+integral, and we simulate $C-B$.
+
+\begin{align}
+  C-B &= n(A) \int e^{LPL(\hat\beta, b) -b'A^{-1}b/2} -
+                   e^{LPPL(\hat\beta, \hat b) - (b-\hat b)' H_{bb} (b-\hat b)/2} db 
+                   \label{control1} \\
+      & = n(A) e^k \int \frac{e^{LPPL(\hat\beta, b) -k} -
+                   e^{LPPL(\hat\beta, \hat b) - (b-\hat b)' H_{bb} (b-\hat b)/2 -k}}
+                     {g(b)} \, g(b) db 
+                   \label{control2} 
+\end{align}
+
+In equation \eqref{control1} we expect the integrand to be close to
+zero for all values of $b$. 
+Since the variance of our Monte Carlo result is the variance of this
+integrand divided by the number of simulations, the Monte Carlo 
+result will also be precise.
+A Monte Carlo evaluation with respect to the vague prior $db$ is not
+possible, however, and equation \eqref{control2} rewrites this so that
+we sample from a distribution $g(b)$.  
+The divisor $\exp(k)$ is chosen to keep the arguments of the
+two exponentials in bounds and avoid underflow/overflow errors.
+
+The choice of $g$ is important.  We want to make sure that $g$
+is never tiny when the numerator is near it's largest values,
+as that would generate large values and erase much of the
+good done by the control function. 
+Both exponentials reach their maximum at $\hat b$ so it seems
+sensible to center $g$ there.  The difference in the
+numerator can be no bigger than the smaller of the two
+exponentials, so a distribution that falls away a little
+more slowly than the right hand quadratic term would
+add the desired margin of safety. 
+A natural choice satisfying these two is a multivariate
+t-distribution with variance matrix $H^{-1}_{22}$ and a modest
+degrees of freedom.
+The return value of coxme contains a component \code{hmat}
+which contains the generalized Cholesky decomposition
+$H =LDL'$ of $H$.
+To take advantage of sparsity in the matrix
+coxme puts the random effect $b$ first in the matrix, so the
+upper left corner of \code{hmat} is a decomposition of
+$H_{bb}$
+
+We are now ready for the control variate calculation.
+In our last step we rewrite the correction as
+\begin{align*}
+  \int C &= \int B + \int (C-B) \\
+    &= \left(\int B \right) (1+ \frac{\int C-B}{\int B}) \\
+  \log\int C &= \log\int B + \log\left(1 + \frac{\int C-B}{ \int B} \right)
+ \end{align*}
+The shows the correction as an addition to the log integrated
+likelihood, which is the more natural scale for the user;
+the division in the last term is accomplished by setting
+$k$ equal to the Laplace approximation value  in equation \eqref{control2}.
+Simulation is used to compute the numerator of the last
+fraction, everything else is in closed form.
+<<>>=
+require(mvtnorm)  
+hbb.inv <- solve(fit1$hmat[1:12, 1:12]) #variance matrix for t-dist
+hbb.inv <- as.matrix(hbb.inv) # convert to ordinary matrix
+const <-  -(12*log(2*pi) - sum(log(diag(Ainv))))/2  # log(n(A)) above
+control <- matrix(0, nrow= nsim, ncol=2)
+bsim2 <- rmvt(nsim,  hbb.inv, df=5)
+bdens <- dmvt(bsim2, sigma= hbb.inv, df=5)  #density 
+bsim2b <- scale(bsim2, center=-bcoef, scale=FALSE)
+
+penalty1 <- rowSums((bsim2b %*% Ainv) *bsim2b)/2
+penalty2 <- rowSums((bsim2 %*% fit1$hmat[1:12,1:12])^2)/2
+for (i in 1:nsim) {
+    eta <- fixef(fit1) * trdata$trt + bsim2b[i, indx] +
+            bsim2b[i,trdata$site+8] 
+    tfit <- coxph(Surv(futime, status) ~ offset(eta), data= trdata)
+    penalty <- bsim2b[i,] %*% Ainv %*% bsim2b[i,]/2
+    control[i,1] <- tfit$loglik[1] - penalty1[i]
+}
+control[,2] <- fit1$loglik[3] - penalty2
+
+control <- control - fit1$loglik[2]  #divide by B, before taking exponents
+temp <- (exp(control[,1]) - exp(control[,2]))* exp(const-bdens)
+mtemp <- mean(temp)             #estimated integral
+stemp <- sqrt(var(temp)/nsim)   #std of the estimate
+c(correction= log(1+ mtemp), std=stemp/(1 +mtemp)) #convert to log scale
+@ 
+
+<<fig2, echo=F,results=hide,fig=TRUE, include=FALSE>>=
+plot(control[,1], control[,2], 
+     xlab="log(Penalized Partial Likelihood)",
+     ylab="Quadratic Approximation")
+abline(0,1)
+@ 
+\begin{figure}[tb]
+  \myfig{laplace-fig2}
+  \caption{The exponent of the penalized partial likelihood versus
+    the quadratic approximation, for 100 simulated values.}
+  \label{laplace2}
+\end{figure}
+Use of the control function has substantially reduced
+the variance of the simulation.
+We see that the Laplace approximation is superb for this data
+set and fit.  Figure \ref{laplace2} shows the penalized likelihood
+values versus the quadratic approximation for the 100 simulants.
+The variance of the difference is much smaller than the variance
+of the penalized values alone.
+
+When the refine.n option of coxme is set to a value greater than zero
+the computation above is done internally by the coxme routine
+to verify the final value of the IPL, using refine.n simulated values.
+The process is much faster, however, due to efficient calculation
+of the intermediate Cox model likelihoods.
+Because $H$ may be very large and sparse, the inverse matrix $H^{-1}$ is
+also never formed explicitly.
+<<>>=
+fit1b <- coxme(Surv(futime, status) ~ trt + (1 | site/trt),
+               data=trdata, refine.n=500)
+fit1b$refine
+@ 
+As a larger example consider the eortc data set.  This
+has 37 centers of varying size.
+<<>>=
+efit2 <- coxme(Surv(y, uncens) ~ trt + (1|center), eortc,
+                refine.n=100)
+efit2$refine
+
+efit3 <- coxme(Surv(y, uncens) ~ trt + (1|center/trt), eortc,
+               refine.n=100)
+efit3$refine
+
+efit3
+@ 
+This behavior has been the norm for the author's experience %'
+with coxme.
+However, note that the total number of events 
+\Sexpr{efit3$n[2]} is much larger than the effective
+degrees of freedom for the model of \Sexpr{round(efit3$df[2], 1)}. 
+We will return to this point.
+
+
+                   
+\subsection{Importance sampling}
+The form of equation \eqref{control2} above suggests the use
+of importance sampling, another common variance reduction
+method.  
+Let $g(b)$ be a multivariate density function, then
+\begin{align*}
+ {\rm IPL}(\hat\beta) &= n(A) \int e^{LPL(\hat\beta, b)}  e^{b'A^{-1}b/2} db \\ 
+    &= n(A) \int \frac {e^{LPPL(\hat\beta, b)}}{g(b)}\, g(b) db  \\
+   &= n(A) \int f_g(b)\, g(b)db
+\end{align*}
+The last is an integral with respect to the density $g$, and can be evaluated by
+Monte Carlo samples $b$ drawn from that distribution.  
+If the distribution $g$ is chosen wisely, 
+$f_g(b) = \exp({PPL(\hat\beta, b})/g(b)$ may be nearly constant,
+the realizations will not have outliers,
+${\rm var}(f_g)$ will be small, and only a small number of simulation samples
+will be needed for high precision.
+
+An obvious candidate for $g$ in this case is a Gaussian density with 
+variance $(H_{22})^{-1}$, as suggested by the Laplace argument.
+If we write this particular choice out carefully the connection is
+even closer.
+\begin{align}
+   {\rm IPL}(\hat\beta) &= n(A) \int e^{LPL(\hat\beta, b)}  e^{b'A^{-1}b/2} db 
+      \nonumber \\ 
+   &= \left[e^{LPPL(\hat \beta, \bhat)}n(A)/n(H_{22}^{-1}) \right]
+      \left[n(H_{22}^{-1}) \int \frac{e^{LPPL(\hat \beta, b)}}
+          {e^{LPPL(\hat\beta, \bhat) - (b-\bhat)'H_{22}(b-\bhat)/2}}\;
+          e^{ - (b-\bhat)'H_{22}(b-\bhat)/2} db \right] \nonumber \\
+ {\rm LIPL} &= \left[LPPL(\hat\beta, \bhat) -(1/2) \log(|A| |H_{22}|) \right] +
+   \log E\left(\frac{e^{PPL(\hat \beta, b)}} 
+                     {e^{PPL(\hat\beta, \bhat) - (b-\bhat)'H_{22}(b-\bhat)/2}} \right)
+     \label{imrefine}
+\end{align}
+The left hand term of this is precisely the Laplace approximation, the
+right hand is a simple additive correction based on random 
+$N(b, (H_{22})^{-1})$ variates.
+
+<<>>=
+nsim <- 200
+A <-  diag(rep(unlist(VarCorr(fit1)), c(8,4)))
+bsim3 <- rmvnorm(nsim, sigma=hbb.inv) #mean 0 variates
+penalty2 <- .5* rowSums((bsim3 %*% fit1$hmat[1:12,1:12])^2)  #denominator penalty
+fdenom <- fit1$loglik[3] - penalty2
+bsim3 <- bsim3 + rep(bcoef, each=nsim)  # make them mean b
+penalty <- .5* rowSums((bsim3 %*% Ainv) * bsim3) #penalty in numerator
+
+fnum <- double(nsim) #numerator of the importance function f
+for (i in 1:nsim) {
+    eta <- fixef(fit1) * trdata$trt + bsim3[i, indx] +
+        bsim3[i, trdata$site+8] 
+    tfit <- coxph(Surv(futime, status) ~ offset(eta), data= trdata)
+    fnum[i] <- tfit$loglik[1] - penalty[i] 
+}
+temp <-exp(fnum - fdenom) 
+c(correction=log(mean(temp)), std=sd(temp)/mean(temp))
+#plot(lapn-fit1$loglik[3], dens); abline(0,1)
+@ 
+This also shows good behavior of the Laplace approximation,
+though with a larger standard error than the 
+control sampling approach.
+
+
+\section{Minnesota Breast Cancer Family Study}
+As a second data set we consider a much more complex frailty.
+The Minnesota breast cancer family study is a large population
+based study of 426 extended families with $n=28081$
+subjects.  
+We fit a genetic model to the data with a per-subject
+random effect, however the random effects are correlated
+according to the kinship matrix $K$,
+\begin{align*}
+ \lambda_i(t) &= \lambda_0(t) e^{X_i \beta + b_i} \\
+ b &\sim N(0, \sigma^2 K)
+\end{align*}
+The kinship matrix the amount of relatedness between subject
+pairs, 2*kmat will be 1 on the diagonal, .5 for mother/child
+or sibling pairs, .25 for grandparent/grandchild, etc.
+The \code{coxmeMlist} function accepts a set of matrices M1, M2, 
+\ldots and fits the variance structure
+$$
+ {\rm var}(b) = \sigma_1^2M_1 + \sigma_2^2 M_2 + \ldots
+ $$
+<<>>=
+library(kinship2)
+mped <- with(minnbreast, pedigree(id, fatherid, motherid, sex,
+                                  affected=cancer, famid=famid))
+kmat <- kinship(mped)
+set.seed(98764)
+kfit <- coxme(Surv(endage, cancer) ~ parity + (1|id),
+              minnbreast, varlist=coxmeMlist(2*kmat, rescale=F),
+              subset=(sex=='F'), refine.n=500, refine.detail=TRUE)
+kfit$refine
+kfit
+@ 
+The final model has \Sexpr{kfit[['n']][2]} random effects but only
+\Sexpr{round(kfit$df[2],1)} effective degrees of freedom for the random  %$
+effect.
+
+\begin{figure} 
+\myfig{laplace-fig3}
+\caption{The results of 500 control samples for the
+breast cancer data. The two terms for the control function are shown
+on the left, and their
+contribution to the difference $\exp(e1)- \exp(e2)$ is
+ on the right versus the Mahalanobis distance of each 
+         sample point from the origin.}
+\label{kinfig}
+\end{figure}
+
+This data set is a severe test of the Laplace approximation.
+As pointed out by Hall et al \cite{Hall05}, for a 
+a multivariate normal in $d$ dimensions almost all of the
+probability mass lies in a small a small annulus $d$ units from
+the center.  The same will be true for the multivariate $t$.
+The quadratic approximation is being applied, almost always,
+far from the central points and thus is no longer a local approximation.
+is being applied far from the central point.
+We can look at the present case more carefully.
+The [[refine.detail]] option was created for debugging purposes;
+we've used it here to return more detail about the fits. %'
+The first terms in e1 and e2 below are the arguments to the
+exponential functions in equation \eqref{control2}, 
+the second term is the log ratio of the normalizing
+Gaussian and the t-distribution densities,
+the variable \code{ktemp} corresponds to $k$.
+<<fig=F>>=
+dt <- kfit$refine.detail
+e1 <- (dt$loglik - dt$penalty1) + (dt$gdens - dt$tdens)
+e2 <- (kfit$loglik[3] - dt$penalty2) + (dt$gdens - dt$tdens)
+ktemp <- kfit$loglik[2]
+plot(e1-ktemp, e2-ktemp)
+abline(0,1)
+plot(exp(e1-ktemp), exp(e2-ktemp))
+abline(0,1)
+@ 
+<<fig3, echo=F, fig=T, include=F>>= 
+par(mfrow=c(1,2))
+plot(e1-ktemp, e2-ktemp)
+abline(0,1)
+plot(2*dt$penalty2, exp(e1-ktemp)- exp(e2-ktemp), log='x',
+     xlab="Distance from center", ylab="Contribution")
+par(mfrow=c(1,1))
+@ 
+
+Figure \ref{kinfig} summarizes the 500 samples.
+The left panel shows that overall 
+the quadratic approximation is doing very well, but the
+range over which it is being asked to perform is huge.
+The y-axis in figure \ref{laplace2} has a much narrower range.
+This large range distorts our perception: when the actual
+control function is plotted as in the right panel,
+we now get some large values,
+albeit not very many out of 500.
+Over a narrow range the t-density is of the same order as the
+penalized likelihood terms, and this is far from the origin
+so that the approximation is imperfect.
+In high dimensions our control function approach is falling
+prey to the same problem that occurs with direct sampling, i.e., 
+that a few values dominate the sum.  
+Further work is needed in this area of the code.  
+(External advice is welcome.)
+                                                  
+
+
+
+\section{Colon cancer}
+The colon cancer data set (from the survival package) gives
+progression and death times of 929 subjects enrolled in a 3 arm 
+clinical trial.  
+A joint analysis of the two outcomes should adjust for fact that
+subject observations are correlated: in fact they are extremely
+correlated given the nature of the disease.
+An estimating equation model is our first choice.
+<<>>=
+cfit1 <- coxph(Surv(time, status) ~ rx + nodes + extent +
+         strata(etype) + cluster(id), colon)
+cfit1
+@ 
+The fitted model shows no difference between the levamisole
+and observation arms, an important decrease in risk for
+the combination therapy levamisole + 5FU, and, as expected,
+large effects for the number of lymph nodes and the
+extent of disease. The reduction in standard error between
+the model based and robust variance is almost $\sqrt{2}$,
+which is what we would get if the two outcomes were perfectly
+redundant.
+A per subject random effect is not sensible when there is
+only 1 event per subject, which is what we effectively have.
+Nevertheless, we will fit and examine the result.    %'
+<<>>=
+cfit2 <- coxme(Surv(time, status) ~ rx + nodes + extent + 
+               strata(etype) + (1|id), colon,
+               refine.n=500, refine.detail=TRUE)
+print(cfit2)
+
+round(quantile(ranef(cfit2)[[1]], 0:8/8), 2)
+@ 
+The variance of the random effects is very large at 8.2.
+In fact, it is not clear that a mixed effects model is advisable
+for this data at all:  with only 2 observations per $b_i$ the
+variance of $b$ is only poorly determined. 
+Subjects have estimated random effects of $\exp(-6.3)< .02$ (nearly
+immortal) to $\exp(9.1)\approx 9000$ (dies before getting out
+of the building) which are biologically implausible.
+But as an edge case, it is a particularly severe test of the
+Laplace approximation. 
+
+Shun and McCullaugh \cite{Shun95} suggest that the ordinary
+Laplace approximation will be sufficient when the degrees of
+freedom for the random effect is $o(\sqrt[3]{n})$.
+For survival models experience with other cases 
+suggests that the appropriate $n$ for such calculations is
+the number of deaths.
+This gives about 10 df for the random effect + 4 for the fixed
+effects or 14 overall; \code{fit2} above gives an approximate
+degrees of freedom of 731.  
+
+\begin{figure}[tb]
+<<fig=TRUE, echo=FALSE, include=TRUE>>=
+dt <- cfit2$refine.detail
+e1 <- (dt$loglik - dt$penalty1) + (dt$gdens - dt$tdens)
+e2 <- (cfit2$loglik[3] - dt$penalty2) + (dt$gdens - dt$tdens)
+ktemp <- cfit2$loglik[3]
+plot(ktemp -e1, ktemp -e2, log='xy', 
+     xlab= "-1*(penalized loglik - max)", ylab="-1* (quadratic - max)")
+abline(0,1, lty=2)
+@ 
+\caption{The penalized likelihood term (horizontal) versus the
+         its approximation (vertical) for the colon cancer data}.
+\label{figcolon1}
+\end{figure}
+
+% Profile likelihoods
+\begin{figure}[tb]
+<<fig=TRUE, echo=FALSE, include=TRUE>>=
+zz <- seq(-5, 5, length=50)
+tmat <- array(0, dim=c(50,4,2))
+b <- ranef(cfit2)[[1]]
+tdata <- na.omit(colon[,c("time", "status", "rx", "nodes", "extent", "etype")])
+fixef <- cbind(1*(tdata$rx=="Lev"), 1*(tdata$rx=="Lev+5FU"),
+               tdata$nodes, tdata$extent) %*% fixef(cfit2)
+vv <- 2*VarCorr(cfit2)[[1]]
+hmatbb <- cfit2$hmat[1:length(b), 1:length(b)]
+for (i in 1:4) { # first 4 subjects
+    for (j in 1:50){ # over the trial values
+        b2 <- b; b2[i] <- zz[j]
+        tfit <- coxph(Surv(time, status) ~ offset(fixef + rep(b2, each=2)) +
+                      strata(etype), tdata)
+        tmat[j,i,1] <- tfit$loglik - sum(b2^2)/vv
+        tmat[j,i,2] <- cfit2$loglik[3] - sum(((b2-b)%*% hmatbb)^2)
+    }
+}
+matplot(zz, tmat[,1,], col=1:4, lty=1, lwd=2,
+        type='l', xlab="b[1]", ylab="Penalized likelihood")
+@ 
+\caption{The profile of the penalized likelihood with respect to the
+ first random effect is in black, holding all other coefficients at
+         their maximum.  The quadratic approximation is in red.}
+\label{figcolon2}
+\end{figure}
+
+Figure \ref{figcolon1} shows that the approximation has
+completely failed in this case.
+With respect to $b$, it turns out that the profiles of the
+Cox partial likelihood are not even close to quadratic, since
+each individual $b_i$ is based on only two observations.
+The profile for the first random coefficient $b_1$ is
+shown in figure \ref{figcolon2}.
+This is a subject with 2 events, the approximations for
+those with 0 or 1 are even less satisfactory.
+
+\section{Conclusions}
+For a large number of data sets the Laplace approximation will be
+perfectly adequate.  
+However, for the case of a per-subject random effect the profile
+likelihoods are far from quadratic unless we have a rich interconnection
+of coefficients such as familial structure.
+Users are encouraged to check the adequacy of the model.
+
+
+\begin{thebibliography}{9}
+  \bibitem{Shun95} Z. Shun and P. McCullaugh, The Laplace approximation for 
+    high dimensional integrals, JRSSB 57:749--760, 1995.
+  \bibitem{Hall05} P. Hall and J.S. Marron and A Neeman, Geometric  representation
+    of high dimension, low sample size data. JRSSB: 67, 427--444, 2005.
+\end{thebibliography}
+\end{document}
+

@@ -1,5 +1,28 @@
 \name{NEWS}
 \title{NEWS file for the coxme package}
+\section{Changes in version 2.2}{
+  \itemize{
+    \item Create vignettes for the laplace approximation and lmekin.
+    In the process changed the way in which the refine.n option works.
+    It is now more robust.
+    
+    \item Fix two bugs in the return values, caused by incorrect mapping
+    of the b coefficients into the final output, when there were
+    multiple random terms in the model.  (The fit was correct.  One bug
+    the returned ranef(fit) to be incorrectly ordered, the other led to NA
+    in the linear.predictor.)
+    
+    \item Fix a bug noted by Lawrence Hunsicker: if a model had no fixed
+    covariates or only an offset, the gridsearch for starting values
+    would always declare failure.  One variable was mistakenly NA.
+
+    \item Add a new version of lmekin to the package.  This also marks
+    the start of a conversion to use of the Matrix library.
+
+    \item Change the definition of ranef and add VarCorr so as to match
+    the usage in lme and lmer.  This will break some old code, but will
+    save much heartache in the long term.  Add a vcov method as well.
+    }}
 \section{Changes in version 2.1-3}{
   \itemize{
     \item Further interaction with Gabor Mezaros and his huge data set

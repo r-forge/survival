@@ -6,8 +6,8 @@
 \setlength{\evensidemargin}{\oddsidemargin}
 
 \SweaveOpts{keep.source=TRUE}
-%\VignetteIndexEntry{Special Variance Stuctures}
-%\VignetteDependes{survival}
+%\VignetteIndexEntry{Special Variance Structures}
+%\VignetteDepends{coxme}
 
 \title{Creating Special Variance Structures for Coxme} 
 
@@ -49,6 +49,8 @@ the utilization of questionnaires, where all
 of the questions in a particular domain are summed to get an overall score
 for that domain which is then used as a covariate in a model.
 When $\rho=0$ it becomes simple $L_2$ shrinkage of the coefficients.
+The above model allows for a fit where the coefficients for a gene set are
+constrained to be close to each other, but not identical.
 
 The coxme code for this model will be 
 <<eval=FALSE, echo=TRUE>>=
@@ -94,7 +96,7 @@ Input arguments are
     by the user.  For instance adding the clause 
     \texttt{vfixed=list(rho=.4)} could be used to fit a model where $\rho$
     is fixed at 0.4.
-  \item intercept: Signals that the term include random intercepts per
+  \item intercept: Signals that the term includes random intercepts per
     group.  This would be true
     for a term like \texttt{(1+ trt | site)}, but is invalid 
     for this variance function (there are no groups).
@@ -162,11 +164,11 @@ geinit <- function(vinit, vfixed, intercept, G, X, sparse) {
 The first six lines check that this variance structure is relevant for
 the random term as specified.   
 The next block of statements processes any initial values for the parameters.
-The parameter vector as a whole is $\theta=(\sigma^2, \rho)$ =''theta''.
+The parameter vector as a whole is $\theta=(\sigma^2, \rho)$ =``theta''.
 If no initial values were given then a default grid of values for the
 initial search is $\sigma=.05, .2, .6$ and $\rho= .01, .5, .9$.
-Note that the final $\theta$ is always a list, even if all the elements
-have a search list of length 1.
+Note that the final $\theta$ must be formatted as a list, 
+even if $\sigma$ and $\rho$ were each a single value.
 
 The next block of lines checks for any fixed parameters.  If any are found
 the corresponding elements of \texttt{which.fixed} are set and the initial
@@ -229,7 +231,7 @@ towards 0 as a solution.
 In this case a race condition ensues.  As $\log(\sigma^2)$
 goes to $-\infty$ in the maximizer, the variance matrix $V$ approaches
 singularity while the random coefficients $b$ approach zero.
-Since the parial log-likelihood (PL) depends only on the linear predictor
+Since the partial log-likelihood (PL) depends only on the linear predictor
 $X\beta + Zb$ it quickly asymptotes to a its final value which is
 the PL for the fixed effects model $X\beta$.
 Convergence of the PL to within the final tolerance gives successful
@@ -242,12 +244,12 @@ $\approx$ 2e-12.
 Since the default convergence criteria is larger than the singularity
 tolerance normally all proceeds well: the likelihood is declared to
 converge before singularity occurs.
-However, occassionally the maximizer makes a very large step in the
+However, occasionally the maximizer makes a very large step in the
 negative direction leading to $\log(\sigma^2)$ values that are
 extremely small.  We try to protect against this.
-The Affymetric gene-set for which this routine was developed had
+The Affymetrix gene-set for which this routine was developed had
 values between 6 and 15, which in turn means that any coefficient less
-than about .0001 has a neglibible effect on the linear predictor.
+than about .0001 has a negligible effect on the linear predictor.
 Variances of about $\exp(-20)$ are large enough to avoid issues with
 the matrix inversion, but small enough that the linear predictor will
 have effectively converged: $b$ is are approximately Gaussian with
