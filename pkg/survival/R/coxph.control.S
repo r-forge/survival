@@ -1,4 +1,3 @@
-# $Id$
 #
 # Gather all of the control parameters for coxph into one spot
 #

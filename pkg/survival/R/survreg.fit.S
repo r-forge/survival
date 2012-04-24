@@ -1,5 +1,4 @@
 # 
-#  $Id$
 #  Do the actual fit of a survreg model.  This routine is for the case
 #   of no penalized terms (splines, etc).
 #
