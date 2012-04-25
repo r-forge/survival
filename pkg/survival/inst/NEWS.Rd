@@ -1,5 +1,12 @@
 \name{NEWS}
 \title{NEWS file for the survival package}
+\section{Changes in version 2.36-14}{
+  \itemize {
+    \item A supposedly cosmetic change to coxph in the last release
+    caused formulas with a "." on the right hand side to fail.  Fix this
+    and add a case with "." to the test suite.
+    }}
+
 \section{Changes in version 2.36-13}{
   \itemize{
     \item Add the anova.coxmelist function.  This is in the survival
@@ -8,8 +15,9 @@
     function to be called by way of anova.coxph.
     
     \item More work on "predvars" handling for the pspline function,
-    when used in predict calls.  Add a new test of this to the suite.
-    Fixes a bug pointed out by C Crowson.
+    when used in predict calls.  Add a new test of this to the suite,
+    and the makepredictcall method to the namespace.
+    Fixes a bug pointed out by C Crowson.  
 
     \item Deprecate the "robust" option of coxph.  When there are
     multiple observations per subject it is almost surely the wrong
