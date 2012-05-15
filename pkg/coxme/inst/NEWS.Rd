@@ -1,5 +1,50 @@
 \name{NEWS}
 \title{NEWS file for the coxme package}
+\section{Changes in version 2.2-3}{
+  \itemize{
+    \item A serious bug in lmekin was pointed out by Paola Sebastiani. It occurs
+    whenever the variance matrix of the random effects is not diagonal:
+    in one location I had an upper diagonal matrix U when I needed to
+    have the lower diagonal form U'.  This affects all the genetics
+    models. A test case with non-diagonal variance has been added.  
+    Unfortunately, all of the prior test cases were designed to validate
+    agains lme and thus had diagonal penalty matrices.  Also address a 
+    slowness problem by speeding up the conversion between bdsmatrix and
+    matrix objects.
+
+    \item Change the default in coxmeMlist to rescale=FALSE.  For
+    kinship matrices, which have a diagonal of 1/2, automatic rescaling
+    was a handy feature.  For other types of matrices, e.g., a smoothing
+    spline example currently in development, it causes much confusion.
+
+    \item Add an anova method.
+}}
+
+\section{Changes in version 2.2-2}{
+  \itemize{
+    \item Add a genetic example to the lmekin vignette.
+    
+    \item Add dimnames to the result of vcov, per the suggestion of
+    Joshua Wiley
+
+    \item Fix an indexing error, when there were multiple random terms
+    and the first of them had only sparse intercept terms, then
+    entries for the second were incorrectly placed in the combined matrix.
+    This is a serious bug, I can only assume that people were not using
+    multiple random terms enough to have encountered it.
+
+    \item Allow for different integration methods in the refine.n code.
+    This is a research question, and the option may disappear once I
+    answer it.
+}}
+
+\section{Changes in version 2.2-1}{
+  \itemize{
+    \item Further refinement to the laplace and coxme vignettes.
+    \item Remove a Makefile from the vignettes directory that was
+    causing errors at CRAN.  Why it didn't lead to errors here is
+    unknown.
+}}
 \section{Changes in version 2.2}{
   \itemize{
     \item Create vignettes for the laplace approximation and lmekin.

@@ -1,5 +1,6 @@
 \documentclass{article}
 \usepackage[pdftex]{graphicx}
+\usepackage{Sweave}
 \usepackage{amsmath}
 \addtolength{\textwidth}{1in}
 \addtolength{\oddsidemargin}{-.5in}
@@ -12,8 +13,6 @@
 
 \newcommand{\myfig}[1]{\resizebox{\textwidth}{!}
                         {\includegraphics{#1.pdf}}}
-
-
 \title{Mixed Effects Cox Models}
 \author{Terry Therneau \\Mayo Clinic}
 
@@ -39,41 +38,75 @@ Cox and linear models, kinship2 contains code for the construction and
 manipulation of pedigree data, and bdsmatrix contains underlying
 routines for block-diagonal sparse matrices.  
 
-Warning! In version 2.2 of the code there was an important change
-which is not backwards compatible with older releases.
-In short, I had an error in the methods.
-$$
-\begin{tabular}{r|cccc} 
-  &\multicolumn{4}{c}{Method} \\
-  &lme & lmer & coxme $<2.2$ & coxme $\ge 2.2$ \\ \hline
-  fixed effects coefficients & fixef & fixef & fixef & fixef \\
-  random effects coefficients& ranef & ranef &  & ranef \\
-  random effects variances   & VarCorr & VarCorr & ranef & VarCorr \\
-\end{tabular}
-$$
-At the same time the internal names of these objects changed in the 
-output structure, again to make the code more parallel to lme.
-For those who had referenced the results using \verb+fit$frail+
-and/or \verb+fit$coef$random+, please use \verb+ranef(fit)+
-and \verb+VarCorr(fit)}+ respectively.
-To all users my sincere apologies for this oversight, which became
-fully apparent when updating lmekin.
-
 \section{Model}
 The coxme function fits the model
 \begin{align*}
   \lambda(t) &= \lambda_0(t) e^{X\beta + Zb} \\
-      b &\sim N(0, \Sigma(\theta))
+      b &\sim G(0, \Sigma(\theta))
 \end{align*}
 where $\lambda_0$ is an unspecified baseline hazard function,
 $X$ and $Z$ are the design matrices for the
 fixed and random effects, respectively,
 $\beta$ is the vector of fixed-effects coefficients and 
 $b$ is the vector of random effects coefficients.
-The random effects are considered to be Gaussian with 
-mean zero and a variance matrix $\Sigma$ described by
+The random effects distribution $G$ is modeled as Gaussian with 
+mean zero and a variance matrix $\Sigma$,
+which in turn depends
 a vector of parameters $\theta$.  
 
+For any fixed values of $\beta$ and $b$ we define the usual
+Cox parial likelihood PL (often labeled as a log-likelihood in
+printouts) as
+\begin{equation*}
+\log[PL(\beta,b))] = \sum_{i=1}^n \int_0^\infty \left[
+     Y_i(t) \eta_i(t) - \log \left(\sum_j Y_j(t)e^{\eta_j(t)} \right)\right]
+\end{equation*}
+where $\eta_i(t) = X_i(t)\beta + Z_i(t)b$ is the linear score for
+subject $i$ at time $t$ and $Y_i(t)$ describes the risk set,
+$Y_i(t) = 1$ if subject $i$ is still under
+observation at time $t$ and 0 otherwise.
+For further details see chapter 3 of Therneau and Grambsch \cite{Therneau00}
+or any other mid-level survival text.     
+
+We can integrate out the random effects to create the integrated partial
+likelihood
+\begin{equation*}
+IPL(\beta, \theta) = \frac{1}{(2\pi)^{q/2}|\Sigma(\theta)|^{1/2}} 
+         \int PPL(\beta, b) e^{-b'\Sigma^{-1}(\theta)b/2}\,db
+\end{equation*} 
+where $q$ is the length of $b$, i.e., the number of random effects.
+Ripatti and Palmgren \cite{Ripatti02} showed that the IPL can be
+treated as a likelihood, just as integrated full likelihoods
+can.  An ML estimate is obtained by joint maximization over
+$\beta$ and $\theta$.
+We can compare a nested set of random or fixed effects Cix
+models using chi-square tests.
+
+The REML estimate is obtained by also integrating out the fixed effects
+\begin{equation*}
+REML(\theta) = \frac{1}{(2\pi)^{q/2}|\Sigma(\theta)|^{1/2}} 
+         \int PPL(\beta, b) e^{-b'\Sigma^{-1}(\theta)b/2}\,db \,d\beta
+\end{equation*}
+The REML estimate is obtained by maximization of this quantity over
+$\theta$.
+As in linear models, the REML estimate cannot be used for testing fixed
+effects, due to the lack of a proper prior distribution for 
+$\beta$.  
+For instance, assume that \texttt{age} were a candidate variable.  The
+REML value for a fit with age in days versus one with age in years
+will differ by the constant $\log(365.25)$;
+this has no impact on the estimate of $\theta$, but makes the comparison
+of two models, one with and one without age, completely arbitrary.
+
+In linear models the REML estimate is often preferred, since practical
+experience has shown it to be more reliable; the ML estimates are often
+  too large.  
+By analogy, some have recommended using a REML estimate for the mixed
+effects Cox model.  However, either theoretical and practical evidence for
+its superiority is sparse.   For one particular estimation problem,
+Cortinas has evidence that the REML estimate has greater bias than
+the ML.  The coxme function currently only provides an ML estimate. 
+ 
 For a very simple fit such as
 <<eval=FALSE, echo=TRUE>>=
 fit1 <- coxme(Surv(endage, cancer) ~ parity + (1| famid))
@@ -113,9 +146,15 @@ stem(table(eortc$center))
 
 efit1 <- coxph(Surv(y, uncens) ~ trt, eortc)
 efit2 <- coxme(Surv(y, uncens) ~ trt + (1|center), eortc)
-efit2
 @ 
-The components of the output are
+Random effects are specified in the formula by a parenthesised
+expression which contains a vertical bar separating effects on
+the left from grouping variables on the right.
+In the case above we read it as an intercept (effect) per center (group).
+<<>>=
+print(efit2)
+@ 
+The components of the printout are
 \begin{itemize}
   \item The total number of observations and the total number of events 
 (deaths) in the data set.
@@ -124,7 +163,8 @@ for the optim routine and the underlying Newton-Raphson iterations used.
   \item The log partial likelihood for a model with no covariates or random
 effects, the fitted partial likelihood, and the value with the random effects
 integrated out.  We will normally be interested in the null and integrated
-values.
+values.  (The log values are printed, but labeled as PL and IPL for
+brevity).
   \item Likelihood ratio tests based on the integrated and penalized views
 of the model, along with penalized values.  The AIC penalizes by twice the
 effective degrees of freedom, and the BIC by $\log(d)$ times the effective
@@ -144,6 +184,43 @@ fairly substantial (more on this below).
 The difference is $>100$ on one degree of freedom, which is highly
 significant.
 
+Another way to approach the fit is as a penalized model.
+The coefficients are viewed as the solution to a penalized
+problem $\log(PPL(\beta, b)) - \log(PL(\beta,b)) - p(\theta)$
+where the penalty function $p(\theta) =  b'\Sigma^{-1}(\theta)b/2$.
+In this case we use the ordinary $PL$ for assessment, but with
+an effective degrees of freedom which lies somewhere between
+the total number of coefficients $(\beta, b)$ of 38 and the
+degrees of freedom for the fixed effects of 1. 
+For this particular problem $\Sigma(\theta) = \theta I$,
+a multiple of the identity matrix and our penalty is
+$p(\theta) = -1/(2\theta) \sum{j=1}{37} b_j^2$. 
+As the penalty goes to zero the fit will be equivalent
+to treating factor(center) as a fixed effect with degrees
+of freedom equal to 38, 
+as the penalty becomes larger the effective degrees of 
+freedom will decrease.
+In this case a test for the random effects would be based
+on (319.7 - 105.7) on 27.7 degrees of freedom.  
+We do not normally use this test, but the adjusted degrees 
+of freedom is useful in summarizing the fit.
+
+The major components of the model can be extracted via the 
+following functions:
+\begin{center}
+\begin{tabular}{r|ccc} 
+  &\multicolumn{3}{c}{Method} \\
+  &lme/lmer & coxme $<2.2$ & coxme $\ge 2.2$ \\ \hline
+  fixed effects coefficients & fixef & fixef & fixef \\
+  random effects coefficients& ranef &  & ranef \\
+  fixed effects variance matrix& vcov&  & vcov \\
+  random effects parameters ($\theta$)   & VarCorr & ranef & VarCorr 
+\end{tabular}
+\end{center}
+Note that for version 2.2 and greater these follow the
+same pattern as the linear mixed effects models in R;
+prior to version 2.2 the ranef method was incorrectly assigned.
+
 One feature of the mixed effects Cox model is that the
 standard deviation of the random effect is directly
 interpretable.  
@@ -158,6 +235,10 @@ The random effects coefficients can be retrieved using the
 \texttt{ranef} function.
 The code below shows center effects ranging from less than 1/2 to
 over 1.6 times the average risk for the study.
+Because there may be multiple random effects in a model the 
+ranef function returns a list, with one element per random effect.
+We are interested in the first element (only element in this case)
+of the list.
 <<>>=
 stem(exp(ranef(efit2)[[1]]))
 @ 
@@ -173,7 +254,7 @@ amount.
 
 There is one important difference between how random effects in
 coxme and in lmer are handled concerning intercepts.
-Namely, linear models have an implied intercept term.
+Linear models have an implied intercept term.
 Unless explicitly removed, the model \verb!lm(y ~x)! will
 actually fit the model \verb!lm(y ~x +1)!.
 This carries forward into the notation of lmer where a random
@@ -467,21 +548,30 @@ Yet to be written.
  
 
 \begin{thebibliography}{9}
+    \bibitem{Anderson58}
+      V E Anderson, H O Goodman, S C Reed. \emph{Variables related to
+	human breast cancer}.  University of Minnesota Press, 1958.
+
   \bibitem{Grabrick03} D M Grabrick, J R Cerhan, R A Veirkant,
             T M Therneau, J C Cheville, D J Tindall, 
             and T A Sellers, 
             Evaluation of familial clustering of breast and prostate cancer
           in the Minnesota Breast Cancer Family Study,
     \emph{Cancer Detection and Prevention}, 27:30--36, 2003.
-  \bibitem{Sellers99}
+
+\bibitem{Ripatti02}
+  S Ripatti and J Palmgren.  Estimation of multivariate frailty models
+  using penalized partial likelihood.  Biometics 56:1016--1022, 2002.
+     
+\bibitem{Sellers99}
     T A Sellers, R A King, J R Cerhan, P L Chen, D M Grabrick, L H Kushi, 
     W S Oetting, R A Vierkant, C M Vachon, F J Couch, T M Therneau, 
     L C Hartman and V E Anderson.  Fifty year follow-up of cancer
     incidence in a historical cohort of Minnesota breast cancer families.
     \emph{Cancer Epid Biomarkers Prev} 8:1051--7, 1999.
     
-    \bibitem{Anderson58}
-      V E Anderson, H O Goodman, S C Reed. \emph{Variables related to
-	human breast cancer}.  University of Minnesota Press, 1958.
+\bibitem{Therneau00}
+  T M Therneau and P M Grambsch, Modeling Surivival Data: Extending the Cox
+ Model, Springer-Verlag, 2000.    
  \end{thebibliography}
 \end{document}
