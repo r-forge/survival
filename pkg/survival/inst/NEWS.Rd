@@ -1,11 +1,58 @@
 \name{NEWS}
 \title{NEWS file for the survival package}
+\section{Changes in version 2.36-15}{
+  \itemize{
+    \item Fix bug in summary.aareg, which was unhappy (for no cause) if
+    the maxtime option was used for a fit that did not include the
+    dfbeta option.  Pointed out by Asa Johannesen.
+    
+    \item The fitting functions would report an error for a null model
+      (no X variables) if init was specified as numeric(0) rather than NULL.
+    
+    \item Update the description and citation files to use the new
+    "person" function described in the R Journal.
+
+    \item Allow an ordinary vector as the left hand side of survConcordance.
+
+    \item Update anova.coxphlist to reject models with a robust variance.
+ 
+    \item The survfit function had an undocumented backwards-compatability 
+    that allows the newdata argument to be a vector with no names.  An
+    example from Damon Krstajic showed that this no longer works when the
+    original model has a matrix in the formula.  Removed the feature.
+    (This is for survfit.coxph.)
+
+    \item Fix an issue in summary.survfit pointed out by Frank Harrell.  The
+    strata variable for the output always had its labels in sorted order,
+    even when a factor creating the survival curves was otherwise.  (This was
+    due to a call to factor() in the code.)  The print routine would then
+    list curves in sorted order, which might well be contrary to the user's
+    wishes.
+
+    \item Add the anova.coxmelist function to the namespace so that it is
+    visible.
+
+    \item Fix a bug pointed out by Yi Zhang and Mickael Hartweg.
+    If a coxph model used an offset, then a predicted survival curve
+    that used newdata (and the offset variable of course) would be
+    wrong, e.g. survival values > 1.
+    A simple misplaced parenthesis was the cause.
+    A recent paper by Langholz shows how to get absolute survival from
+    case-control data using an offset, which seems to have suddenly made this
+    feature popular.
+
+    \item Per further interaction with Yi Zhang, a few items were
+    missing from the S3methods in the NAMESPACE file: as.matrix.Surv,
+    model.matrix.coxph, model.matrix.survreg, model.frame.survreg.
+}}
+
 \section{Changes in version 2.36-14}{
   \itemize{
     \item A supposedly cosmetic change to coxph in the last release
-    caused formulas with a "." on the right hand side to fail.  Fix this
-    and add a case with "." to the test suite.
-    }}
+	caused formulas with a "." on the right hand side to fail.  Fix this
+	and add a case with "." to the test suite.
+      }
+    }
 
 \section{Changes in version 2.36-13}{
   \itemize{
