@@ -10,6 +10,16 @@ plot.survfit<- function(x, conf.int,  mark.time=TRUE,
     if (any(dotnames=='type'))
         stop("The graphical argument 'type' is not allowed")
     
+    if (inherits(x, "survfitms")) {
+        x$surv <- 1- x$prev
+        if (is.matrix(x$surv)) dimnames(x$surv) <- list(NULL, x$states)
+        if (!is.null(x$lower)) {
+            x$lower <- 1- x$lower
+            x$upper <- 1- x$upper
+        }
+        if (missing(fun)) fun <- "event"
+    }
+
     if (is.logical(log)) {
 	logy <- log
 	logx <- FALSE
@@ -22,7 +32,11 @@ plot.survfit<- function(x, conf.int,  mark.time=TRUE,
 	logax  <- log
         }
 
-    if (missing(firstx)) {
+    if (missing(firsty) & x$type=="mright" || x$type=="mcounting") {
+        firsty <- NA
+        firstx <- min(x$time)
+    }
+    else if (missing(firstx)) {
 	if (!is.null(x$start.time)) 
 	     firstx <- x$start.time
 	else {
@@ -36,10 +50,7 @@ plot.survfit<- function(x, conf.int,  mark.time=TRUE,
     # The special x axis style only applies when firstx is not given
     if (missing(xaxs) && firstx!=0) xaxs<- par('xaxs')  # use the default
 
-    if (!inherits(x, 'survfit'))
-	    stop("First arg must be the result of survfit")
-
-    if (missing(conf.int)) {
+     if (missing(conf.int)) {
 	if (is.null(x$strata) && !is.matrix(x$surv)) conf.int <-TRUE
 	else conf.int <- FALSE
         }
@@ -227,11 +238,11 @@ plot.survfit<- function(x, conf.int,  mark.time=TRUE,
 	who <- (stemp==j)
 	xx <- c(firstx, stime[who])
 	nn <- length(xx)
-	if (x$type == 'counting') {
+	if (x$type == 'counting' || x$type=="mcounting") {
 	    deaths <- c(-1, x$n.censor[who])
 	    zero.one <- 1
 	    }
-	else if (x$type == 'right') {
+	else if (x$type == 'right' || x$type == "mright") {
 	    deaths <- c(-1, x$n.event[who])
 	    zero.one <- 0
 	    }

@@ -1,4 +1,3 @@
-# $Id$
 # The summary routine for aareg models.
 # A lot of the work below relates to one particular issue: the coeffients
 #  of an aareg model often get "wild" near the end (at the largest times).
