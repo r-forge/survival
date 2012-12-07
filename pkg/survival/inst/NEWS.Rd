@@ -1,9 +1,15 @@
 \name{NEWS}
 \title{NEWS file for the survival package}
+\section{Changes in version 2.37-2}{
+  \itemize{
+    \item Two bugs were turned up by running tests for all the
+    packages that depend on survival (158 of them).
+}}
 \section{Changes in version 2.37-1}{
   \itemize{
     \item Add a new multi-state type to the Surv object.  Update the
-    survfit routine to work with it, and add a proper variance.
+    survfit routine to work with it.  The major change is addition
+    of a proper variance for this case.
     More functionality is planned.
     
     \item Remove the fr_colon.R test program.  It tests an ability that

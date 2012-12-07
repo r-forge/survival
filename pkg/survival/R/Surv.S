@@ -226,7 +226,3 @@ as.matrix.Surv <- function(x, ...) {
     attr(y, "states") <- NULL
     y
     }
-
-# if the definition below isn't present, then is.matrix(x) is a no-op when
-#  x is a survival object
-is.matrix.Surv <- function(x) FALSE  
