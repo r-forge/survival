@@ -8,6 +8,7 @@ PARTS = main.Rnw \
 	survexp.Rnw \
 	pyears.Rnw \
 	residuals.survreg.Rnw \
+	survfit.Rnw \
 	survfitCI.Rnw \
 	msurv.nw \
 	survfitms.Rnw \
@@ -24,6 +25,7 @@ SFUN =  agsurv.R \
 	survConcordance.R \
 	survConcordance.fit.R \
 	survexp.R \
+	survfit.R \
 	survfitCI.R \
 	survfit.coxph.R \
 	survfitcoxph.fit.R \
@@ -39,22 +41,22 @@ RFUN = $(SFUN:%=$(RDIR)/%)
 CFUN2= $(CFUN:%=../src/%)
 DOCDIR= ../inst/doc
 
-all:  doc fun
+all:  noweb.sty doc fun
 
 doc: $(DOCDIR)/sourcecode.pdf
 
 $(DOCDIR)/sourcecode.pdf: all.pdf
 	cp all.pdf $(DOCDIR)/sourcecode.pdf
 
-all.pdf: all.tex
-	pdflatex all   #twice to get the table of contents right
-	pdflatex all
+all.pdf: all.tex noweb.sty
+	texi2dvi --pdf all.tex
 
 all.nw: $(PARTS)
 	cat $(PARTS) > all.nw
 
 all.tex: all.nw
-	noweave -delay all.nw > all.tex
+	echo "library(noweb); noweave('all.nw')" | $(R_HOME)/bin$(R_ARCH_BIN)/R --vanilla --slave
+#	noweave -delay all.nw > all.tex
 
 $(SFUN): all.nw
 $(CFUN): all.nw
@@ -69,26 +71,26 @@ test: $(RFUN)
 
 %.R: 
 	echo "# Automatically generated from all.nw using noweb" > $@
-	echo "source('noweb.R'); print(notangle(nwread('all.nw'), target='$(*F)'), file='zz')" | $(R_HOME)/bin$(R_ARCH_BIN)/R --vanilla --slave
+	echo "require(noweb); notangle('all.nw', target='$(*F)', out='zz')" | $(R_HOME)/bin$(R_ARCH_BIN)/R --vanilla --slave
 	cat zz >> $@
 	rm zz
-#	notangle -R$(*F) all.nw >> $@
 
 %.S: 
 	echo "# Automatically generated from all.nw using noweb" > $@
-	echo "source('noweb.R'); print(notangle(nwread('all.nw'), target='$(*F)'), file='zz')" | $(R_HOME)/bin$(R_ARCH_BIN)/R   --vanilla --slave
+	echo "require(noweb); notangle('all.nw', target='$(*F)', out='zz')" | $(R_HOME)/bin$(R_ARCH_BIN)/R --vanilla --slave
 	cat zz >> $@
 	rm zz
-#	notangle -R$(*F) all.nw >> $@
 
 %.c: 
 	echo "/* Automatically generated from all.nw using noweb */" > $@
-	echo "source('noweb.R'); print(notangle(nwread('all.nw'), target='$(*F)'), file='zz')" |  $(R_HOME)/bin$(R_ARCH_BIN)/R  --vanilla --slave
+	echo "require(noweb); notangle('all.nw', target='$(*F)', out='zz')" | $(R_HOME)/bin$(R_ARCH_BIN)/R --vanilla --slave
 	cat zz >> $@
 	rm zz
-#	notangle -R$(*F) all.nw >> $@
-
 clean:
 	-rm all.nw all.log all.aux all.toc all.tex 
 	-rm $(RFUN)
 	-rm $(CFUN2)
+	-rm noweb.sty
+
+noweb.sty:
+	echo 'library(noweb); data(noweb); cat(noweb.sty, sep="\n", file="noweb.sty")' |  $(R_HOME)/bin$(R_ARCH_BIN)/R --vanilla --slave

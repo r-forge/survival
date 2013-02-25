@@ -48,6 +48,12 @@ survfitCI <- function(X, Y, weights, id, istate,
 #        warning("Only the infinetesimal jackknife error is supported for CI curves")
     conf.type <- match.arg(conf.type)
     conf.lower<- match.arg(conf.lower)
+    if (is.logical(conf.int)) {
+        # A common error is for users to use "conf.int = FALSE"
+        #  it's illegal per documentation, but be kind
+        if (!conf.int) conf.type <- "none"
+        conf.int <- .95
+    }
 
     type <- attr(Y, "type")
     if (type !='mright' && type!='mcounting' && 
@@ -120,6 +126,7 @@ The statename vector is not modified.
          }
     }
     else {
+        <<survfitCI-idcheck>>
         <<survfitCI-startstop>>
     }
 
@@ -280,7 +287,7 @@ We want to ensure that a subject's weight is fixed, that they have a
 continuous period of observation, and that they don't
 transfer from a state to itself.
 
-<<survfitCI-startstop>>=
+<<survfitCI-idcheck>>=
 if (missing(id) || is.null(id))
     stop("the id argument is required for start:stop data")
 
@@ -307,7 +314,9 @@ if (any(same & weights[indx1] != weights[indx2])) {
     who <-  1 + min(which(same & weights[indx1] != weights[indx2]))
     stop("subject changes case weights, id ", (id[indx1])[who])
 }
+@ 
 
+<<survfitCI-startstop>>=
 # We only want to pay attention to the istate variable for the very first
 #  observation of any given subject, but the program logic does better with
 #  a full one.  So construct one that will do this
@@ -432,7 +441,7 @@ docurve2 <- function(entry, etime, status, istate, wt, states, id, se.fit) {
     storage.mode(cstate) <- "integer"
     storage.mode(status) <- "integer"
     # C code has 0 based subscripts
-    fit <- .Call("survfitci", ftime, 
+    fit <- .Call(Csurvfitci, ftime, 
                  order(ftime[,1]) - 1L,
                  order(ftime[,2]) - 1L,
                  length(timeset),
