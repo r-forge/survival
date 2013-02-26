@@ -1,4 +1,3 @@
-# $Id$
 survdiff.fit <- function(y, x, strat, rho=0) {
     #
     # This routine is almost always called from survdiff

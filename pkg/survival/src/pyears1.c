@@ -1,4 +1,3 @@
-/* $Id$ */
 /*
 **  Person-years calculations, in its most general
 **

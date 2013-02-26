@@ -1,4 +1,3 @@
-# $Id$
 #
 # A Wald test routine, used by the Cox model
 #  Why not just do  sum(b * solve(var, b))? -- because the solve

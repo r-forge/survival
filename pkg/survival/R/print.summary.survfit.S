@@ -1,4 +1,3 @@
-# $Id$
 print.summary.survfit <- function(x, 
 				  digits = max(options()$digits - 4, 3), ...) {
     savedig <- options(digits=digits)

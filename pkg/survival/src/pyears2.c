@@ -1,4 +1,3 @@
-/* $Id$ */
 /*
 **  Person-years calculations.
 **     same as pyears1, but no expected rates
