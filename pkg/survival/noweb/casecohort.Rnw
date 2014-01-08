@@ -1,70 +1,178 @@
-### Suite of programs for case-cohort analysis
-### Main program
+\section{Case-cohort models}
+Prentice proposed a case-cohort design for large survey studies such
+as the Women's Health Study, where the population size makes it infeasable
+to collect data on all of the cases.  
+In this case we might collect data on a random subcohort $SC$ of the full
+cohort of subjects $C$ along with information on all subjects $E$ who experience
+an event.
+Let $n$ be the size of the full cohort, $m$ the size of the subcohort $SC$ and
+$d$ be the number of events.  
 
-cch <- function(formula, data=sys.parent(), subcoh, id, stratum=NULL, cohort.size, 
+Let $x$ be the covariate vector.  The kernel of the Cox model's score equation
+has a term for each event $i$ of $x_i(t_i) - \bar{x}(t_i)$ where 
+$\bar{x}$ is the mean of all subjects at risk at that time.  
+In a case-cohort data set the naive estimate of $\bar{x}$ based on the
+available data will not be correct since the data set is enriched for deaths.
+The methods below all use a Cox model as the base, but ``fix up'' the result
+to correct for this bias.
+
+<<cch>>=
+cch <- function(formula, data, weights, subset, na.action,
+                subcoh, id, stratum, cohort.size, 
                 method=c("Prentice", "SelfPrentice", "LinYing","I.Borgan","II.Borgan"),
                 robust=FALSE){
-    call <- match.call()
+    Call <- match.call()
+    method <- match.arg(method)
     
-    if (is.data.frame(data)){
-        if (inherits(id,"formula"))
-            id<-model.frame(id,data,na.action=na.fail)[,1]
-        if (inherits(subcoh,"formula"))
-            subcoh<-model.frame(subcoh,data,na.action=na.fail)[,1]
-        if (inherits(stratum,"formula"))
-            stratum<-model.frame(stratum,data,na.action=na.fail)[,1]
-    }
+    <<cch-process-args>>
+    <<cch-setup-data>>
+    <<cch-fit>>
+    <<cch-finish>>
+}
+@ 
 
-    ## Check id, subcoh and cohort.size variables
-    if(length(id)!=length(unique(id)))
-        stop("Multiple records per id not allowed")
-    if (is.logical(subcoh))
-        subcoh <- as.numeric(subcoh)
-    tt <- table(subcoh)
-    if(min(charmatch(names(tt), c("0","1"), 0))==0)
-        stop("Permissible values for subcohort indicator are 0/1 or TRUE/FALSE")
-    if(length(id)>sum(cohort.size))
-        stop("Number of records greater than cohort size")
-    nn <- cohort.size	
-    method<-match.arg(method)
-    stratified<-method %in% c("I.Borgan","II.Borgan")
-    if (!is.null(stratum))
-        stratum<-factor(stratum)
-    if (stratified){
-        if (robust)
-            warning("`robust' not implemented for stratified analysis.")
-        if (is.null(stratum))
-            stop("method (",method,") requires 'stratum'")
-        if (length(cohort.size)!=length(levels(stratum)))
+The call processing is a little unusual due to backwards compatability with
+an older version of the program which used separate model statements for
+each of the [[subcoh]], [[id]], and [[stratum]] arguments.
+This was a bad design because it does not properly handle missing values.
+The obvious way to check this is [[is.formula(subcoh)]] but that would start
+by retrieving the subcoh argument, which will fail if the variable is part
+of the data frame.
+Instead we have to parse the call itself and look for a tilde.  If there
+is one, then we add this to the current formula minus the tilde, otherwise
+add the argument as is.
+<<cch-process-args>>=
+addterm <- function(oldform, new) {
+    j <- length(oldform)
+    oldform[[j]] <- call("+", oldform[[j]], new[[2]])
+}
+newterm <- list()
+
+if (missing(subcoh)) stop ("the subcoh argument is required")
+else {
+    if (is.call(Call$subcoh) && Call$subcoh[[1]] == as.name("~")) 
+        newterm$subcoh <- Call$subcoh[[2]]
+    else newterm$subcoh <- Call$subcoh
+}
+if (!missing(id)){
+    if (is.call(Call$id) && Call$id[[1]] == as.name("~")) 
+        newterm$id <- Call$id[[2]]
+    else newterm$id <- Call$id
+}
+if (!missing(stratum)) {
+    if (is.call(Call$stratum) && call$stratum[[i]] == as.name("~"))
+        newterm$stratum <- Call$stratum[[2]]
+    else newterm$stratum <- Call$stratum
+}
+
+newform <- formula
+for (i in newterm) newform <- addterm(newform, newterm)
+    
+# Formulas can also have cluster and strata terms in them
+# The next few lines are standard and almost identical to coxph
+indx <- match(c("formula", "data", "weights", "subset", "na.action"),
+              names(Call), nomatch=0) 
+if (indx[1] ==0) stop("A formula argument is required")
+temp <- Call[c(1,indx)]  # only keep the arguments we wanted
+temp[[1]] <- as.name('model.frame')  # change the function called
+    
+special <- c("strata", "cluster")
+temp$formula <- if(missing(data)) terms(newform, special)
+                else              terms(newform, special, data=data)
+mf <- eval(temp, parent.frame())
+Terms <- terms(mf)
+@ 
+
+Now do a sanity check: squawk if they had both an id argument and
+a cluster term, or both a stratum argument and a strata term.
+<<cch-process-args>>=
+extras <- seq(length=length(newterm), to=length(mf))
+names(extras) <- names(newterm)
+
+tdrop <- extras
+if (!is.null(attr(Terms, "specials")$id)) {
+    if (!is.null(newterm$id)) 
+        stop("cannot have both an id argument and a cluster term in the formula")
+    temp <- untangle.specials(Terms, "cluster")
+    id <- m[[temp$vars]]
+    tdrop <- c(tdrop, temp$terms)  #to be dropped later
+}
+else id <- mf[[extras["id"]]]  #will usually be NULL
+
+if (!is.null(attr(Terms, "specials")$strata)) {
+    if (!is.null(newterms$stratum))
+        stop("cannot have both a stratum argument and a strata term in the formula")
+    temp <- untangle.specials(Terms, "strata")
+    if (length(temp$vars)==1) strata <- m[[stemp$vars]]
+    else strata <- strata(m[, temp$vars], shortlabel=TRUE)
+    tdrop <- c(tdrop, temp$terms)
+}
+else strata <- mf[[extras["stratum"]]]
+
+subcoh <- mf[[extras["subcoh"]]]
+                  
+Terms <- Terms[-tdrop]
+@ 
+
+Now do a few checks on the retrieved variables
+<<cch-process args>>=
+n <- nrow(mf)  #number of observations
+if (is.logical(subcoh)) subcoh <- as.numeric(subcoh)
+if (!all(subcoh %in% 0:1))
+    stop("subcoh values must be 0/1 or FALSE/TRUE")
+if (n > sum(cohort.size))
+    stop("number of records is greater than the cohort size")
+
+if (!is.null(strata)) {
+    if (method == "Prentice") method <- "I.Borgan"
+    if (method == "Self-Prentice") method <- "II.Borgan"
+    if (!(method %in% c("I.Borgan", "II.Borgan")))
+        stop("invalid method for stratified data")
+    strata <- as.factor(strata)
+    if (length(cohort.size)!=length(levels(strata)))
             stop("cohort.size and stratum do not match")
-        if (!(all(levels(stratum) %in% names(cohort.size))))
-            warning("stratum levels and names(cohort.size) do not agree")
-        subcohort.sizes<-table(stratum)
-    } else if(!stratified) {
-        if (!(method =="LinYing") && robust)
-            warning("`robust' ignored for  method (",method,")")
-        if (!is.null(stratum))
-            warning("'stratum' ignored for method (",method,")")
-        if (length(cohort.size)!=1)
+    subcohort.sizes <- table(strata)
+}
+else {
+    if (length(cohort.size)!=1)
             stop("cohort size must be a scalar for unstratified analysis")
-        subcohort.sizes<-length(id)
-    }
-    if (any(subcohort.sizes>cohort.size))
-        stop("Population smaller than sample in some strata")
-    ## Evaluate model formula
-    m <- match.call(expand.dots=FALSE)
-    m$method <- m$cohort.size <- m$id <- m$subcoh <- m$stratum <-m$robust<- NULL
-    m[[1]] <- as.name("model.frame")
-    m <- eval(m,sys.parent())
-    Terms <- attr(m,"terms")
-    Y <- model.extract(m, "response")
-    if(!inherits(Y, "Surv"))
-        stop("Response must be a survival object")
-    type <- attr(Y, "type")
-    itype<-charmatch(type,c("right","counting"),nomatch=0)
-    cens<-switch(itype+1,
-                 stop(paste("Cox model doesn't support \"", type, "\" survival data", sep = "")),
-                 Y[,2],
+    subcohort.sizes <- n
+}
+if (robust && method != "LinYing") 
+    warning ("robust option ignored for this method")
+
+if (!is.null(id) && any(duplicated(id))) 
+    stop ("multiple records per id not allowed")
+@ 
+
+Now create the data set that will be used for the calls to the underlying
+coxph code.  It will be a (start, stop] data set, even if the input data
+is not.
+
+<<cch-setup-data>>=
+Y <-  model.extract(m, "response")
+if(!inherits(Y, "Surv"))
+    stop("Response must be a survival object")
+ytype <- attr(Y, "type")
+if (!ytype %in% c("right", "counting"))
+    stop("Cox model doesn't support \"", type, "\" survival data")
+if (ytype == "right") 
+    cdata <- data.frame(tstart= rep(0., n),
+                        tstop = Y[,1],
+                        cens  = Y[,2],
+                        X = model.matrix(Terms, mf)[, -1, drop=FALSE)
+else cdata <- data.frame(tstart= Y[,1],
+                         tstop = Y[,2],
+                         cens =  Y[,3],
+                         X = model.matrix(Terms, mf[, -1, drop=FALSE)))
+
+if (any (!subcoh & cens==0))
+    stop ("every observation should either be in the subcohort or be an event")
+
+
+
+@ 
+
                  Y[,3])
     if (any(!subcoh & !cens))
         stop(sum(!subcoh & !cens),"censored observations not in subcohort")
